@@ -87,7 +87,8 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(ctx context.Context, d *s
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setUtmProfileWebFLocal(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setUtmProfileWebFLocal(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -98,41 +99,41 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(ctx context.Context, d *s
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
 			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Get("name").(string), clt, junSess)
+	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if utmProfileWebFLocalExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
 			"%v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setUtmProfileWebFLocal(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmProfileWebFLocal(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_utm_profile_web_filtering_juniper_local", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_utm_profile_web_filtering_juniper_local")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	utmProfileWebFLocalExists, err = checkUtmProfileWebFLocalExists(d.Get("name").(string), clt, junSess)
+	utmProfileWebFLocalExists, err = checkUtmProfileWebFLocalExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -143,7 +144,7 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(ctx context.Context, d *s
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityUtmProfileWebFilteringLocalReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmProfileWebFilteringLocalReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmProfileWebFilteringLocalRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -153,16 +154,16 @@ func resourceSecurityUtmProfileWebFilteringLocalRead(ctx context.Context, d *sch
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityUtmProfileWebFilteringLocalReadWJunSess(d, clt, junSess)
+	return resourceSecurityUtmProfileWebFilteringLocalReadWJunSess(d, junSess)
 }
 
 func resourceSecurityUtmProfileWebFilteringLocalReadWJunSess(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Get("name").(string), clt, junSess)
+	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -181,10 +182,11 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(ctx context.Context, d *s
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delUtmProfileWebFLocal(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmProfileWebFLocal(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setUtmProfileWebFLocal(d, clt, nil); err != nil {
+		if err := setUtmProfileWebFLocal(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -195,38 +197,39 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(ctx context.Context, d *s
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmProfileWebFLocal(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmProfileWebFLocal(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setUtmProfileWebFLocal(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmProfileWebFLocal(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_utm_profile_web_filtering_juniper_local", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_utm_profile_web_filtering_juniper_local")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityUtmProfileWebFilteringLocalReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmProfileWebFilteringLocalReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmProfileWebFilteringLocalDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delUtmProfileWebFLocal(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmProfileWebFLocal(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -236,20 +239,20 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(ctx context.Context, d *s
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmProfileWebFLocal(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmProfileWebFLocal(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_utm_profile_web_filtering_juniper_local", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_utm_profile_web_filtering_juniper_local")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -264,9 +267,9 @@ func resourceSecurityUtmProfileWebFilteringLocalImport(ctx context.Context, d *s
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Id(), clt, junSess)
+	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +277,7 @@ func resourceSecurityUtmProfileWebFilteringLocalImport(ctx context.Context, d *s
 		return nil, fmt.Errorf("don't find security utm feature-profile web-filtering juniper-local with id "+
 			"'%v' (id must be <name>)", d.Id())
 	}
-	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Id(), clt, junSess)
+	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -285,9 +288,9 @@ func resourceSecurityUtmProfileWebFilteringLocalImport(ctx context.Context, d *s
 	return result, nil
 }
 
-func checkUtmProfileWebFLocalExists(profile string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm feature-profile web-filtering juniper-local profile \""+profile+"\""+junos.PipeDisplaySet, junSess)
+func checkUtmProfileWebFLocalExists(profile string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm feature-profile web-filtering juniper-local profile \"" + profile + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -298,7 +301,7 @@ func checkUtmProfileWebFLocalExists(profile string, clt *junos.Client, junSess *
 	return true, nil
 }
 
-func setUtmProfileWebFLocal(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setUtmProfileWebFLocal(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security utm feature-profile web-filtering juniper-local " +
@@ -336,15 +339,13 @@ func setUtmProfileWebFLocal(d *schema.ResourceData, clt *junos.Client, junSess *
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readUtmProfileWebFLocal(profile string, clt *junos.Client, junSess *junos.Session,
+func readUtmProfileWebFLocal(profile string, junSess *junos.Session,
 ) (confRead utmProfileWebFilteringLocalOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm feature-profile web-filtering juniper-local profile \""+profile+"\""+junos.PipeDisplaySetRelative,
-		junSess,
-	)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm feature-profile web-filtering juniper-local profile \"" + profile + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -394,12 +395,12 @@ func readUtmProfileWebFLocal(profile string, clt *junos.Client, junSess *junos.S
 	return confRead, nil
 }
 
-func delUtmProfileWebFLocal(profile string, clt *junos.Client, junSess *junos.Session) error {
+func delUtmProfileWebFLocal(profile string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering juniper-local "+
 		"profile \""+profile+"\"")
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillUtmProfileWebFLocalData(

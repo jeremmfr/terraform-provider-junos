@@ -157,7 +157,8 @@ func resourceVlan() *schema.Resource {
 func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setVlan(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setVlan(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -168,36 +169,36 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	vlanExists, err := checkVlansExists(d.Get("name").(string), clt, junSess)
+	vlanExists, err := checkVlansExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if vlanExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("vlan %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setVlan(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setVlan(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_vlan", junSess)
+	warns, err := junSess.CommitConf("create resource junos_vlan")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	vlanExists, err = checkVlansExists(d.Get("name").(string), clt, junSess)
+	vlanExists, err = checkVlansExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -208,7 +209,7 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 			diag.FromErr(fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceVlanReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceVlanReadWJunSess(d, junSess)...)
 }
 
 func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -217,14 +218,14 @@ func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceVlanReadWJunSess(d, clt, junSess)
+	return resourceVlanReadWJunSess(d, junSess)
 }
 
-func resourceVlanReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) diag.Diagnostics {
+func resourceVlanReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
 	mutex.Lock()
-	vlanOptions, err := readVlan(d.Get("name").(string), clt, junSess)
+	vlanOptions, err := readVlan(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -242,15 +243,16 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if d.HasChange("vxlan") {
 			oldVxlan, _ := d.GetChange("vxlan")
-			if err := delVlan(d.Get("name").(string), oldVxlan.([]interface{}), clt, nil); err != nil {
+			if err := delVlan(d.Get("name").(string), oldVxlan.([]interface{}), junSess); err != nil {
 				return diag.FromErr(err)
 			}
-		} else if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), clt, nil); err != nil {
+		} else if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setVlan(d, clt, nil); err != nil {
+		if err := setVlan(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -261,44 +263,45 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.HasChange("vxlan") {
 		oldVxlan, _ := d.GetChange("vxlan")
-		if err := delVlan(d.Get("name").(string), oldVxlan.([]interface{}), clt, junSess); err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		if err := delVlan(d.Get("name").(string), oldVxlan.([]interface{}), junSess); err != nil {
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-	} else if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	} else if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setVlan(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setVlan(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_vlan", junSess)
+	warns, err := junSess.CommitConf("update resource junos_vlan")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceVlanReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceVlanReadWJunSess(d, junSess)...)
 }
 
 func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -308,20 +311,20 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_vlan", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_vlan")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -336,16 +339,16 @@ func resourceVlanImport(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	vlanExists, err := checkVlansExists(d.Id(), clt, junSess)
+	vlanExists, err := checkVlansExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !vlanExists {
 		return nil, fmt.Errorf("don't find vlan with id '%v' (id must be <name>)", d.Id())
 	}
-	vlanOptions, err := readVlan(d.Id(), clt, junSess)
+	vlanOptions, err := readVlan(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -356,8 +359,8 @@ func resourceVlanImport(ctx context.Context, d *schema.ResourceData, m interface
 	return result, nil
 }
 
-func checkVlansExists(vlan string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"vlans "+vlan+junos.PipeDisplaySet, junSess)
+func checkVlansExists(vlan string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "vlans " + vlan + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -368,7 +371,7 @@ func checkVlansExists(vlan string, clt *junos.Client, junSess *junos.Session) (b
 	return true, nil
 }
 
-func setVlan(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setVlan(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set vlans " + d.Get("name").(string) + " "
@@ -433,11 +436,12 @@ func setVlan(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) 
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readVlan(vlan string, clt *junos.Client, junSess *junos.Session) (confRead vlanOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"vlans "+vlan+junos.PipeDisplaySetRelative, junSess)
+func readVlan(vlan string, junSess *junos.Session,
+) (confRead vlanOptions, err error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "vlans " + vlan + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -506,7 +510,7 @@ func readVlan(vlan string, clt *junos.Client, junSess *junos.Session) (confRead 
 					if err != nil {
 						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
 					}
-					showConfigEvpn, err := clt.Command(junos.CmdShowConfig+"protocols evpn"+junos.PipeDisplaySetRelative, junSess)
+					showConfigEvpn, err := junSess.Command(junos.CmdShowConfig + "protocols evpn" + junos.PipeDisplaySetRelative)
 					if err != nil {
 						return confRead, err
 					}
@@ -544,7 +548,7 @@ func readVlan(vlan string, clt *junos.Client, junSess *junos.Session) (confRead 
 	return confRead, nil
 }
 
-func delVlan(vlan string, vxlan []interface{}, clt *junos.Client, junSess *junos.Session) error {
+func delVlan(vlan string, vxlan []interface{}, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete vlans "+vlan)
 	for _, v := range vxlan {
@@ -554,7 +558,7 @@ func delVlan(vlan string, vxlan []interface{}, clt *junos.Client, junSess *junos
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillVlanData(d *schema.ResourceData, vlanOptions vlanOptions) {

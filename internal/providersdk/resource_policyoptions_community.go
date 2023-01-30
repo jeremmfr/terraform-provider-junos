@@ -50,7 +50,8 @@ func resourcePolicyoptionsCommunity() *schema.Resource {
 func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setPolicyoptionsCommunity(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setPolicyoptionsCommunity(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -61,37 +62,37 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Get("name").(string), clt, junSess)
+	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if policyoptsCommunityExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("policy-options community %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setPolicyoptionsCommunity(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setPolicyoptionsCommunity(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_policyoptions_community", junSess)
+	warns, err := junSess.CommitConf("create resource junos_policyoptions_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	policyoptsCommunityExists, err = checkPolicyoptionsCommunityExists(d.Get("name").(string), clt, junSess)
+	policyoptsCommunityExists, err = checkPolicyoptionsCommunityExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -102,7 +103,7 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourcePolicyoptionsCommunityReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourcePolicyoptionsCommunityReadWJunSess(d, junSess)...)
 }
 
 func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -111,15 +112,15 @@ func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceD
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourcePolicyoptionsCommunityReadWJunSess(d, clt, junSess)
+	return resourcePolicyoptionsCommunityReadWJunSess(d, junSess)
 }
 
-func resourcePolicyoptionsCommunityReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourcePolicyoptionsCommunityReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	communityOptions, err := readPolicyoptionsCommunity(d.Get("name").(string), clt, junSess)
+	communityOptions, err := readPolicyoptionsCommunity(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -137,10 +138,11 @@ func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.Resourc
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delPolicyoptionsCommunity(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delPolicyoptionsCommunity(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setPolicyoptionsCommunity(d, clt, nil); err != nil {
+		if err := setPolicyoptionsCommunity(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -151,37 +153,38 @@ func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.Resourc
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsCommunity(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delPolicyoptionsCommunity(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setPolicyoptionsCommunity(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setPolicyoptionsCommunity(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_policyoptions_community", junSess)
+	warns, err := junSess.CommitConf("update resource junos_policyoptions_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourcePolicyoptionsCommunityReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourcePolicyoptionsCommunityReadWJunSess(d, junSess)...)
 }
 
 func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delPolicyoptionsCommunity(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delPolicyoptionsCommunity(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -191,20 +194,20 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsCommunity(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delPolicyoptionsCommunity(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_policyoptions_community", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_policyoptions_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -219,17 +222,17 @@ func resourcePolicyoptionsCommunityImport(ctx context.Context, d *schema.Resourc
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Id(), clt, junSess)
+	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !policyoptsCommunityExists {
 		return nil, fmt.Errorf("don't find policy-options community with id '%v' (id must be <name>)", d.Id())
 	}
-	communityOptions, err := readPolicyoptionsCommunity(d.Id(), clt, junSess)
+	communityOptions, err := readPolicyoptionsCommunity(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -240,8 +243,8 @@ func resourcePolicyoptionsCommunityImport(ctx context.Context, d *schema.Resourc
 	return result, nil
 }
 
-func checkPolicyoptionsCommunityExists(name string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"policy-options community "+name+junos.PipeDisplaySet, junSess)
+func checkPolicyoptionsCommunityExists(name string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "policy-options community " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -252,7 +255,7 @@ func checkPolicyoptionsCommunityExists(name string, clt *junos.Client, junSess *
 	return true, nil
 }
 
-func setPolicyoptionsCommunity(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setPolicyoptionsCommunity(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set policy-options community " + d.Get("name").(string) + " "
@@ -263,13 +266,13 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, clt *junos.Client, junSes
 		configSet = append(configSet, setPrefix+"invert-match")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readPolicyoptionsCommunity(name string, clt *junos.Client, junSess *junos.Session,
+func readPolicyoptionsCommunity(name string, junSess *junos.Session,
 ) (confRead communityOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"policy-options community "+name+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"policy-options community " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -295,11 +298,11 @@ func readPolicyoptionsCommunity(name string, clt *junos.Client, junSess *junos.S
 	return confRead, nil
 }
 
-func delPolicyoptionsCommunity(community string, clt *junos.Client, junSess *junos.Session) error {
+func delPolicyoptionsCommunity(community string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options community "+community)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillPolicyoptionsCommunityData(d *schema.ResourceData, communityOptions communityOptions) {

@@ -122,7 +122,8 @@ func resourceSystemRadiusServer() *schema.Resource {
 func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSystemRadiusServer(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSystemRadiusServer(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("address").(string))
@@ -133,37 +134,37 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	radiusServerExists, err := checkSystemRadiusServerExists(d.Get("address").(string), clt, junSess)
+	radiusServerExists, err := checkSystemRadiusServerExists(d.Get("address").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if radiusServerExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("system radius-server %v already exists", d.Get("address").(string)))...)
 	}
 
-	if err := setSystemRadiusServer(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemRadiusServer(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_system_radius_server", junSess)
+	warns, err := junSess.CommitConf("create resource junos_system_radius_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	radiusServerExists, err = checkSystemRadiusServerExists(d.Get("address").(string), clt, junSess)
+	radiusServerExists, err = checkSystemRadiusServerExists(d.Get("address").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -174,7 +175,7 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 			"=> check your config", d.Get("address").(string)))...)
 	}
 
-	return append(diagWarns, resourceSystemRadiusServerReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemRadiusServerReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemRadiusServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -183,15 +184,15 @@ func resourceSystemRadiusServerRead(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSystemRadiusServerReadWJunSess(d, clt, junSess)
+	return resourceSystemRadiusServerReadWJunSess(d, junSess)
 }
 
-func resourceSystemRadiusServerReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSystemRadiusServerReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	radiusServerOptions, err := readSystemRadiusServer(d.Get("address").(string), clt, junSess)
+	radiusServerOptions, err := readSystemRadiusServer(d.Get("address").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -209,10 +210,11 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSystemRadiusServer(d.Get("address").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSystemRadiusServer(d.Get("address").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemRadiusServer(d, clt, nil); err != nil {
+		if err := setSystemRadiusServer(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -223,37 +225,38 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemRadiusServer(d.Get("address").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSystemRadiusServer(d.Get("address").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemRadiusServer(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemRadiusServer(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_system_radius_server", junSess)
+	warns, err := junSess.CommitConf("update resource junos_system_radius_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemRadiusServerReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemRadiusServerReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSystemRadiusServer(d.Get("address").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSystemRadiusServer(d.Get("address").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -263,20 +266,20 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemRadiusServer(d.Get("address").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSystemRadiusServer(d.Get("address").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_system_radius_server", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_system_radius_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -291,17 +294,17 @@ func resourceSystemRadiusServerImport(ctx context.Context, d *schema.ResourceDat
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	radiusServerExists, err := checkSystemRadiusServerExists(d.Id(), clt, junSess)
+	radiusServerExists, err := checkSystemRadiusServerExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !radiusServerExists {
 		return nil, fmt.Errorf("don't find system radius-server with id '%v' (id must be <address>)", d.Id())
 	}
-	radiusServerOptions, err := readSystemRadiusServer(d.Id(), clt, junSess)
+	radiusServerOptions, err := readSystemRadiusServer(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -312,8 +315,8 @@ func resourceSystemRadiusServerImport(ctx context.Context, d *schema.ResourceDat
 	return result, nil
 }
 
-func checkSystemRadiusServerExists(address string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"system radius-server "+address+junos.PipeDisplaySet, junSess)
+func checkSystemRadiusServerExists(address string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "system radius-server " + address + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -324,7 +327,7 @@ func checkSystemRadiusServerExists(address string, clt *junos.Client, junSess *j
 	return true, nil
 }
 
-func setSystemRadiusServer(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemRadiusServer(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set system radius-server " + d.Get("address").(string)
 	configSet := []string{setPrefix + " secret \"" + d.Get("secret").(string) + "\""}
 
@@ -377,19 +380,17 @@ func setSystemRadiusServer(d *schema.ResourceData, clt *junos.Client, junSess *j
 			strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSystemRadiusServer(address string, clt *junos.Client, junSess *junos.Session,
+func readSystemRadiusServer(address string, junSess *junos.Session,
 ) (confRead radiusServerOptions, err error) {
 	// default -1
 	confRead.accountingRetry = -1
 	confRead.accountingTimeout = -1
 	confRead.maxOutstandingRequests = -1
-	showConfig, err := clt.Command(
-		junos.CmdShowConfig+"system radius-server "+address+junos.PipeDisplaySetRelative,
-		junSess,
-	)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"system radius-server " + address + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -470,11 +471,11 @@ func readSystemRadiusServer(address string, clt *junos.Client, junSess *junos.Se
 	return confRead, nil
 }
 
-func delSystemRadiusServer(address string, clt *junos.Client, junSess *junos.Session) error {
+func delSystemRadiusServer(address string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system radius-server "+address)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSystemRadiusServerData(d *schema.ResourceData, radiusServerOptions radiusServerOptions) {

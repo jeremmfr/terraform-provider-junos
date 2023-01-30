@@ -88,7 +88,8 @@ func resourceVstp() *schema.Resource {
 func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setVstp(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setVstp(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("routing_instance").(string))
@@ -99,40 +100,40 @@ func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	if err := setVstp(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setVstp(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_vstp", junSess)
+	warns, err := junSess.CommitConf("create resource junos_vstp")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId(d.Get("routing_instance").(string))
 
-	return append(diagWarns, resourceVstpReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceVstpReadWJunSess(d, junSess)...)
 }
 
 func resourceVstpRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -141,15 +142,15 @@ func resourceVstpRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceVstpReadWJunSess(d, clt, junSess)
+	return resourceVstpReadWJunSess(d, junSess)
 }
 
-func resourceVstpReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) diag.Diagnostics {
+func resourceVstpReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
 	mutex.Lock()
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
 			mutex.Unlock()
 
@@ -162,7 +163,7 @@ func resourceVstpReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess
 			return nil
 		}
 	}
-	vstpOptions, err := readVstp(d.Get("routing_instance").(string), clt, junSess)
+	vstpOptions, err := readVstp(d.Get("routing_instance").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -176,10 +177,11 @@ func resourceVstpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delVstp(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delVstp(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setVstp(d, clt, nil); err != nil {
+		if err := setVstp(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -190,37 +192,38 @@ func resourceVstpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delVstp(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delVstp(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setVstp(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setVstp(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_vstp", junSess)
+	warns, err := junSess.CommitConf("update resource junos_vstp")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceVstpReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceVstpReadWJunSess(d, junSess)...)
 }
 
 func resourceVstpDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delVstp(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delVstp(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -230,20 +233,20 @@ func resourceVstpDelete(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delVstp(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delVstp(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_vstp", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_vstp")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -258,9 +261,9 @@ func resourceVstpImport(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	if d.Id() != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Id(), clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Id(), junSess)
 		if err != nil {
 			return nil, err
 		}
@@ -269,7 +272,7 @@ func resourceVstpImport(ctx context.Context, d *schema.ResourceData, m interface
 		}
 	}
 	result := make([]*schema.ResourceData, 1)
-	vstpOptions, err := readVstp(d.Id(), clt, junSess)
+	vstpOptions, err := readVstp(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +282,7 @@ func resourceVstpImport(ctx context.Context, d *schema.ResourceData, m interface
 	return result, nil
 }
 
-func setVstp(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setVstp(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 	setPrefix := junos.SetLS
 	if d.Get("routing_instance").(string) != junos.DefaultW {
@@ -315,20 +318,21 @@ func setVstp(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) 
 		configSet = append(configSet, setPrefix+"vpls-flush-on-topology-change")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readVstp(routingInstance string, clt *junos.Client, junSess *junos.Session) (confRead vstpOptions, err error) {
+func readVstp(routingInstance string, junSess *junos.Session,
+) (confRead vstpOptions, err error) {
 	var showConfig string
 	if routingInstance == junos.DefaultW {
-		showConfig, err = clt.Command(junos.CmdShowConfig+
-			"protocols vstp"+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			"protocols vstp" + junos.PipeDisplaySetRelative)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+routingInstance+" "+
-			"protocols vstp"+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			"protocols vstp" + junos.PipeDisplaySetRelative)
 		if err != nil {
 			return confRead, err
 		}
@@ -380,7 +384,7 @@ func readVstp(routingInstance string, clt *junos.Client, junSess *junos.Session)
 	return confRead, nil
 }
 
-func delVstp(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func delVstp(d *schema.ResourceData, junSess *junos.Session) error {
 	delPrefix := junos.DeleteLS
 	if d.Get("routing_instance").(string) != junos.DefaultW {
 		delPrefix = junos.DelRoutingInstances + d.Get("routing_instance").(string) + " "
@@ -412,7 +416,7 @@ func delVstp(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) 
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillVstpData(d *schema.ResourceData, vstpOptions vstpOptions) {

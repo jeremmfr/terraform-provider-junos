@@ -111,7 +111,8 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(ctx context.Context, d
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setUtmProfileWebFWebsense(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setUtmProfileWebFWebsense(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -122,41 +123,41 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering websense-redirect "+
 			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	utmProfileWebFWebsenseExists, err := checkUtmProfileWebFWebsenseExists(d.Get("name").(string), clt, junSess)
+	utmProfileWebFWebsenseExists, err := checkUtmProfileWebFWebsenseExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if utmProfileWebFWebsenseExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering websense-redirect "+
 			"%v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setUtmProfileWebFWebsense(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmProfileWebFWebsense(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_utm_profile_web_filtering_websense_redirect", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_utm_profile_web_filtering_websense_redirect")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	utmProfileWebFWebsenseExists, err = checkUtmProfileWebFWebsenseExists(d.Get("name").(string), clt, junSess)
+	utmProfileWebFWebsenseExists, err = checkUtmProfileWebFWebsenseExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -167,7 +168,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(ctx context.Context, d
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityUtmProfileWebFilteringWebsenseReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmProfileWebFilteringWebsenseReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmProfileWebFilteringWebsenseRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -177,16 +178,16 @@ func resourceSecurityUtmProfileWebFilteringWebsenseRead(ctx context.Context, d *
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityUtmProfileWebFilteringWebsenseReadWJunSess(d, clt, junSess)
+	return resourceSecurityUtmProfileWebFilteringWebsenseReadWJunSess(d, junSess)
 }
 
 func resourceSecurityUtmProfileWebFilteringWebsenseReadWJunSess(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	utmProfileWebFWebsenseOptions, err := readUtmProfileWebFWebsense(d.Get("name").(string), clt, junSess)
+	utmProfileWebFWebsenseOptions, err := readUtmProfileWebFWebsense(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -205,10 +206,11 @@ func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(ctx context.Context, d
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delUtmProfileWebFWebsense(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmProfileWebFWebsense(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setUtmProfileWebFWebsense(d, clt, nil); err != nil {
+		if err := setUtmProfileWebFWebsense(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -219,38 +221,39 @@ func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmProfileWebFWebsense(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmProfileWebFWebsense(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setUtmProfileWebFWebsense(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmProfileWebFWebsense(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_utm_profile_web_filtering_websense_redirect", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_utm_profile_web_filtering_websense_redirect")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityUtmProfileWebFilteringWebsenseReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmProfileWebFilteringWebsenseReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmProfileWebFilteringWebsenseDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delUtmProfileWebFWebsense(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmProfileWebFWebsense(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -260,20 +263,20 @@ func resourceSecurityUtmProfileWebFilteringWebsenseDelete(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmProfileWebFWebsense(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmProfileWebFWebsense(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_utm_profile_web_filtering_websense_redirect", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_utm_profile_web_filtering_websense_redirect")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -288,9 +291,9 @@ func resourceSecurityUtmProfileWebFilteringWebsenseImport(ctx context.Context, d
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	utmProfileWebFWebsenseExists, err := checkUtmProfileWebFWebsenseExists(d.Id(), clt, junSess)
+	utmProfileWebFWebsenseExists, err := checkUtmProfileWebFWebsenseExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +301,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseImport(ctx context.Context, d
 		return nil, fmt.Errorf("don't find security utm feature-profile web-filtering websense-redirect with id "+
 			"'%v' (id must be <name>)", d.Id())
 	}
-	utmProfileWebFWebsenseOptions, err := readUtmProfileWebFWebsense(d.Id(), clt, junSess)
+	utmProfileWebFWebsenseOptions, err := readUtmProfileWebFWebsense(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -309,9 +312,9 @@ func resourceSecurityUtmProfileWebFilteringWebsenseImport(ctx context.Context, d
 	return result, nil
 }
 
-func checkUtmProfileWebFWebsenseExists(profile string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm feature-profile web-filtering websense-redirect profile \""+profile+"\""+junos.PipeDisplaySet, junSess)
+func checkUtmProfileWebFWebsenseExists(profile string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm feature-profile web-filtering websense-redirect profile \"" + profile + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -322,7 +325,7 @@ func checkUtmProfileWebFWebsenseExists(profile string, clt *junos.Client, junSes
 	return true, nil
 }
 
-func setUtmProfileWebFWebsense(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setUtmProfileWebFWebsense(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security utm feature-profile web-filtering websense-redirect " +
@@ -377,14 +380,15 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, clt *junos.Client, junSes
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readUtmProfileWebFWebsense(profile string, clt *junos.Client, junSess *junos.Session,
+func readUtmProfileWebFWebsense(profile string, junSess *junos.Session,
 ) (confRead utmProfileWebFilteringWebsenseOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm feature-profile web-filtering websense-redirect"+
-		" profile \""+profile+"\""+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm feature-profile web-filtering websense-redirect profile \"" + profile + "\"" +
+		junos.PipeDisplaySetRelative,
+	)
 	if err != nil {
 		return confRead, err
 	}
@@ -455,12 +459,12 @@ func readUtmProfileWebFWebsense(profile string, clt *junos.Client, junSess *juno
 	return confRead, nil
 }
 
-func delUtmProfileWebFWebsense(profile string, clt *junos.Client, junSess *junos.Session) error {
+func delUtmProfileWebFWebsense(profile string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering websense-redirect "+
 		"profile \""+profile+"\"")
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillUtmProfileWebFWebsenseData(

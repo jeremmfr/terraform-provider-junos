@@ -282,7 +282,8 @@ func resourceRipNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 	ripNg := d.Get("ng").(bool)
 	routingInstance := d.Get("routing_instance").(string)
 	if clt.FakeCreateSetFile() {
-		if err := setRipNeighbor(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setRipNeighbor(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		if ripNg {
@@ -297,28 +298,28 @@ func resourceRipNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if routingInstance != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(routingInstance, clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(routingInstance, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", routingInstance))...)
 		}
 	}
-	ripGroupExists, err := checkRipGroupExists(group, ripNg, routingInstance, clt, junSess)
+	ripGroupExists, err := checkRipGroupExists(group, ripNg, routingInstance, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -329,14 +330,14 @@ func resourceRipNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("rip group %v doesn't exist", group))...)
 	}
-	ripNeighborExists, err := checkRipNeighborExists(name, group, ripNg, routingInstance, clt, junSess)
+	ripNeighborExists, err := checkRipNeighborExists(name, group, ripNg, routingInstance, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ripNeighborExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 		protocolsRipNeighbor := "rip group " + group + " neighbor"
 		if ripNg {
 			protocolsRipNeighbor = "ripng group " + group + " neighbor"
@@ -348,19 +349,19 @@ func resourceRipNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(protocolsRipNeighbor+" %v already exists", name))...)
 	}
-	if err := setRipNeighbor(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setRipNeighbor(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_rip_neighbor", junSess)
+	warns, err := junSess.CommitConf("create resource junos_rip_neighbor")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ripNeighborExists, err = checkRipNeighborExists(name, group, ripNg, routingInstance, clt, junSess)
+	ripNeighborExists, err = checkRipNeighborExists(name, group, ripNg, routingInstance, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -385,7 +386,7 @@ func resourceRipNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", name))...)
 	}
 
-	return append(diagWarns, resourceRipNeighborReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceRipNeighborReadWJunSess(d, junSess)...)
 }
 
 func resourceRipNeighborRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -394,12 +395,12 @@ func resourceRipNeighborRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceRipNeighborReadWJunSess(d, clt, junSess)
+	return resourceRipNeighborReadWJunSess(d, junSess)
 }
 
-func resourceRipNeighborReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceRipNeighborReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
 	ripNeighborOptions, err := readRipNeighbor(
@@ -407,7 +408,8 @@ func resourceRipNeighborReadWJunSess(d *schema.ResourceData, clt *junos.Client, 
 		d.Get("group").(string),
 		d.Get("ng").(bool),
 		d.Get("routing_instance").(string),
-		clt, junSess)
+		junSess,
+	)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -425,16 +427,17 @@ func resourceRipNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if err := delRipNeighbor(
 			d.Get("name").(string),
 			d.Get("group").(string),
 			d.Get("ng").(bool),
 			d.Get("routing_instance").(string),
-			clt, nil,
+			junSess,
 		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setRipNeighbor(d, clt, nil); err != nil {
+		if err := setRipNeighbor(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -445,8 +448,8 @@ func resourceRipNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
@@ -455,38 +458,39 @@ func resourceRipNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 		d.Get("group").(string),
 		d.Get("ng").(bool),
 		d.Get("routing_instance").(string),
-		clt, junSess,
+		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setRipNeighbor(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setRipNeighbor(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_rip_neighbor", junSess)
+	warns, err := junSess.CommitConf("update resource junos_rip_neighbor")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceRipNeighborReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceRipNeighborReadWJunSess(d, junSess)...)
 }
 
 func resourceRipNeighborDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if err := delRipNeighbor(
 			d.Get("name").(string),
 			d.Get("group").(string),
 			d.Get("ng").(bool),
 			d.Get("routing_instance").(string),
-			clt, nil,
+			junSess,
 		); err != nil {
 			return diag.FromErr(err)
 		}
@@ -497,8 +501,8 @@ func resourceRipNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
@@ -507,16 +511,16 @@ func resourceRipNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 		d.Get("group").(string),
 		d.Get("ng").(bool),
 		d.Get("routing_instance").(string),
-		clt, junSess,
+		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_rip_neighbor", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_rip_neighbor")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -531,14 +535,14 @@ func resourceRipNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), junos.IDSeparator)
 	if len(idSplit) < 3 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", junos.IDSeparator)
 	}
 	if len(idSplit) == 3 {
-		ripNeighborExists, err := checkRipNeighborExists(idSplit[0], idSplit[1], false, idSplit[2], clt, junSess)
+		ripNeighborExists, err := checkRipNeighborExists(idSplit[0], idSplit[1], false, idSplit[2], junSess)
 		if err != nil {
 			return nil, err
 		}
@@ -549,7 +553,7 @@ func resourceRipNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 				d.Id(),
 			)
 		}
-		ripNeighborOptions, err := readRipNeighbor(idSplit[0], idSplit[1], false, idSplit[2], clt, junSess)
+		ripNeighborOptions, err := readRipNeighbor(idSplit[0], idSplit[1], false, idSplit[2], junSess)
 		if err != nil {
 			return nil, err
 		}
@@ -565,7 +569,7 @@ func resourceRipNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 				"<name>" + junos.IDSeparator + "<group>" + junos.IDSeparator + "ng" + junos.IDSeparator + "<routing_instance>",
 		)
 	}
-	ripNeighborExists, err := checkRipNeighborExists(idSplit[0], idSplit[1], true, idSplit[3], clt, junSess)
+	ripNeighborExists, err := checkRipNeighborExists(idSplit[0], idSplit[1], true, idSplit[3], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -576,7 +580,7 @@ func resourceRipNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 			d.Id(),
 		)
 	}
-	ripNeighborOptions, err := readRipNeighbor(idSplit[0], idSplit[1], true, idSplit[3], clt, junSess)
+	ripNeighborOptions, err := readRipNeighbor(idSplit[0], idSplit[1], true, idSplit[3], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -587,11 +591,7 @@ func resourceRipNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 }
 
 func checkRipNeighborExists(
-	name, group string,
-	ripNg bool,
-	routingInstance string,
-	clt *junos.Client,
-	junSess *junos.Session,
+	name, group string, ripNg bool, routingInstance string, junSess *junos.Session,
 ) (_ bool, err error) {
 	var showConfig string
 	protoRipNeighbor := "protocols rip group \"" + group + "\" neighbor " + name
@@ -599,11 +599,11 @@ func checkRipNeighborExists(
 		protoRipNeighbor = "protocols ripng group \"" + group + "\" neighbor " + name
 	}
 	if routingInstance == junos.DefaultW {
-		showConfig, err = clt.Command(junos.CmdShowConfig+
-			protoRipNeighbor+junos.PipeDisplaySet, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			protoRipNeighbor + junos.PipeDisplaySet)
 	} else {
-		showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+routingInstance+" "+
-			protoRipNeighbor+junos.PipeDisplaySet, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			protoRipNeighbor + junos.PipeDisplaySet)
 	}
 	if err != nil {
 		return false, err
@@ -615,7 +615,7 @@ func checkRipNeighborExists(
 	return true, nil
 }
 
-func setRipNeighbor(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setRipNeighbor(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 
 	setPrefix := junos.SetLS
@@ -742,10 +742,10 @@ func setRipNeighbor(d *schema.ResourceData, clt *junos.Client, junSess *junos.Se
 		configSet = append(configSet, setPrefix+"update-interval "+strconv.Itoa(v))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readRipNeighbor(name, group string, ripNg bool, routingInstance string, clt *junos.Client, junSess *junos.Session,
+func readRipNeighbor(name, group string, ripNg bool, routingInstance string, junSess *junos.Session,
 ) (confRead ripNeighborOptions, err error) {
 	var showConfig string
 	protoRipNeighbor := "protocols rip group \"" + group + "\" neighbor " + name
@@ -753,11 +753,11 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, clt
 		protoRipNeighbor = "protocols ripng group \"" + group + "\" neighbor " + name
 	}
 	if routingInstance == junos.DefaultW {
-		showConfig, err = clt.Command(junos.CmdShowConfig+
-			protoRipNeighbor+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			protoRipNeighbor + junos.PipeDisplaySetRelative)
 	} else {
-		showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+routingInstance+" "+
-			protoRipNeighbor+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			protoRipNeighbor + junos.PipeDisplaySetRelative)
 	}
 	if err != nil {
 		return confRead, err
@@ -926,11 +926,7 @@ func readRipNeighborBfd(itemTrim string, bfd map[string]interface{}) (err error)
 }
 
 func delRipNeighbor(
-	name, group string,
-	ripNg bool,
-	routingInstance string,
-	clt *junos.Client,
-	junSess *junos.Session,
+	name, group string, ripNg bool, routingInstance string, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if routingInstance != junos.DefaultW {
@@ -943,7 +939,7 @@ func delRipNeighbor(
 	}
 	delPrefix += "\"" + group + "\" neighbor " + name + " "
 
-	return clt.ConfigSet([]string{delPrefix}, junSess)
+	return junSess.ConfigSet([]string{delPrefix})
 }
 
 func fillRipNeighborData(d *schema.ResourceData, ripNeighborOptions ripNeighborOptions) {

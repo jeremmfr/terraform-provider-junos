@@ -63,13 +63,14 @@ func resourceSystemRootAuthenticationCreate(ctx context.Context, d *schema.Resou
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		// To be able detect a plain text password not accepted by system
 		if d.Get("plain_text_password").(string) != "" {
-			if err := delSystemRootAuthenticationPassword(clt, nil); err != nil {
+			if err := delSystemRootAuthenticationPassword(junSess); err != nil {
 				return diag.FromErr(err)
 			}
 		}
-		if err := setSystemRootAuthentication(d, clt, nil); err != nil {
+		if err := setSystemRootAuthentication(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("system_root_authentication")
@@ -80,34 +81,34 @@ func resourceSystemRootAuthenticationCreate(ctx context.Context, d *schema.Resou
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	// To be able detect a plain text password not accepted by system
 	if d.Get("plain_text_password").(string) != "" {
-		if err := delSystemRootAuthenticationPassword(clt, junSess); err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		if err := delSystemRootAuthenticationPassword(junSess); err != nil {
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
-	if err := setSystemRootAuthentication(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemRootAuthentication(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_system_root_authentication", junSess)
+	warns, err := junSess.CommitConf("create resource junos_system_root_authentication")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("system_root_authentication")
 
-	return append(diagWarns, resourceSystemRootAuthenticationReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemRootAuthenticationReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -116,15 +117,15 @@ func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.Resourc
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSystemRootAuthenticationReadWJunSess(d, clt, junSess)
+	return resourceSystemRootAuthenticationReadWJunSess(d, junSess)
 }
 
-func resourceSystemRootAuthenticationReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSystemRootAuthenticationReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	systemRootAuthOptions, err := readSystemRootAuthentication(clt, junSess)
+	systemRootAuthOptions, err := readSystemRootAuthentication(junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -139,10 +140,11 @@ func resourceSystemRootAuthenticationUpdate(ctx context.Context, d *schema.Resou
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSystemRootAuthentication(clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSystemRootAuthentication(junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemRootAuthentication(d, clt, nil); err != nil {
+		if err := setSystemRootAuthentication(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -153,31 +155,31 @@ func resourceSystemRootAuthenticationUpdate(ctx context.Context, d *schema.Resou
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemRootAuthentication(clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSystemRootAuthentication(junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemRootAuthentication(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemRootAuthentication(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_system_root_authentication", junSess)
+	warns, err := junSess.CommitConf("update resource junos_system_root_authentication")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemRootAuthenticationReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemRootAuthenticationReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemRootAuthenticationDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -192,10 +194,10 @@ func resourceSystemRootAuthenticationImport(ctx context.Context, d *schema.Resou
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	systemRootAuthOptions, err := readSystemRootAuthentication(clt, junSess)
+	systemRootAuthOptions, err := readSystemRootAuthentication(junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +208,7 @@ func resourceSystemRootAuthenticationImport(ctx context.Context, d *schema.Resou
 	return result, nil
 }
 
-func setSystemRootAuthentication(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemRootAuthentication(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 	setPrefix := "set system root-authentication "
 
@@ -235,12 +237,12 @@ func setSystemRootAuthentication(d *schema.ResourceData, clt *junos.Client, junS
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSystemRootAuthentication(clt *junos.Client, junSess *junos.Session,
+func readSystemRootAuthentication(junSess *junos.Session,
 ) (confRead systemRootAuthOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"system root-authentication"+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "system root-authentication" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -270,18 +272,18 @@ func readSystemRootAuthentication(clt *junos.Client, junSess *junos.Session,
 	return confRead, nil
 }
 
-func delSystemRootAuthentication(clt *junos.Client, junSess *junos.Session) error {
+func delSystemRootAuthentication(junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system root-authentication")
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func delSystemRootAuthenticationPassword(clt *junos.Client, junSess *junos.Session) error {
+func delSystemRootAuthenticationPassword(junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system root-authentication encrypted-password")
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSystemRootAuthenticationData(d *schema.ResourceData, systemRootAuthOptions systemRootAuthOptions) {

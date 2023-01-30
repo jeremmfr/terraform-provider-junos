@@ -1024,7 +1024,8 @@ func resourceSystem() *schema.Resource {
 func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSystem(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSystem(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("system")
@@ -1035,26 +1036,26 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setSystem(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystem(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_system", junSess)
+	warns, err := junSess.CommitConf("create resource junos_system")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("system")
 
-	return append(diagWarns, resourceSystemReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -1063,14 +1064,14 @@ func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSystemReadWJunSess(d, clt, junSess)
+	return resourceSystemReadWJunSess(d, junSess)
 }
 
-func resourceSystemReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) diag.Diagnostics {
+func resourceSystemReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
 	mutex.Lock()
-	systemOptions, err := readSystem(clt, junSess)
+	systemOptions, err := readSystem(junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -1084,10 +1085,11 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSystem(clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSystem(junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystem(d, clt, nil); err != nil {
+		if err := setSystem(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -1098,31 +1100,31 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystem(clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSystem(junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystem(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystem(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_system", junSess)
+	warns, err := junSess.CommitConf("update resource junos_system")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -1136,9 +1138,9 @@ func resourceSystemImport(ctx context.Context, d *schema.ResourceData, m interfa
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	systemOptions, err := readSystem(clt, junSess)
+	systemOptions, err := readSystem(junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -1149,7 +1151,7 @@ func resourceSystemImport(ctx context.Context, d *schema.ResourceData, m interfa
 	return result, nil
 }
 
-func setSystem(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystem(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set system "
 	configSet := make([]string, 0)
 
@@ -1200,7 +1202,7 @@ func setSystem(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session
 			configSet = append(configSet, setPrefix+"inet6-backup-router destination "+dest)
 		}
 	}
-	if err := setSystemInternetOptions(d, clt, junSess); err != nil {
+	if err := setSystemInternetOptions(d, junSess); err != nil {
 		return err
 	}
 	for _, v := range d.Get("license").([]interface{}) {
@@ -1232,7 +1234,7 @@ func setSystem(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session
 			return fmt.Errorf("license block is empty")
 		}
 	}
-	if err := setSystemLogin(d, clt, junSess); err != nil {
+	if err := setSystemLogin(d, junSess); err != nil {
 		return err
 	}
 	if d.Get("max_configuration_rollbacks").(int) != -1 {
@@ -1336,10 +1338,10 @@ func setSystem(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session
 	if d.Get("radius_options_password_protocol_mschapv2").(bool) {
 		configSet = append(configSet, setPrefix+"radius-options password-protocol mschap-v2")
 	}
-	if err := setSystemServices(d, clt, junSess); err != nil {
+	if err := setSystemServices(d, junSess); err != nil {
 		return err
 	}
-	if err := setSystemSyslog(d, clt, junSess); err != nil {
+	if err := setSystemSyslog(d, junSess); err != nil {
 		return err
 	}
 	if d.Get("time_zone").(string) != "" {
@@ -1350,10 +1352,10 @@ func setSystem(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session
 			d.Get("tracing_dest_override_syslog_host").(string))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func setSystemServices(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemServices(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set system services "
 	configSet := make([]string, 0)
 
@@ -1526,10 +1528,10 @@ func setSystemServices(d *schema.ResourceData, clt *junos.Client, junSess *junos
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func setSystemInternetOptions(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemInternetOptions(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set system internet-options "
 	configSet := make([]string, 0)
 	for _, v := range d.Get("internet_options").([]interface{}) {
@@ -1631,10 +1633,10 @@ func setSystemInternetOptions(d *schema.ResourceData, clt *junos.Client, junSess
 		return fmt.Errorf("internet_options block is empty")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func setSystemLogin(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemLogin(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set system login "
 	configSet := make([]string, 0)
 	for _, v := range d.Get("login").([]interface{}) {
@@ -1736,10 +1738,10 @@ func setSystemLogin(d *schema.ResourceData, clt *junos.Client, junSess *junos.Se
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func setSystemSyslog(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemSyslog(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set system syslog "
 	configSet := make([]string, 0)
 	for _, syslog := range d.Get("syslog").([]interface{}) {
@@ -1846,7 +1848,7 @@ func setSystemSyslog(d *schema.ResourceData, clt *junos.Client, junSess *junos.S
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func listLinesLogin() []string {
@@ -1939,7 +1941,7 @@ func listLinesSyslog() []string {
 	}
 }
 
-func delSystem(clt *junos.Client, junSess *junos.Session) error {
+func delSystem(junSess *junos.Session) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, "archival configuration")
 	listLinesToDelete = append(listLinesToDelete, "authentication-order")
@@ -1976,14 +1978,15 @@ func delSystem(clt *junos.Client, junSess *junos.Session) error {
 			delPrefix+line)
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSystem(clt *junos.Client, junSess *junos.Session) (confRead systemOptions, err error) {
+func readSystem(junSess *junos.Session,
+) (confRead systemOptions, err error) {
 	// default -1
 	confRead.maxConfigurationRollbacks = -1
 	confRead.maxConfigurationsOnFlash = -1
-	showConfig, err := clt.Command(junos.CmdShowConfig+"system"+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "system" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}

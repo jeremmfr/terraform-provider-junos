@@ -194,7 +194,8 @@ func resourceSystemSyslogHost() *schema.Resource {
 func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSystemSyslogHost(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSystemSyslogHost(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("host").(string))
@@ -205,36 +206,36 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	syslogHostExists, err := checkSystemSyslogHostExists(d.Get("host").(string), clt, junSess)
+	syslogHostExists, err := checkSystemSyslogHostExists(d.Get("host").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if syslogHostExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("system syslog host %v already exists", d.Get("host").(string)))...)
 	}
 
-	if err := setSystemSyslogHost(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemSyslogHost(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_system_syslog_host", junSess)
+	warns, err := junSess.CommitConf("create resource junos_system_syslog_host")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	syslogHostExists, err = checkSystemSyslogHostExists(d.Get("host").(string), clt, junSess)
+	syslogHostExists, err = checkSystemSyslogHostExists(d.Get("host").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -245,7 +246,7 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("host").(string)))...)
 	}
 
-	return append(diagWarns, resourceSystemSyslogHostReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemSyslogHostReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -254,15 +255,15 @@ func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSystemSyslogHostReadWJunSess(d, clt, junSess)
+	return resourceSystemSyslogHostReadWJunSess(d, junSess)
 }
 
-func resourceSystemSyslogHostReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSystemSyslogHostReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	syslogHostOptions, err := readSystemSyslogHost(d.Get("host").(string), clt, junSess)
+	syslogHostOptions, err := readSystemSyslogHost(d.Get("host").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -280,10 +281,11 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSystemSyslogHost(d.Get("host").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSystemSyslogHost(d.Get("host").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemSyslogHost(d, clt, nil); err != nil {
+		if err := setSystemSyslogHost(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -294,37 +296,38 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemSyslogHost(d.Get("host").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSystemSyslogHost(d.Get("host").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemSyslogHost(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemSyslogHost(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_system_syslog_host", junSess)
+	warns, err := junSess.CommitConf("update resource junos_system_syslog_host")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemSyslogHostReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemSyslogHostReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSystemSyslogHost(d.Get("host").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSystemSyslogHost(d.Get("host").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -334,20 +337,20 @@ func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemSyslogHost(d.Get("host").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSystemSyslogHost(d.Get("host").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_system_syslog_host", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_system_syslog_host")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -362,17 +365,17 @@ func resourceSystemSyslogHostImport(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	syslogHostExists, err := checkSystemSyslogHostExists(d.Id(), clt, junSess)
+	syslogHostExists, err := checkSystemSyslogHostExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !syslogHostExists {
 		return nil, fmt.Errorf("don't find system syslog host with id '%v' (id must be <host>)", d.Id())
 	}
-	syslogHostOptions, err := readSystemSyslogHost(d.Id(), clt, junSess)
+	syslogHostOptions, err := readSystemSyslogHost(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -383,8 +386,8 @@ func resourceSystemSyslogHostImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkSystemSyslogHostExists(host string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"system syslog host "+host+junos.PipeDisplaySet, junSess)
+func checkSystemSyslogHostExists(host string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "system syslog host " + host + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -395,7 +398,7 @@ func checkSystemSyslogHostExists(host string, clt *junos.Client, junSess *junos.
 	return true, nil
 }
 
-func setSystemSyslogHost(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemSyslogHost(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set system syslog host " + d.Get("host").(string)
 	configSet := make([]string, 0)
 
@@ -481,12 +484,12 @@ func setSystemSyslogHost(d *schema.ResourceData, clt *junos.Client, junSess *jun
 		configSet = append(configSet, setPrefix+" user "+d.Get("user_severity").(string))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSystemSyslogHost(host string, clt *junos.Client, junSess *junos.Session,
+func readSystemSyslogHost(host string, junSess *junos.Session,
 ) (confRead syslogHostOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"system syslog host "+host+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "system syslog host " + host + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -568,11 +571,11 @@ func readSystemSyslogHost(host string, clt *junos.Client, junSess *junos.Session
 	return confRead, nil
 }
 
-func delSystemSyslogHost(host string, clt *junos.Client, junSess *junos.Session) error {
+func delSystemSyslogHost(host string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system syslog host "+host)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSystemSyslogHostData(d *schema.ResourceData, syslogHostOptions syslogHostOptions) {

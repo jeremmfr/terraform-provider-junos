@@ -131,7 +131,8 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.Resource
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSecurityNatStaticRule(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSecurityNatStaticRule(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("rule_set").(string) + junos.IDSeparator + d.Get("name").(string))
@@ -142,23 +143,23 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security nat static rule in rule-set not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	natStaticExists, err := checkSecurityNatStaticExists(d.Get("rule_set").(string), clt, junSess)
+	natStaticExists, err := checkSecurityNatStaticExists(d.Get("rule_set").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !natStaticExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security nat static rule-set %v doesn't exist", d.Get("rule_set").(string)))...)
@@ -166,36 +167,38 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.Resource
 	natStaticRuleExists, err := checkSecurityNatStaticRuleExists(
 		d.Get("rule_set").(string),
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if natStaticRuleExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(
 			"security nat static rule %v already exists in rule-set %s",
 			d.Get("name").(string), d.Get("rule_set").(string)))...)
 	}
 
-	if err := setSecurityNatStaticRule(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSecurityNatStaticRule(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_nat_static_rule", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_nat_static_rule")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	natStaticRuleExists, err = checkSecurityNatStaticRuleExists(
 		d.Get("rule_set").(string),
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -207,7 +210,7 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.Resource
 				"=> check your config", d.Get("name").(string), d.Get("rule_set").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityNatStaticRuleReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityNatStaticRuleReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityNatStaticRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -216,18 +219,19 @@ func resourceSecurityNatStaticRuleRead(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityNatStaticRuleReadWJunSess(d, clt, junSess)
+	return resourceSecurityNatStaticRuleReadWJunSess(d, junSess)
 }
 
-func resourceSecurityNatStaticRuleReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSecurityNatStaticRuleReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
 	natStaticRuleOptions, err := readSecurityNatStaticRule(
 		d.Get("rule_set").(string),
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -246,10 +250,11 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context, d *schema.Resource
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityNatStaticRule(d, clt, nil); err != nil {
+		if err := setSecurityNatStaticRule(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -260,38 +265,39 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityNatStaticRule(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSecurityNatStaticRule(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_nat_static_rule", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_nat_static_rule")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityNatStaticRuleReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityNatStaticRuleReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityNatStaticRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -301,20 +307,20 @@ func resourceSecurityNatStaticRuleDelete(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_nat_static_rule", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_nat_static_rule")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -329,13 +335,13 @@ func resourceSecurityNatStaticRuleImport(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 	idList := strings.Split(d.Id(), junos.IDSeparator)
 	if len(idList) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", junos.IDSeparator)
 	}
-	natStaticRuleExists, err := checkSecurityNatStaticRuleExists(idList[0], idList[1], clt, junSess)
+	natStaticRuleExists, err := checkSecurityNatStaticRuleExists(idList[0], idList[1], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +349,7 @@ func resourceSecurityNatStaticRuleImport(ctx context.Context, d *schema.Resource
 		return nil, fmt.Errorf(
 			"don't find static nat rule with id '%v' (id must be <rule_set>"+junos.IDSeparator+"<name>)", d.Id())
 	}
-	natStaticRuleOptions, err := readSecurityNatStaticRule(idList[0], idList[1], clt, junSess)
+	natStaticRuleOptions, err := readSecurityNatStaticRule(idList[0], idList[1], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -354,9 +360,9 @@ func resourceSecurityNatStaticRuleImport(ctx context.Context, d *schema.Resource
 	return result, nil
 }
 
-func checkSecurityNatStaticRuleExists(ruleSet, name string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security nat static rule-set "+ruleSet+" rule "+name+junos.PipeDisplaySet, junSess)
+func checkSecurityNatStaticRuleExists(ruleSet, name string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security nat static rule-set " + ruleSet + " rule " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -367,7 +373,7 @@ func checkSecurityNatStaticRuleExists(ruleSet, name string, clt *junos.Client, j
 	return true, nil
 }
 
-func setSecurityNatStaticRule(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSecurityNatStaticRule(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 	regexpSourcePort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
@@ -445,13 +451,13 @@ func setSecurityNatStaticRule(d *schema.ResourceData, clt *junos.Client, junSess
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSecurityNatStaticRule(ruleSet, name string, clt *junos.Client, junSess *junos.Session,
+func readSecurityNatStaticRule(ruleSet, name string, junSess *junos.Session,
 ) (confRead natStaticRuleOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security nat static rule-set "+ruleSet+" rule "+name+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security nat static rule-set " + ruleSet + " rule " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -534,10 +540,10 @@ func readSecurityNatStaticRule(ruleSet, name string, clt *junos.Client, junSess 
 	return confRead, nil
 }
 
-func delSecurityNatStaticRule(ruleSet, name string, clt *junos.Client, junSess *junos.Session) error {
+func delSecurityNatStaticRule(ruleSet, name string, junSess *junos.Session) error {
 	configSet := []string{"delete security nat static rule-set " + ruleSet + " rule " + name}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSecurityNatStaticRuleData(d *schema.ResourceData, natStaticRuleOptions natStaticRuleOptions) {

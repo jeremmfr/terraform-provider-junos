@@ -51,7 +51,8 @@ func resourceServicesProxyProfileCreate(ctx context.Context, d *schema.ResourceD
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setServicesProxyProfile(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setServicesProxyProfile(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -62,37 +63,37 @@ func resourceServicesProxyProfileCreate(ctx context.Context, d *schema.ResourceD
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	proxyProfileExists, err := checkServicesProxyProfileExists(d.Get("name").(string), clt, junSess)
+	proxyProfileExists, err := checkServicesProxyProfileExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if proxyProfileExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("services proxy profile %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setServicesProxyProfile(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setServicesProxyProfile(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_services_proxy_profile", junSess)
+	warns, err := junSess.CommitConf("create resource junos_services_proxy_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	proxyProfileExists, err = checkServicesProxyProfileExists(d.Get("name").(string), clt, junSess)
+	proxyProfileExists, err = checkServicesProxyProfileExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -103,7 +104,7 @@ func resourceServicesProxyProfileCreate(ctx context.Context, d *schema.ResourceD
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceServicesProxyProfileReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceServicesProxyProfileReadWJunSess(d, junSess)...)
 }
 
 func resourceServicesProxyProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -113,15 +114,15 @@ func resourceServicesProxyProfileRead(ctx context.Context, d *schema.ResourceDat
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceServicesProxyProfileReadWJunSess(d, clt, junSess)
+	return resourceServicesProxyProfileReadWJunSess(d, junSess)
 }
 
-func resourceServicesProxyProfileReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceServicesProxyProfileReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	proxyProfileOptions, err := readServicesProxyProfile(d.Get("name").(string), clt, junSess)
+	proxyProfileOptions, err := readServicesProxyProfile(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -140,10 +141,11 @@ func resourceServicesProxyProfileUpdate(ctx context.Context, d *schema.ResourceD
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delServicesProxyProfile(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delServicesProxyProfile(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setServicesProxyProfile(d, clt, nil); err != nil {
+		if err := setServicesProxyProfile(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -154,38 +156,39 @@ func resourceServicesProxyProfileUpdate(ctx context.Context, d *schema.ResourceD
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesProxyProfile(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delServicesProxyProfile(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServicesProxyProfile(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setServicesProxyProfile(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_services_proxy_profile", junSess)
+	warns, err := junSess.CommitConf("update resource junos_services_proxy_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesProxyProfileReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceServicesProxyProfileReadWJunSess(d, junSess)...)
 }
 
 func resourceServicesProxyProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delServicesProxyProfile(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delServicesProxyProfile(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -195,20 +198,20 @@ func resourceServicesProxyProfileDelete(ctx context.Context, d *schema.ResourceD
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesProxyProfile(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delServicesProxyProfile(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_services_proxy_profile", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_services_proxy_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -223,16 +226,16 @@ func resourceServicesProxyProfileImport(ctx context.Context, d *schema.ResourceD
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	proxyProfileExists, err := checkServicesProxyProfileExists(d.Id(), clt, junSess)
+	proxyProfileExists, err := checkServicesProxyProfileExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !proxyProfileExists {
 		return nil, fmt.Errorf("don't find services proxy profile with id '%v' (id must be <name>)", d.Id())
 	}
-	proxyProfileOptions, err := readServicesProxyProfile(d.Id(), clt, junSess)
+	proxyProfileOptions, err := readServicesProxyProfile(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -243,9 +246,9 @@ func resourceServicesProxyProfileImport(ctx context.Context, d *schema.ResourceD
 	return result, nil
 }
 
-func checkServicesProxyProfileExists(profile string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"services proxy profile \""+profile+"\""+junos.PipeDisplaySet, junSess)
+func checkServicesProxyProfileExists(profile string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"services proxy profile \"" + profile + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -256,7 +259,7 @@ func checkServicesProxyProfileExists(profile string, clt *junos.Client, junSess 
 	return true, nil
 }
 
-func setServicesProxyProfile(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setServicesProxyProfile(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set services proxy profile \"" + d.Get("name").(string) + "\" "
@@ -265,13 +268,13 @@ func setServicesProxyProfile(d *schema.ResourceData, clt *junos.Client, junSess 
 		configSet = append(configSet, setPrefix+"protocol http port "+strconv.Itoa(d.Get("protocol_http_port").(int)))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readServicesProxyProfile(profile string, clt *junos.Client, junSess *junos.Session,
+func readServicesProxyProfile(profile string, junSess *junos.Session,
 ) (confRead proxyProfileOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"services proxy profile \""+profile+"\""+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"services proxy profile \"" + profile + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -300,10 +303,10 @@ func readServicesProxyProfile(profile string, clt *junos.Client, junSess *junos.
 	return confRead, nil
 }
 
-func delServicesProxyProfile(profile string, clt *junos.Client, junSess *junos.Session) error {
+func delServicesProxyProfile(profile string, junSess *junos.Session) error {
 	configSet := []string{"delete services proxy profile \"" + profile + "\""}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillServicesProxyProfileData(d *schema.ResourceData, proxyProfileOptions proxyProfileOptions,

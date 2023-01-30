@@ -286,7 +286,8 @@ func resourceOspf() *schema.Resource {
 func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setOspf(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setOspf(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("version").(string) + junos.IDSeparator + d.Get("routing_instance").(string))
@@ -297,40 +298,40 @@ func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	if err := setOspf(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setOspf(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_ospf", junSess)
+	warns, err := junSess.CommitConf("create resource junos_ospf")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId(d.Get("version").(string) + junos.IDSeparator + d.Get("routing_instance").(string))
 
-	return append(diagWarns, resourceOspfReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceOspfReadWJunSess(d, junSess)...)
 }
 
 func resourceOspfRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -339,15 +340,15 @@ func resourceOspfRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceOspfReadWJunSess(d, clt, junSess)
+	return resourceOspfReadWJunSess(d, junSess)
 }
 
-func resourceOspfReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) diag.Diagnostics {
+func resourceOspfReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
 	mutex.Lock()
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
 			mutex.Unlock()
 
@@ -360,7 +361,7 @@ func resourceOspfReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess
 			return nil
 		}
 	}
-	ospfOptions, err := readOspf(d.Get("version").(string), d.Get("routing_instance").(string), clt, junSess)
+	ospfOptions, err := readOspf(d.Get("version").(string), d.Get("routing_instance").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -374,10 +375,11 @@ func resourceOspfUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delOspf(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delOspf(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setOspf(d, clt, nil); err != nil {
+		if err := setOspf(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -388,37 +390,38 @@ func resourceOspfUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delOspf(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delOspf(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setOspf(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setOspf(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_ospf", junSess)
+	warns, err := junSess.CommitConf("update resource junos_ospf")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceOspfReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceOspfReadWJunSess(d, junSess)...)
 }
 
 func resourceOspfDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delOspf(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delOspf(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -429,20 +432,20 @@ func resourceOspfDelete(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delOspf(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delOspf(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_ospf", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_ospf")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -457,7 +460,7 @@ func resourceOspfImport(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), junos.IDSeparator)
 	if len(idSplit) < 2 {
@@ -467,7 +470,7 @@ func resourceOspfImport(ctx context.Context, d *schema.ResourceData, m interface
 		return nil, fmt.Errorf("%s is not a valid version", idSplit[0])
 	}
 	if idSplit[1] != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(idSplit[1], clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(idSplit[1], junSess)
 		if err != nil {
 			return nil, err
 		}
@@ -475,7 +478,7 @@ func resourceOspfImport(ctx context.Context, d *schema.ResourceData, m interface
 			return nil, fmt.Errorf("routing instance %v doesn't exist", idSplit[1])
 		}
 	}
-	ospfOptions, err := readOspf(idSplit[0], idSplit[1], clt, junSess)
+	ospfOptions, err := readOspf(idSplit[0], idSplit[1], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -485,7 +488,7 @@ func resourceOspfImport(ctx context.Context, d *schema.ResourceData, m interface
 	return result, nil
 }
 
-func setOspf(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setOspf(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 	setPrefix := junos.SetLS
 	if d.Get("routing_instance").(string) != junos.DefaultW {
@@ -632,10 +635,10 @@ func setOspf(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) 
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readOspf(version, routingInstance string, clt *junos.Client, junSess *junos.Session,
+func readOspf(version, routingInstance string, junSess *junos.Session,
 ) (confRead ospfOptions, err error) {
 	// default -1
 	confRead.externalPreference = -1
@@ -648,14 +651,14 @@ func readOspf(version, routingInstance string, clt *junos.Client, junSess *junos
 		ospfVersion = junos.OspfV3
 	}
 	if routingInstance == junos.DefaultW {
-		showConfig, err = clt.Command(junos.CmdShowConfig+
-			"protocols "+ospfVersion+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			"protocols " + ospfVersion + junos.PipeDisplaySetRelative)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+routingInstance+" "+
-			"protocols "+ospfVersion+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			"protocols " + ospfVersion + junos.PipeDisplaySetRelative)
 		if err != nil {
 			return confRead, err
 		}
@@ -852,7 +855,7 @@ func readOspf(version, routingInstance string, clt *junos.Client, junSess *junos
 	return confRead, nil
 }
 
-func delOspf(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func delOspf(d *schema.ResourceData, junSess *junos.Session) error {
 	ospfVersion := junos.OspfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = junos.OspfV3
@@ -889,7 +892,7 @@ func delOspf(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) 
 		configSet[k] = delPrefix + line
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillOspfData(d *schema.ResourceData, ospfOptions ospfOptions) {

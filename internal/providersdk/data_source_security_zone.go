@@ -206,9 +206,9 @@ func dataSourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m i
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	mutex.Lock()
-	zoneOptions, err := readSecurityZone(d.Get("name").(string), clt, junSess)
+	zoneOptions, err := readSecurityZone(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)

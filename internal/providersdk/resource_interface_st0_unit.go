@@ -29,30 +29,30 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	newSt0, err := searchInterfaceSt0UnitToCreate(clt, junSess)
+	newSt0, err := searchInterfaceSt0UnitToCreate(junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("error to find new st0 unit interface: %w", err))...)
 	}
-	if err := clt.ConfigSet([]string{"set interfaces " + newSt0}, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := junSess.ConfigSet([]string{"set interfaces " + newSt0}); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_interface_st0_unit", junSess)
+	warns, err := junSess.CommitConf("create resource junos_interface_st0_unit")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(newSt0, clt, junSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(newSt0, clt.GroupInterfaceDelete(), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -75,9 +75,9 @@ func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	mutex.Lock()
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), clt, junSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), clt.GroupInterfaceDelete(), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -92,7 +92,8 @@ func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m
 func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := clt.ConfigSet([]string{"delete interfaces " + d.Id()}, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := junSess.ConfigSet([]string{"delete interfaces " + d.Id()}); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -102,31 +103,31 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), clt, junSess)
+	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), clt.GroupInterfaceDelete(), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !ncInt && !emptyInt {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %s not empty or disable", d.Id()))...)
 	}
-	if err := clt.ConfigSet([]string{"delete interfaces " + d.Id()}, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := junSess.ConfigSet([]string{"delete interfaces " + d.Id()}); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_interface_st0_unit", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_interface_st0_unit")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -144,9 +145,9 @@ func resourceInterfaceSt0UnitImport(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), clt, junSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), clt.GroupInterfaceDelete(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -162,8 +163,8 @@ func resourceInterfaceSt0UnitImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func searchInterfaceSt0UnitToCreate(clt *junos.Client, junSess *junos.Session) (string, error) {
-	st0, err := clt.Command("show interfaces st0 terse", junSess)
+func searchInterfaceSt0UnitToCreate(junSess *junos.Session) (string, error) {
+	st0, err := junSess.Command("show interfaces st0 terse")
 	if err != nil {
 		return "", err
 	}

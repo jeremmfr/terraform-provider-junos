@@ -194,7 +194,8 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(ctx context.Context, d
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setUtmProfileWebFEnhanced(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setUtmProfileWebFEnhanced(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -205,41 +206,41 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-enhanced "+
 			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	utmProfileWebFEnhancedExists, err := checkUtmProfileWebFEnhancedExists(d.Get("name").(string), clt, junSess)
+	utmProfileWebFEnhancedExists, err := checkUtmProfileWebFEnhancedExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if utmProfileWebFEnhancedExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-enhanced "+
 			"%v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setUtmProfileWebFEnhanced(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmProfileWebFEnhanced(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_utm_profile_web_filtering_juniper_enhanced", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_utm_profile_web_filtering_juniper_enhanced")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	utmProfileWebFEnhancedExists, err = checkUtmProfileWebFEnhancedExists(d.Get("name").(string), clt, junSess)
+	utmProfileWebFEnhancedExists, err = checkUtmProfileWebFEnhancedExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -250,7 +251,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(ctx context.Context, d
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmProfileWebFilteringEnhancedRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -260,16 +261,16 @@ func resourceSecurityUtmProfileWebFilteringEnhancedRead(ctx context.Context, d *
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityUtmProfileWebFilteringEnhancedReadWJunSess(d, clt, junSess)
+	return resourceSecurityUtmProfileWebFilteringEnhancedReadWJunSess(d, junSess)
 }
 
 func resourceSecurityUtmProfileWebFilteringEnhancedReadWJunSess(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	utmProfileWebFEnhancedOptions, err := readUtmProfileWebFEnhanced(d.Get("name").(string), clt, junSess)
+	utmProfileWebFEnhancedOptions, err := readUtmProfileWebFEnhanced(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -288,10 +289,11 @@ func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(ctx context.Context, d
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delUtmProfileWebFEnhanced(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmProfileWebFEnhanced(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setUtmProfileWebFEnhanced(d, clt, nil); err != nil {
+		if err := setUtmProfileWebFEnhanced(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -302,38 +304,39 @@ func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmProfileWebFEnhanced(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmProfileWebFEnhanced(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setUtmProfileWebFEnhanced(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmProfileWebFEnhanced(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_utm_profile_web_filtering_juniper_enhanced", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_utm_profile_web_filtering_juniper_enhanced")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmProfileWebFilteringEnhancedDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delUtmProfileWebFEnhanced(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmProfileWebFEnhanced(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -343,20 +346,20 @@ func resourceSecurityUtmProfileWebFilteringEnhancedDelete(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmProfileWebFEnhanced(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmProfileWebFEnhanced(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_utm_profile_web_filtering_juniper_enhanced", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_utm_profile_web_filtering_juniper_enhanced")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -371,9 +374,9 @@ func resourceSecurityUtmProfileWebFilteringEnhancedImport(ctx context.Context, d
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	utmProfileWebFEnhancedExists, err := checkUtmProfileWebFEnhancedExists(d.Id(), clt, junSess)
+	utmProfileWebFEnhancedExists, err := checkUtmProfileWebFEnhancedExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +384,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedImport(ctx context.Context, d
 		return nil, fmt.Errorf("don't find security utm feature-profile web-filtering juniper-enhanced with id "+
 			"'%v' (id must be <name>)", d.Id())
 	}
-	utmProfileWebFEnhancedOptions, err := readUtmProfileWebFEnhanced(d.Id(), clt, junSess)
+	utmProfileWebFEnhancedOptions, err := readUtmProfileWebFEnhanced(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -392,9 +395,9 @@ func resourceSecurityUtmProfileWebFilteringEnhancedImport(ctx context.Context, d
 	return result, nil
 }
 
-func checkUtmProfileWebFEnhancedExists(profile string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm feature-profile web-filtering juniper-enhanced profile \""+profile+"\""+junos.PipeDisplaySet, junSess)
+func checkUtmProfileWebFEnhancedExists(profile string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm feature-profile web-filtering juniper-enhanced profile \"" + profile + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -405,7 +408,7 @@ func checkUtmProfileWebFEnhancedExists(profile string, clt *junos.Client, junSes
 	return true, nil
 }
 
-func setUtmProfileWebFEnhanced(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setUtmProfileWebFEnhanced(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security utm feature-profile web-filtering juniper-enhanced " +
@@ -508,14 +511,15 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, clt *junos.Client, junSes
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readUtmProfileWebFEnhanced(profile string, clt *junos.Client, junSess *junos.Session,
+func readUtmProfileWebFEnhanced(profile string, junSess *junos.Session,
 ) (confRead utmProfileWebFilteringEnhancedOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm feature-profile web-filtering juniper-enhanced"+
-		" profile \""+profile+"\""+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm feature-profile web-filtering juniper-enhanced profile \"" + profile + "\"" +
+		junos.PipeDisplaySetRelative,
+	)
 	if err != nil {
 		return confRead, err
 	}
@@ -628,12 +632,12 @@ func readUtmProfileWebFEnhanced(profile string, clt *junos.Client, junSess *juno
 	return confRead, nil
 }
 
-func delUtmProfileWebFEnhanced(profile string, clt *junos.Client, junSess *junos.Session) error {
+func delUtmProfileWebFEnhanced(profile string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering juniper-enhanced "+
 		"profile \""+profile+"\"")
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillUtmProfileWebFEnhancedData(

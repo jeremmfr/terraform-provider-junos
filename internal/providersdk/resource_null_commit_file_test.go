@@ -101,20 +101,22 @@ resource "junos_null_commit_file" "setfile2" {
 func testAccJunosNullCommitFilePreCustom(interFace string) string {
 	return fmt.Sprintf(`
 provider "junos" {
-  alias                    = "fake"
-  fake_create_with_setfile = "%s"
-  fake_update_also         = true
+  alias = "fake"
 }
 resource "junos_interface_physical" "testacc_nullcommitfile" {
+  provider     = junos.fake
   name         = "%s"
   description  = "testacc_null"
   vlan_tagging = true
 }
-`, testaccNullCommitFile, interFace)
+`, interFace)
 }
 
 func testAccJunosNullCommitFileCustom(interFace string) string {
 	return fmt.Sprintf(`
+provider "junos" {
+  alias = "fake"
+}
 resource "junos_interface_physical" "testacc_nullcommitfile" {
   name         = "%s"
   description  = "testacc_null"

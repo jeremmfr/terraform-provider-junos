@@ -65,9 +65,9 @@ func dataSourceApplicationSetsRead(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	mutex.Lock()
-	applicationSets, err := dataSourceApplicationSetsSearch(clt, junSess)
+	applicationSets, err := dataSourceApplicationSetsSearch(junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -84,14 +84,14 @@ func dataSourceApplicationSetsRead(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func dataSourceApplicationSetsSearch(clt *junos.Client, junSess *junos.Session,
+func dataSourceApplicationSetsSearch(junSess *junos.Session,
 ) (map[string]applicationSetOptions, error) {
 	results := make(map[string]applicationSetOptions, 0)
 	for _, config := range []string{
 		"groups junos-defaults applications",
 		"applications",
 	} {
-		showConfig, err := clt.Command(junos.CmdShowConfig+config+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err := junSess.Command(junos.CmdShowConfig + config + junos.PipeDisplaySetRelative)
 		if err != nil {
 			return results, err
 		}

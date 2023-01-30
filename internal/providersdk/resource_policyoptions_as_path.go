@@ -47,7 +47,8 @@ func resourcePolicyoptionsAsPath() *schema.Resource {
 func resourcePolicyoptionsAsPathCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setPolicyoptionsAsPath(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setPolicyoptionsAsPath(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -58,37 +59,37 @@ func resourcePolicyoptionsAsPathCreate(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	policyoptsAsPathExists, err := checkPolicyoptionsAsPathExists(d.Get("name").(string), clt, junSess)
+	policyoptsAsPathExists, err := checkPolicyoptionsAsPathExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if policyoptsAsPathExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("policy-options as-path %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setPolicyoptionsAsPath(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setPolicyoptionsAsPath(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_policyoptions_as_path", junSess)
+	warns, err := junSess.CommitConf("create resource junos_policyoptions_as_path")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	policyoptsAsPathExists, err = checkPolicyoptionsAsPathExists(d.Get("name").(string), clt, junSess)
+	policyoptsAsPathExists, err = checkPolicyoptionsAsPathExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -99,7 +100,7 @@ func resourcePolicyoptionsAsPathCreate(ctx context.Context, d *schema.ResourceDa
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourcePolicyoptionsAsPathReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourcePolicyoptionsAsPathReadWJunSess(d, junSess)...)
 }
 
 func resourcePolicyoptionsAsPathRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -108,15 +109,15 @@ func resourcePolicyoptionsAsPathRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourcePolicyoptionsAsPathReadWJunSess(d, clt, junSess)
+	return resourcePolicyoptionsAsPathReadWJunSess(d, junSess)
 }
 
-func resourcePolicyoptionsAsPathReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourcePolicyoptionsAsPathReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	asPathOptions, err := readPolicyoptionsAsPath(d.Get("name").(string), clt, junSess)
+	asPathOptions, err := readPolicyoptionsAsPath(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -134,10 +135,11 @@ func resourcePolicyoptionsAsPathUpdate(ctx context.Context, d *schema.ResourceDa
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delPolicyoptionsAsPath(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delPolicyoptionsAsPath(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setPolicyoptionsAsPath(d, clt, nil); err != nil {
+		if err := setPolicyoptionsAsPath(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -148,37 +150,38 @@ func resourcePolicyoptionsAsPathUpdate(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsAsPath(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delPolicyoptionsAsPath(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setPolicyoptionsAsPath(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setPolicyoptionsAsPath(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_policyoptions_as_path", junSess)
+	warns, err := junSess.CommitConf("update resource junos_policyoptions_as_path")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourcePolicyoptionsAsPathReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourcePolicyoptionsAsPathReadWJunSess(d, junSess)...)
 }
 
 func resourcePolicyoptionsAsPathDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delPolicyoptionsAsPath(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delPolicyoptionsAsPath(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -188,20 +191,20 @@ func resourcePolicyoptionsAsPathDelete(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsAsPath(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delPolicyoptionsAsPath(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_policyoptions_as_path", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_policyoptions_as_path")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -216,17 +219,17 @@ func resourcePolicyoptionsAsPathImport(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	policyoptsAsPathExists, err := checkPolicyoptionsAsPathExists(d.Id(), clt, junSess)
+	policyoptsAsPathExists, err := checkPolicyoptionsAsPathExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !policyoptsAsPathExists {
 		return nil, fmt.Errorf("don't find policy-options as-path with id '%v' (id must be <name>)", d.Id())
 	}
-	asPathOptions, err := readPolicyoptionsAsPath(d.Id(), clt, junSess)
+	asPathOptions, err := readPolicyoptionsAsPath(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -237,8 +240,8 @@ func resourcePolicyoptionsAsPathImport(ctx context.Context, d *schema.ResourceDa
 	return result, nil
 }
 
-func checkPolicyoptionsAsPathExists(name string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"policy-options as-path "+name+junos.PipeDisplaySet, junSess)
+func checkPolicyoptionsAsPathExists(name string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "policy-options as-path " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -249,7 +252,7 @@ func checkPolicyoptionsAsPathExists(name string, clt *junos.Client, junSess *jun
 	return true, nil
 }
 
-func setPolicyoptionsAsPath(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setPolicyoptionsAsPath(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	if d.Get("dynamic_db").(bool) {
@@ -261,15 +264,13 @@ func setPolicyoptionsAsPath(d *schema.ResourceData, clt *junos.Client, junSess *
 			" \""+d.Get("path").(string)+"\"")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readPolicyoptionsAsPath(name string, clt *junos.Client, junSess *junos.Session,
+func readPolicyoptionsAsPath(name string, junSess *junos.Session,
 ) (confRead asPathOptions, err error) {
-	showConfig, err := clt.Command(
-		junos.CmdShowConfig+"policy-options as-path "+name+junos.PipeDisplaySetRelative,
-		junSess,
-	)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"policy-options as-path " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -295,11 +296,11 @@ func readPolicyoptionsAsPath(name string, clt *junos.Client, junSess *junos.Sess
 	return confRead, nil
 }
 
-func delPolicyoptionsAsPath(asPath string, clt *junos.Client, junSess *junos.Session) error {
+func delPolicyoptionsAsPath(asPath string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options as-path "+asPath)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillPolicyoptionsAsPathData(d *schema.ResourceData, asPathOptions asPathOptions) {

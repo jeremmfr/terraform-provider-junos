@@ -118,7 +118,8 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context, d *sche
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSecurityDynamicAddressFeedServer(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSecurityDynamicAddressFeedServer(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -129,45 +130,47 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context, d *sche
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security dynamic-address feed-server "+
 			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	securityDynamicAddressFeedServerExists, err := checkSecurityDynamicAddressFeedServersExists(
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityDynamicAddressFeedServerExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(
 			"security dynamic-address feed-server %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityDynamicAddressFeedServer(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSecurityDynamicAddressFeedServer(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_dynamic_address_feed_server", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_dynamic_address_feed_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityDynamicAddressFeedServerExists, err = checkSecurityDynamicAddressFeedServersExists(
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -178,7 +181,7 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context, d *sche
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityDynamicAddressFeedServerReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityDynamicAddressFeedServerReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityDynamicAddressFeedServerRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -188,16 +191,16 @@ func resourceSecurityDynamicAddressFeedServerRead(ctx context.Context, d *schema
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityDynamicAddressFeedServerReadWJunSess(d, clt, junSess)
+	return resourceSecurityDynamicAddressFeedServerReadWJunSess(d, junSess)
 }
 
 func resourceSecurityDynamicAddressFeedServerReadWJunSess(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	dynamicAddressFeedServerOptions, err := readSecurityDynamicAddressFeedServer(d.Get("name").(string), clt, junSess)
+	dynamicAddressFeedServerOptions, err := readSecurityDynamicAddressFeedServer(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -216,10 +219,11 @@ func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context, d *sche
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityDynamicAddressFeedServer(d, clt, nil); err != nil {
+		if err := setSecurityDynamicAddressFeedServer(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -230,38 +234,39 @@ func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context, d *sche
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityDynamicAddressFeedServer(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSecurityDynamicAddressFeedServer(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_dynamic_address_feed_server", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_dynamic_address_feed_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityDynamicAddressFeedServerReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityDynamicAddressFeedServerReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -271,20 +276,20 @@ func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context, d *sche
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_dynamic_address_feed_server", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_dynamic_address_feed_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -299,16 +304,16 @@ func resourceSecurityDynamicAddressFeedServerImport(ctx context.Context, d *sche
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	securityDynamicAddressFeedServerExists, err := checkSecurityDynamicAddressFeedServersExists(d.Id(), clt, junSess)
+	securityDynamicAddressFeedServerExists, err := checkSecurityDynamicAddressFeedServersExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityDynamicAddressFeedServerExists {
 		return nil, fmt.Errorf("security dynamic-address feed-server with id '%v' (id must be <name>)", d.Id())
 	}
-	dynamicAddressFeedServerOptions, err := readSecurityDynamicAddressFeedServer(d.Id(), clt, junSess)
+	dynamicAddressFeedServerOptions, err := readSecurityDynamicAddressFeedServer(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -319,10 +324,10 @@ func resourceSecurityDynamicAddressFeedServerImport(ctx context.Context, d *sche
 	return result, nil
 }
 
-func checkSecurityDynamicAddressFeedServersExists(name string, clt *junos.Client, junSess *junos.Session,
+func checkSecurityDynamicAddressFeedServersExists(name string, junSess *junos.Session,
 ) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security dynamic-address feed-server "+name+junos.PipeDisplaySet, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security dynamic-address feed-server " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -333,7 +338,7 @@ func checkSecurityDynamicAddressFeedServersExists(name string, clt *junos.Client
 	return true, nil
 }
 
-func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security dynamic-address feed-server " + d.Get("name").(string) + " "
@@ -380,15 +385,15 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, clt *junos.Clie
 		configSet = append(configSet, setPrefix+"validate-certificate-attributes subject-or-subject-alternative-names")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSecurityDynamicAddressFeedServer(name string, clt *junos.Client, junSess *junos.Session,
+func readSecurityDynamicAddressFeedServer(name string, junSess *junos.Session,
 ) (confRead dynamicAddressFeedServerOptions, err error) {
 	// default -1
 	confRead.holdInterval = -1
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security dynamic-address feed-server "+name+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security dynamic-address feed-server " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -458,10 +463,10 @@ func readSecurityDynamicAddressFeedServer(name string, clt *junos.Client, junSes
 	return confRead, nil
 }
 
-func delSecurityDynamicAddressFeedServer(name string, clt *junos.Client, junSess *junos.Session) error {
+func delSecurityDynamicAddressFeedServer(name string, junSess *junos.Session) error {
 	configSet := []string{"delete security dynamic-address feed-server " + name}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSecurityDynamicAddressFeedServerData(

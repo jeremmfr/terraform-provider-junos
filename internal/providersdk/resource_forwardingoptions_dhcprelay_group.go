@@ -582,7 +582,8 @@ func resourceForwardingOptionsDhcpRelayGroupCreate(ctx context.Context, d *schem
 	versionArg := d.Get("version").(string)
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setForwardingOptionsDhcpRelayGroup(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setForwardingOptionsDhcpRelayGroup(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(nameArg + junos.IDSeparator + routingInstanceArg + junos.IDSeparator + versionArg)
@@ -593,20 +594,20 @@ func resourceForwardingOptionsDhcpRelayGroupCreate(ctx context.Context, d *schem
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if routingInstanceArg != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(routingInstanceArg, clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(routingInstanceArg, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", routingInstanceArg))...)
@@ -616,14 +617,15 @@ func resourceForwardingOptionsDhcpRelayGroupCreate(ctx context.Context, d *schem
 		nameArg,
 		routingInstanceArg,
 		versionArg,
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if fwdOptsDhcpRelGroupExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 		if versionArg == "v6" {
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("forwarding-options dhcp-relay dhcpv6 group %v"+
@@ -635,16 +637,16 @@ func resourceForwardingOptionsDhcpRelayGroupCreate(ctx context.Context, d *schem
 				" already exists in routing-instance %s", nameArg, routingInstanceArg))...)
 	}
 
-	if err := setForwardingOptionsDhcpRelayGroup(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setForwardingOptionsDhcpRelayGroup(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	warns, err := clt.CommitConf("create resource junos_forwardingoptions_dhcprelay_group", junSess)
+	warns, err := junSess.CommitConf("create resource junos_forwardingoptions_dhcprelay_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -652,7 +654,8 @@ func resourceForwardingOptionsDhcpRelayGroupCreate(ctx context.Context, d *schem
 		nameArg,
 		routingInstanceArg,
 		versionArg,
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -670,7 +673,7 @@ func resourceForwardingOptionsDhcpRelayGroupCreate(ctx context.Context, d *schem
 				"=> check your config", nameArg, routingInstanceArg))...)
 	}
 
-	return append(diagWarns, resourceForwardingOptionsDhcpRelayGroupReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceForwardingOptionsDhcpRelayGroupReadWJunSess(d, junSess)...)
 }
 
 func resourceForwardingOptionsDhcpRelayGroupRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -680,20 +683,21 @@ func resourceForwardingOptionsDhcpRelayGroupRead(ctx context.Context, d *schema.
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceForwardingOptionsDhcpRelayGroupReadWJunSess(d, clt, junSess)
+	return resourceForwardingOptionsDhcpRelayGroupReadWJunSess(d, junSess)
 }
 
 func resourceForwardingOptionsDhcpRelayGroupReadWJunSess(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
 	fwdOptsDhcpRelGroupOptions, err := readForwardingOptionsDhcpRelayGroup(
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		d.Get("version").(string),
-		clt, junSess)
+		junSess,
+	)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -715,10 +719,11 @@ func resourceForwardingOptionsDhcpRelayGroupUpdate(ctx context.Context, d *schem
 	versionArg := d.Get("version").(string)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delForwardingOptionsDhcpRelayGroup(nameArg, routingInstanceArg, versionArg, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delForwardingOptionsDhcpRelayGroup(nameArg, routingInstanceArg, versionArg, junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setForwardingOptionsDhcpRelayGroup(d, clt, nil); err != nil {
+		if err := setForwardingOptionsDhcpRelayGroup(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -729,32 +734,32 @@ func resourceForwardingOptionsDhcpRelayGroupUpdate(ctx context.Context, d *schem
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delForwardingOptionsDhcpRelayGroup(nameArg, routingInstanceArg, versionArg, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delForwardingOptionsDhcpRelayGroup(nameArg, routingInstanceArg, versionArg, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setForwardingOptionsDhcpRelayGroup(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setForwardingOptionsDhcpRelayGroup(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	warns, err := clt.CommitConf("update resource junos_forwardingoptions_dhcprelay_group", junSess)
+	warns, err := junSess.CommitConf("update resource junos_forwardingoptions_dhcprelay_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceForwardingOptionsDhcpRelayGroupReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceForwardingOptionsDhcpRelayGroupReadWJunSess(d, junSess)...)
 }
 
 func resourceForwardingOptionsDhcpRelayGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -764,7 +769,8 @@ func resourceForwardingOptionsDhcpRelayGroupDelete(ctx context.Context, d *schem
 	versionArg := d.Get("version").(string)
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delForwardingOptionsDhcpRelayGroup(nameArg, routingInstanceArg, versionArg, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delForwardingOptionsDhcpRelayGroup(nameArg, routingInstanceArg, versionArg, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -774,20 +780,20 @@ func resourceForwardingOptionsDhcpRelayGroupDelete(ctx context.Context, d *schem
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delForwardingOptionsDhcpRelayGroup(nameArg, routingInstanceArg, versionArg, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delForwardingOptionsDhcpRelayGroup(nameArg, routingInstanceArg, versionArg, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_forwardingoptions_dhcprelay_group", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_forwardingoptions_dhcprelay_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -802,7 +808,7 @@ func resourceForwardingOptionsDhcpRelayGroupImport(ctx context.Context, d *schem
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), junos.IDSeparator)
 	if len(idSplit) < 3 {
@@ -816,7 +822,8 @@ func resourceForwardingOptionsDhcpRelayGroupImport(ctx context.Context, d *schem
 		idSplit[0],
 		idSplit[1],
 		idSplit[2],
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -833,7 +840,8 @@ func resourceForwardingOptionsDhcpRelayGroupImport(ctx context.Context, d *schem
 		idSplit[0],
 		idSplit[1],
 		idSplit[2],
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -845,7 +853,7 @@ func resourceForwardingOptionsDhcpRelayGroupImport(ctx context.Context, d *schem
 }
 
 func checkForwardingOptionsDhcpRelayGroupExists(
-	name, instance, version string, clt *junos.Client, junSess *junos.Session,
+	name, instance, version string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -859,7 +867,7 @@ func checkForwardingOptionsDhcpRelayGroupExists(
 	} else {
 		showCmd += "group " + name
 	}
-	showConfig, err := clt.Command(showCmd+junos.PipeDisplaySet, junSess)
+	showConfig, err := junSess.Command(showCmd + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -870,7 +878,7 @@ func checkForwardingOptionsDhcpRelayGroupExists(
 	return true, nil
 }
 
-func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := junos.SetLS
@@ -1211,7 +1219,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, clt *junos.Clien
 		configSet = append(configSet, setPrefix+"vendor-specific-information location")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func setForwardingOptionsDhcpRelayGroupInterface(
@@ -1301,7 +1309,7 @@ func setForwardingOptionsDhcpRelayGroupInterface(
 	return configSet, nil
 }
 
-func readForwardingOptionsDhcpRelayGroup(name, instance, version string, clt *junos.Client, junSess *junos.Session,
+func readForwardingOptionsDhcpRelayGroup(name, instance, version string, junSess *junos.Session,
 ) (confRead fwdOptsDhcpRelGroupOptions, err error) {
 	// default -1
 	confRead.minimumWaitTime = -1
@@ -1315,7 +1323,7 @@ func readForwardingOptionsDhcpRelayGroup(name, instance, version string, clt *ju
 	} else {
 		showCmd += "group " + name
 	}
-	showConfig, err := clt.Command(showCmd+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(showCmd + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -1656,7 +1664,7 @@ func readForwardingOptionsDhcpRelayGroupInterface(itemTrim, version string, inte
 	return nil
 }
 
-func delForwardingOptionsDhcpRelayGroup(name, instance, version string, clt *junos.Client, junSess *junos.Session,
+func delForwardingOptionsDhcpRelayGroup(name, instance, version string, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0, 1)
 	switch {
@@ -1672,7 +1680,7 @@ func delForwardingOptionsDhcpRelayGroup(name, instance, version string, clt *jun
 			"forwarding-options dhcp-relay group "+name)
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillForwardingOptionsDhcpRelayGroupData(

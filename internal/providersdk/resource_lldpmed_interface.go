@@ -135,7 +135,8 @@ func resourceLldpMedInterface() *schema.Resource {
 func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setLldpMedInterface(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setLldpMedInterface(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -146,37 +147,37 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Get("name").(string), clt, junSess)
+	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if lldpMedInterfaceExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(
 			"protocols lldp-med interface %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setLldpMedInterface(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setLldpMedInterface(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_lldpmed_interface", junSess)
+	warns, err := junSess.CommitConf("create resource junos_lldpmed_interface")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	lldpMedInterfaceExists, err = checkLldpMedInterfaceExists(d.Get("name").(string), clt, junSess)
+	lldpMedInterfaceExists, err = checkLldpMedInterfaceExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -187,7 +188,7 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceLldpMedInterfaceReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceLldpMedInterfaceReadWJunSess(d, junSess)...)
 }
 
 func resourceLldpMedInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -196,15 +197,15 @@ func resourceLldpMedInterfaceRead(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceLldpMedInterfaceReadWJunSess(d, clt, junSess)
+	return resourceLldpMedInterfaceReadWJunSess(d, junSess)
 }
 
-func resourceLldpMedInterfaceReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceLldpMedInterfaceReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	lldpMedInterfaceOptions, err := readLldpMedInterface(d.Get("name").(string), clt, junSess)
+	lldpMedInterfaceOptions, err := readLldpMedInterface(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -222,10 +223,11 @@ func resourceLldpMedInterfaceUpdate(ctx context.Context, d *schema.ResourceData,
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delLldpMedInterface(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delLldpMedInterface(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setLldpMedInterface(d, clt, nil); err != nil {
+		if err := setLldpMedInterface(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -236,37 +238,38 @@ func resourceLldpMedInterfaceUpdate(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delLldpMedInterface(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delLldpMedInterface(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setLldpMedInterface(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setLldpMedInterface(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_lldpmed_interface", junSess)
+	warns, err := junSess.CommitConf("update resource junos_lldpmed_interface")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceLldpMedInterfaceReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceLldpMedInterfaceReadWJunSess(d, junSess)...)
 }
 
 func resourceLldpMedInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delLldpMedInterface(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delLldpMedInterface(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -276,20 +279,20 @@ func resourceLldpMedInterfaceDelete(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delLldpMedInterface(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delLldpMedInterface(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_lldpmed_interface", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_lldpmed_interface")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -304,17 +307,17 @@ func resourceLldpMedInterfaceImport(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Id(), clt, junSess)
+	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !lldpMedInterfaceExists {
 		return nil, fmt.Errorf("don't find protocols lldp-med interface with id '%v' (id must be <name>)", d.Id())
 	}
-	lldpMedInterfaceOptions, err := readLldpMedInterface(d.Id(), clt, junSess)
+	lldpMedInterfaceOptions, err := readLldpMedInterface(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -325,9 +328,8 @@ func resourceLldpMedInterfaceImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkLldpMedInterfaceExists(name string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(
-		junos.CmdShowConfig+"protocols lldp-med interface "+name+junos.PipeDisplaySet, junSess)
+func checkLldpMedInterfaceExists(name string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "protocols lldp-med interface " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -338,7 +340,7 @@ func checkLldpMedInterfaceExists(name string, clt *junos.Client, junSess *junos.
 	return true, nil
 }
 
-func setLldpMedInterface(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setLldpMedInterface(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set protocols lldp-med interface " + d.Get("name").(string) + " "
 	configSet := make([]string, 0)
 
@@ -387,13 +389,13 @@ func setLldpMedInterface(d *schema.ResourceData, clt *junos.Client, junSess *jun
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readLldpMedInterface(name string, clt *junos.Client, junSess *junos.Session,
+func readLldpMedInterface(name string, junSess *junos.Session,
 ) (confRead lldpMedInterfaceOptions, err error) {
-	showConfig, err := clt.Command(
-		junos.CmdShowConfig+"protocols lldp-med interface "+name+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"protocols lldp-med interface " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -480,10 +482,10 @@ func readLldpMedInterface(name string, clt *junos.Client, junSess *junos.Session
 	return confRead, nil
 }
 
-func delLldpMedInterface(name string, clt *junos.Client, junSess *junos.Session) error {
+func delLldpMedInterface(name string, junSess *junos.Session) error {
 	configSet := []string{"delete protocols lldp-med interface " + name}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillLldpMedInterfaceData(d *schema.ResourceData, lldpMedInterfaceOptions lldpMedInterfaceOptions) {

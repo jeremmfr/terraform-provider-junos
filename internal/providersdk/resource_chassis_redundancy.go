@@ -92,7 +92,8 @@ func resourceChassisRedundancy() *schema.Resource {
 func resourceChassisRedundancyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setChassisRedundancy(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setChassisRedundancy(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("redundancy")
@@ -103,26 +104,26 @@ func resourceChassisRedundancyCreate(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setChassisRedundancy(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setChassisRedundancy(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_chassis_redundancy", junSess)
+	warns, err := junSess.CommitConf("create resource junos_chassis_redundancy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("redundancy")
 
-	return append(diagWarns, resourceChassisRedundancyReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceChassisRedundancyReadWJunSess(d, junSess)...)
 }
 
 func resourceChassisRedundancyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -131,15 +132,15 @@ func resourceChassisRedundancyRead(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceChassisRedundancyReadWJunSess(d, clt, junSess)
+	return resourceChassisRedundancyReadWJunSess(d, junSess)
 }
 
-func resourceChassisRedundancyReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceChassisRedundancyReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	redundancyOptions, err := readChassisRedundancy(clt, junSess)
+	redundancyOptions, err := readChassisRedundancy(junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -153,10 +154,11 @@ func resourceChassisRedundancyUpdate(ctx context.Context, d *schema.ResourceData
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delChassisRedundancy(clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delChassisRedundancy(junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setChassisRedundancy(d, clt, nil); err != nil {
+		if err := setChassisRedundancy(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -167,37 +169,38 @@ func resourceChassisRedundancyUpdate(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delChassisRedundancy(clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delChassisRedundancy(junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setChassisRedundancy(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setChassisRedundancy(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_chassis_redundancy", junSess)
+	warns, err := junSess.CommitConf("update resource junos_chassis_redundancy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceChassisRedundancyReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceChassisRedundancyReadWJunSess(d, junSess)...)
 }
 
 func resourceChassisRedundancyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delChassisRedundancy(clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delChassisRedundancy(junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -207,20 +210,20 @@ func resourceChassisRedundancyDelete(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delChassisRedundancy(clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delChassisRedundancy(junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_chassis_redundancy", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_chassis_redundancy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -235,9 +238,9 @@ func resourceChassisRedundancyImport(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	redundancyOptions, err := readChassisRedundancy(clt, junSess)
+	redundancyOptions, err := readChassisRedundancy(junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +251,7 @@ func resourceChassisRedundancyImport(ctx context.Context, d *schema.ResourceData
 	return result, nil
 }
 
-func setChassisRedundancy(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setChassisRedundancy(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set chassis redundancy "
@@ -286,17 +289,18 @@ func setChassisRedundancy(d *schema.ResourceData, clt *junos.Client, junSess *ju
 			" "+routingEngine["role"].(string))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func delChassisRedundancy(clt *junos.Client, junSess *junos.Session) error {
+func delChassisRedundancy(junSess *junos.Session) error {
 	configSet := []string{"delete chassis redundancy"}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readChassisRedundancy(clt *junos.Client, junSess *junos.Session) (confRead chassisRedundancyOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"chassis redundancy"+junos.PipeDisplaySetRelative, junSess)
+func readChassisRedundancy(junSess *junos.Session,
+) (confRead chassisRedundancyOptions, err error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "chassis redundancy" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}

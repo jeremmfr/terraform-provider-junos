@@ -131,7 +131,8 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context, d *schem
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setServicesUserIdentAdAccessDomain(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setServicesUserIdentAdAccessDomain(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -142,42 +143,44 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context, d *schem
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	svcUserIdentAdAccessDomainExists, err := checkServicesUserIdentAdAccessDomainExists(
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if svcUserIdentAdAccessDomainExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf(
 				"services user-identification active-directory-access domain %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setServicesUserIdentAdAccessDomain(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setServicesUserIdentAdAccessDomain(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_services_user_identification_ad_access_domain", junSess)
+	warns, err := junSess.CommitConf("create resource junos_services_user_identification_ad_access_domain")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	svcUserIdentAdAccessDomainExists, err = checkServicesUserIdentAdAccessDomainExists(
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -189,7 +192,7 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context, d *schem
 				"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceServicesUserIdentAdAccessDomainReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceServicesUserIdentAdAccessDomainReadWJunSess(d, junSess)...)
 }
 
 func resourceServicesUserIdentAdAccessDomainRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -199,16 +202,16 @@ func resourceServicesUserIdentAdAccessDomainRead(ctx context.Context, d *schema.
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceServicesUserIdentAdAccessDomainReadWJunSess(d, clt, junSess)
+	return resourceServicesUserIdentAdAccessDomainReadWJunSess(d, junSess)
 }
 
 func resourceServicesUserIdentAdAccessDomainReadWJunSess(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	svcUserIdentAdAccessDomainOptions, err := readServicesUserIdentAdAccessDomain(d.Get("name").(string), clt, junSess)
+	svcUserIdentAdAccessDomainOptions, err := readServicesUserIdentAdAccessDomain(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -227,10 +230,11 @@ func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context, d *schem
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setServicesUserIdentAdAccessDomain(d, clt, nil); err != nil {
+		if err := setServicesUserIdentAdAccessDomain(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -241,38 +245,39 @@ func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context, d *schem
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServicesUserIdentAdAccessDomain(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setServicesUserIdentAdAccessDomain(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_services_user_identification_ad_access_domain", junSess)
+	warns, err := junSess.CommitConf("update resource junos_services_user_identification_ad_access_domain")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesUserIdentAdAccessDomainReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceServicesUserIdentAdAccessDomainReadWJunSess(d, junSess)...)
 }
 
 func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -282,20 +287,20 @@ func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context, d *schem
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_services_user_identification_ad_access_domain", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_services_user_identification_ad_access_domain")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -310,9 +315,9 @@ func resourceServicesUserIdentAdAccessDomainImport(ctx context.Context, d *schem
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	svcUserIdentAdAccessDomainExists, err := checkServicesUserIdentAdAccessDomainExists(d.Id(), clt, junSess)
+	svcUserIdentAdAccessDomainExists, err := checkServicesUserIdentAdAccessDomainExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +325,7 @@ func resourceServicesUserIdentAdAccessDomainImport(ctx context.Context, d *schem
 		return nil, fmt.Errorf("don't find services user-identification "+
 			"active-directory-access domain with id '%v' (id must be <name>)", d.Id())
 	}
-	svcUserIdentAdAccessDomainOptions, err := readServicesUserIdentAdAccessDomain(d.Id(), clt, junSess)
+	svcUserIdentAdAccessDomainOptions, err := readServicesUserIdentAdAccessDomain(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -331,10 +336,10 @@ func resourceServicesUserIdentAdAccessDomainImport(ctx context.Context, d *schem
 	return result, nil
 }
 
-func checkServicesUserIdentAdAccessDomainExists(domain string, clt *junos.Client, junSess *junos.Session,
+func checkServicesUserIdentAdAccessDomainExists(domain string, junSess *junos.Session,
 ) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"services user-identification active-directory-access domain "+domain+junos.PipeDisplaySet, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"services user-identification active-directory-access domain " + domain + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -345,7 +350,7 @@ func checkServicesUserIdentAdAccessDomainExists(domain string, clt *junos.Client
 	return true, nil
 }
 
-func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set services user-identification active-directory-access domain " + d.Get("name").(string) + " "
@@ -395,13 +400,13 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, clt *junos.Clien
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readServicesUserIdentAdAccessDomain(domain string, clt *junos.Client, junSess *junos.Session,
+func readServicesUserIdentAdAccessDomain(domain string, junSess *junos.Session,
 ) (confRead svcUserIdentAdAccessDomainOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"services user-identification active-directory-access domain "+domain+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"services user-identification active-directory-access domain " + domain + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -489,12 +494,12 @@ func readServicesUserIdentAdAccessDomain(domain string, clt *junos.Client, junSe
 	return confRead, nil
 }
 
-func delServicesUserIdentAdAccessDomain(domain string, clt *junos.Client, junSess *junos.Session) error {
+func delServicesUserIdentAdAccessDomain(domain string, junSess *junos.Session) error {
 	configSet := []string{
 		"delete services user-identification active-directory-access domain " + domain,
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillServicesUserIdentAdAccessDomainData(

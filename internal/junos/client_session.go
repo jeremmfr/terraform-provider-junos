@@ -27,7 +27,7 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 		auth.Password = clt.junosPassword
 	}
 	auth.Timeout = clt.junosSSHTimeoutToEstab
-	junSess, err := netconfNewSession(
+	sess, err := netconfNewSession(
 		ctx,
 		net.JoinHostPort(clt.junosIP, strconv.Itoa(clt.junosPort)),
 		&auth,
@@ -39,19 +39,28 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	if junSess.SystemInformation.HardwareModel == "" {
-		return junSess, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
+	sess.logFile = clt.logFile
+	sess.sleepLock = clt.sleepLock
+	sess.sleepShort = clt.sleepShort
+	sess.sleepSSHClosed = clt.sleepSSHClosed
+	if clt.fakeCreateSetFile != "" {
+		sess.fakeSetFile = clt.appendFakeCreateSetFile
 	}
-	clt.logFile("[startNewSession] started")
+	if sess.SystemInformation.HardwareModel == "" {
+		return sess, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
+	}
+	clt.logFile("[StartNewSession] started")
 
-	return junSess, nil
+	return sess, nil
 }
 
-func (clt *Client) CloseSession(sess *Session) {
-	err := sess.close(clt.sleepSSHClosed)
-	if err != nil {
-		clt.logFile(fmt.Sprintf("[closeSession] err: %q", err))
-	} else {
-		clt.logFile("[closeSession] closed")
+func (clt *Client) NewSessionWithoutNetconf(ctx context.Context) *Session {
+	sess := Session{
+		logFile: clt.logFile,
 	}
+	if clt.fakeCreateSetFile != "" {
+		sess.fakeSetFile = clt.appendFakeCreateSetFile
+	}
+
+	return &sess
 }

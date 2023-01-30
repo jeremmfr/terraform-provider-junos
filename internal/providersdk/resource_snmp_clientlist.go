@@ -42,7 +42,8 @@ func resourceSnmpClientlist() *schema.Resource {
 func resourceSnmpClientlistCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSnmpClientlist(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSnmpClientlist(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -53,36 +54,36 @@ func resourceSnmpClientlistCreate(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	snmpClientlistExists, err := checkSnmpClientlistExists(d.Get("name").(string), clt, junSess)
+	snmpClientlistExists, err := checkSnmpClientlistExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if snmpClientlistExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("snmp client-list %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSnmpClientlist(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSnmpClientlist(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_snmp_clientlist", junSess)
+	warns, err := junSess.CommitConf("create resource junos_snmp_clientlist")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	snmpClientlistExists, err = checkSnmpClientlistExists(d.Get("name").(string), clt, junSess)
+	snmpClientlistExists, err = checkSnmpClientlistExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -93,7 +94,7 @@ func resourceSnmpClientlistCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSnmpClientlistReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSnmpClientlistReadWJunSess(d, junSess)...)
 }
 
 func resourceSnmpClientlistRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -102,15 +103,15 @@ func resourceSnmpClientlistRead(ctx context.Context, d *schema.ResourceData, m i
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSnmpClientlistReadWJunSess(d, clt, junSess)
+	return resourceSnmpClientlistReadWJunSess(d, junSess)
 }
 
-func resourceSnmpClientlistReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSnmpClientlistReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	snmpClientlistOptions, err := readSnmpClientlist(d.Get("name").(string), clt, junSess)
+	snmpClientlistOptions, err := readSnmpClientlist(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -128,10 +129,11 @@ func resourceSnmpClientlistUpdate(ctx context.Context, d *schema.ResourceData, m
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSnmpClientlist(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSnmpClientlist(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSnmpClientlist(d, clt, nil); err != nil {
+		if err := setSnmpClientlist(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -142,37 +144,38 @@ func resourceSnmpClientlistUpdate(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpClientlist(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSnmpClientlist(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmpClientlist(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSnmpClientlist(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_snmp_clientlist", junSess)
+	warns, err := junSess.CommitConf("update resource junos_snmp_clientlist")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpClientlistReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSnmpClientlistReadWJunSess(d, junSess)...)
 }
 
 func resourceSnmpClientlistDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSnmpClientlist(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSnmpClientlist(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -182,20 +185,20 @@ func resourceSnmpClientlistDelete(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpClientlist(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSnmpClientlist(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_snmp_clientlist", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_snmp_clientlist")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -210,17 +213,17 @@ func resourceSnmpClientlistImport(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	snmpClientlistExists, err := checkSnmpClientlistExists(d.Id(), clt, junSess)
+	snmpClientlistExists, err := checkSnmpClientlistExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !snmpClientlistExists {
 		return nil, fmt.Errorf("don't find snmp client-list with id '%v' (id must be <name>)", d.Id())
 	}
-	snmpClientlistOptions, err := readSnmpClientlist(d.Id(), clt, junSess)
+	snmpClientlistOptions, err := readSnmpClientlist(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -231,8 +234,8 @@ func resourceSnmpClientlistImport(ctx context.Context, d *schema.ResourceData, m
 	return result, nil
 }
 
-func checkSnmpClientlistExists(name string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"snmp client-list \""+name+"\""+junos.PipeDisplaySet, junSess)
+func checkSnmpClientlistExists(name string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "snmp client-list \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -243,7 +246,7 @@ func checkSnmpClientlistExists(name string, clt *junos.Client, junSess *junos.Se
 	return true, nil
 }
 
-func setSnmpClientlist(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSnmpClientlist(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set snmp client-list \"" + d.Get("name").(string) + "\" "
 	configSet := make([]string, 0)
 
@@ -252,18 +255,13 @@ func setSnmpClientlist(d *schema.ResourceData, clt *junos.Client, junSess *junos
 		configSet = append(configSet, setPrefix+v)
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSnmpClientlist(
-	name string, clt *junos.Client, junSess *junos.Session,
-) (
-	confRead snmpClientlistOptions, err error,
-) {
-	showConfig, err := clt.Command(
-		junos.CmdShowConfig+"snmp client-list \""+name+"\""+junos.PipeDisplaySetRelative,
-		junSess,
-	)
+func readSnmpClientlist(name string, junSess *junos.Session,
+) (confRead snmpClientlistOptions, err error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"snmp client-list \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -286,10 +284,10 @@ func readSnmpClientlist(
 	return confRead, nil
 }
 
-func delSnmpClientlist(name string, clt *junos.Client, junSess *junos.Session) error {
+func delSnmpClientlist(name string, junSess *junos.Session) error {
 	configSet := []string{"delete snmp client-list \"" + name + "\""}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSnmpClientlistData(d *schema.ResourceData, snmpClientlistOptions snmpClientlistOptions) {

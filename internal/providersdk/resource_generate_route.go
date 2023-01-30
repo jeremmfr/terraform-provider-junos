@@ -138,7 +138,8 @@ func resourceGenerateRoute() *schema.Resource {
 func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setGenerateRoute(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setGenerateRoute(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("destination").(string) + junos.IDSeparator + d.Get("routing_instance").(string))
@@ -149,20 +150,20 @@ func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
@@ -171,34 +172,36 @@ func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m 
 	generateRouteExists, err := checkGenerateRouteExists(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if generateRouteExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("generate route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setGenerateRoute(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setGenerateRoute(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_generate_route", junSess)
+	warns, err := junSess.CommitConf("create resource junos_generate_route")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	generateRouteExists, err = checkGenerateRouteExists(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -209,7 +212,7 @@ func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m 
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceGenerateRouteReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceGenerateRouteReadWJunSess(d, junSess)...)
 }
 
 func resourceGenerateRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -218,18 +221,19 @@ func resourceGenerateRouteRead(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceGenerateRouteReadWJunSess(d, clt, junSess)
+	return resourceGenerateRouteReadWJunSess(d, junSess)
 }
 
-func resourceGenerateRouteReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceGenerateRouteReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
 	generateRouteOptions, err := readGenerateRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		clt, junSess)
+		junSess,
+	)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -247,14 +251,15 @@ func resourceGenerateRouteUpdate(ctx context.Context, d *schema.ResourceData, m 
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if err := delGenerateRoute(
 			d.Get("destination").(string),
 			d.Get("routing_instance").(string),
-			clt, nil,
+			junSess,
 		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setGenerateRoute(d, clt, nil); err != nil {
+		if err := setGenerateRoute(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -265,45 +270,46 @@ func resourceGenerateRouteUpdate(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if err := delGenerateRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		clt, junSess,
+		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setGenerateRoute(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setGenerateRoute(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_generate_route", junSess)
+	warns, err := junSess.CommitConf("update resource junos_generate_route")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	d.Partial(false)
 
-	return append(diagWarns, resourceGenerateRouteReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceGenerateRouteReadWJunSess(d, junSess)...)
 }
 
 func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if err := delGenerateRoute(
 			d.Get("destination").(string),
 			d.Get("routing_instance").(string),
-			clt, nil,
+			junSess,
 		); err != nil {
 			return diag.FromErr(err)
 		}
@@ -314,24 +320,24 @@ func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if err := delGenerateRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		clt, junSess,
+		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_generate_route", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_generate_route")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -346,13 +352,13 @@ func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), junos.IDSeparator)
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", junos.IDSeparator)
 	}
-	generateRouteExists, err := checkGenerateRouteExists(idSplit[0], idSplit[1], clt, junSess)
+	generateRouteExists, err := checkGenerateRouteExists(idSplit[0], idSplit[1], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +366,7 @@ func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m 
 		return nil, fmt.Errorf("don't find generate route with id '%v' (id must be "+
 			"<destination>"+junos.IDSeparator+"<routing_instance>)", d.Id())
 	}
-	generateRouteOptions, err := readGenerateRoute(idSplit[0], idSplit[1], clt, junSess)
+	generateRouteOptions, err := readGenerateRoute(idSplit[0], idSplit[1], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -371,33 +377,33 @@ func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkGenerateRouteExists(destination, instance string, clt *junos.Client, junSess *junos.Session,
+func checkGenerateRouteExists(destination, instance string, junSess *junos.Session,
 ) (_ bool, err error) {
 	var showConfig string
 	if instance == junos.DefaultW {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = clt.Command(junos.CmdShowConfig+
-				"routing-options generate route "+destination+junos.PipeDisplaySet, junSess)
+			showConfig, err = junSess.Command(junos.CmdShowConfig +
+				"routing-options generate route " + destination + junos.PipeDisplaySet)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			showConfig, err = clt.Command(junos.CmdShowConfig+
-				"routing-options rib inet6.0 "+"generate route "+destination+junos.PipeDisplaySet, junSess)
+			showConfig, err = junSess.Command(junos.CmdShowConfig +
+				"routing-options rib inet6.0 " + "generate route " + destination + junos.PipeDisplaySet)
 			if err != nil {
 				return false, err
 			}
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+instance+" "+
-				"routing-options generate route "+destination+junos.PipeDisplaySet, junSess)
+			showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + instance + " " +
+				"routing-options generate route " + destination + junos.PipeDisplaySet)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 generate route "+destination+junos.PipeDisplaySet, junSess)
+			showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + instance + " " +
+				"routing-options rib " + instance + ".inet6.0 generate route " + destination + junos.PipeDisplaySet)
 			if err != nil {
 				return false, err
 			}
@@ -411,7 +417,7 @@ func checkGenerateRouteExists(destination, instance string, clt *junos.Client, j
 	return true, nil
 }
 
-func setGenerateRoute(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setGenerateRoute(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	var setPrefix string
@@ -477,27 +483,27 @@ func setGenerateRoute(d *schema.ResourceData, clt *junos.Client, junSess *junos.
 		configSet = append(configSet, setPrefix+"preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readGenerateRoute(destination, instance string, clt *junos.Client, junSess *junos.Session,
+func readGenerateRoute(destination, instance string, junSess *junos.Session,
 ) (confRead generateRouteOptions, err error) {
 	var showConfig string
 	if instance == junos.DefaultW {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = clt.Command(junos.CmdShowConfig+
-				"routing-options generate route "+destination+junos.PipeDisplaySetRelative, junSess)
+			showConfig, err = junSess.Command(junos.CmdShowConfig +
+				"routing-options generate route " + destination + junos.PipeDisplaySetRelative)
 		} else {
-			showConfig, err = clt.Command(junos.CmdShowConfig+
-				"routing-options rib inet6.0 generate route "+destination+junos.PipeDisplaySetRelative, junSess)
+			showConfig, err = junSess.Command(junos.CmdShowConfig +
+				"routing-options rib inet6.0 generate route " + destination + junos.PipeDisplaySetRelative)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+instance+" "+
-				"routing-options generate route "+destination+junos.PipeDisplaySetRelative, junSess)
+			showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + instance + " " +
+				"routing-options generate route " + destination + junos.PipeDisplaySetRelative)
 		} else {
-			showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 generate route "+destination+junos.PipeDisplaySetRelative, junSess)
+			showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + instance + " " +
+				"routing-options rib " + instance + ".inet6.0 generate route " + destination + junos.PipeDisplaySetRelative)
 		}
 	}
 	if err != nil {
@@ -562,7 +568,7 @@ func readGenerateRoute(destination, instance string, clt *junos.Client, junSess 
 	return confRead, nil
 }
 
-func delGenerateRoute(destination, instance string, clt *junos.Client, junSess *junos.Session) error {
+func delGenerateRoute(destination, instance string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	if instance == junos.DefaultW {
 		if !strings.Contains(destination, ":") {
@@ -580,7 +586,7 @@ func delGenerateRoute(destination, instance string, clt *junos.Client, junSess *
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillGenerateRouteData(d *schema.ResourceData, generateRouteOptions generateRouteOptions) {

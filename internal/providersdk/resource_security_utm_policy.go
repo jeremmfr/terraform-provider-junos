@@ -138,7 +138,8 @@ func resourceSecurityUtmPolicy() *schema.Resource {
 func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setUtmPolicy(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setUtmPolicy(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -149,41 +150,41 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security utm utm-policy "+
 			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	utmPolicyExists, err := checkUtmPolicysExists(d.Get("name").(string), clt, junSess)
+	utmPolicyExists, err := checkUtmPolicysExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if utmPolicyExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security utm utm-policy %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setUtmPolicy(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmPolicy(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_utm_policy", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_utm_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	utmPolicyExists, err = checkUtmPolicysExists(d.Get("name").(string), clt, junSess)
+	utmPolicyExists, err = checkUtmPolicysExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -194,7 +195,7 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityUtmPolicyReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmPolicyReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -203,15 +204,15 @@ func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityUtmPolicyReadWJunSess(d, clt, junSess)
+	return resourceSecurityUtmPolicyReadWJunSess(d, junSess)
 }
 
-func resourceSecurityUtmPolicyReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSecurityUtmPolicyReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	utmPolicyOptions, err := readUtmPolicy(d.Get("name").(string), clt, junSess)
+	utmPolicyOptions, err := readUtmPolicy(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -229,10 +230,11 @@ func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delUtmPolicy(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmPolicy(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setUtmPolicy(d, clt, nil); err != nil {
+		if err := setUtmPolicy(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -243,37 +245,38 @@ func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmPolicy(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmPolicy(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setUtmPolicy(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmPolicy(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_utm_policy", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_utm_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityUtmPolicyReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmPolicyReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delUtmPolicy(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmPolicy(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -283,20 +286,20 @@ func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmPolicy(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmPolicy(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_utm_policy", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_utm_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -311,16 +314,16 @@ func resourceSecurityUtmPolicyImport(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	utmPolicyExists, err := checkUtmPolicysExists(d.Id(), clt, junSess)
+	utmPolicyExists, err := checkUtmPolicysExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !utmPolicyExists {
 		return nil, fmt.Errorf("don't find security utm utm-policy with id '%v' (id must be <name>)", d.Id())
 	}
-	utmPolicyOptions, err := readUtmPolicy(d.Id(), clt, junSess)
+	utmPolicyOptions, err := readUtmPolicy(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -331,11 +334,9 @@ func resourceSecurityUtmPolicyImport(ctx context.Context, d *schema.ResourceData
 	return result, nil
 }
 
-func checkUtmPolicysExists(policy string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(
-		junos.CmdShowConfig+"security utm utm-policy \""+policy+"\""+junos.PipeDisplaySet,
-		junSess,
-	)
+func checkUtmPolicysExists(policy string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm utm-policy \"" + policy + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -346,7 +347,7 @@ func checkUtmPolicysExists(policy string, clt *junos.Client, junSess *junos.Sess
 	return true, nil
 }
 
-func setUtmPolicy(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setUtmPolicy(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security utm utm-policy \"" + d.Get("name").(string) + "\" "
@@ -437,13 +438,13 @@ func setUtmPolicy(d *schema.ResourceData, clt *junos.Client, junSess *junos.Sess
 			d.Get("web_filtering_profile").(string)+"\"")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readUtmPolicy(policy string, clt *junos.Client, junSess *junos.Session,
+func readUtmPolicy(policy string, junSess *junos.Session,
 ) (confRead utmPolicyOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm utm-policy \""+policy+"\""+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm utm-policy \"" + policy + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -523,11 +524,11 @@ func readUtmPolicyProfile(itemTrim string, profileMap map[string]interface{}) {
 	}
 }
 
-func delUtmPolicy(policy string, clt *junos.Client, junSess *junos.Session) error {
+func delUtmPolicy(policy string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm utm-policy \""+policy+"\"")
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillUtmPolicyData(d *schema.ResourceData, utmPolicyOptions utmPolicyOptions) {

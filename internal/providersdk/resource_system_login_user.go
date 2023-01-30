@@ -98,7 +98,8 @@ func resourceSystemLoginUser() *schema.Resource {
 func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSystemLoginUser(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSystemLoginUser(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -109,36 +110,36 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	systemLoginUserExists, err := checkSystemLoginUserExists(d.Get("name").(string), clt, junSess)
+	systemLoginUserExists, err := checkSystemLoginUserExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if systemLoginUserExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("system login user %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSystemLoginUser(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemLoginUser(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_system_login_user", junSess)
+	warns, err := junSess.CommitConf("create resource junos_system_login_user")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	systemLoginUserExists, err = checkSystemLoginUserExists(d.Get("name").(string), clt, junSess)
+	systemLoginUserExists, err = checkSystemLoginUserExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -149,7 +150,7 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSystemLoginUserReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemLoginUserReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -158,16 +159,16 @@ func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSystemLoginUserReadWJunSess(d, clt, junSess)
+	return resourceSystemLoginUserReadWJunSess(d, junSess)
 }
 
-func resourceSystemLoginUserReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSystemLoginUserReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	plainTextPassword := readSystemLoginUserReadDataPlainTextPassword(d)
 	mutex.Lock()
-	systemLoginUserOptions, err := readSystemLoginUser(d.Get("name").(string), plainTextPassword, clt, junSess)
+	systemLoginUserOptions, err := readSystemLoginUser(d.Get("name").(string), plainTextPassword, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -185,10 +186,11 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSystemLoginUser(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSystemLoginUser(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemLoginUser(d, clt, nil); err != nil {
+		if err := setSystemLoginUser(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -199,38 +201,39 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemLoginUser(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSystemLoginUser(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemLoginUser(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemLoginUser(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_system_login_user", junSess)
+	warns, err := junSess.CommitConf("update resource junos_system_login_user")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemLoginUserReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemLoginUserReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSystemLoginUser(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSystemLoginUser(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -240,20 +243,20 @@ func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemLoginUser(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSystemLoginUser(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_system_login_user", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_system_login_user")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -268,17 +271,17 @@ func resourceSystemLoginUserImport(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	systemLoginUserExists, err := checkSystemLoginUserExists(d.Id(), clt, junSess)
+	systemLoginUserExists, err := checkSystemLoginUserExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !systemLoginUserExists {
 		return nil, fmt.Errorf("don't find system login user with id '%v' (id must be <name>)", d.Id())
 	}
-	systemLoginUserOptions, err := readSystemLoginUser(d.Id(), "", clt, junSess)
+	systemLoginUserOptions, err := readSystemLoginUser(d.Id(), "", junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -289,8 +292,8 @@ func resourceSystemLoginUserImport(ctx context.Context, d *schema.ResourceData, 
 	return result, nil
 }
 
-func checkSystemLoginUserExists(name string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"system login user "+name+junos.PipeDisplaySet, junSess)
+func checkSystemLoginUserExists(name string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "system login user " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -301,7 +304,7 @@ func checkSystemLoginUserExists(name string, clt *junos.Client, junSess *junos.S
 	return true, nil
 }
 
-func setSystemLoginUser(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemLoginUser(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 	setPrefix := "set system login user " + d.Get("name").(string) + " "
 
@@ -348,7 +351,7 @@ func setSystemLoginUser(d *schema.ResourceData, clt *junos.Client, junSess *juno
 		configSet = append(configSet, setPrefix+"full-name \""+v+"\"")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func readSystemLoginUserReadDataPlainTextPassword(d *schema.ResourceData) string {
@@ -364,9 +367,9 @@ func readSystemLoginUserReadDataPlainTextPassword(d *schema.ResourceData) string
 	return ""
 }
 
-func readSystemLoginUser(name, plainTextPassword string, clt *junos.Client, junSess *junos.Session,
+func readSystemLoginUser(name, plainTextPassword string, junSess *junos.Session,
 ) (confRead systemLoginUserOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"system login user "+name+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "system login user " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -426,11 +429,11 @@ func readSystemLoginUser(name, plainTextPassword string, clt *junos.Client, junS
 	return confRead, nil
 }
 
-func delSystemLoginUser(systemLoginUser string, clt *junos.Client, junSess *junos.Session) error {
+func delSystemLoginUser(systemLoginUser string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system login user "+systemLoginUser)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSystemLoginUserData(d *schema.ResourceData, systemLoginUserOptions systemLoginUserOptions) {

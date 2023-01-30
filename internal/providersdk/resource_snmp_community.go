@@ -91,7 +91,8 @@ func resourceSnmpCommunity() *schema.Resource {
 func resourceSnmpCommunityCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSnmpCommunity(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSnmpCommunity(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -102,36 +103,36 @@ func resourceSnmpCommunityCreate(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	snmpCommunityExists, err := checkSnmpCommunityExists(d.Get("name").(string), clt, junSess)
+	snmpCommunityExists, err := checkSnmpCommunityExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if snmpCommunityExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("snmp community %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSnmpCommunity(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSnmpCommunity(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_snmp_community", junSess)
+	warns, err := junSess.CommitConf("create resource junos_snmp_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	snmpCommunityExists, err = checkSnmpCommunityExists(d.Get("name").(string), clt, junSess)
+	snmpCommunityExists, err = checkSnmpCommunityExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -142,7 +143,7 @@ func resourceSnmpCommunityCreate(ctx context.Context, d *schema.ResourceData, m 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSnmpCommunityReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSnmpCommunityReadWJunSess(d, junSess)...)
 }
 
 func resourceSnmpCommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -151,15 +152,15 @@ func resourceSnmpCommunityRead(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSnmpCommunityReadWJunSess(d, clt, junSess)
+	return resourceSnmpCommunityReadWJunSess(d, junSess)
 }
 
-func resourceSnmpCommunityReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSnmpCommunityReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	snmpCommunityOptions, err := readSnmpCommunity(d.Get("name").(string), clt, junSess)
+	snmpCommunityOptions, err := readSnmpCommunity(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -177,10 +178,11 @@ func resourceSnmpCommunityUpdate(ctx context.Context, d *schema.ResourceData, m 
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSnmpCommunity(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSnmpCommunity(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSnmpCommunity(d, clt, nil); err != nil {
+		if err := setSnmpCommunity(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -191,37 +193,38 @@ func resourceSnmpCommunityUpdate(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpCommunity(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSnmpCommunity(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmpCommunity(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSnmpCommunity(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_snmp_community", junSess)
+	warns, err := junSess.CommitConf("update resource junos_snmp_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpCommunityReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSnmpCommunityReadWJunSess(d, junSess)...)
 }
 
 func resourceSnmpCommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSnmpCommunity(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSnmpCommunity(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -231,20 +234,20 @@ func resourceSnmpCommunityDelete(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpCommunity(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSnmpCommunity(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_snmp_community", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_snmp_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -259,17 +262,17 @@ func resourceSnmpCommunityImport(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	snmpCommunityExists, err := checkSnmpCommunityExists(d.Id(), clt, junSess)
+	snmpCommunityExists, err := checkSnmpCommunityExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !snmpCommunityExists {
 		return nil, fmt.Errorf("don't find snmp community with id '%v' (id must be <name>)", d.Id())
 	}
-	snmpCommunityOptions, err := readSnmpCommunity(d.Id(), clt, junSess)
+	snmpCommunityOptions, err := readSnmpCommunity(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -280,8 +283,8 @@ func resourceSnmpCommunityImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkSnmpCommunityExists(name string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"snmp community \""+name+"\""+junos.PipeDisplaySet, junSess)
+func checkSnmpCommunityExists(name string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "snmp community \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -292,7 +295,7 @@ func checkSnmpCommunityExists(name string, clt *junos.Client, junSess *junos.Ses
 	return true, nil
 }
 
-func setSnmpCommunity(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSnmpCommunity(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set snmp community \"" + d.Get("name").(string) + "\" "
 	configSet := make([]string, 0)
 
@@ -333,12 +336,13 @@ func setSnmpCommunity(d *schema.ResourceData, clt *junos.Client, junSess *junos.
 		configSet = append(configSet, setPrefix+"view \""+v+"\"")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSnmpCommunity(name string, clt *junos.Client, junSess *junos.Session,
+func readSnmpCommunity(name string, junSess *junos.Session,
 ) (confRead snmpCommunityOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"snmp community \""+name+"\""+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"snmp community \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -386,10 +390,10 @@ func readSnmpCommunity(name string, clt *junos.Client, junSess *junos.Session,
 	return confRead, nil
 }
 
-func delSnmpCommunity(name string, clt *junos.Client, junSess *junos.Session) error {
+func delSnmpCommunity(name string, junSess *junos.Session) error {
 	configSet := []string{"delete snmp community \"" + name + "\""}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSnmpCommunityData(d *schema.ResourceData, snmpCommunityOptions snmpCommunityOptions) {

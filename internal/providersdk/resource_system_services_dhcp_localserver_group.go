@@ -751,7 +751,8 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSystemServicesDhcpLocalServerGroup(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSystemServicesDhcpLocalServerGroup(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string) +
@@ -764,20 +765,20 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
@@ -787,14 +788,15 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		d.Get("version").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if systemServicesDhcpLocalServerGroupExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 		if d.Get("version").(string) == "v6" {
 			return append(diagWarns, diag.FromErr(
 				fmt.Errorf("system services dhcp-local-server dhcpv6 group %v already exists in routing-instance %s",
@@ -805,15 +807,15 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 			fmt.Errorf("system services dhcp-local-server group %v already exists in routing-instance %s",
 				d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setSystemServicesDhcpLocalServerGroup(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemServicesDhcpLocalServerGroup(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_system_services_dhcp_localserver_group", junSess)
+	warns, err := junSess.CommitConf("create resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -821,7 +823,8 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		d.Get("version").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -843,7 +846,7 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 				d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceSystemServicesDhcpLocalServerGroupReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemServicesDhcpLocalServerGroupReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemServicesDhcpLocalServerGroupRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -853,20 +856,21 @@ func resourceSystemServicesDhcpLocalServerGroupRead(ctx context.Context, d *sche
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSystemServicesDhcpLocalServerGroupReadWJunSess(d, clt, junSess)
+	return resourceSystemServicesDhcpLocalServerGroupReadWJunSess(d, junSess)
 }
 
 func resourceSystemServicesDhcpLocalServerGroupReadWJunSess(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
 	systemServicesDhcpLocalServerGroupOptions, err := readSystemServicesDhcpLocalServerGroup(
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		d.Get("version").(string),
-		clt, junSess)
+		junSess,
+	)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -885,15 +889,16 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context, d *sc
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if err := delSystemServicesDhcpLocalServerGroup(
 			d.Get("name").(string),
 			d.Get("routing_instance").(string),
 			d.Get("version").(string),
-			clt, nil,
+			junSess,
 		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemServicesDhcpLocalServerGroup(d, clt, nil); err != nil {
+		if err := setSystemServicesDhcpLocalServerGroup(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -904,8 +909,8 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context, d *sc
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
@@ -913,38 +918,39 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context, d *sc
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		d.Get("version").(string),
-		clt, junSess,
+		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemServicesDhcpLocalServerGroup(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSystemServicesDhcpLocalServerGroup(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_system_services_dhcp_localserver_group", junSess)
+	warns, err := junSess.CommitConf("update resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemServicesDhcpLocalServerGroupReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSystemServicesDhcpLocalServerGroupReadWJunSess(d, junSess)...)
 }
 
 func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if err := delSystemServicesDhcpLocalServerGroup(
 			d.Get("name").(string),
 			d.Get("routing_instance").(string),
 			d.Get("version").(string),
-			clt, nil,
+			junSess,
 		); err != nil {
 			return diag.FromErr(err)
 		}
@@ -955,8 +961,8 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
@@ -964,16 +970,16 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		d.Get("version").(string),
-		clt, junSess,
+		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_system_services_dhcp_localserver_group", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -988,7 +994,7 @@ func resourceSystemServicesDhcpLocalServerGroupImport(ctx context.Context, d *sc
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), junos.IDSeparator)
 	if len(idSplit) < 3 {
@@ -1002,7 +1008,8 @@ func resourceSystemServicesDhcpLocalServerGroupImport(ctx context.Context, d *sc
 		idSplit[0],
 		idSplit[1],
 		idSplit[2],
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1019,7 +1026,8 @@ func resourceSystemServicesDhcpLocalServerGroupImport(ctx context.Context, d *sc
 		idSplit[0],
 		idSplit[1],
 		idSplit[2],
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1031,7 +1039,7 @@ func resourceSystemServicesDhcpLocalServerGroupImport(ctx context.Context, d *sc
 }
 
 func checkSystemServicesDhcpLocalServerGroupExists(
-	name, instance, version string, clt *junos.Client, junSess *junos.Session,
+	name, instance, version string, junSess *junos.Session,
 ) (_ bool, err error) {
 	var showConfig string
 	showCmd := junos.CmdShowConfig
@@ -1045,7 +1053,7 @@ func checkSystemServicesDhcpLocalServerGroupExists(
 		showCmd += "group " + name
 	}
 
-	showConfig, err = clt.Command(showCmd+junos.PipeDisplaySet, junSess)
+	showConfig, err = junSess.Command(showCmd + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1057,7 +1065,7 @@ func checkSystemServicesDhcpLocalServerGroupExists(
 	return true, nil
 }
 
-func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := junos.SetLS
@@ -1342,7 +1350,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *junos.Cl
 		configSet = append(configSet, setPrefix+"short-cycle-protection lockout-min-time "+strconv.Itoa(v))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func setSystemServicesDhcpLocalServerGroupInterface(
@@ -1569,7 +1577,7 @@ func setSystemServicesDhcpLocalServerGroupOverridesV6(overrides map[string]inter
 	return configSet, nil
 }
 
-func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt *junos.Client, junSess *junos.Session,
+func readSystemServicesDhcpLocalServerGroup(name, instance, version string, junSess *junos.Session,
 ) (confRead systemServicesDhcpLocalServerGroupOptions, err error) {
 	var showConfig string
 	showCmd := junos.CmdShowConfig
@@ -1583,7 +1591,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 		showCmd += "group " + name
 	}
 
-	showConfig, err = clt.Command(showCmd+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err = junSess.Command(showCmd + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -2071,7 +2079,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, override
 	return nil
 }
 
-func delSystemServicesDhcpLocalServerGroup(name, instance, version string, clt *junos.Client, junSess *junos.Session,
+func delSystemServicesDhcpLocalServerGroup(name, instance, version string, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0, 1)
 	switch {
@@ -2087,7 +2095,7 @@ func delSystemServicesDhcpLocalServerGroup(name, instance, version string, clt *
 			"system services dhcp-local-server group "+name)
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSystemServicesDhcpLocalServerGroupData(

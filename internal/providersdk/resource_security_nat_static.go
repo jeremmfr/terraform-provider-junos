@@ -159,7 +159,8 @@ func resourceSecurityNatStatic() *schema.Resource {
 func resourceSecurityNatStaticCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSecurityNatStatic(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSecurityNatStatic(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -170,40 +171,40 @@ func resourceSecurityNatStaticCreate(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security nat static not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityNatStaticExists, err := checkSecurityNatStaticExists(d.Get("name").(string), clt, junSess)
+	securityNatStaticExists, err := checkSecurityNatStaticExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatStaticExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security nat static %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityNatStatic(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSecurityNatStatic(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_nat_static", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_nat_static")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityNatStaticExists, err = checkSecurityNatStaticExists(d.Get("name").(string), clt, junSess)
+	securityNatStaticExists, err = checkSecurityNatStaticExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -214,7 +215,7 @@ func resourceSecurityNatStaticCreate(ctx context.Context, d *schema.ResourceData
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityNatStaticReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityNatStaticReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityNatStaticRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -223,15 +224,15 @@ func resourceSecurityNatStaticRead(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityNatStaticReadWJunSess(d, clt, junSess)
+	return resourceSecurityNatStaticReadWJunSess(d, junSess)
 }
 
-func resourceSecurityNatStaticReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSecurityNatStaticReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	natStaticOptions, err := readSecurityNatStatic(d.Get("name").(string), clt, junSess)
+	natStaticOptions, err := readSecurityNatStatic(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -271,16 +272,17 @@ func resourceSecurityNatStaticUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if configureRulesSingly {
-			if err := delSecurityNatStaticWithoutRules(d.Get("name").(string), clt, nil); err != nil {
+			if err := delSecurityNatStaticWithoutRules(d.Get("name").(string), junSess); err != nil {
 				return append(diagWarns, diag.FromErr(err)...)
 			}
 		} else {
-			if err := delSecurityNatStatic(d.Get("name").(string), clt, nil); err != nil {
+			if err := delSecurityNatStatic(d.Get("name").(string), junSess); err != nil {
 				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
-		if err := setSecurityNatStatic(d, clt, nil); err != nil {
+		if err := setSecurityNatStatic(d, junSess); err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		d.Partial(false)
@@ -291,44 +293,45 @@ func resourceSecurityNatStaticUpdate(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	if configureRulesSingly {
-		if err := delSecurityNatStaticWithoutRules(d.Get("name").(string), clt, junSess); err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		if err := delSecurityNatStaticWithoutRules(d.Get("name").(string), junSess); err != nil {
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	} else {
-		if err := delSecurityNatStatic(d.Get("name").(string), clt, junSess); err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		if err := delSecurityNatStatic(d.Get("name").(string), junSess); err != nil {
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
-	if err := setSecurityNatStatic(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSecurityNatStatic(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_nat_static", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_nat_static")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityNatStaticReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityNatStaticReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityNatStaticDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSecurityNatStatic(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSecurityNatStatic(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -338,20 +341,20 @@ func resourceSecurityNatStaticDelete(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatStatic(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSecurityNatStatic(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_nat_static", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_nat_static")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -366,10 +369,10 @@ func resourceSecurityNatStaticImport(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 	idList := strings.Split(d.Id(), junos.IDSeparator)
-	securityNatStaticExists, err := checkSecurityNatStaticExists(idList[0], clt, junSess)
+	securityNatStaticExists, err := checkSecurityNatStaticExists(idList[0], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -377,7 +380,7 @@ func resourceSecurityNatStaticImport(ctx context.Context, d *schema.ResourceData
 		return nil, fmt.Errorf("don't find nat static with id '%v' "+
 			"(id must be <name> or <name>"+junos.IDSeparator+"no_rules)", idList[0])
 	}
-	natStaticOptions, err := readSecurityNatStatic(idList[0], clt, junSess)
+	natStaticOptions, err := readSecurityNatStatic(idList[0], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -393,9 +396,9 @@ func resourceSecurityNatStaticImport(ctx context.Context, d *schema.ResourceData
 	return result, nil
 }
 
-func checkSecurityNatStaticExists(name string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security nat static rule-set "+name+junos.PipeDisplaySet, junSess)
+func checkSecurityNatStaticExists(name string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security nat static rule-set " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -406,7 +409,7 @@ func checkSecurityNatStaticExists(name string, clt *junos.Client, junSess *junos
 	return true, nil
 }
 
-func setSecurityNatStatic(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSecurityNatStatic(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 	regexpSourcePort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
@@ -509,13 +512,13 @@ func setSecurityNatStatic(d *schema.ResourceData, clt *junos.Client, junSess *ju
 		configSet = append(configSet, setPrefix+" description \""+v+"\"")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSecurityNatStatic(name string, clt *junos.Client, junSess *junos.Session,
+func readSecurityNatStatic(name string, junSess *junos.Session,
 ) (confRead natStaticOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security nat static rule-set "+name+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security nat static rule-set " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -639,19 +642,19 @@ func readSecurityNatStatic(name string, clt *junos.Client, junSess *junos.Sessio
 	return confRead, nil
 }
 
-func delSecurityNatStatic(natStatic string, clt *junos.Client, junSess *junos.Session) error {
+func delSecurityNatStatic(natStatic string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat static rule-set "+natStatic)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func delSecurityNatStaticWithoutRules(natStatic string, clt *junos.Client, junSess *junos.Session) error {
+func delSecurityNatStaticWithoutRules(natStatic string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat static rule-set "+natStatic+" description")
 	configSet = append(configSet, "delete security nat static rule-set "+natStatic+" from")
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSecurityNatStaticData(d *schema.ResourceData, natStaticOptions natStaticOptions) {

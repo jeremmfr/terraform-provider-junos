@@ -821,7 +821,8 @@ func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.Resour
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSecurityIdpCustomAttack(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSecurityIdpCustomAttack(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -832,40 +833,40 @@ func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security idp custom-attack not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	idpCustomAttackExists, err := checkSecurityIdpCustomAttackExists(d.Get("name").(string), clt, junSess)
+	idpCustomAttackExists, err := checkSecurityIdpCustomAttackExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if idpCustomAttackExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security idp custom-attack %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setSecurityIdpCustomAttack(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSecurityIdpCustomAttack(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_idp_custom_attack", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_idp_custom_attack")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	idpCustomAttackExists, err = checkSecurityIdpCustomAttackExists(d.Get("name").(string), clt, junSess)
+	idpCustomAttackExists, err = checkSecurityIdpCustomAttackExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -876,7 +877,7 @@ func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.Resour
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityIdpCustomAttackRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -885,15 +886,15 @@ func resourceSecurityIdpCustomAttackRead(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityIdpCustomAttackReadWJunSess(d, clt, junSess)
+	return resourceSecurityIdpCustomAttackReadWJunSess(d, junSess)
 }
 
-func resourceSecurityIdpCustomAttackReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSecurityIdpCustomAttackReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Get("name").(string), clt, junSess)
+	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -912,10 +913,11 @@ func resourceSecurityIdpCustomAttackUpdate(ctx context.Context, d *schema.Resour
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSecurityIdpCustomAttack(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSecurityIdpCustomAttack(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityIdpCustomAttack(d, clt, nil); err != nil {
+		if err := setSecurityIdpCustomAttack(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -926,38 +928,39 @@ func resourceSecurityIdpCustomAttackUpdate(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityIdpCustomAttack(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSecurityIdpCustomAttack(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityIdpCustomAttack(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSecurityIdpCustomAttack(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_idp_custom_attack", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_idp_custom_attack")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delSecurityIdpCustomAttack(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSecurityIdpCustomAttack(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -967,20 +970,20 @@ func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityIdpCustomAttack(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSecurityIdpCustomAttack(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_idp_custom_attack", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_idp_custom_attack")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -995,16 +998,16 @@ func resourceSecurityIdpCustomAttackImport(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	idpCustomAttackExists, err := checkSecurityIdpCustomAttackExists(d.Id(), clt, junSess)
+	idpCustomAttackExists, err := checkSecurityIdpCustomAttackExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !idpCustomAttackExists {
 		return nil, fmt.Errorf("don't find security idp custom-attack with id '%v' (id must be <name>)", d.Id())
 	}
-	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Id(), clt, junSess)
+	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -1015,9 +1018,9 @@ func resourceSecurityIdpCustomAttackImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkSecurityIdpCustomAttackExists(customAttack string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security idp custom-attack \""+customAttack+"\""+junos.PipeDisplaySet, junSess)
+func checkSecurityIdpCustomAttackExists(customAttack string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security idp custom-attack \"" + customAttack + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1028,7 +1031,7 @@ func checkSecurityIdpCustomAttackExists(customAttack string, clt *junos.Client, 
 	return true, nil
 }
 
-func setSecurityIdpCustomAttack(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSecurityIdpCustomAttack(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security idp custom-attack \"" + d.Get("name").(string) + "\" "
@@ -1101,7 +1104,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, clt *junos.Client, junSe
 		configSet = append(configSet, setPrefix+"time-binding scope "+v)
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func setSecurityIdpCustomAttackTypeAnomaly(setPrefixOrigin string, attackAnomaly map[string]interface{},
@@ -1526,12 +1529,12 @@ func setSecurityIdpCustomAttackTypeSignatureProtoUDP(setPrefixOrigin string, pro
 	return configSet
 }
 
-func readSecurityIdpCustomAttack(customAttack string, clt *junos.Client, junSess *junos.Session,
+func readSecurityIdpCustomAttack(customAttack string, junSess *junos.Session,
 ) (confRead idpCustomAttackOptions, err error) {
 	// default -1
 	confRead.timeBindingCount = -1
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security idp custom-attack \""+customAttack+"\""+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security idp custom-attack \"" + customAttack + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -2215,10 +2218,10 @@ func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP 
 	return nil
 }
 
-func delSecurityIdpCustomAttack(customAttack string, clt *junos.Client, junSess *junos.Session) error {
+func delSecurityIdpCustomAttack(customAttack string, junSess *junos.Session) error {
 	configSet := []string{"delete security idp custom-attack \"" + customAttack + "\""}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillSecurityIdpCustomAttackData(d *schema.ResourceData, idpCustomAttackOptions idpCustomAttackOptions) {

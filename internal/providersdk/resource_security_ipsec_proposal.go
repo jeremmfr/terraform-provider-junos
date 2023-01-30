@@ -68,7 +68,8 @@ func resourceIpsecProposal() *schema.Resource {
 func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setIpsecProposal(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setIpsecProposal(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -79,40 +80,40 @@ func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security ipsec proposal not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ipsecProposalExists, err := checkIpsecProposalExists(d.Get("name").(string), clt, junSess)
+	ipsecProposalExists, err := checkIpsecProposalExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ipsecProposalExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security ipsec proposal %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setIpsecProposal(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setIpsecProposal(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_ipsec_proposal", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_ipsec_proposal")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ipsecProposalExists, err = checkIpsecProposalExists(d.Get("name").(string), clt, junSess)
+	ipsecProposalExists, err = checkIpsecProposalExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -123,7 +124,7 @@ func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceIpsecProposalReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceIpsecProposalReadWJunSess(d, junSess)...)
 }
 
 func resourceIpsecProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -132,15 +133,15 @@ func resourceIpsecProposalRead(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceIpsecProposalReadWJunSess(d, clt, junSess)
+	return resourceIpsecProposalReadWJunSess(d, junSess)
 }
 
-func resourceIpsecProposalReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceIpsecProposalReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	ipsecProposalOptions, err := readIpsecProposal(d.Get("name").(string), clt, junSess)
+	ipsecProposalOptions, err := readIpsecProposal(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -158,10 +159,11 @@ func resourceIpsecProposalUpdate(ctx context.Context, d *schema.ResourceData, m 
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delIpsecProposal(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delIpsecProposal(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setIpsecProposal(d, clt, nil); err != nil {
+		if err := setIpsecProposal(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -172,37 +174,38 @@ func resourceIpsecProposalUpdate(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecProposal(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delIpsecProposal(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setIpsecProposal(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setIpsecProposal(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_ipsec_proposal", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_ipsec_proposal")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceIpsecProposalReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceIpsecProposalReadWJunSess(d, junSess)...)
 }
 
 func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delIpsecProposal(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delIpsecProposal(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -212,20 +215,20 @@ func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecProposal(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delIpsecProposal(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_ipsec_proposal", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_ipsec_proposal")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -240,16 +243,16 @@ func resourceIpsecProposalImport(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	ipsecProposalExists, err := checkIpsecProposalExists(d.Id(), clt, junSess)
+	ipsecProposalExists, err := checkIpsecProposalExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ipsecProposalExists {
 		return nil, fmt.Errorf("don't find security ipsec proposal with id '%v' (id must be <name>)", d.Id())
 	}
-	ipsecProposalOptions, err := readIpsecProposal(d.Id(), clt, junSess)
+	ipsecProposalOptions, err := readIpsecProposal(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -259,9 +262,9 @@ func resourceIpsecProposalImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkIpsecProposalExists(ipsecProposal string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security ipsec proposal "+ipsecProposal+junos.PipeDisplaySet, junSess)
+func checkIpsecProposalExists(ipsecProposal string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security ipsec proposal " + ipsecProposal + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -272,7 +275,7 @@ func checkIpsecProposalExists(ipsecProposal string, clt *junos.Client, junSess *
 	return true, nil
 }
 
-func setIpsecProposal(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setIpsecProposal(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ipsec proposal " + d.Get("name").(string)
@@ -292,13 +295,13 @@ func setIpsecProposal(d *schema.ResourceData, clt *junos.Client, junSess *junos.
 		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readIpsecProposal(ipsecProposal string, clt *junos.Client, junSess *junos.Session,
+func readIpsecProposal(ipsecProposal string, junSess *junos.Session,
 ) (confRead ipsecProposalOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security ipsec proposal "+ipsecProposal+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security ipsec proposal " + ipsecProposal + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -336,11 +339,11 @@ func readIpsecProposal(ipsecProposal string, clt *junos.Client, junSess *junos.S
 	return confRead, nil
 }
 
-func delIpsecProposal(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func delIpsecProposal(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec proposal "+d.Get("name").(string))
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillIpsecProposalData(d *schema.ResourceData, ipsecProposalOptions ipsecProposalOptions) {

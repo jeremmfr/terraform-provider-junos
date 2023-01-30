@@ -161,7 +161,8 @@ func resourceSnmp() *schema.Resource {
 func resourceSnmpCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setSnmp(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setSnmp(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("snmp")
@@ -172,26 +173,26 @@ func resourceSnmpCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setSnmp(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSnmp(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_snmp", junSess)
+	warns, err := junSess.CommitConf("create resource junos_snmp")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("snmp")
 
-	return append(diagWarns, resourceSnmpReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSnmpReadWJunSess(d, junSess)...)
 }
 
 func resourceSnmpRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -200,14 +201,14 @@ func resourceSnmpRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSnmpReadWJunSess(d, clt, junSess)
+	return resourceSnmpReadWJunSess(d, junSess)
 }
 
-func resourceSnmpReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) diag.Diagnostics {
+func resourceSnmpReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
 	mutex.Lock()
-	snmpOptions, err := readSnmp(clt, junSess)
+	snmpOptions, err := readSnmp(junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -221,10 +222,11 @@ func resourceSnmpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delSnmp(clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delSnmp(junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSnmp(d, clt, nil); err != nil {
+		if err := setSnmp(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -235,38 +237,39 @@ func resourceSnmpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmp(clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delSnmp(junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmp(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setSnmp(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_snmp", junSess)
+	warns, err := junSess.CommitConf("update resource junos_snmp")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSnmpReadWJunSess(d, junSess)...)
 }
 
 func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("clean_on_destroy").(bool) {
 		clt := m.(*junos.Client)
 		if clt.FakeDeleteAlso() {
-			if err := delSnmp(clt, nil); err != nil {
+			junSess := clt.NewSessionWithoutNetconf(ctx)
+			if err := delSnmp(junSess); err != nil {
 				return diag.FromErr(err)
 			}
 
@@ -276,20 +279,20 @@ func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		defer clt.CloseSession(junSess)
-		if err := clt.ConfigLock(ctx, junSess); err != nil {
+		defer junSess.Close()
+		if err := junSess.ConfigLock(ctx); err != nil {
 			return diag.FromErr(err)
 		}
 		var diagWarns diag.Diagnostics
-		if err := delSnmp(clt, junSess); err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		if err := delSnmp(junSess); err != nil {
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		warns, err := clt.CommitConf("delete resource junos_snmp", junSess)
+		warns, err := junSess.CommitConf("delete resource junos_snmp")
 		appendDiagWarns(&diagWarns, warns)
 		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -305,9 +308,9 @@ func resourceSnmpImport(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	snmpOptions, err := readSnmp(clt, junSess)
+	snmpOptions, err := readSnmp(junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +321,7 @@ func resourceSnmpImport(ctx context.Context, d *schema.ResourceData, m interface
 	return result, nil
 }
 
-func setSnmp(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setSnmp(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set snmp "
 	configSet := make([]string, 0)
 
@@ -389,10 +392,10 @@ func setSnmp(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) 
 		configSet = append(configSet, setPrefix+"routing-instance-access access-list \""+v+"\"")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func delSnmp(clt *junos.Client, junSess *junos.Session) error {
+func delSnmp(junSess *junos.Session) error {
 	listLinesToDelete := []string{
 		"arp",
 		"contact",
@@ -414,11 +417,12 @@ func delSnmp(clt *junos.Client, junSess *junos.Session) error {
 			delPrefix+line)
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readSnmp(clt *junos.Client, junSess *junos.Session) (confRead snmpOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"snmp"+junos.PipeDisplaySetRelative, junSess)
+func readSnmp(junSess *junos.Session,
+) (confRead snmpOptions, err error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "snmp" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}

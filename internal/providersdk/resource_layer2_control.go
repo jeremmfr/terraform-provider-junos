@@ -117,7 +117,8 @@ func resourceLayer2Control() *schema.Resource {
 func resourceLayer2ControlCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setLayer2Control(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setLayer2Control(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("layer2_control")
@@ -128,26 +129,26 @@ func resourceLayer2ControlCreate(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setLayer2Control(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setLayer2Control(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_layer2_control", junSess)
+	warns, err := junSess.CommitConf("create resource junos_layer2_control")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("layer2_control")
 
-	return append(diagWarns, resourceLayer2ControlReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceLayer2ControlReadWJunSess(d, junSess)...)
 }
 
 func resourceLayer2ControlRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -156,15 +157,15 @@ func resourceLayer2ControlRead(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceLayer2ControlReadWJunSess(d, clt, junSess)
+	return resourceLayer2ControlReadWJunSess(d, junSess)
 }
 
-func resourceLayer2ControlReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceLayer2ControlReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	layer2ControlOptions, err := readLayer2Control(clt, junSess)
+	layer2ControlOptions, err := readLayer2Control(junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -178,10 +179,11 @@ func resourceLayer2ControlUpdate(ctx context.Context, d *schema.ResourceData, m 
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delLayer2Control(clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delLayer2Control(junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setLayer2Control(d, clt, nil); err != nil {
+		if err := setLayer2Control(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -192,37 +194,38 @@ func resourceLayer2ControlUpdate(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delLayer2Control(clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delLayer2Control(junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setLayer2Control(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setLayer2Control(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_layer2_control", junSess)
+	warns, err := junSess.CommitConf("update resource junos_layer2_control")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceLayer2ControlReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceLayer2ControlReadWJunSess(d, junSess)...)
 }
 
 func resourceLayer2ControlDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delLayer2Control(clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delLayer2Control(junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -232,20 +235,20 @@ func resourceLayer2ControlDelete(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delLayer2Control(clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delLayer2Control(junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_layer2_control", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_layer2_control")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -260,9 +263,9 @@ func resourceLayer2ControlImport(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	layer2ControlOptions, err := readLayer2Control(clt, junSess)
+	layer2ControlOptions, err := readLayer2Control(junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +276,7 @@ func resourceLayer2ControlImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func setLayer2Control(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setLayer2Control(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 	setPrefix := "set protocols layer2-control "
 
@@ -322,12 +325,13 @@ func setLayer2Control(d *schema.ResourceData, clt *junos.Client, junSess *junos.
 		configSet = append(configSet, setPrefix+"nonstop-bridging")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readLayer2Control(clt *junos.Client, junSess *junos.Session) (confRead layer2ControlOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"protocols layer2-control"+junos.PipeDisplaySetRelative, junSess)
+func readLayer2Control(junSess *junos.Session,
+) (confRead layer2ControlOptions, err error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"protocols layer2-control" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -402,10 +406,10 @@ func readLayer2Control(clt *junos.Client, junSess *junos.Session) (confRead laye
 	return confRead, nil
 }
 
-func delLayer2Control(clt *junos.Client, junSess *junos.Session) error {
+func delLayer2Control(junSess *junos.Session) error {
 	configSet := []string{"delete protocols layer2-control"}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillLayer2ControlData(d *schema.ResourceData, layer2ControlOptions layer2ControlOptions) {

@@ -78,9 +78,9 @@ func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	mutex.Lock()
-	iPresent, err := searchInterfacesPhysicalPresent(d, clt, junSess)
+	iPresent, err := searchInterfacesPhysicalPresent(d, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -103,10 +103,10 @@ func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func searchInterfacesPhysicalPresent(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func searchInterfacesPhysicalPresent(d *schema.ResourceData, junSess *junos.Session,
 ) (interfacesPresentOpts, error) {
 	var result interfacesPresentOpts
-	replyData, err := clt.CommandXML(junos.RPCGetInterfacesInformationTerse, junSess)
+	replyData, err := junSess.CommandXML(junos.RPCGetInterfacesInformationTerse)
 	if err != nil {
 		return result, err
 	}

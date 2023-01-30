@@ -64,7 +64,8 @@ type bgpOptions struct {
 	gracefulRestart              []map[string]interface{}
 }
 
-func delBgpOpts(d *schema.ResourceData, typebgp string, clt *junos.Client, junSess *junos.Session) error {
+func delBgpOpts(d *schema.ResourceData, typebgp string, junSess *junos.Session,
+) error {
 	configSet := make([]string, 0)
 	delPrefix := junos.DeleteLS
 	if d.Get("routing_instance").(string) != junos.DefaultW {
@@ -115,10 +116,10 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, clt *junos.Client, junSe
 		delPrefix+"type",
 	)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := []string{setPrefix}
 	if d.Get("accept_remote_nexthop").(bool) {
 		configSet = append(configSet, setPrefix+"accept-remote-nexthop")
@@ -266,7 +267,7 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, clt *junos.Clien
 		configSet = append(configSet, setPrefix+"remove-private")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
@@ -408,7 +409,7 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 	return nil
 }
 
-func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, clt *junos.Client, junSess *junos.Session,
+func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
 
@@ -462,7 +463,7 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, clt *ju
 		}
 	}
 	if len(configSet) > 0 {
-		err := clt.ConfigSet(configSet, junSess)
+		err := junSess.ConfigSet(configSet)
 		if err != nil {
 			return err
 		}
@@ -524,7 +525,7 @@ func readBgpOptsBfd(itemTrim string, bfdRead map[string]interface{}) (err error)
 }
 
 func setBgpOptsFamily(
-	setPrefix, familyType string, familyOptsList []interface{}, clt *junos.Client, junSess *junos.Session,
+	setPrefix, familyType string, familyOptsList []interface{}, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
@@ -571,7 +572,7 @@ func setBgpOptsFamily(
 		}
 	}
 	if len(configSet) > 0 {
-		err := clt.ConfigSet(configSet, junSess)
+		err := junSess.ConfigSet(configSet)
 		if err != nil {
 			return err
 		}
@@ -683,7 +684,7 @@ func readBgpOptsFamily(itemTrim string, opts []map[string]interface{}) (_ []map[
 }
 
 func setBgpOptsGrafefulRestart(
-	setPrefix string, gracefulRestarts []interface{}, clt *junos.Client, junSess *junos.Session,
+	setPrefix string, gracefulRestarts []interface{}, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
 
@@ -704,7 +705,7 @@ func setBgpOptsGrafefulRestart(
 		}
 	}
 	if len(configSet) > 0 {
-		err := clt.ConfigSet(configSet, junSess)
+		err := junSess.ConfigSet(configSet)
 		if err != nil {
 			return err
 		}

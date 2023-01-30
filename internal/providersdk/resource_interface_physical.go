@@ -457,10 +457,11 @@ func resourceInterfacePhysical() *schema.Resource {
 func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := delInterfaceNC(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delInterfaceNC(d, clt.GroupInterfaceDelete(), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setInterfacePhysical(d, clt, nil); err != nil {
+		if err := setInterfacePhysical(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -471,42 +472,42 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt, junSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt.GroupInterfaceDelete(), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !ncInt && !emptyInt {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))...)
 	}
 	if ncInt {
-		if err := delInterfaceNC(d, clt, junSess); err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		if err := delInterfaceNC(d, clt.GroupInterfaceDelete(), junSess); err != nil {
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
-	if err := setInterfacePhysical(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setInterfacePhysical(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_interface_physical", junSess)
+	warns, err := junSess.CommitConf("create resource junos_interface_physical")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ncInt, emptyInt, err = checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt, junSess)
+	ncInt, emptyInt, err = checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt.GroupInterfaceDelete(), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -515,7 +516,7 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 			"=> check your config", d.Get("name").(string)))...)
 	}
 	if emptyInt {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), clt, junSess)
+		intExists, err := checkInterfaceExists(d.Get("name").(string), junSess)
 		if err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -535,7 +536,7 @@ func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
 	return resourceInterfacePhysicalReadWJunSess(d, clt, junSess)
 }
@@ -543,7 +544,7 @@ func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, 
 func resourceInterfacePhysicalReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt, junSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt.GroupInterfaceDelete(), junSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -556,7 +557,7 @@ func resourceInterfacePhysicalReadWJunSess(d *schema.ResourceData, clt *junos.Cl
 		return nil
 	}
 	if emptyInt {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), clt, junSess)
+		intExists, err := checkInterfaceExists(d.Get("name").(string), junSess)
 		if err != nil {
 			mutex.Unlock()
 
@@ -569,7 +570,7 @@ func resourceInterfacePhysicalReadWJunSess(d *schema.ResourceData, clt *junos.Cl
 			return nil
 		}
 	}
-	interfaceOpt, err := readInterfacePhysical(d.Get("name").(string), clt, junSess)
+	interfaceOpt, err := readInterfacePhysical(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -583,10 +584,11 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delInterfacePhysicalOpts(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delInterfacePhysicalOpts(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setInterfacePhysical(d, clt, nil); err != nil {
+		if err := setInterfacePhysical(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -597,30 +599,30 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delInterfacePhysicalOpts(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delInterfacePhysicalOpts(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := unsetInterfacePhysicalAE(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := unsetInterfacePhysicalAE(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setInterfacePhysical(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setInterfacePhysical(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_interface_physical", junSess)
+	warns, err := junSess.CommitConf("update resource junos_interface_physical")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -632,7 +634,8 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delInterfacePhysical(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delInterfacePhysical(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -642,37 +645,37 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delInterfacePhysical(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delInterfacePhysical(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_interface_physical", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_interface_physical")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !d.Get("no_disable_on_destroy").(bool) {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), clt, junSess)
+		intExists, err := checkInterfaceExists(d.Get("name").(string), junSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, []error{err})
 		} else if intExists {
-			err = addInterfacePhysicalNC(d.Get("name").(string), clt, junSess)
+			err = addInterfacePhysicalNC(d.Get("name").(string), clt.GroupInterfaceDelete(), junSess)
 			if err != nil {
-				appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+				appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 				return append(diagWarns, diag.FromErr(err)...)
 			}
-			_, err = clt.CommitConf("disable(NC) resource junos_interface_physical", junSess)
+			_, err = junSess.CommitConf("disable(NC) resource junos_interface_physical")
 			if err != nil {
-				appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+				appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 				return append(diagWarns, diag.FromErr(err)...)
 			}
@@ -692,9 +695,9 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Id(), clt, junSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Id(), clt.GroupInterfaceDelete(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -702,7 +705,7 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 		return nil, fmt.Errorf("interface '%v' is disabled (NC), import is not possible", d.Id())
 	}
 	if emptyInt {
-		intExists, err := checkInterfaceExists(d.Id(), clt, junSess)
+		intExists, err := checkInterfaceExists(d.Id(), junSess)
 		if err != nil {
 			return nil, err
 		}
@@ -710,7 +713,7 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 			return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
 		}
 	}
-	interfaceOpt, err := readInterfacePhysical(d.Id(), clt, junSess)
+	interfaceOpt, err := readInterfacePhysical(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -724,9 +727,9 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 	return result, nil
 }
 
-func checkInterfacePhysicalNCEmpty(interFace string, clt *junos.Client, junSess *junos.Session,
+func checkInterfacePhysicalNCEmpty(interFace, groupInterfaceDelete string, junSess *junos.Session,
 ) (ncInt, emtyInt bool, errFunc error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"interfaces "+interFace+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces " + interFace + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return false, false, err
 	}
@@ -752,8 +755,8 @@ func checkInterfacePhysicalNCEmpty(interFace string, clt *junos.Client, junSess 
 		return false, true, nil
 	}
 	showConfig = strings.Join(showConfigLines, "\n")
-	if clt.GroupInterfaceDelete() != "" {
-		if showConfig == "set apply-groups "+clt.GroupInterfaceDelete() {
+	if groupInterfaceDelete != "" {
+		if showConfig == "set apply-groups "+groupInterfaceDelete {
 			return true, false, nil
 		}
 	}
@@ -768,12 +771,11 @@ func checkInterfacePhysicalNCEmpty(interFace string, clt *junos.Client, junSess 
 	return false, false, nil
 }
 
-func addInterfacePhysicalNC(interFace string, clt *junos.Client, junSess *junos.Session) (err error) {
-	if clt.GroupInterfaceDelete() == "" {
-		err = clt.ConfigSet([]string{"set interfaces " + interFace + " disable description NC"}, junSess)
+func addInterfacePhysicalNC(interFace, groupInterfaceDelete string, junSess *junos.Session) (err error) {
+	if groupInterfaceDelete == "" {
+		err = junSess.ConfigSet([]string{"set interfaces " + interFace + " disable description NC"})
 	} else {
-		err = clt.ConfigSet([]string{"set interfaces " + interFace +
-			" apply-groups " + clt.GroupInterfaceDelete()}, junSess)
+		err = junSess.ConfigSet([]string{"set interfaces " + interFace + " apply-groups " + groupInterfaceDelete})
 	}
 	if err != nil {
 		return err
@@ -782,10 +784,10 @@ func addInterfacePhysicalNC(interFace string, clt *junos.Client, junSess *junos.
 	return nil
 }
 
-func checkInterfaceExists(interFace string, clt *junos.Client, junSess *junos.Session) (bool, error) {
+func checkInterfaceExists(interFace string, junSess *junos.Session) (bool, error) {
 	rpcIntName := "<get-interface-information><interface-name>" + interFace +
 		"</interface-name></get-interface-information>"
-	reply, err := clt.CommandXML(rpcIntName, junSess)
+	reply, err := junSess.CommandXML(rpcIntName)
 	if err != nil {
 		if strings.Contains(err.Error(), " not found\n") ||
 			strings.HasSuffix(err.Error(), " not found") {
@@ -801,7 +803,7 @@ func checkInterfaceExists(interFace string, clt *junos.Client, junSess *junos.Se
 	return true, nil
 }
 
-func unsetInterfacePhysicalAE(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func unsetInterfacePhysicalAE(d *schema.ResourceData, junSess *junos.Session) error {
 	var oldAE string
 	switch {
 	case d.HasChange("ether_opts"):
@@ -822,21 +824,21 @@ func unsetInterfacePhysicalAE(d *schema.ResourceData, clt *junos.Client, junSess
 		}
 	}
 	if oldAE != "" {
-		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", oldAE, d.Get("name").(string), clt, junSess)
+		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", oldAE, d.Get("name").(string), junSess)
 		if err != nil {
 			return err
 		}
 		if aggregatedCount == "0" {
-			return clt.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"}, junSess)
+			return junSess.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"})
 		}
 
-		return clt.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, junSess)
+		return junSess.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
 	}
 
 	return nil
 }
 
-func setInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setInterfacePhysical(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 	setPrefix := "set interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix)
@@ -850,11 +852,11 @@ func setInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 		}
 		configSet = append(configSet, setPrefix+"disable")
 	}
-	if err := setInterfacePhysicalEsi(setPrefix, d.Get("esi").([]interface{}), clt, junSess); err != nil {
+	if err := setInterfacePhysicalEsi(setPrefix, d.Get("esi").([]interface{}), junSess); err != nil {
 		return err
 	}
-	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") && junSess != nil {
-		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, clt, junSess)
+	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") && junSess.HasNetconf() {
+		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, junSess)
 		if err != nil {
 			return err
 		}
@@ -951,12 +953,13 @@ func setInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 				}
 			}
 		}
-		if newAE != "" && junSess != nil {
+		if newAE != "" && junSess.HasNetconf() {
 			aggregatedCount, err := interfaceAggregatedCountSearchMax(
 				newAE,
 				oldAE,
 				d.Get("name").(string),
-				clt, junSess)
+				junSess,
+			)
 			if err != nil {
 				return err
 			}
@@ -973,7 +976,7 @@ func setInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 		if err := setInterfacePhysicalParentEtherOpts(
 			v.(map[string]interface{}),
 			d.Get("name").(string),
-			clt, junSess,
+			junSess,
 		); err != nil {
 			return err
 		}
@@ -992,10 +995,10 @@ func setInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{}, clt *junos.Client, junSess *junos.Session,
+func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{}, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
 
@@ -1018,11 +1021,11 @@ func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{}, clt *jun
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func setInterfacePhysicalParentEtherOpts(
-	ethOpts map[string]interface{}, interfaceName string, clt *junos.Client, junSess *junos.Session,
+	ethOpts map[string]interface{}, interfaceName string, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
 	setPrefix := "set interfaces " + interfaceName + " "
@@ -1135,12 +1138,12 @@ func setInterfacePhysicalParentEtherOpts(
 		configSet = append(configSet, setPrefix+"source-filtering")
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readInterfacePhysical(interFace string, clt *junos.Client, junSess *junos.Session,
+func readInterfacePhysical(interFace string, junSess *junos.Session,
 ) (confRead interfacePhysicalOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"interfaces "+interFace+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces " + interFace + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -1460,32 +1463,32 @@ func (confRead *interfacePhysicalOptions) readInterfacePhysicalParentEtherOpts(i
 	return nil
 }
 
-func delInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
-	if junSess != nil {
-		if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), clt, junSess); err != nil {
+func delInterfacePhysical(d *schema.ResourceData, junSess *junos.Session) error {
+	if junSess.HasNetconf() {
+		if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), junSess); err != nil {
 			return err
 		} else if containsUnit {
 			return fmt.Errorf("interface %s is used for a logical unit interface", d.Get("name").(string))
 		}
 	}
-	if err := clt.ConfigSet([]string{"delete interfaces " + d.Get("name").(string)}, junSess); err != nil {
+	if err := junSess.ConfigSet([]string{"delete interfaces " + d.Get("name").(string)}); err != nil {
 		return err
 	}
-	if junSess == nil {
+	if !junSess.HasNetconf() {
 		return nil
 	}
 	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
-		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", v, v, clt, junSess)
+		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", v, v, junSess)
 		if err != nil {
 			return err
 		}
 		if aggregatedCount == "0" {
-			err = clt.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"}, junSess)
+			err = junSess.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"})
 			if err != nil {
 				return err
 			}
 		} else {
-			err = clt.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, junSess)
+			err = junSess.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
 			if err != nil {
 				return err
 			}
@@ -1502,7 +1505,7 @@ func delInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 			aeDel = v["ae_8023ad"].(string)
 		}
 		if aeDel != "" {
-			lastAEchild, err := interfaceAggregatedLastChild(aeDel, d.Get("name").(string), clt, junSess)
+			lastAEchild, err := interfaceAggregatedLastChild(aeDel, d.Get("name").(string), junSess)
 			if err != nil {
 				return err
 			}
@@ -1511,17 +1514,18 @@ func delInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 					"ae-1",
 					aeDel,
 					d.Get("name").(string),
-					clt, junSess)
+					junSess,
+				)
 				if err != nil {
 					return err
 				}
 				if aggregatedCount == "0" {
-					err = clt.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"}, junSess)
+					err = junSess.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"})
 					if err != nil {
 						return err
 					}
 				} else {
-					err = clt.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, junSess)
+					err = junSess.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
 					if err != nil {
 						return err
 					}
@@ -1533,8 +1537,8 @@ func delInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 	return nil
 }
 
-func checkInterfacePhysicalContainsUnit(interFace string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"interfaces "+interFace+junos.PipeDisplaySetRelative, junSess)
+func checkInterfacePhysicalContainsUnit(interFace string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces " + interFace + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return false, err
 	}
@@ -1557,19 +1561,19 @@ func checkInterfacePhysicalContainsUnit(interFace string, clt *junos.Client, jun
 	return false, nil
 }
 
-func delInterfaceNC(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func delInterfaceNC(d *schema.ResourceData, groupInterfaceDelete string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 3)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
-	if clt.GroupInterfaceDelete() != "" {
-		configSet = append(configSet, delPrefix+"apply-groups "+clt.GroupInterfaceDelete())
+	if groupInterfaceDelete != "" {
+		configSet = append(configSet, delPrefix+"apply-groups "+groupInterfaceDelete)
 	}
 	configSet = append(configSet, delPrefix+"description")
 	configSet = append(configSet, delPrefix+"disable")
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func delInterfacePhysicalOpts(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func delInterfacePhysicalOpts(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
@@ -1586,7 +1590,7 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, clt *junos.Client, junSess
 		delPrefix+"vlan-tagging",
 	)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhysicalOptions) {
@@ -1625,8 +1629,8 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 	}
 }
 
-func interfaceAggregatedLastChild(ae, interFace string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+"interfaces"+junos.PipeDisplaySetRelative, junSess)
+func interfaceAggregatedLastChild(ae, interFace string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return false, err
 	}
@@ -1641,14 +1645,14 @@ func interfaceAggregatedLastChild(ae, interFace string, clt *junos.Client, junSe
 	return lastAE, nil
 }
 
-func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, clt *junos.Client, junSess *junos.Session,
+func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, junSess *junos.Session,
 ) (string, error) {
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
 	if err != nil {
 		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer: %w", newAE, err)
 	}
-	showConfig, err := clt.Command(junos.CmdShowConfig+"interfaces"+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return "", err
 	}
@@ -1677,7 +1681,7 @@ func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, clt *juno
 			}
 		}
 	}
-	lastOldAE, err := interfaceAggregatedLastChild(oldAE, interFace, clt, junSess)
+	lastOldAE, err := interfaceAggregatedLastChild(oldAE, interFace, junSess)
 	if err != nil {
 		return "", err
 	}

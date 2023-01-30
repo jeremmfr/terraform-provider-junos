@@ -46,7 +46,8 @@ func resourceSecurityUtmCustomURLPatternCreate(ctx context.Context, d *schema.Re
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setUtmCustomURLPattern(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setUtmCustomURLPattern(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -57,40 +58,40 @@ func resourceSecurityUtmCustomURLPatternCreate(ctx context.Context, d *schema.Re
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern "+
 			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	utmCustomURLPatternExists, err := checkUtmCustomURLPatternsExists(d.Get("name").(string), clt, junSess)
+	utmCustomURLPatternExists, err := checkUtmCustomURLPatternsExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if utmCustomURLPatternExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setUtmCustomURLPattern(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmCustomURLPattern(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_utm_custom_url_pattern", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_utm_custom_url_pattern")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	utmCustomURLPatternExists, err = checkUtmCustomURLPatternsExists(d.Get("name").(string), clt, junSess)
+	utmCustomURLPatternExists, err = checkUtmCustomURLPatternsExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -101,7 +102,7 @@ func resourceSecurityUtmCustomURLPatternCreate(ctx context.Context, d *schema.Re
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityUtmCustomURLPatternReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmCustomURLPatternReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmCustomURLPatternRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -111,15 +112,15 @@ func resourceSecurityUtmCustomURLPatternRead(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceSecurityUtmCustomURLPatternReadWJunSess(d, clt, junSess)
+	return resourceSecurityUtmCustomURLPatternReadWJunSess(d, junSess)
 }
 
-func resourceSecurityUtmCustomURLPatternReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceSecurityUtmCustomURLPatternReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	utmCustomURLPatternOptions, err := readUtmCustomURLPattern(d.Get("name").(string), clt, junSess)
+	utmCustomURLPatternOptions, err := readUtmCustomURLPattern(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -138,10 +139,11 @@ func resourceSecurityUtmCustomURLPatternUpdate(ctx context.Context, d *schema.Re
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delUtmCustomURLPattern(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmCustomURLPattern(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setUtmCustomURLPattern(d, clt, nil); err != nil {
+		if err := setUtmCustomURLPattern(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -152,38 +154,39 @@ func resourceSecurityUtmCustomURLPatternUpdate(ctx context.Context, d *schema.Re
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmCustomURLPattern(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmCustomURLPattern(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setUtmCustomURLPattern(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setUtmCustomURLPattern(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_utm_custom_url_pattern", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_utm_custom_url_pattern")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityUtmCustomURLPatternReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceSecurityUtmCustomURLPatternReadWJunSess(d, junSess)...)
 }
 
 func resourceSecurityUtmCustomURLPatternDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delUtmCustomURLPattern(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delUtmCustomURLPattern(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -193,20 +196,20 @@ func resourceSecurityUtmCustomURLPatternDelete(ctx context.Context, d *schema.Re
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmCustomURLPattern(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delUtmCustomURLPattern(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_utm_custom_url_pattern", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_utm_custom_url_pattern")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -221,16 +224,16 @@ func resourceSecurityUtmCustomURLPatternImport(ctx context.Context, d *schema.Re
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	utmCustomURLPatternExists, err := checkUtmCustomURLPatternsExists(d.Id(), clt, junSess)
+	utmCustomURLPatternExists, err := checkUtmCustomURLPatternsExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !utmCustomURLPatternExists {
 		return nil, fmt.Errorf("don't find security utm custom-objects url-pattern with id '%v' (id must be <name>)", d.Id())
 	}
-	utmCustomURLPatternOptions, err := readUtmCustomURLPattern(d.Id(), clt, junSess)
+	utmCustomURLPatternOptions, err := readUtmCustomURLPattern(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -241,9 +244,9 @@ func resourceSecurityUtmCustomURLPatternImport(ctx context.Context, d *schema.Re
 	return result, nil
 }
 
-func checkUtmCustomURLPatternsExists(urlPattern string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm custom-objects url-pattern "+urlPattern+junos.PipeDisplaySet, junSess)
+func checkUtmCustomURLPatternsExists(urlPattern string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm custom-objects url-pattern " + urlPattern + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -254,7 +257,7 @@ func checkUtmCustomURLPatternsExists(urlPattern string, clt *junos.Client, junSe
 	return true, nil
 }
 
-func setUtmCustomURLPattern(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setUtmCustomURLPattern(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security utm custom-objects url-pattern " + d.Get("name").(string) + " "
@@ -262,13 +265,13 @@ func setUtmCustomURLPattern(d *schema.ResourceData, clt *junos.Client, junSess *
 		configSet = append(configSet, setPrefix+"value "+v.(string))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readUtmCustomURLPattern(urlPattern string, clt *junos.Client, junSess *junos.Session,
+func readUtmCustomURLPattern(urlPattern string, junSess *junos.Session,
 ) (confRead utmCustomURLPatternOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security utm custom-objects url-pattern "+urlPattern+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security utm custom-objects url-pattern " + urlPattern + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -291,11 +294,11 @@ func readUtmCustomURLPattern(urlPattern string, clt *junos.Client, junSess *juno
 	return confRead, nil
 }
 
-func delUtmCustomURLPattern(urlPattern string, clt *junos.Client, junSess *junos.Session) error {
+func delUtmCustomURLPattern(urlPattern string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm custom-objects url-pattern "+urlPattern)
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillUtmCustomURLPatternData(d *schema.ResourceData, utmCustomURLPatternOptions utmCustomURLPatternOptions) {

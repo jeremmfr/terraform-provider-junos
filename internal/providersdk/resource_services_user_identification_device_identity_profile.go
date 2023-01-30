@@ -67,7 +67,8 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setServicesUserIdentDeviceIdentityProfile(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setServicesUserIdentDeviceIdentityProfile(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -78,42 +79,44 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	svcUserIdentDevIdentProfileExists, err := checkServicesUserIdentDeviceIdentityProfileExists(
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if svcUserIdentDevIdentProfileExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf(
 				"services user-identification device-information end-user-profile %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setServicesUserIdentDeviceIdentityProfile(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setServicesUserIdentDeviceIdentityProfile(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_services_user_identification_device_identity_profile", junSess)
+	warns, err := junSess.CommitConf("create resource junos_services_user_identification_device_identity_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	svcUserIdentDevIdentProfileExists, err = checkServicesUserIdentDeviceIdentityProfileExists(
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -125,7 +128,7 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 				"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJunSess(d, junSess)...)
 }
 
 func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -135,18 +138,19 @@ func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context, d *
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceServicesUserIdentDeviceIdentityProfileReadWJunSess(d, clt, junSess)
+	return resourceServicesUserIdentDeviceIdentityProfileReadWJunSess(d, junSess)
 }
 
 func resourceServicesUserIdentDeviceIdentityProfileReadWJunSess(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
 	svcUserIdentDevIdentProfileOptions, err := readServicesUserIdentDeviceIdentityProfile(
 		d.Get("name").(string),
-		clt, junSess)
+		junSess,
+	)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -165,10 +169,11 @@ func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context, d
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setServicesUserIdentDeviceIdentityProfile(d, clt, nil); err != nil {
+		if err := setServicesUserIdentDeviceIdentityProfile(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -179,38 +184,39 @@ func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServicesUserIdentDeviceIdentityProfile(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setServicesUserIdentDeviceIdentityProfile(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_services_user_identification_device_identity_profile", junSess)
+	warns, err := junSess.CommitConf("update resource junos_services_user_identification_device_identity_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJunSess(d, junSess)...)
 }
 
 func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -221,20 +227,20 @@ func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context, d
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_services_user_identification_device_identity_profile", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_services_user_identification_device_identity_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -249,9 +255,9 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(ctx context.Context, d
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	svcUserIdentDevIdentProfileExists, err := checkServicesUserIdentDeviceIdentityProfileExists(d.Id(), clt, junSess)
+	svcUserIdentDevIdentProfileExists, err := checkServicesUserIdentDeviceIdentityProfileExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +265,7 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(ctx context.Context, d
 		return nil, fmt.Errorf("don't find services user-identification "+
 			"device-information end-user-profile with id '%v' (id must be <name>)", d.Id())
 	}
-	svcUserIdentDevIdentProfileOptions, err := readServicesUserIdentDeviceIdentityProfile(d.Id(), clt, junSess)
+	svcUserIdentDevIdentProfileOptions, err := readServicesUserIdentDeviceIdentityProfile(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -270,13 +276,10 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(ctx context.Context, d
 	return result, nil
 }
 
-func checkServicesUserIdentDeviceIdentityProfileExists(profile string, clt *junos.Client, junSess *junos.Session,
+func checkServicesUserIdentDeviceIdentityProfileExists(profile string, junSess *junos.Session,
 ) (bool, error) {
-	showConfig, err := clt.Command(
-		junos.CmdShowConfig+
-			"services user-identification device-information end-user-profile profile-name "+profile+junos.PipeDisplaySet,
-		junSess,
-	)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"services user-identification device-information end-user-profile profile-name " + profile + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -288,7 +291,7 @@ func checkServicesUserIdentDeviceIdentityProfileExists(profile string, clt *juno
 }
 
 func setServicesUserIdentDeviceIdentityProfile(
-	d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+	d *schema.ResourceData, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
 
@@ -308,14 +311,15 @@ func setServicesUserIdentDeviceIdentityProfile(
 		}
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readServicesUserIdentDeviceIdentityProfile(profile string, clt *junos.Client, junSess *junos.Session,
+func readServicesUserIdentDeviceIdentityProfile(profile string, junSess *junos.Session,
 ) (confRead svcUserIdentDevIdentProfileOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"services user-identification device-information end-user-profile"+
-		" profile-name "+profile+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"services user-identification device-information end-user-profile profile-name " + profile +
+		junos.PipeDisplaySetRelative,
+	)
 	if err != nil {
 		return confRead, err
 	}
@@ -350,12 +354,12 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, clt *junos.Clien
 	return confRead, nil
 }
 
-func delServicesUserIdentDeviceIdentityProfile(profile string, clt *junos.Client, junSess *junos.Session) error {
+func delServicesUserIdentDeviceIdentityProfile(profile string, junSess *junos.Session) error {
 	configSet := []string{
 		"delete services user-identification device-information end-user-profile profile-name " + profile,
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillServicesUserIdentDeviceIdentityProfileData(

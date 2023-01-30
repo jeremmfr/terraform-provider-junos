@@ -574,9 +574,9 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	mutex.Lock()
-	nameFound, err := searchInterfaceLogicalID(d.Get("config_interface").(string), d.Get("match").(string), clt, junSess)
+	nameFound, err := searchInterfaceLogicalID(d.Get("config_interface").(string), d.Get("match").(string), junSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -587,7 +587,7 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 
 		return diag.FromErr(fmt.Errorf("no logical interface found with arguments provided"))
 	}
-	interfaceOpt, err := readInterfaceLogical(nameFound, clt, junSess)
+	interfaceOpt, err := readInterfaceLogical(nameFound, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -601,10 +601,10 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func searchInterfaceLogicalID(configInterface, match string, clt *junos.Client, junSess *junos.Session,
+func searchInterfaceLogicalID(configInterface, match string, junSess *junos.Session,
 ) (string, error) {
 	intConfigList := make([]string, 0)
-	showConfig, err := clt.Command(junos.CmdShowConfig+"interfaces "+configInterface+junos.PipeDisplaySet, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces " + configInterface + junos.PipeDisplaySet)
 	if err != nil {
 		return "", err
 	}

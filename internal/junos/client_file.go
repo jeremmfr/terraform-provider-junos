@@ -12,18 +12,18 @@ func (clt *Client) appendFakeCreateSetFile(lines []string) error {
 	dirSetFile := path.Dir(clt.fakeCreateSetFile)
 	if _, err := os.Stat(dirSetFile); err != nil {
 		if err := os.MkdirAll(dirSetFile, os.FileMode(directoryPermission)); err != nil {
-			return fmt.Errorf("failed to create parent directory of '%s': %w", clt.fakeCreateSetFile, err)
+			return fmt.Errorf("creating parent directory of '%s': %w", clt.fakeCreateSetFile, err)
 		}
 	}
 	f, err := os.OpenFile(clt.fakeCreateSetFile,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(clt.filePermission))
 	if err != nil {
-		return fmt.Errorf("failed to open file '%s': %w", clt.fakeCreateSetFile, err)
+		return fmt.Errorf("opening file '%s': %w", clt.fakeCreateSetFile, err)
 	}
 	defer f.Close()
 	for _, v := range lines {
 		if _, err := f.WriteString(v + "\n"); err != nil {
-			return fmt.Errorf("failed to write in file '%s': %w", clt.fakeCreateSetFile, err)
+			return fmt.Errorf("writing in file '%s': %w", clt.fakeCreateSetFile, err)
 		}
 	}
 
@@ -40,7 +40,7 @@ func (clt *Client) logFile(message string) {
 			if !errors.As(err, &perr) {
 				log.Fatal(err)
 			}
-			log.Printf("[WARN] can't append debug_netconf_log file: %s", perr.Error())
+			log.Printf("[WARN] appending debug_netconf_log file: %s", perr.Error())
 		}
 		defer f.Close()
 		logger := log.New(f, "", log.LstdFlags)

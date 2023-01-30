@@ -81,9 +81,9 @@ func dataSourceInterfaceLogicalInfoRead(ctx context.Context, d *schema.ResourceD
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	mutex.Lock()
-	ifaceInfo, err := readInterfaceLogicalInfo(d, clt, junSess)
+	ifaceInfo, err := readInterfaceLogicalInfo(d, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -94,10 +94,10 @@ func dataSourceInterfaceLogicalInfoRead(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func readInterfaceLogicalInfo(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func readInterfaceLogicalInfo(d *schema.ResourceData, junSess *junos.Session,
 ) (interfaceLogicalInfo, error) {
 	var result interfaceLogicalInfo
-	replyData, err := clt.CommandXML(fmt.Sprintf(junos.RPCGetInterfaceInformationTerse, d.Get("name").(string)), junSess)
+	replyData, err := junSess.CommandXML(fmt.Sprintf(junos.RPCGetInterfaceInformationTerse, d.Get("name").(string)))
 	if err != nil {
 		return result, err
 	}

@@ -332,12 +332,13 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	mutex.Lock()
 	nameFound, err := searchInterfacePhysicalID(
 		d.Get("config_interface").(string),
 		d.Get("match").(string),
-		clt, junSess)
+		junSess,
+	)
 	if err != nil {
 		mutex.Unlock()
 
@@ -348,7 +349,7 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(fmt.Errorf("no physical interface found with arguments provided"))
 	}
-	interfaceOpt, err := readInterfacePhysical(nameFound, clt, junSess)
+	interfaceOpt, err := readInterfacePhysical(nameFound, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -362,13 +363,10 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func searchInterfacePhysicalID(
-	configInterface, match string, clt *junos.Client, junSess *junos.Session,
-) (
-	string, error,
-) {
+func searchInterfacePhysicalID(configInterface, match string, junSess *junos.Session,
+) (string, error) {
 	intConfigList := make([]string, 0)
-	showConfig, err := clt.Command(junos.CmdShowConfig+"interfaces "+configInterface+junos.PipeDisplaySet, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces " + configInterface + junos.PipeDisplaySet)
 	if err != nil {
 		return "", err
 	}

@@ -1,19 +1,13 @@
 package junos
 
 import (
-	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"log"
-	"net"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/jeremmfr/go-netconf/netconf"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
-	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -38,12 +32,6 @@ const (
 	XMLEndTagConfigOut   = "</configuration-output>"
 )
 
-// Session : store Junos device info and session.
-type Session struct {
-	session           *netconf.Session
-	SystemInformation sysInfo `xml:"system-information"`
-}
-
 type sysInfo struct {
 	HardwareModel string `xml:"hardware-model"`
 	OsName        string `xml:"os-name"`
@@ -55,26 +43,6 @@ type sysInfo struct {
 
 type commandXMLConfig struct {
 	Config string `xml:",innerxml"`
-}
-
-type sshAuthMethod struct {
-	Password       string
-	Username       string
-	PrivateKeyPEM  string
-	PrivateKeyFile string
-	Passphrase     string
-	Ciphers        []string
-	Timeout        int
-}
-
-type openSSHOptions struct {
-	Retry   int
-	Timeout int
-}
-
-type sshOptions struct {
-	*openSSHOptions
-	ClientConfig *ssh.ClientConfig
 }
 
 type commitResults struct {
@@ -134,133 +102,12 @@ type GetRouteInformationReply struct {
 	} `xml:"route-information"`
 }
 
-// netconfNewSession establishes a new connection to a Junos device that we will use
-// to run our commands against.
-// Authentication methods are defined using the netconfAuthMethod struct, and are as follows:
-// username and password, SSH private key (with or without passphrase).
-func netconfNewSession(
-	ctx context.Context, host string, auth *sshAuthMethod, openSSH *openSSHOptions,
-) (*Session, error) {
-	clientConfig, err := genSSHClientConfig(auth)
-	if err != nil {
-		return nil, err
-	}
-
-	return netconfNewSessionWithConfig(ctx, host, &sshOptions{openSSH, clientConfig})
-}
-
-// netconfNewSessionWithConfig establishes a new connection to a Junos device that we will use
-// to run our commands against.
-func netconfNewSessionWithConfig(ctx context.Context, host string, sshOpts *sshOptions) (*Session, error) {
-	netDialer := net.Dialer{
-		Timeout: time.Duration(sshOpts.Timeout) * time.Second,
-	}
-	retry := sshOpts.Retry
-	if retry < 1 {
-		retry = 1
-	}
-	if retry > 10 {
-		retry = 10
-	}
-	sleepTime := 0
-	for retry > 0 {
-		retry--
-		conn, err := netDialer.DialContext(ctx, "tcp", host)
-		if err != nil {
-			if retry != 0 {
-				log.Printf("[WARN] error connecting to %s: %s, go retry", host, err.Error())
-				// sleep with time increasing as things try
-				sleepTime++
-				utils.Sleep(sleepTime)
-
-				continue
-			}
-
-			return nil, fmt.Errorf("error connecting to %s: %w", host, err)
-		}
-		s, err := netconf.NewSSHSession(conn, sshOpts.ClientConfig)
-		if err != nil {
-			conn.Close()
-			if retry != 0 {
-				log.Printf("[WARN] error initializing SSH session to %s: %s, go retry", host, err.Error())
-				// sleep with time increasing as things try
-				sleepTime++
-				utils.Sleep(sleepTime)
-
-				continue
-			}
-
-			return nil, fmt.Errorf("error initializing SSH session to %s: %w", host, err)
-		}
-
-		return newSessionFromNetconf(s)
-	}
-	// this return can't happen
-	return nil, fmt.Errorf("error connecting to %s: retries exceeded", host)
-}
-
-// newSessionFromNetconf uses an existing netconf.Session to run our commands against.
-func newSessionFromNetconf(s *netconf.Session) (*Session, error) {
-	n := &Session{
-		session: s,
-	}
-
-	return n, n.gatherFacts()
-}
-
-// genSSHClientConfig is a wrapper function based around the auth method defined
-// (user/password or private key) which returns the SSH client configuration used to
-// connect.
-func genSSHClientConfig(auth *sshAuthMethod) (*ssh.ClientConfig, error) {
-	configs := make([]*ssh.ClientConfig, 0)
-	configs = append(configs, &ssh.ClientConfig{})
-
-	// keys method
-	switch {
-	case len(auth.PrivateKeyPEM) > 0:
-		config, err := netconf.SSHConfigPubKeyPem(auth.Username, []byte(auth.PrivateKeyPEM), auth.Passphrase)
-		if err != nil {
-			return config, fmt.Errorf("failed to create new SSHConfig with PEM private key: %w", err)
-		}
-		configs = append(configs, config)
-	case len(auth.PrivateKeyFile) > 0:
-		config, err := netconf.SSHConfigPubKeyFile(auth.Username, auth.PrivateKeyFile, auth.Passphrase)
-		if err != nil {
-			return config, fmt.Errorf("failed to create new SSHConfig with file private key: %w", err)
-		}
-		configs = append(configs, config)
-	case os.Getenv("SSH_AUTH_SOCK") != "":
-		config, err := netconf.SSHConfigPubKeyAgent(auth.Username)
-		if err != nil {
-			log.Printf("[WARN] failed to communicate with SSH agent: %s", err.Error())
-		} else {
-			configs = append(configs, config)
-		}
-	}
-	if len(auth.Password) > 0 {
-		config := netconf.SSHConfigPassword(auth.Username, auth.Password)
-		configs = append(configs, config)
-	}
-	if len(configs) == 1 {
-		return configs[0], errors.New("no credentials/keys available")
-	}
-	configs[0] = configs[1]
-	configs[0].Ciphers = auth.Ciphers
-	configs[0].HostKeyCallback = ssh.InsecureIgnoreHostKey()
-	for _, v := range configs[2:] {
-		configs[0].Auth = append(configs[0].Auth, v.Auth...)
-	}
-	configs[0].Timeout = time.Duration(auth.Timeout) * time.Second
-
-	return configs[0], nil
-}
-
 // gatherFacts gathers basic information about the device.
-func (j *Session) gatherFacts() error {
+func (sess *Session) gatherFacts() error {
 	// Get info for get-system-information and populate SystemInformation Struct
-	val, err := j.session.Exec(netconf.RawMethod(rpcSystemInfo))
+	val, err := sess.netconf.Exec(netconf.RawMethod(rpcSystemInfo))
 	if err != nil {
-		return fmt.Errorf("failed to netconf get-system-information: %w", err)
+		return fmt.Errorf("executing netconf get-system-information: %w", err)
 	}
 
 	if val.Errors != nil {
@@ -271,20 +118,20 @@ func (j *Session) gatherFacts() error {
 
 		return fmt.Errorf(strings.Join(errorsMsg, "\n"))
 	}
-	err = xml.Unmarshal([]byte(val.RawReply), &j)
+	err = xml.Unmarshal([]byte(val.RawReply), &sess)
 	if err != nil {
-		return fmt.Errorf("failed to xml unmarshal reply: %w", err)
+		return fmt.Errorf("unmarshaling xml reply: %w", err)
 	}
 
 	return nil
 }
 
 // netconfCommand (show, execute) on Junos device.
-func (j *Session) netconfCommand(cmd string) (string, error) {
+func (sess *Session) netconfCommand(cmd string) (string, error) {
 	command := fmt.Sprintf(rpcCommand, cmd)
-	reply, err := j.session.Exec(netconf.RawMethod(command))
+	reply, err := sess.netconf.Exec(netconf.RawMethod(command))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf command exec: %w", err)
+		return "", fmt.Errorf("executing netconf command: %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -296,16 +143,16 @@ func (j *Session) netconfCommand(cmd string) (string, error) {
 	}
 	var output commandXMLConfig
 	if err := xml.Unmarshal([]byte(reply.Data), &output); err != nil {
-		return "", fmt.Errorf("failed to xml unmarshal reply: %w", err)
+		return "", fmt.Errorf("unmarshal xml reply: %w", err)
 	}
 
 	return output.Config, nil
 }
 
-func (j *Session) netconfCommandXML(cmd string) (string, error) {
-	reply, err := j.session.Exec(netconf.RawMethod(cmd))
+func (sess *Session) netconfCommandXML(cmd string) (string, error) {
+	reply, err := sess.netconf.Exec(netconf.RawMethod(cmd))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf xml command exec: %w", err)
+		return "", fmt.Errorf("executing netconf xml command: %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -316,11 +163,11 @@ func (j *Session) netconfCommandXML(cmd string) (string, error) {
 	return reply.Data, nil
 }
 
-func (j *Session) netconfConfigSet(cmd []string) (string, error) {
+func (sess *Session) netconfConfigSet(cmd []string) (string, error) {
 	command := fmt.Sprintf(rpcConfigStringSet, strings.Join(cmd, "\n"))
-	reply, err := j.session.Exec(netconf.RawMethod(command))
+	reply, err := sess.netconf.Exec(netconf.RawMethod(command))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf set/delete command exec: %w", err)
+		return "", fmt.Errorf("executing netconf apply of set/delete command: %w", err)
 	}
 	// logFile("netconfConfigSet.Reply:" + reply.RawReply)
 	message := ""
@@ -336,8 +183,8 @@ func (j *Session) netconfConfigSet(cmd []string) (string, error) {
 }
 
 // netConfConfigLock locks the candidate configuration.
-func (j *Session) netconfConfigLock() bool {
-	reply, err := j.session.Exec(netconf.RawMethod(rpcCandidateLock))
+func (sess *Session) netconfConfigLock() bool {
+	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcCandidateLock))
 	if err != nil {
 		return false
 	}
@@ -348,28 +195,10 @@ func (j *Session) netconfConfigLock() bool {
 	return true
 }
 
-// Unlock unlocks the candidate configuration.
-func (j *Session) netconfConfigUnlock() []error {
-	reply, err := j.session.Exec(netconf.RawMethod(rpcCandidateUnlock))
+func (sess *Session) netconfConfigClear() []error {
+	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {
-		return []error{fmt.Errorf("failed to netconf config unlock: %w", err)}
-	}
-	if reply.Errors != nil {
-		errs := make([]error, 0)
-		for _, m := range reply.Errors {
-			errs = append(errs, errors.New("config unlock: "+m.Message))
-		}
-
-		return errs
-	}
-
-	return []error{}
-}
-
-func (j *Session) netconfConfigClear() []error {
-	reply, err := j.session.Exec(netconf.RawMethod(rpcClearCandidate))
-	if err != nil {
-		return []error{fmt.Errorf("failed to netconf config clear: %w", err)}
+		return []error{fmt.Errorf("executing netconf config clear: %w", err)}
 	}
 	if reply.Errors != nil {
 		errs := make([]error, 0)
@@ -383,11 +212,29 @@ func (j *Session) netconfConfigClear() []error {
 	return []error{}
 }
 
-// netconfCommit commits the configuration.
-func (j *Session) netconfCommit(logMessage string) (_warn []error, _err error) {
-	reply, err := j.session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
+// Unlock unlocks the candidate configuration.
+func (sess *Session) netconfConfigUnlock() []error {
+	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcCandidateUnlock))
 	if err != nil {
-		return []error{}, fmt.Errorf("failed to netconf commit: %w", err)
+		return []error{fmt.Errorf("executing netconf config unlock: %w", err)}
+	}
+	if reply.Errors != nil {
+		errs := make([]error, 0)
+		for _, m := range reply.Errors {
+			errs = append(errs, errors.New("config unlock: "+m.Message))
+		}
+
+		return errs
+	}
+
+	return []error{}
+}
+
+// netconfCommit commits the configuration.
+func (sess *Session) netconfCommit(logMessage string) (_warn []error, _err error) {
+	reply, err := sess.netconf.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
+	if err != nil {
+		return []error{}, fmt.Errorf("executing netconf commit: %w", err)
 	}
 
 	if reply.Errors != nil {
@@ -406,7 +253,7 @@ func (j *Session) netconfCommit(logMessage string) (_warn []error, _err error) {
 	if strings.Contains(reply.Data, "<commit-results>") {
 		err = xml.Unmarshal([]byte(reply.Data), &errs)
 		if err != nil {
-			return []error{}, fmt.Errorf("failed to xml unmarshal reply '%s': %w", reply.Data, err)
+			return []error{}, fmt.Errorf("unmarshaling xml reply '%s': %w", reply.Data, err)
 		}
 
 		if errs.Errors != nil {
@@ -426,13 +273,13 @@ func (j *Session) netconfCommit(logMessage string) (_warn []error, _err error) {
 }
 
 // Close disconnects our session to the device.
-func (j *Session) close(sleepClosed int) error {
-	_, err := j.session.Exec(netconf.RawMethod(rpcClose))
-	j.session.Transport.Close()
+func (sess *Session) closeNetconf(sleepClosed int) error {
+	_, err := sess.netconf.Exec(netconf.RawMethod(rpcClose))
+	sess.netconf.Transport.Close()
 	if err != nil {
 		utils.Sleep(sleepClosed)
 
-		return fmt.Errorf("failed to netconf close: %w", err)
+		return fmt.Errorf("closing netconf session: %w", err)
 	}
 	utils.Sleep(sleepClosed)
 

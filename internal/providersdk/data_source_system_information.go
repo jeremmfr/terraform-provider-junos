@@ -43,7 +43,7 @@ func dataSourceSystemInformationRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
 	// Catches case where hostname is not set
 	if junSess.SystemInformation.HostName != "" {

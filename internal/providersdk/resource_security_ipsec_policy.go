@@ -59,7 +59,8 @@ func resourceIpsecPolicy() *schema.Resource {
 func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeCreateSetFile() {
-		if err := setIpsecPolicy(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setIpsecPolicy(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -70,40 +71,40 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if !junos.CheckCompatibilitySecurity(junSess) {
+	defer junSess.Close()
+	if !junSess.CheckCompatibilitySecurity() {
 		return diag.FromErr(fmt.Errorf("security ipsec policy not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Get("name").(string), clt, junSess)
+	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ipsecPolicyExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security ipsec policy %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setIpsecPolicy(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setIpsecPolicy(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_security_ipsec_policy", junSess)
+	warns, err := junSess.CommitConf("create resource junos_security_ipsec_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ipsecPolicyExists, err = checkIpsecPolicyExists(d.Get("name").(string), clt, junSess)
+	ipsecPolicyExists, err = checkIpsecPolicyExists(d.Get("name").(string), junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -114,7 +115,7 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceIpsecPolicyReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceIpsecPolicyReadWJunSess(d, junSess)...)
 }
 
 func resourceIpsecPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -123,15 +124,15 @@ func resourceIpsecPolicyRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceIpsecPolicyReadWJunSess(d, clt, junSess)
+	return resourceIpsecPolicyReadWJunSess(d, junSess)
 }
 
-func resourceIpsecPolicyReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceIpsecPolicyReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
-	ipsecPolicyOptions, err := readIpsecPolicy(d.Get("name").(string), clt, junSess)
+	ipsecPolicyOptions, err := readIpsecPolicy(d.Get("name").(string), junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -149,10 +150,11 @@ func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m in
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
-		if err := delIpsecPolicy(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delIpsecPolicy(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setIpsecPolicy(d, clt, nil); err != nil {
+		if err := setIpsecPolicy(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -163,37 +165,38 @@ func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecPolicy(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delIpsecPolicy(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setIpsecPolicy(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setIpsecPolicy(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_security_ipsec_policy", junSess)
+	warns, err := junSess.CommitConf("update resource junos_security_ipsec_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceIpsecPolicyReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceIpsecPolicyReadWJunSess(d, junSess)...)
 }
 
 func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
-		if err := delIpsecPolicy(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := delIpsecPolicy(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -203,20 +206,20 @@ func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecPolicy(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := delIpsecPolicy(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_security_ipsec_policy", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_security_ipsec_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -231,16 +234,16 @@ func resourceIpsecPolicyImport(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
-	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Id(), clt, junSess)
+	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ipsecPolicyExists {
 		return nil, fmt.Errorf("don't find security ipsec policy with id '%v' (id must be <name>)", d.Id())
 	}
-	ipsecPolicyOptions, err := readIpsecPolicy(d.Id(), clt, junSess)
+	ipsecPolicyOptions, err := readIpsecPolicy(d.Id(), junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -250,9 +253,9 @@ func resourceIpsecPolicyImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkIpsecPolicyExists(ipsecPolicy string, clt *junos.Client, junSess *junos.Session) (bool, error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security ipsec policy "+ipsecPolicy+junos.PipeDisplaySet, junSess)
+func checkIpsecPolicyExists(ipsecPolicy string, junSess *junos.Session) (bool, error) {
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security ipsec policy " + ipsecPolicy + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -263,7 +266,7 @@ func checkIpsecPolicyExists(ipsecPolicy string, clt *junos.Client, junSess *juno
 	return true, nil
 }
 
-func setIpsecPolicy(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setIpsecPolicy(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ipsec policy " + d.Get("name").(string)
@@ -277,13 +280,13 @@ func setIpsecPolicy(d *schema.ResourceData, clt *junos.Client, junSess *junos.Se
 		configSet = append(configSet, setPrefix+" proposal-set "+d.Get("proposal_set").(string))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readIpsecPolicy(ipsecPolicy string, clt *junos.Client, junSess *junos.Session,
+func readIpsecPolicy(ipsecPolicy string, junSess *junos.Session,
 ) (confRead ipsecPolicyOptions, err error) {
-	showConfig, err := clt.Command(junos.CmdShowConfig+
-		"security ipsec policy "+ipsecPolicy+junos.PipeDisplaySetRelative, junSess)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security ipsec policy " + ipsecPolicy + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}
@@ -311,11 +314,11 @@ func readIpsecPolicy(ipsecPolicy string, clt *junos.Client, junSess *junos.Sessi
 	return confRead, nil
 }
 
-func delIpsecPolicy(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func delIpsecPolicy(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec policy "+d.Get("name").(string))
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillIpsecPolicyData(d *schema.ResourceData, ipsecPolicyOptions ipsecPolicyOptions) {

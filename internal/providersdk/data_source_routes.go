@@ -118,9 +118,9 @@ func dataSourceRoutesRead(ctx context.Context, d *schema.ResourceData, m interfa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	mutex.Lock()
-	routesTable, err := searchRoutes(d, clt, junSess)
+	routesTable, err := searchRoutes(d, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -137,14 +137,14 @@ func dataSourceRoutesRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return nil
 }
 
-func searchRoutes(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func searchRoutes(d *schema.ResourceData, junSess *junos.Session,
 ) (routesTableOpts, error) {
 	var result routesTableOpts
 	rpcReq := junos.RPCGetRouteAllInformation
 	if v := d.Get("table_name").(string); v != "" {
 		rpcReq = fmt.Sprintf(junos.RPCGetRouteAllTableInformation, v)
 	}
-	replyData, err := clt.CommandXML(rpcReq, junSess)
+	replyData, err := junSess.CommandXML(rpcReq)
 	if err != nil {
 		return result, err
 	}

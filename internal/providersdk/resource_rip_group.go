@@ -174,7 +174,8 @@ func resourceRipGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 	name := d.Get("name").(string)
 	ripNg := d.Get("ng").(bool)
 	if clt.FakeCreateSetFile() {
-		if err := setRipGroup(d, clt, nil); err != nil {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
+		if err := setRipGroup(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		if ripNg {
@@ -189,33 +190,33 @@ func resourceRipGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if routingInstance != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(routingInstance, clt, junSess)
+		instanceExists, err := checkRoutingInstanceExists(routingInstance, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+			appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", routingInstance))...)
 		}
 	}
-	ripGroupExists, err := checkRipGroupExists(name, ripNg, routingInstance, clt, junSess)
+	ripGroupExists, err := checkRipGroupExists(name, ripNg, routingInstance, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ripGroupExists {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 		protocolsRipGroup := "rip group"
 		if ripNg {
 			protocolsRipGroup = "ripng group"
@@ -227,19 +228,19 @@ func resourceRipGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(protocolsRipGroup+" %v already exists", name))...)
 	}
-	if err := setRipGroup(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setRipGroup(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("create resource junos_rip_group", junSess)
+	warns, err := junSess.CommitConf("create resource junos_rip_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ripGroupExists, err = checkRipGroupExists(name, ripNg, routingInstance, clt, junSess)
+	ripGroupExists, err = checkRipGroupExists(name, ripNg, routingInstance, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -264,7 +265,7 @@ func resourceRipGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 			"=> check your config", name))...)
 	}
 
-	return append(diagWarns, resourceRipGroupReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceRipGroupReadWJunSess(d, junSess)...)
 }
 
 func resourceRipGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -273,19 +274,20 @@ func resourceRipGroupRead(ctx context.Context, d *schema.ResourceData, m interfa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 
-	return resourceRipGroupReadWJunSess(d, clt, junSess)
+	return resourceRipGroupReadWJunSess(d, junSess)
 }
 
-func resourceRipGroupReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
+func resourceRipGroupReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	mutex.Lock()
 	ripGroupOptions, err := readRipGroup(
 		d.Get("name").(string),
 		d.Get("ng").(bool),
 		d.Get("routing_instance").(string),
-		clt, junSess)
+		junSess,
+	)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -303,16 +305,17 @@ func resourceRipGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	d.Partial(true)
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if err := delRipGroup(
 			d.Get("name").(string),
 			d.Get("ng").(bool),
 			d.Get("routing_instance").(string),
 			false,
-			clt, nil,
+			junSess,
 		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setRipGroup(d, clt, nil); err != nil {
+		if err := setRipGroup(d, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -323,8 +326,8 @@ func resourceRipGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
@@ -333,38 +336,39 @@ func resourceRipGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		d.Get("ng").(bool),
 		d.Get("routing_instance").(string),
 		false,
-		clt, junSess,
+		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setRipGroup(d, clt, junSess); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+	if err := setRipGroup(d, junSess); err != nil {
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("update resource junos_rip_group", junSess)
+	warns, err := junSess.CommitConf("update resource junos_rip_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceRipGroupReadWJunSess(d, clt, junSess)...)
+	return append(diagWarns, resourceRipGroupReadWJunSess(d, junSess)...)
 }
 
 func resourceRipGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
+		junSess := clt.NewSessionWithoutNetconf(ctx)
 		if err := delRipGroup(
 			d.Get("name").(string),
 			d.Get("ng").(bool),
 			d.Get("routing_instance").(string),
 			true,
-			clt, nil,
+			junSess,
 		); err != nil {
 			return diag.FromErr(err)
 		}
@@ -375,8 +379,8 @@ func resourceRipGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer clt.CloseSession(junSess)
-	if err := clt.ConfigLock(ctx, junSess); err != nil {
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
@@ -385,16 +389,16 @@ func resourceRipGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 		d.Get("ng").(bool),
 		d.Get("routing_instance").(string),
 		true,
-		clt, junSess,
+		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := clt.CommitConf("delete resource junos_rip_group", junSess)
+	warns, err := junSess.CommitConf("delete resource junos_rip_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
+		appendDiagWarns(&diagWarns, junSess.ConfigClear())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -409,14 +413,14 @@ func resourceRipGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return nil, err
 	}
-	defer clt.CloseSession(junSess)
+	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), junos.IDSeparator)
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", junos.IDSeparator)
 	}
 	if len(idSplit) == 2 {
-		ripGroupExists, err := checkRipGroupExists(idSplit[0], false, idSplit[1], clt, junSess)
+		ripGroupExists, err := checkRipGroupExists(idSplit[0], false, idSplit[1], junSess)
 		if err != nil {
 			return nil, err
 		}
@@ -427,7 +431,7 @@ func resourceRipGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 				d.Id(),
 			)
 		}
-		ripGroupOptions, err := readRipGroup(idSplit[0], false, idSplit[1], clt, junSess)
+		ripGroupOptions, err := readRipGroup(idSplit[0], false, idSplit[1], junSess)
 		if err != nil {
 			return nil, err
 		}
@@ -442,7 +446,7 @@ func resourceRipGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 			"<name>" + junos.IDSeparator + "ng" + junos.IDSeparator + "<routing_instance>",
 		)
 	}
-	ripGroupExists, err := checkRipGroupExists(idSplit[0], true, idSplit[2], clt, junSess)
+	ripGroupExists, err := checkRipGroupExists(idSplit[0], true, idSplit[2], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +457,7 @@ func resourceRipGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 			d.Id(),
 		)
 	}
-	ripGroupOptions, err := readRipGroup(idSplit[0], true, idSplit[2], clt, junSess)
+	ripGroupOptions, err := readRipGroup(idSplit[0], true, idSplit[2], junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -463,7 +467,7 @@ func resourceRipGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 	return result, nil
 }
 
-func checkRipGroupExists(name string, ripNg bool, routingInstance string, clt *junos.Client, junSess *junos.Session,
+func checkRipGroupExists(name string, ripNg bool, routingInstance string, junSess *junos.Session,
 ) (_ bool, err error) {
 	var showConfig string
 	protoRipGroup := "protocols rip group \"" + name + "\""
@@ -471,11 +475,11 @@ func checkRipGroupExists(name string, ripNg bool, routingInstance string, clt *j
 		protoRipGroup = "protocols ripng group \"" + name + "\""
 	}
 	if routingInstance == junos.DefaultW {
-		showConfig, err = clt.Command(junos.CmdShowConfig+
-			protoRipGroup+junos.PipeDisplaySet, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			protoRipGroup + junos.PipeDisplaySet)
 	} else {
-		showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+routingInstance+" "+
-			protoRipGroup+junos.PipeDisplaySet, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			protoRipGroup + junos.PipeDisplaySet)
 	}
 	if err != nil {
 		return false, err
@@ -487,7 +491,7 @@ func checkRipGroupExists(name string, ripNg bool, routingInstance string, clt *j
 	return true, nil
 }
 
-func setRipGroup(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
+func setRipGroup(d *schema.ResourceData, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 
 	setPrefix := junos.SetLS
@@ -572,10 +576,10 @@ func setRipGroup(d *schema.ResourceData, clt *junos.Client, junSess *junos.Sessi
 		configSet = append(configSet, setPrefix+"update-interval "+strconv.Itoa(v))
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
-func readRipGroup(name string, ripNg bool, routingInstance string, clt *junos.Client, junSess *junos.Session,
+func readRipGroup(name string, ripNg bool, routingInstance string, junSess *junos.Session,
 ) (confRead ripGroupOptions, err error) {
 	// default -1
 	confRead.preference = -1
@@ -585,11 +589,11 @@ func readRipGroup(name string, ripNg bool, routingInstance string, clt *junos.Cl
 		protoRipGroup = "protocols ripng group \"" + name + "\""
 	}
 	if routingInstance == junos.DefaultW {
-		showConfig, err = clt.Command(junos.CmdShowConfig+
-			protoRipGroup+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			protoRipGroup + junos.PipeDisplaySetRelative)
 	} else {
-		showConfig, err = clt.Command(junos.CmdShowConfig+junos.RoutingInstancesWS+routingInstance+" "+
-			protoRipGroup+junos.PipeDisplaySetRelative, junSess)
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			protoRipGroup + junos.PipeDisplaySetRelative)
 	}
 	if err != nil {
 		return confRead, err
@@ -716,7 +720,6 @@ func delRipGroup(
 	ripNg bool,
 	routingInstance string,
 	deleteAll bool,
-	clt *junos.Client,
 	junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
@@ -731,7 +734,7 @@ func delRipGroup(
 	delPrefix += "\"" + name + "\" "
 
 	if deleteAll {
-		return clt.ConfigSet([]string{delPrefix}, junSess)
+		return junSess.ConfigSet([]string{delPrefix})
 	}
 	listLinesToDelete := []string{
 		"bfd-liveness-detection",
@@ -749,7 +752,7 @@ func delRipGroup(
 		configSet[k] = delPrefix + line
 	}
 
-	return clt.ConfigSet(configSet, junSess)
+	return junSess.ConfigSet(configSet)
 }
 
 func fillRipGroupData(d *schema.ResourceData, ripGroupOptions ripGroupOptions) {
