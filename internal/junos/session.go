@@ -74,34 +74,45 @@ func netconfNewSessionWithConfig(ctx context.Context, host string, sshOpts *sshO
 		retry = 10
 	}
 	sleepTime := 0
+toretry:
 	for retry > 0 {
 		retry--
 		conn, err := netDialer.DialContext(ctx, "tcp", host)
 		if err != nil {
-			if retry != 0 {
-				log.Printf("[WARN] connecting to %s: %s, go retry", host, err.Error())
-				// sleep with time increasing as things try
-				sleepTime++
-				utils.Sleep(sleepTime)
+			select {
+			case <-ctx.Done():
+				return nil, fmt.Errorf("error connecting to %s: %w", host, err)
+			default:
+				if retry != 0 {
+					log.Printf("[WARN] connecting to %s: %s, go retry", host, err.Error())
+					// sleep with time increasing as things try
+					sleepTime++
+					utils.Sleep(sleepTime)
 
-				continue
+					continue toretry
+				}
+
+				return nil, fmt.Errorf("error connecting to %s: %w", host, err)
 			}
-
-			return nil, fmt.Errorf("error connecting to %s: %w", host, err)
 		}
 		s, err := netconf.NewSSHSession(conn, sshOpts.ClientConfig)
 		if err != nil {
 			conn.Close()
-			if retry != 0 {
-				log.Printf("[WARN] initializing SSH session to %s: %s, go retry", host, err.Error())
-				// sleep with time increasing as things try
-				sleepTime++
-				utils.Sleep(sleepTime)
+			select {
+			case <-ctx.Done():
+				return nil, fmt.Errorf("initializing SSH session to %s: %w", host, err)
+			default:
+				if retry != 0 {
+					log.Printf("[WARN] initializing SSH session to %s: %s, go retry", host, err.Error())
+					// sleep with time increasing as things try
+					sleepTime++
+					utils.Sleep(sleepTime)
 
-				continue
+					continue toretry
+				}
+
+				return nil, fmt.Errorf("initializing SSH session to %s: %w", host, err)
 			}
-
-			return nil, fmt.Errorf("initializing SSH session to %s: %w", host, err)
 		}
 
 		return newSessionFromNetconf(s)

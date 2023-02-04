@@ -36,6 +36,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: when `ssh_retry_to_establish` > 1, stop retrying to open connections or sessions after a gracefully shutting down call with `Ctrl-c`
+
 ## Previous Releases
 
 * [v1](https://github.com/jeremmfr/terraform-provider-junos/blob/v1/CHANGELOG.md)
