@@ -29,6 +29,7 @@ linters:
     - maintidx
     - execinquery
     - nosnakecase
+    - musttag
 linters-settings:
   gocognit:
     # minimal code complexity to report, 30 by default
