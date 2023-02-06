@@ -33,6 +33,7 @@ ENHANCEMENTS:
 * refactor the code of most resource reading functions to make it more readable and maintainable
 * refactor provider to integrate new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework),  
   the resources and data sources will migrate progressively to this new plugin
+* **resource/junos_security_address_book**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
 
 BUG FIXES:
 

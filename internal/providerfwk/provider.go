@@ -53,9 +53,13 @@ type junosProviderModel struct {
 	FakeDeleteAlso      types.Bool   `tfsdk:"fake_delete_also"`
 }
 
+const (
+	providerName = "junos"
+)
+
 // Metadata returns the provider type name.
 func (p *junosProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "junos"
+	resp.TypeName = providerName
 	resp.Version = version.Get()
 }
 
@@ -180,7 +184,9 @@ func (p *junosProvider) DataSources(ctx context.Context) []func() datasource.Dat
 }
 
 func (p *junosProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		newSecurityAddressBookResource,
+	}
 }
 
 func (p *junosProvider) Configure(
@@ -714,4 +720,16 @@ func (p *junosProvider) Configure(
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
+}
+
+func unexpectedResourceConfigureType(
+	_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
+) {
+	resp.Diagnostics.AddError(
+		"Unexpected Resource Configure Type",
+		fmt.Sprintf(
+			"Expected *junos.Client, got: %T. Please report this issue to the provider developers.",
+			req.ProviderData,
+		),
+	)
 }

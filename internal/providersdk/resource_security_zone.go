@@ -824,3 +824,9 @@ func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {
 		panic(tfErr)
 	}
 }
+
+func copySecurityAddressBookAddressDescriptions(descMap map[string]string, addrList []map[string]interface{}) {
+	for _, ele := range addrList {
+		ele["description"] = descMap[ele["name"].(string)]
+	}
+}
