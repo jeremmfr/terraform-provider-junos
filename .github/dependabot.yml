@@ -10,3 +10,13 @@ updates:
       - "jeremmfr"
     reviewers:
       - "jeremmfr"
+  - package-ecosystem: gomod
+    directory: /
+    commit-message:
+      prefix: "deps:"
+    schedule:
+      interval: daily
+    assignees:
+      - "jeremmfr"
+    reviewers:
+      - "jeremmfr"
