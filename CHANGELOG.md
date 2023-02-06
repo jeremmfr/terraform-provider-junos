@@ -5,6 +5,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* resource/`junos_interface_physical`: add `mtu` argument (Fixes #451)
+* data-source/`junos_interface_physical`: add `mtu` attribute (like resource)
+
 BUG FIXES:
 
 ## 1.32.0 (December 22, 2022)

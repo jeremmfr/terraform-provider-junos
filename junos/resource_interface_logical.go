@@ -313,7 +313,7 @@ func resourceInterfaceLogical() *schema.Resource {
 						"mtu": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(500, 9192),
+							ValidateFunc: validation.IntBetween(1, 9500),
 						},
 						"rpf_check": {
 							Type:     schema.TypeList,
@@ -559,7 +559,7 @@ func resourceInterfaceLogical() *schema.Resource {
 						"mtu": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(500, 9192),
+							ValidateFunc: validation.IntBetween(1, 9500),
 						},
 						"rpf_check": {
 							Type:     schema.TypeList,

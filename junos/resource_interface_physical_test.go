@@ -269,6 +269,7 @@ resource "junos_interface_physical" "testacc_interface2" {
     loopback         = true
     auto_negotiation = true
   }
+  mtu = 9000
 }
 resource "junos_interface_logical" "testacc_interfaceLO" {
   name = "lo0.0"
