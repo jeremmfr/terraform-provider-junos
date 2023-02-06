@@ -24,8 +24,8 @@ func TestAccJunosLayer2Control_basic(t *testing.T) {
 		testaccInterface2 = iface
 	}
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccJunosLayer2ControlConfigCreate(),

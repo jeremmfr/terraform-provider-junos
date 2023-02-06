@@ -12,8 +12,8 @@ func TestAccJunosInterfaceSt0Unit_basic(t *testing.T) {
 	regexpSt0 := regexp.MustCompile("st0.")
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
-			PreCheck:  func() { testAccPreCheck(t) },
-			Providers: testAccProviders,
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: testAccJunosInterfaceSt0UnitConfig(),
