@@ -31,11 +31,11 @@ feature you'd like to see has already been requested and is open, click "add a
 reaction" in the top right corner of the issue and add a thumbs up (+1). Feel
 free to add a comment with any additional justification for the feature.
 
-*  When submitting a feature request on GitHub, be sure to include all
+* When submitting a feature request on GitHub, be sure to include all
 information necessary like :
-   * A detailed description of the proposed feature.
-   * An example Junos configuration to describe the parameters involved.
-   * If specific Junos device type is necessary.
+  * A detailed description of the proposed feature.
+  * An example Junos configuration to describe the parameters involved.
+  * If specific Junos device type is necessary.
 
 ## Submitting Pull Requests
 
@@ -69,19 +69,23 @@ the execution of one or more steps of applying one or more configuration files,
 allowing multiple scenarios to be tested. Terraform acceptance tests use real
 Terraform configurations to exercise the code in real plan, apply, refresh, and
 destroy life cycles. See more on terraform
-[website](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests)
+[sdkv2/testing/acceptance-tests](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests)
+and [framework/acctests](https://developer.hashicorp.com/terraform/plugin/framework/acctests)
 
 Terraform requires an environment variable `TF_ACC` be set in order to run
 acceptance tests. More environment variables is also necessary for configure the
 provider. See [docs](https://registry.terraform.io/providers/jeremmfr/junos/latest/docs#argument-reference)
-```
+
+```shell
 TF_ACC=1 go test -v ./...
 ```
+
 To run specifically tests with switch models, add environment variable
 `TESTACC_SWITCH`.
 
 To run tests for specific resource, use `-run` args
-```
+
+```shell
 TF_ACC=1 go test -v ./... -run TestAccJunos<ResourceName>_basic
 ```
 
