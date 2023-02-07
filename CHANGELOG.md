@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 * resource/`junos_interface_physical`: add `mtu` argument (Fixes #451)
 * data-source/`junos_interface_physical`: add `mtu` attribute (like resource)
+* release now with golang 1.20
 
 BUG FIXES:
 
