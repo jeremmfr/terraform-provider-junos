@@ -1183,7 +1183,7 @@ func readInterfacePhysical(interFace string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "mtu "):
 				confRead.mtu, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "native-vlan-id "):
 				confRead.vlanNative, err = strconv.Atoi(itemTrim)

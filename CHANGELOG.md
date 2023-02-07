@@ -14,23 +14,6 @@ FEATURES:
 
 ENHANCEMENTS:
 
-BUG FIXES:
-
-## 1.33.0 (February 07, 2023)
-
-ENHANCEMENTS:
-
-* resource/`junos_interface_physical`: add `mtu` argument (Fixes [#451](https://github.com/jeremmfr/terraform-provider-junos/issues/451))
-* data-source/`junos_interface_physical`: add `mtu` attribute (like resource)
-* release now with golang 1.20
-
-## 1.32.0 (December 22, 2022)
-
-ENHANCEMENTS:
-
-* provider: add `ssh_retry_to_establish` argument to retry when establishing SSH connections
-* resource/`junos_security_address_book`: add `ipv4_only` and `ipv6_only` arguments inside `dns_name` block argument
-* refactor the code of most resource reading functions to make it more readable and maintainable
 * refactor provider to integrate new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework),  
   the resources and data sources will migrate progressively to this new plugin
 * **resource/junos_security_address_book**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
