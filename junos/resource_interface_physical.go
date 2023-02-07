@@ -18,6 +18,7 @@ type interfacePhysicalOptions struct {
 	trunk           bool
 	vlanTagging     bool
 	aeMinLink       int
+	mtu             int
 	vlanNative      int
 	aeLacp          string
 	aeLinkSpeed     string
@@ -281,6 +282,11 @@ func resourceInterfacePhysical() *schema.Resource {
 						},
 					},
 				},
+			},
+			"mtu": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 9500),
 			},
 			"parent_ether_opts": {
 				Type:     schema.TypeList,
@@ -1039,6 +1045,9 @@ func setInterfacePhysical(d *schema.ResourceData, clt *Client, junSess *junosSes
 			configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
 		}
 	}
+	if v := d.Get("mtu").(int); v != 0 {
+		configSet = append(configSet, setPrefix+"mtu "+strconv.Itoa(v))
+	}
 	for _, v := range d.Get("parent_ether_opts").([]interface{}) {
 		if v == nil {
 			return fmt.Errorf("parent_ether_opts block is empty")
@@ -1262,6 +1271,11 @@ func readInterfacePhysical(interFace string, clt *Client, junSess *junosSession,
 				confRead.readInterfacePhysicalEtherOpts(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "gigether-options "):
 				confRead.readInterfacePhysicalGigetherOpts(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "mtu "):
+				confRead.mtu, err = strconv.Atoi(itemTrim)
+				if err != nil {
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
+				}
 			case balt.CutPrefixInString(&itemTrim, "native-vlan-id "):
 				confRead.vlanNative, err = strconv.Atoi(itemTrim)
 				if err != nil {
@@ -1713,6 +1727,9 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 		if tfErr := d.Set("gigether_opts", interfaceOpt.gigetherOpts); tfErr != nil {
 			panic(tfErr)
 		}
+	}
+	if tfErr := d.Set("mtu", interfaceOpt.mtu); tfErr != nil {
+		panic(tfErr)
 	}
 	if !okAeLacp && !okAeLinkSpeed && !okAeMinLinks {
 		if tfErr := d.Set("parent_ether_opts", interfaceOpt.parentEtherOpts); tfErr != nil {
