@@ -172,6 +172,10 @@ func dataSourceInterfacePhysical() *schema.Resource {
 					},
 				},
 			},
+			"mtu": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"parent_ether_opts": {
 				Type:     schema.TypeList,
 				Computed: true,

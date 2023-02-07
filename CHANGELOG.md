@@ -7,6 +7,14 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.33.0 (February 07, 2023)
+
+ENHANCEMENTS:
+
+* resource/`junos_interface_physical`: add `mtu` argument (Fixes [#451](https://github.com/jeremmfr/terraform-provider-junos/issues/451))
+* data-source/`junos_interface_physical`: add `mtu` attribute (like resource)
+* release now with golang 1.20
+
 ## 1.32.0 (December 22, 2022)
 
 ENHANCEMENTS:

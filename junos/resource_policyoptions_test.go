@@ -137,9 +137,9 @@ func TestAccJunosPolicyOptions_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
 							"then.0.action", "accept"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
-							"then.0.as_path_expand", "65000 65000"), //nolint: dupword
+							"then.0.as_path_expand", "65000 65000"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
-							"then.0.as_path_prepend", "65000 65000"), //nolint: dupword
+							"then.0.as_path_prepend", "65000 65000"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
 							"then.0.community.#", "3"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
@@ -289,7 +289,7 @@ func TestAccJunosPolicyOptions_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
 							"term.0.then.0.as_path_expand", "last-as count 1"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
-							"term.0.then.0.as_path_prepend", "65000 65000"), //nolint: dupword
+							"term.0.then.0.as_path_prepend", "65000 65000"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
 							"term.0.then.0.community.#", "3"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",

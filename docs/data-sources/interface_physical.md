@@ -87,6 +87,8 @@ The following attributes are exported:
     Don't enable loopback.
   - **redundant_parent** (String)  
     Name of a redundant ethernet interface to join.
+- **mtu** (Optional, Number)  
+  Maximum transmission unit.
 - **parent_ether_opts** (Block)  
   The `aggregated-ether-options` or `redundant-ether-options` configuration
   (it depends on the interface `name`).  
