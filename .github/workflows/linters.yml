@@ -5,10 +5,10 @@ jobs:
     name: golangci-lint
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.19
+      - name: Set up Go 1.20
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: '1.20'
           check-latest: true
         id: go
       - name: Disable cgo
@@ -38,10 +38,10 @@ jobs:
     name: terrafmt
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.19
+      - name: Set up Go 1.20
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: '1.20'
           check-latest: true
         id: go
       - name: Show version
@@ -71,28 +71,3 @@ jobs:
             echo "terraform blocks in website/test-go files not being properly formatted"
             exit 1
           fi
-  # see https://github.com/bflad/tfproviderlint/issues/255
-  # tfproviderlint:
-  #   name: tfproviderlint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Set up Go 1.18
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: 1.18
-  #         check-latest: true
-  #       id: go
-  #     - name: Show version
-  #       run: go version
-  #     - name: Check out code
-  #       uses: actions/checkout@v3
-  #     - name: Check out tfproviderlint code
-  #       uses: actions/checkout@v3
-  #       with:
-  #         repository: bflad/tfproviderlint
-  #         ref: v0.28.1
-  #         path: tfproviderlint
-  #     - name: Build tfproviderlint bin
-  #       run: cd tfproviderlint && go install ./... && cd ${GITHUB_WORKSPACE}
-  #     - name: Run tfproviderlint
-  #       run: tfproviderlint -AT001=false -AT006=false -R007=false -R009=false -R014=false -R018=false ./...

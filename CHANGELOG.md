@@ -5,6 +5,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* release now with golang 1.20
+
 BUG FIXES:
 
 ## 1.32.0 (December 22, 2022)
