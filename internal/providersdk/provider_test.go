@@ -38,13 +38,6 @@ func testAccNewProtoV5MuxProviderServer() func() (tfprotov5.ProviderServer, erro
 	return func() (tfprotov5.ProviderServer, error) { return muxServer.ProviderServer(), nil }
 }
 
-const (
-	defaultInterfaceTestAcc        = "ge-0/0/3"
-	defaultInterfaceTestAcc2       = "ge-0/0/4"
-	defaultInterfaceSwitchTestAcc  = "xe-0/0/3"
-	defaultInterfaceSwitchTestAcc2 = "xe-0/0/4"
-)
-
 func TestProvider(t *testing.T) {
 	if err := providersdk.Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)

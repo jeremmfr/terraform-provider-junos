@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 func TestAccDataSourceInterfacePhysical_basic(t *testing.T) {
-	testaccInterface := defaultInterfaceTestAcc
+	testaccInterface := junos.DefaultInterfaceTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface
 	}

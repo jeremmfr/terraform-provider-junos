@@ -6,16 +6,17 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's xe-0/0/3.
 // export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's xe-0/0/4.
 func TestAccJunosLayer2Control_basic(t *testing.T) {
-	testaccInterface := defaultInterfaceTestAcc
-	testaccInterface2 := defaultInterfaceTestAcc2
+	testaccInterface := junos.DefaultInterfaceTestAcc
+	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	if os.Getenv("TESTACC_SWITCH") != "" {
-		testaccInterface = defaultInterfaceSwitchTestAcc
-		testaccInterface2 = defaultInterfaceSwitchTestAcc2
+		testaccInterface = junos.DefaultInterfaceSwitchTestAcc
+		testaccInterface2 = junos.DefaultInterfaceSwitchTestAcc2
 	}
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface
