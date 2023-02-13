@@ -1,12 +1,13 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
@@ -17,7 +18,6 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 	}
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
-			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{

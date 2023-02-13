@@ -180,12 +180,15 @@ func (p *junosProvider) Schema(ctx context.Context, _ provider.SchemaRequest, re
 }
 
 func (p *junosProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		newSecurityZoneDataSource,
+	}
 }
 
 func (p *junosProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		newSecurityAddressBookResource,
+		newSecurityZoneResource,
 	}
 }
 
@@ -727,6 +730,18 @@ func unexpectedResourceConfigureType(
 ) {
 	resp.Diagnostics.AddError(
 		"Unexpected Resource Configure Type",
+		fmt.Sprintf(
+			"Expected *junos.Client, got: %T. Please report this issue to the provider developers.",
+			req.ProviderData,
+		),
+	)
+}
+
+func unexpectedDataSourceConfigureType(
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse,
+) {
+	resp.Diagnostics.AddError(
+		"Unexpected Data Source Configure Type",
 		fmt.Sprintf(
 			"Expected *junos.Client, got: %T. Please report this issue to the provider developers.",
 			req.ProviderData,

@@ -1,4 +1,4 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"fmt"
@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
@@ -18,7 +19,6 @@ func TestAccDataSourceSecurityZone_basic(t *testing.T) {
 	}
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
-			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
@@ -39,7 +39,7 @@ func TestAccDataSourceSecurityZone_basic(t *testing.T) {
 				},
 				{
 					Config:      testAccDataSourceSecurityZoneConfigDataFailed(),
-					ExpectError: regexp.MustCompile("routing instance .* doesn't exist"),
+					ExpectError: regexp.MustCompile("security zone .* doesn't exist"),
 				},
 			},
 			PreventPostDestroyRefresh: true,
@@ -103,7 +103,7 @@ data "junos_security_zone" "testacc_dataSecurityZone" {
 
 func testAccDataSourceSecurityZoneConfigDataFailed() string {
 	return `
-data "junos_routing_instance" "testacc_dataSecurityZone" {
+data "junos_security_zone" "testacc_dataSecurityZone" {
   name = "testacc"
 }
 `
