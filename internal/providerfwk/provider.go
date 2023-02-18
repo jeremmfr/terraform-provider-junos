@@ -190,6 +190,7 @@ func (p *junosProvider) Resources(ctx context.Context) []func() resource.Resourc
 		newSecurityAddressBookResource,
 		newSecurityZoneResource,
 		newSecurityZoneBookAddressResource,
+		newSecurityZoneBookAddressSetResource,
 	}
 }
 

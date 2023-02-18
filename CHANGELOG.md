@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * **resource/junos_security_zone**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
 * **data-source/junos_security_zone**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) like resource
 * **resource/junos_security_zone_book_address**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_zone_book_address_set**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
 
 BUG FIXES:
 
