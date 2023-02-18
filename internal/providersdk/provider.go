@@ -218,7 +218,6 @@ func Provider() *schema.Provider {
 			"junos_security_utm_profile_web_filtering_juniper_enhanced":  resourceSecurityUtmProfileWebFilteringEnhanced(),
 			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
 			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
-			"junos_security_zone_book_address":                           resourceSecurityZoneBookAddress(),
 			"junos_security_zone_book_address_set":                       resourceSecurityZoneBookAddressSet(),
 			"junos_services":                                             resourceServices(),
 			"junos_services_advanced_anti_malware_policy":                resourceServicesAdvancedAntiMalwarePolicy(),
