@@ -91,7 +91,7 @@ resource "junos_forwardingoptions_dhcprelay_group" "testacc_dhcprelaygroup_v6_ri
 `
 }
 
-// nolint: lll,nolintlint
+//nolint:lll
 func testAccJunosForwardingOptionsDhcpRelayGroupConfigUpdate() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay_group" "testacc_dhcprelaygroup_v4_default" {

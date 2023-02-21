@@ -81,7 +81,7 @@ resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v6_ri" {
 `
 }
 
-// nolint: lll,nolintlint
+//nolint:lll
 func testAccJunosForwardingOptionsDhcpRelayConfigUpdate() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v4_default" {
@@ -430,7 +430,6 @@ resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v6_ri" {
 `
 }
 
-// nolint: lll,nolintlint
 func testAccJunosForwardingOptionsDhcpRelayConfigUpdate2() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v4_default" {
