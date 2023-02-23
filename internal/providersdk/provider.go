@@ -208,8 +208,6 @@ func Provider() *schema.Provider {
 			"junos_security_nat_source_pool":                             resourceSecurityNatSourcePool(),
 			"junos_security_nat_static":                                  resourceSecurityNatStatic(),
 			"junos_security_nat_static_rule":                             resourceSecurityNatStaticRule(),
-			"junos_security_policy":                                      resourceSecurityPolicy(),
-			"junos_security_policy_tunnel_pair_policy":                   resourceSecurityPolicyTunnelPairPolicy(),
 			"junos_security_screen":                                      resourceSecurityScreen(),
 			"junos_security_screen_whitelist":                            resourceSecurityScreenWhiteList(),
 			"junos_security_utm_custom_url_category":                     resourceSecurityUtmCustomURLCategory(),

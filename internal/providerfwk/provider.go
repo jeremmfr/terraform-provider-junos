@@ -188,6 +188,8 @@ func (p *junosProvider) DataSources(ctx context.Context) []func() datasource.Dat
 func (p *junosProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		newSecurityAddressBookResource,
+		newSecurityPolicyResource,
+		newSecurityPolicyTunnelPairPolicyResource,
 		newSecurityZoneResource,
 		newSecurityZoneBookAddressResource,
 		newSecurityZoneBookAddressSetResource,
