@@ -3,26 +3,26 @@
 
 BREAKING CHANGES with new `v2`:
 
-* **resource/junos_bgp_group**, **resource/junos_bgp_neighbor**: remove deprecated argument multipath
-* **resource/junos_interface_physical**: remove deprecated arguments `ae_lacp`, `ae_link_speed`, `ae_minimum_links` and `ether802_3ad`
+* **resource/junos_bgp_group**, **resource/junos_bgp_neighbor**: remove deprecated `multipath` argument
+* **resource/junos_interface_physical**: remove deprecated `ae_lacp`, `ae_link_speed`, `ae_minimum_links` and `ether802_3ad` arguments
 * **data-source/junos_interface_physical**: remove same attributes in data source as resource
-* **resource/junos_security_ipsec_vpn**: remove deprecated argument `bind_interface_auto`
-* **resource/junos_system_radius_server**: remove deprecated attribute `accouting_timeout`
-* remove deprecated resource and data source **junos_interface**
+* **resource/junos_security_ipsec_vpn**: remove deprecated `bind_interface_auto` argument
+* **resource/junos_system_radius_server**: remove deprecated `accouting_timeout` attribute
+* remove deprecated **junos_interface** resource and data source
 
 FEATURES:
 
 ENHANCEMENTS:
 
-* refactor provider to integrate new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework),  
+* refactor provider to integrate new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework),  
   the resources and data sources will migrate progressively to this new plugin
-* **resource/junos_security_address_book**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **resource/junos_security_policy**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **resource/junos_security_policy_tunnel_pair_policy**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **resource/junos_security_zone**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **data-source/junos_security_zone**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) like resource
-* **resource/junos_security_zone_book_address**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **resource/junos_security_zone_book_address_set**: resource now use new plugin [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_address_book**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_policy_tunnel_pair_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_zone**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **data-source/junos_security_zone**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) like resource
+* **resource/junos_security_zone_book_address**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_zone_book_address_set**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
 
 BUG FIXES:
 
