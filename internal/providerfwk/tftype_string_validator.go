@@ -23,6 +23,7 @@ const (
 	defaultFormat stringFormat = iota
 	addressNameFormat
 	dnsNameFormat
+	interfaceFormat
 )
 
 func (f stringFormat) InvalidRune() func(rune) bool {
@@ -41,6 +42,11 @@ func (f stringFormat) InvalidRune() func(rune) bool {
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
 				r != '-' && r != '_' && r != '.'
 		}
+	case interfaceFormat:
+		return func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
+				r != '-' && r != '/' && r != '.' && r != ':'
+		}
 	default:
 		return func(r rune) bool {
 			return true
@@ -56,6 +62,8 @@ func (f stringFormat) String() string {
 		return "letters, numbers, dashes, dots, colons, slashes and underscores"
 	case dnsNameFormat:
 		return "letters, numbers, dashes, dots and underscores"
+	case interfaceFormat:
+		return "letters, numbers, dashes, slashes, dots and colons"
 	default:
 		return ""
 	}

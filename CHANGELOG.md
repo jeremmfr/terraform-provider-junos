@@ -17,6 +17,9 @@ ENHANCEMENTS:
 * refactor provider to integrate new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework),  
   the resources and data sources will migrate progressively to this new plugin
 * **resource/junos_security_address_book**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_ike_gateway**:
+  * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+  * add `distinguished_name_container` and `distinguished_name_wildcard` arguments inside `remote_identity` block argument
 * **resource/junos_security_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
 * **resource/junos_security_policy_tunnel_pair_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
 * **resource/junos_security_zone**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
@@ -27,6 +30,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * provider: when `ssh_retry_to_establish` > 1, stop retrying to open connections or sessions after a gracefully shutting down call with `Ctrl-c`
+* **resource/junos_security_ike_gateway**: don't catch error when read `local_identity` and `remote_identity` block arguments and `type` is `distinguished-name`
 
 ## Previous Releases
 
