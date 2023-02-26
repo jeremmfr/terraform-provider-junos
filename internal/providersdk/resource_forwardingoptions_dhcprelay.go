@@ -1241,14 +1241,14 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 				case balt.CutPrefixInString(&itemTrim, " idle-timeout "):
 					confRead.activeLeasequery[0]["idle_timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " peer-address "):
 					confRead.activeLeasequery[0]["peer_address"] = itemTrim
 				case balt.CutPrefixInString(&itemTrim, " timeout "):
 					confRead.activeLeasequery[0]["timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == " topology-discover":
 					confRead.activeLeasequery[0]["topology_discover"] = true
@@ -1279,12 +1279,12 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 				case balt.CutPrefixInString(&itemTrim, " attempts "):
 					confRead.bulkLeasequery[0]["attempts"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " timeout "):
 					confRead.bulkLeasequery[0]["timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == " trigger automatic":
 					confRead.bulkLeasequery[0]["trigger_automatic"] = true
@@ -1292,7 +1292,7 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 			case balt.CutPrefixInString(&itemTrim, "client-response-ttl "):
 				confRead.clientResponseTTL, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "duplicate-clients-in-subnet "):
 				confRead.duplicateClientsInSubnet = itemTrim
@@ -1329,7 +1329,7 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 				case balt.CutPrefixInString(&itemTrim, " lease-time-threshold "):
 					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == " violation-action drop":
 					confRead.leaseTimeValidation[0]["violation_action_drop"] = true
@@ -1345,12 +1345,12 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 				case balt.CutPrefixInString(&itemTrim, " attempts "):
 					confRead.leasequery[0]["attempts"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " timeout "):
 					confRead.leasequery[0]["timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "liveness-detection failure-action "):
@@ -1393,7 +1393,7 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 					confRead.livenessDetectionMethodBfd[0]["version"] = itemTrim
 				}
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "liveness-detection method layer2-liveness-detection "):
 				if len(confRead.livenessDetectionMethodLayer2) == 0 {
@@ -1409,17 +1409,17 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 					confRead.livenessDetectionMethodLayer2[0]["transmit_interval"], err = strconv.Atoi(itemTrim)
 				}
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "maximum-hop-count "):
 				confRead.maximumHopCount, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "minimum-wait-time "):
 				confRead.minimumWaitTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "no-snoop":
 				confRead.noSnoop = true
@@ -1518,19 +1518,19 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 			case balt.CutPrefixInString(&itemTrim, "server-response-time "):
 				confRead.serverResponseTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "service-profile "):
 				confRead.serviceProfile = strings.Trim(itemTrim, "\"")
 			case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-max-time "):
 				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-min-time "):
 				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "source-ip-change":
 				confRead.sourceIPChange = true

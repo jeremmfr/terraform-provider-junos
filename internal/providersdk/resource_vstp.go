@@ -357,7 +357,7 @@ func readVstp(routingInstance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "priority-hold-time "):
 				confRead.priorityHoldTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "system-id "):
 				itemTrimFields := strings.Split(itemTrim, " ")

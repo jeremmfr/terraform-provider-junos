@@ -1481,7 +1481,7 @@ func readForwardingOptionsDhcpRelayOverridesV4(itemTrim string, overrides map[st
 		overrides["user_defined_option_82"] = strings.Trim(itemTrim, "\"")
 	}
 	if err != nil {
-		return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -1517,7 +1517,7 @@ func readForwardingOptionsDhcpRelayOverridesV6(itemTrim string, overrides map[st
 		overrides["send_release_on_delete"] = true
 	}
 	if err != nil {
-		return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil

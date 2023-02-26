@@ -930,7 +930,7 @@ func readEventoptionsPolicy(name string, junSess *junos.Session,
 				itemTrimFields := strings.Split(itemTrim, " ")
 				withinSeconds, err := strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 				within := map[string]interface{}{
 					"time_interval": withinSeconds,
@@ -953,7 +953,7 @@ func readEventoptionsPolicy(name string, junSess *junos.Session,
 					default:
 						within["trigger_count"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					}
 				}
@@ -1000,12 +1000,12 @@ func readEventoptionsPolicyThen(itemTrim string, then map[string]interface{}) (e
 		case balt.CutPrefixInString(&itemTrim, "retry count "):
 			changeConfiguration["retry_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "retry interval "):
 			changeConfiguration["retry_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "user-name "):
 			changeConfiguration["user_name"] = itemTrim
@@ -1049,17 +1049,17 @@ func readEventoptionsPolicyThen(itemTrim string, then map[string]interface{}) (e
 			case balt.CutPrefixInString(&itemTrim, "retry-count retry-interval "):
 				destination["retry_interval"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "retry-count "):
 				destination["retry_count"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "transfer-delay "):
 				destination["transfer_delay"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case balt.CutPrefixInString(&itemTrim, "output-filename "):
@@ -1102,17 +1102,17 @@ func readEventoptionsPolicyThen(itemTrim string, then map[string]interface{}) (e
 			case balt.CutPrefixInString(&itemTrim, "retry-count retry-interval "):
 				destination["retry_interval"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "retry-count "):
 				destination["retry_count"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "transfer-delay "):
 				destination["transfer_delay"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case balt.CutPrefixInString(&itemTrim, "output-filename "):
@@ -1151,17 +1151,17 @@ func readEventoptionsPolicyThen(itemTrim string, then map[string]interface{}) (e
 		case balt.CutPrefixInString(&itemTrim, "retry-count retry-interval "):
 			upload["retry_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "retry-count "):
 			upload["retry_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "transfer-delay "):
 			upload["transfer_delay"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "user-name "):
 			upload["user_name"] = itemTrim

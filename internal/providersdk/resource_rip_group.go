@@ -639,27 +639,27 @@ func readRipGroup(name string, ripNg bool, routingInstance string, junSess *juno
 			case balt.CutPrefixInString(&itemTrim, "max-retrans-time "):
 				confRead.maxRetransTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "metric-out "):
 				confRead.metricOut, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "route-timeout "):
 				confRead.routeTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "update-interval "):
 				confRead.updateInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -679,34 +679,34 @@ func readRipGroupBfd(itemTrim string, bfd map[string]interface{}) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
 		bfd["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
 		bfd["minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
 		bfd["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "multiplier "):
 		bfd["multiplier"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "no-adaptation":
 		bfd["no_adaptation"] = true
 	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
 		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
 		bfd["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "version "):
 		bfd["version"] = itemTrim

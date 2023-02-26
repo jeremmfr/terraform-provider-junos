@@ -448,12 +448,12 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, junSess *junos.Se
 			case balt.CutPrefixInString(&itemTrim, "flow-active-timeout "):
 				confRead.flowActiveTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "flow-inactive-timeout "):
 				confRead.flowInactiveTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "flow-key flow-direction":
 				confRead.flowKeyFlowDirection = true
@@ -466,7 +466,7 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, junSess *junos.Se
 			case balt.CutPrefixInString(&itemTrim, "observation-domain-id "):
 				confRead.observationDomainID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "option-refresh-rate"):
 				if len(confRead.optionRefreshRate) == 0 {
@@ -479,23 +479,23 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, junSess *junos.Se
 				case balt.CutPrefixInString(&itemTrim, " packets "):
 					confRead.optionRefreshRate[0]["packets"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " seconds "):
 					confRead.optionRefreshRate[0]["seconds"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "option-template-id "):
 				confRead.optionTemplateID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "template-id "):
 				confRead.templateID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "tunnel-observation ipv4":
 				confRead.tunnelObservationIPv4 = true

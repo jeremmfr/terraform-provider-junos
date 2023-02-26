@@ -382,7 +382,7 @@ func readFirewallPolicer(name string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "bandwidth-percent "):
 					confRead.ifExceeding[0]["bandwidth_percent"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "bandwidth-limit "):
 					confRead.ifExceeding[0]["bandwidth_limit"] = itemTrim

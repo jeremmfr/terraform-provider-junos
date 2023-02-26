@@ -521,7 +521,7 @@ func readSystemSyslogHost(host string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "port "):
 				confRead.port, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "source-address "):
 				confRead.sourceAddress = itemTrim

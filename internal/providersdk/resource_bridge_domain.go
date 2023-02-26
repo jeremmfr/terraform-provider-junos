@@ -551,26 +551,26 @@ func readBridgeDomain(name, instance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "domain-id "):
 				confRead.domainID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "domain-type bridge":
 				confRead.domainTypeBridge = true
 			case balt.CutPrefixInString(&itemTrim, "isolated-vlan "):
 				confRead.isolatedVlan, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "routing-interface "):
 				confRead.routingInterface = itemTrim
 			case balt.CutPrefixInString(&itemTrim, "service-id "):
 				confRead.serviceID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "vlan-id "):
 				confRead.vlanID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "vlan-id-list "):
 				confRead.vlanIDList = append(confRead.vlanIDList, itemTrim)
@@ -592,7 +592,7 @@ func readBridgeDomain(name, instance string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "vni "):
 					vxlan["vni"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 					var showConfigEvpn string
 					if confRead.routingInstance == junos.DefaultW {
@@ -635,7 +635,7 @@ func readBridgeDomain(name, instance string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "unreachable-vtep-aging-timer "):
 					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			}

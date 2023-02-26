@@ -1729,7 +1729,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, junS
 				case balt.CutPrefixInString(&itemTrim, " lease-time-threshold "):
 					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " violation-action "):
 					confRead.leaseTimeValidation[0]["violation_action"] = itemTrim
@@ -1774,7 +1774,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, junS
 					confRead.livenessDetectionMethodBfd[0]["version"] = itemTrim
 				}
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "liveness-detection method layer2-liveness-detection "):
 				if len(confRead.livenessDetectionMethodLayer2) == 0 {
@@ -1790,7 +1790,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, junS
 					confRead.livenessDetectionMethodLayer2[0]["transmit_interval"], err = strconv.Atoi(itemTrim)
 				}
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "overrides "):
 				if version == "v4" {
@@ -1838,7 +1838,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, junS
 					confRead.reconfigure[0]["trigger_radius_disconnect"] = true
 				}
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "remote-id-mismatch disconnect":
 				confRead.remoteIDMismatchDisconnect = true
@@ -1853,12 +1853,12 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, junS
 			case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-max-time "):
 				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-min-time "):
 				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -1926,7 +1926,7 @@ func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, i
 		interFace["upto"] = itemTrim
 	}
 	if err != nil {
-		return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -2017,7 +2017,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV4(itemTrim string, override
 		overrides["protocol_attributes"] = strings.Trim(itemTrim, "\"")
 	}
 	if err != nil {
-		return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -2073,7 +2073,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, override
 		overrides["top_level_status_code"] = true
 	}
 	if err != nil {
-		return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil

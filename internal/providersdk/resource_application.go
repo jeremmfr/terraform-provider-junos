@@ -518,7 +518,7 @@ func (confRead *applicationOptions) readLine(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "inactivity-timeout "):
 		confRead.inactivityTimeout, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "protocol "):
 		confRead.protocol = itemTrim
@@ -576,7 +576,7 @@ func readApplicationTerm(itemTrim string, term map[string]interface{}) (err erro
 	case balt.CutPrefixInString(&itemTrim, "inactivity-timeout "):
 		term["inactivity_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "rpc-program-number "):
 		term["rpc_program_number"] = itemTrim

@@ -523,7 +523,7 @@ func readSystemLoginClass(name string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "idle-timeout "):
 				confRead.idleTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "logical-system "):
 				confRead.logicalSystem = strings.Trim(itemTrim, "\"")

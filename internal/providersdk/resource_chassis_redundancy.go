@@ -317,12 +317,12 @@ func readChassisRedundancy(junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "failover disk-read-threshold "):
 				confRead.failoverDiskReadThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "failover disk-write-threshold "):
 				confRead.failoverDiskWriteThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "failover not-on-disk-underperform":
 				confRead.failoverNotOnDiskUnderperform = true
@@ -335,7 +335,7 @@ func readChassisRedundancy(junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "keepalive-time "):
 				confRead.keepaliveTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "routing-engine "):
 				itemTrimFields := strings.Split(itemTrim, " ")
@@ -344,7 +344,7 @@ func readChassisRedundancy(junSess *junos.Session,
 				}
 				slot, err := strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrimFields[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 				}
 				confRead.routingEngine = append(confRead.routingEngine, map[string]interface{}{
 					"slot": slot,

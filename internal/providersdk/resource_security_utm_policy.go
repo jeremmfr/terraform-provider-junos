@@ -482,7 +482,7 @@ func readUtmPolicy(policy string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "limit "):
 					confRead.trafficSessionsPerClient[0]["limit"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "over-limit "):
 					confRead.trafficSessionsPerClient[0]["over_limit"] = itemTrim

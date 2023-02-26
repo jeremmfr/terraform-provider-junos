@@ -521,7 +521,7 @@ func readChassisCluster(junSess *junos.Session,
 				itemTrimFields := strings.Split(itemTrim, " ")
 				number, err := strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrimFields[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 				}
 				if len(confRead.redundancyGroup) < number+1 {
 					for i := len(confRead.redundancyGroup); i < number+1; i++ {
@@ -543,22 +543,22 @@ func readChassisCluster(junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "node 0 priority "):
 					confRead.redundancyGroup[number]["node0_priority"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "node 1 priority "):
 					confRead.redundancyGroup[number]["node1_priority"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "gratuitous-arp-count "):
 					confRead.redundancyGroup[number]["gratuitous_arp_count"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "hold-down-interval "):
 					confRead.redundancyGroup[number]["hold_down_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "interface-monitor "):
 					ifaceMonitorFields := strings.Split(itemTrim, " ")
@@ -567,7 +567,7 @@ func readChassisCluster(junSess *junos.Session,
 					}
 					weight, err := strconv.Atoi(ifaceMonitorFields[2])
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 					confRead.redundancyGroup[number]["interface_monitor"] = append(
 						confRead.redundancyGroup[number]["interface_monitor"].([]map[string]interface{}),
@@ -581,24 +581,24 @@ func readChassisCluster(junSess *junos.Session,
 					case balt.CutPrefixInString(&itemTrim, " delay "):
 						confRead.redundancyGroup[number]["preempt_delay"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					case balt.CutPrefixInString(&itemTrim, " limit "):
 						confRead.redundancyGroup[number]["preempt_limit"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					case balt.CutPrefixInString(&itemTrim, " period "):
 						confRead.redundancyGroup[number]["preempt_period"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "reth-count "):
 				confRead.rethCount, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "configuration-synchronize no-secondary-bootup-auto":
 				confRead.configSyncNoSecBootAuto = true
@@ -610,11 +610,11 @@ func readChassisCluster(junSess *junos.Session,
 				controlPort := make(map[string]interface{})
 				controlPort["fpc"], err = strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrimFields[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 				}
 				controlPort["port"], err = strconv.Atoi(itemTrimFields[2])
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrimFields[2], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[2], err)
 				}
 				confRead.controlPorts = append(confRead.controlPorts, controlPort)
 			case itemTrim == "control-link-recovery":
@@ -622,12 +622,12 @@ func readChassisCluster(junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "heartbeat-interval "):
 				confRead.heartbeatInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "heartbeat-threshold "):
 				confRead.heartbeatThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

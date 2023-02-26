@@ -294,7 +294,7 @@ func readServicesProxyProfile(profile string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "protocol http port "):
 				confRead.protocolHTTPPort, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

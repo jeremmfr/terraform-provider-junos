@@ -568,12 +568,12 @@ func readSecurityNatStatic(name string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "match destination-port to "):
 					ruleOptions["destination_port_to"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "match destination-port "):
 					ruleOptions["destination_port"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "match source-address "):
 					ruleOptions["source_address"] = append(
@@ -615,12 +615,12 @@ func readSecurityNatStatic(name string, junSess *junos.Session,
 						case balt.CutPrefixInString(&itemTrim, "mapped-port to "):
 							ruleThenOptions["mapped_port_to"], err = strconv.Atoi(itemTrim)
 							if err != nil {
-								return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						case balt.CutPrefixInString(&itemTrim, "mapped-port "):
 							ruleThenOptions["mapped_port"], err = strconv.Atoi(itemTrim)
 							if err != nil {
-								return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							ruleThenOptions["prefix"] = strings.Trim(itemTrim, "\"")

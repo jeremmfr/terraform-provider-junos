@@ -662,7 +662,7 @@ func readStaticRoute(destination, instance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "metric "):
 				confRead.metric, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "next-hop "):
 				confRead.nextHop = append(confRead.nextHop, itemTrim)
@@ -673,7 +673,7 @@ func readStaticRoute(destination, instance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "qualified-next-hop "):
 				itemTrimFields := strings.Split(itemTrim, " ")
@@ -691,12 +691,12 @@ func readStaticRoute(destination, instance string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "metric "):
 					qualifiedNextHopOptions["metric"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "preference "):
 					qualifiedNextHopOptions["preference"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)

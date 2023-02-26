@@ -326,7 +326,7 @@ func readIkeProposal(ikeProposal string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "lifetime-seconds "):
 				confRead.lifetimeSeconds, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

@@ -428,7 +428,7 @@ func readRstpInterface(name, routingInstance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "cost "):
 				confRead.cost, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "edge":
 				confRead.edge = true
@@ -439,7 +439,7 @@ func readRstpInterface(name, routingInstance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "priority "):
 				confRead.priority, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

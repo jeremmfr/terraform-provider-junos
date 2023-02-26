@@ -422,12 +422,12 @@ func readSecurityLogStream(securityLogStream string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "rotation "):
 					confRead.file[0]["rotation"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "size "):
 					confRead.file[0]["size"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "filter threat-attack":
@@ -446,7 +446,7 @@ func readSecurityLogStream(securityLogStream string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "port "):
 					confRead.host[0]["port"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "routing-instance "):
 					confRead.host[0]["routing_instance"] = itemTrim
@@ -456,7 +456,7 @@ func readSecurityLogStream(securityLogStream string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "rate-limit "):
 				confRead.rateLimit, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "severity "):
 				confRead.severity = itemTrim

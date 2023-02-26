@@ -530,7 +530,7 @@ func readRoutingOptions(junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "loops "):
 					confRead.autonomousSystem[0]["loops"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "asdot-notation":
 					confRead.autonomousSystem[0]["asdot_notation"] = true
@@ -560,7 +560,7 @@ func readRoutingOptions(junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "chain-composite-max-label-count "):
 					confRead.forwardingTable[0]["chain_composite_max_label_count"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "chained-composite-next-hop ingress "):
 					confRead.forwardingTable[0]["chained_composite_next_hop_ingress"] = append(
@@ -594,12 +594,12 @@ func readRoutingOptions(junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "krt-nexthop-ack-timeout "):
 					confRead.forwardingTable[0]["krt_nexthop_ack_timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "remnant-holdtime "):
 					confRead.forwardingTable[0]["remnant_holdtime"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "unicast-reverse-path "):
 					confRead.forwardingTable[0]["unicast_reverse_path"] = itemTrim
@@ -617,7 +617,7 @@ func readRoutingOptions(junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " restart-duration "):
 					confRead.gracefulRestart[0]["restart_duration"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "instance-export "):

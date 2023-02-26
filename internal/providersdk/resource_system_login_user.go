@@ -389,7 +389,7 @@ func readSystemLoginUser(name, plainTextPassword string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "uid "):
 				confRead.uid, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "authentication "):
 				if len(confRead.authentication) == 0 {

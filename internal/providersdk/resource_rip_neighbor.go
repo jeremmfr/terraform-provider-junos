@@ -787,7 +787,7 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, jun
 				itemTrimFields := strings.Split(itemTrim, " ")
 				keyID, err := strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrimFields[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 				}
 				authSelectMD5 := map[string]interface{}{
 					"key_id":     keyID,
@@ -841,17 +841,17 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, jun
 			case balt.CutPrefixInString(&itemTrim, "max-retrans-time "):
 				confRead.maxRetransTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "message-size "):
 				confRead.messageSize, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "metric-in "):
 				confRead.metricIn, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "no-check-zero":
 				confRead.noCheckZero = true
@@ -862,14 +862,14 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, jun
 			case balt.CutPrefixInString(&itemTrim, "route-timeout "):
 				confRead.routeTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "send "):
 				confRead.send = itemTrim
 			case balt.CutPrefixInString(&itemTrim, "update-interval "):
 				confRead.updateInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -889,34 +889,34 @@ func readRipNeighborBfd(itemTrim string, bfd map[string]interface{}) (err error)
 	case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
 		bfd["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
 		bfd["minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
 		bfd["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "multiplier "):
 		bfd["multiplier"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "no-adaptation":
 		bfd["no_adaptation"] = true
 	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
 		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
 		bfd["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "version "):
 		bfd["version"] = itemTrim

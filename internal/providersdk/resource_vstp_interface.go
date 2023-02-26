@@ -699,7 +699,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, junSess *j
 			case balt.CutPrefixInString(&itemTrim, "cost "):
 				confRead.cost, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "edge":
 				confRead.edge = true
@@ -710,7 +710,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, junSess *j
 			case balt.CutPrefixInString(&itemTrim, "priority "):
 				confRead.priority, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

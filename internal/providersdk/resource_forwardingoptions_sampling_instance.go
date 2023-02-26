@@ -1215,22 +1215,22 @@ func readForwardingOptionsSamplingInstanceInput(itemTrim string, inputRead map[s
 	case balt.CutPrefixInString(&itemTrim, "max-packets-per-second "):
 		inputRead["max_packets_per_second"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "maximum-packet-length "):
 		inputRead["maximum_packet_length"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "rate "):
 		inputRead["rate"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "run-length "):
 		inputRead["run_length"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -1243,19 +1243,19 @@ func readForwardingOptionsSamplingInstanceOutput(itemTrim string, outputRead map
 	case balt.CutPrefixInString(&itemTrim, "aggregate-export-interval "):
 		outputRead["aggregate_export_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "extension-service "):
 		outputRead["extension_service"] = append(outputRead["extension_service"].([]string), strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "flow-active-timeout "):
 		outputRead["flow_active_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-inactive-timeout "):
 		outputRead["flow_inactive_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
 		itemTrimFields := strings.Split(itemTrim, " ")
@@ -1288,7 +1288,7 @@ func readForwardingOptionsSamplingInstanceOutput(itemTrim string, outputRead map
 		case balt.CutPrefixInString(&itemTrim, "port "):
 			flowServer["port"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case itemTrim == "aggregation autonomous-system":
 			flowServer["aggregation_autonomous_system"] = true
@@ -1308,7 +1308,7 @@ func readForwardingOptionsSamplingInstanceOutput(itemTrim string, outputRead map
 		case balt.CutPrefixInString(&itemTrim, "dscp "):
 			flowServer["dscp"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "forwarding-class "):
 			flowServer["forwarding_class"] = itemTrim
@@ -1323,7 +1323,7 @@ func readForwardingOptionsSamplingInstanceOutput(itemTrim string, outputRead map
 		case balt.CutPrefixInString(&itemTrim, "version "):
 			flowServer["version"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "version-ipfix template "):
 			flowServer["version_ipfix_template"] = strings.Trim(itemTrim, "\"")
@@ -1334,7 +1334,7 @@ func readForwardingOptionsSamplingInstanceOutput(itemTrim string, outputRead map
 	case balt.CutPrefixInString(&itemTrim, "inline-jflow flow-export-rate "):
 		outputRead["inline_jflow_export_rate"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "inline-jflow source-address "):
 		outputRead["inline_jflow_source_address"] = itemTrim
@@ -1353,12 +1353,12 @@ func readForwardingOptionsSamplingInstanceOutput(itemTrim string, outputRead map
 		case balt.CutPrefixInString(&itemTrim, "engine-id "):
 			iFace["engine_id"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "engine-type "):
 			iFace["engine_type"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "source-address "):
 			iFace["source_address"] = itemTrim

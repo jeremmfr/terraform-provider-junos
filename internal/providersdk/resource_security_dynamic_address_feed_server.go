@@ -433,26 +433,26 @@ func readSecurityDynamicAddressFeedServer(name string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "hold-interval "):
 					feedName["hold_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "update-interval "):
 					feedName["update_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 				confRead.feedName = append(confRead.feedName, feedName)
 			case balt.CutPrefixInString(&itemTrim, "hold-interval "):
 				confRead.holdInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "tls-profile "):
 				confRead.tlsProfile = strings.Trim(itemTrim, "\"")
 			case balt.CutPrefixInString(&itemTrim, "update-interval "):
 				confRead.updateInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "validate-certificate-attributes subject-or-subject-alternative-names":
 				confRead.validateCertAttrSubOrSan = true

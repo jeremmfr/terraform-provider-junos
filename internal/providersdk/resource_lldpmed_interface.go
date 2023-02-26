@@ -430,7 +430,7 @@ func readLldpMedInterface(name string, junSess *junos.Session,
 					itemTrimFields := strings.Split(itemTrim, " ")
 					caType, err := strconv.Atoi(itemTrimFields[0])
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 					switch len(itemTrimFields) {
 					case 1: // <ca_type>
@@ -455,22 +455,22 @@ func readLldpMedInterface(name string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " civic-based what "):
 					confRead.location[0]["civic_based_what"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " co-ordinate lattitude "): //nolint: misspell
 					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " co-ordinate latitude "):
 					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " co-ordinate longitude "):
 					confRead.location[0]["co_ordinate_longitude"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " elin "):
 					confRead.location[0]["elin"] = strings.Trim(itemTrim, "\"")

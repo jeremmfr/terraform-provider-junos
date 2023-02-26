@@ -449,7 +449,7 @@ func readServicesSecurityIntellProfileRule(itemTrim string, ruleMap map[string]i
 		case balt.CutPrefixInString(&itemTrim, "threat-level "):
 			threatLevel, err := strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 			ruleMap["match"].([]map[string]interface{})[0]["threat_level"] = append(
 				ruleMap["match"].([]map[string]interface{})[0]["threat_level"].([]int),

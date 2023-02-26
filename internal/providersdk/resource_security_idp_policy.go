@@ -958,14 +958,14 @@ func readSecurityIdpPolicy(policy string, junSess *junos.Session,
 							case balt.CutPrefixInString(&itemTrim, "dscp-code-point "):
 								then["action_dscp_code_point"], err = strconv.Atoi(itemTrim)
 								if err != nil {
-									return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+									return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 								}
 							}
 						case balt.CutPrefixInString(&itemTrim, "mark-diffserv "):
 							then["action"] = "mark-diffserv"
 							then["action_dscp_code_point"], err = strconv.Atoi(itemTrim)
 							if err != nil {
-								return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							then["action"] = itemTrim
@@ -983,7 +983,7 @@ func readSecurityIdpPolicy(policy string, junSess *junos.Session,
 						case balt.CutPrefixInString(&itemTrim, "timeout "):
 							then["ip_action_timeout"], err = strconv.Atoi(itemTrim)
 							if err != nil {
-								return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							then["ip_action"] = itemTrim
@@ -1007,7 +1007,7 @@ func readSecurityIdpPolicy(policy string, junSess *junos.Session,
 								then["notification_packet_log_pre_attack"], err = strconv.Atoi(itemTrim)
 							}
 							if err != nil {
-								return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						}
 					case balt.CutPrefixInString(&itemTrim, "severity "):

@@ -528,7 +528,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "group-limit "):
 					intFace["group_limit"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "host-only-interface":
 					intFace["host_only_interface"] = true
@@ -560,7 +560,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "query-interval "):
 				confRead.queryInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "query-last-member-interval "):
 				confRead.queryLastMemberInterval = itemTrim
@@ -569,7 +569,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "robust-count "):
 				confRead.robustCount, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

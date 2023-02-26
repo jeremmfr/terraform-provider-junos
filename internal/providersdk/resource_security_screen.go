@@ -1291,12 +1291,12 @@ func readSecurityScreen(name string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "destination-ip-based "):
 					confRead.limitSession[0]["destination_ip_based"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "source-ip-based "):
 					confRead.limitSession[0]["source_ip_based"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "tcp"):
@@ -1335,7 +1335,7 @@ func (confRead *screenOptions) readSecurityScreenIcmp(itemTrim string) (err erro
 		if balt.CutPrefixInString(&itemTrim, " threshold ") {
 			confRead.icmp[0]["flood"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "fragment":
@@ -1355,7 +1355,7 @@ func (confRead *screenOptions) readSecurityScreenIcmp(itemTrim string) (err erro
 		if balt.CutPrefixInString(&itemTrim, " threshold ") {
 			confRead.icmp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}
@@ -1495,7 +1495,7 @@ func (confRead *screenOptions) readSecurityScreenIP(itemTrim string) (err error)
 	case balt.CutPrefixInString(&itemTrim, " ipv6-extension-header-limit "):
 		confRead.ip[0]["ipv6_extension_header_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == " ipv6-malformed-header":
 		confRead.ip[0]["ipv6_malformed_header"] = true
@@ -1627,7 +1627,7 @@ func (confRead *screenOptions) readSecurityScreenTCP(itemTrim string) (err error
 		if balt.CutPrefixInString(&itemTrim, " threshold ") {
 			confRead.tcp[0]["port_scan"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, " tcp-sweep"):
@@ -1640,7 +1640,7 @@ func (confRead *screenOptions) readSecurityScreenTCP(itemTrim string) (err error
 		if balt.CutPrefixInString(&itemTrim, " threshold ") {
 			confRead.tcp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, " syn-ack-ack-proxy"):
@@ -1654,7 +1654,7 @@ func (confRead *screenOptions) readSecurityScreenTCP(itemTrim string) (err error
 		if balt.CutPrefixInString(&itemTrim, " threshold ") {
 			synAckAckProxy["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == " syn-fin":
@@ -1676,27 +1676,27 @@ func (confRead *screenOptions) readSecurityScreenTCP(itemTrim string) (err error
 		case balt.CutPrefixInString(&itemTrim, " alarm-threshold "):
 			synFlood["alarm_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " attack-threshold "):
 			synFlood["attack_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " destination-threshold "):
 			synFlood["destination_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " source-threshold "):
 			synFlood["source_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " timeout "):
 			synFlood["timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " white-list "):
 			itemTrimFields := strings.Split(itemTrim, " ")
@@ -1752,7 +1752,7 @@ func (confRead *screenOptions) readSecurityScreenUDP(itemTrim string) (err error
 		case balt.CutPrefixInString(&itemTrim, " threshold "):
 			flood["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " white-list "):
 			flood["whitelist"] = append(flood["whitelist"].([]string), itemTrim)
@@ -1768,7 +1768,7 @@ func (confRead *screenOptions) readSecurityScreenUDP(itemTrim string) (err error
 		if balt.CutPrefixInString(&itemTrim, " threshold ") {
 			portScan["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, " udp-sweep"):
@@ -1782,7 +1782,7 @@ func (confRead *screenOptions) readSecurityScreenUDP(itemTrim string) (err error
 		if balt.CutPrefixInString(&itemTrim, " threshold ") {
 			sweep["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}

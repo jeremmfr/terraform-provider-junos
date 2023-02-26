@@ -357,7 +357,7 @@ func readLayer2Control(junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " disable-timeout "):
 					confRead.bpduBlock[0]["disable_timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " interface "):
 					itemTrimFields := strings.Split(itemTrim, " ")

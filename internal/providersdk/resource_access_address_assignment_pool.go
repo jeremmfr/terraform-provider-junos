@@ -1353,7 +1353,7 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 		family["xauth_attributes_secondary_wins"] = itemTrim
 	}
 	if err != nil {
-		return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil

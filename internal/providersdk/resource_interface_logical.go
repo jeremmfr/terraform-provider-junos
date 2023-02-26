@@ -1356,7 +1356,7 @@ func readInterfaceLogical(interFace string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " mtu "):
 					confRead.familyInet6[0]["mtu"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " rpf-check"):
 					if len(confRead.familyInet6[0]["rpf_check"].([]map[string]interface{})) == 0 {
@@ -1436,7 +1436,7 @@ func readInterfaceLogical(interFace string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " mtu "):
 					confRead.familyInet[0]["mtu"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " rpf-check"):
 					if len(confRead.familyInet[0]["rpf_check"].([]map[string]interface{})) == 0 {
@@ -1485,7 +1485,7 @@ func readInterfaceLogical(interFace string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "flow-label "):
 					confRead.tunnel[0]["flow_label"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "no-path-mtu-discovery":
 					confRead.tunnel[0]["no_path_mtu_discovery"] = true
@@ -1496,18 +1496,18 @@ func readInterfaceLogical(interFace string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "traffic-class "):
 					confRead.tunnel[0]["traffic_class"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "ttl "):
 					confRead.tunnel[0]["ttl"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "vlan-id "):
 				confRead.vlanID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			default:
 				continue
@@ -1693,7 +1693,7 @@ func readFamilyInetAddress(itemTrim string, inetAddress []map[string]interface{}
 		vrrpGroup := genVRRPGroup(family)
 		vrrpID, err := strconv.Atoi(itemTrimFields[2])
 		if err != nil {
-			return inetAddress, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		vrrpGroup["identifier"] = vrrpID
 		mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", vrrpGroup,
@@ -1711,17 +1711,17 @@ func readFamilyInetAddress(itemTrim string, inetAddress []map[string]interface{}
 		case balt.CutPrefixInString(&itemTrim, "advertise-interval "):
 			vrrpGroup["advertise_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "inet6-advertise-interval "):
 			vrrpGroup["advertise_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "advertisements-threshold "):
 			vrrpGroup["advertisements_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "authentication-key "):
 			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
@@ -1739,7 +1739,7 @@ func readFamilyInetAddress(itemTrim string, inetAddress []map[string]interface{}
 		case balt.CutPrefixInString(&itemTrim, "priority "):
 			vrrpGroup["priority"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "track interface "):
 			itemTrackFields := strings.Split(itemTrim, " ")
@@ -1748,7 +1748,7 @@ func readFamilyInetAddress(itemTrim string, inetAddress []map[string]interface{}
 			}
 			cost, err := strconv.Atoi(itemTrackFields[2])
 			if err != nil {
-				return inetAddress, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 			trackInt := map[string]interface{}{
 				"interface":     itemTrackFields[0],
@@ -1762,7 +1762,7 @@ func readFamilyInetAddress(itemTrim string, inetAddress []map[string]interface{}
 			}
 			cost, err := strconv.Atoi(itemTrackFields[4])
 			if err != nil {
-				return inetAddress, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 			trackRoute := map[string]interface{}{
 				"route":            itemTrackFields[0],
@@ -1801,12 +1801,12 @@ func readFamilyInetDhcp(itemTrim string, dhcp map[string]interface{}) (err error
 	case balt.CutPrefixInString(&itemTrim, "lease-time "):
 		dhcp["lease_time"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "metric "):
 		dhcp["metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "no-dns-install":
 		dhcp["no_dns_install"] = true
@@ -1815,12 +1815,12 @@ func readFamilyInetDhcp(itemTrim string, dhcp map[string]interface{}) (err error
 	case balt.CutPrefixInString(&itemTrim, "retransmission-attempt "):
 		dhcp["retransmission_attempt"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "retransmission-interval "):
 		dhcp["retransmission_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "server-address "):
 		dhcp["server_address"] = itemTrim
@@ -1848,12 +1848,12 @@ func readFamilyInet6Dhcpv6Client(itemTrim string, dhcp map[string]interface{}) (
 	case balt.CutPrefixInString(&itemTrim, "prefix-delegating preferred-prefix-length "):
 		dhcp["prefix_delegating_preferred_prefix_length"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "prefix-delegating sub-prefix-length "):
 		dhcp["prefix_delegating_sub_prefix_length"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "rapid-commit":
 		dhcp["rapid_commit"] = true
@@ -1862,7 +1862,7 @@ func readFamilyInet6Dhcpv6Client(itemTrim string, dhcp map[string]interface{}) (
 	case balt.CutPrefixInString(&itemTrim, "retransmission-attempt "):
 		dhcp["retransmission_attempt"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "update-router-advertisement interface "):
 		dhcp["update_router_advertisement_interface"] = append(

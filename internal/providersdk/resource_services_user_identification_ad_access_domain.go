@@ -448,12 +448,12 @@ func readServicesUserIdentAdAccessDomain(domain string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " event-log-scanning-interval "):
 					confRead.ipUserMappingDiscoveryWmi[0]["event_log_scanning_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " initial-event-log-timespan "):
 					confRead.ipUserMappingDiscoveryWmi[0]["initial_event_log_timespan"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "user-group-mapping ldap "):

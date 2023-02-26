@@ -1355,7 +1355,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 		itemTrimFields := strings.Split(itemTrim, " ")
 		count, err := strconv.Atoi(itemTrimFields[0])
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["bgp_as_path_calc_length"] = append(
 			fromMap["bgp_as_path_calc_length"].([]map[string]interface{}),
@@ -1370,7 +1370,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 		itemTrimFields := strings.Split(itemTrim, " ")
 		count, err := strconv.Atoi(itemTrimFields[0])
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["bgp_as_path_unique_count"] = append(
 			fromMap["bgp_as_path_unique_count"].([]map[string]interface{}),
@@ -1385,7 +1385,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 		itemTrimFields := strings.Split(itemTrim, " ")
 		count, err := strconv.Atoi(itemTrimFields[0])
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["bgp_community_count"] = append(
 			fromMap["bgp_community_count"].([]map[string]interface{}),
@@ -1399,12 +1399,12 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 	case balt.CutPrefixInString(&itemTrim, "bgp-srte-discriminator "):
 		fromMap["bgp_srte_discriminator"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "color "):
 		fromMap["color"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "evpn-esi "):
 		fromMap["evpn_esi"] = append(fromMap["evpn_esi"].([]string), itemTrim)
@@ -1413,7 +1413,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 	case balt.CutPrefixInString(&itemTrim, "evpn-tag "):
 		tag, err := strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["evpn_tag"] = append(fromMap["evpn_tag"].([]int), tag)
 	case balt.CutPrefixInString(&itemTrim, "family "):
@@ -1421,7 +1421,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 	case balt.CutPrefixInString(&itemTrim, "local-preference "):
 		fromMap["local_preference"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "instance "):
 		fromMap["routing_instance"] = itemTrim
@@ -1430,7 +1430,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 	case balt.CutPrefixInString(&itemTrim, "metric "):
 		fromMap["metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "neighbor "):
 		fromMap["neighbor"] = append(fromMap["neighbor"].([]string), itemTrim)
@@ -1445,7 +1445,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 		}
 		weight, err := strconv.Atoi(itemTrimFields[1])
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["next_hop_weight"] = append(
 			fromMap["next_hop_weight"].([]map[string]interface{}),
@@ -1461,7 +1461,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 	case balt.CutPrefixInString(&itemTrim, "preference "):
 		fromMap["preference"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "prefix-list "):
 		fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string), itemTrim)
@@ -1486,7 +1486,7 @@ func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}
 	case balt.CutPrefixInString(&itemTrim, "srte-color "):
 		fromMap["srte_color"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "state "):
 		fromMap["state"] = itemTrim
@@ -1531,13 +1531,13 @@ func readPolicyStatementOptsThen(itemTrim string, thenMap map[string]interface{}
 			localPreferenceMap["action"] = "none"
 			localPreferenceMap["value"], err = strconv.Atoi(itemTrimFields[0])
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		} else { // <action> <value>
 			localPreferenceMap["action"] = itemTrimFields[0]
 			localPreferenceMap["value"], err = strconv.Atoi(itemTrimFields[1])
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 
@@ -1556,13 +1556,13 @@ func readPolicyStatementOptsThen(itemTrim string, thenMap map[string]interface{}
 			metricMap["action"] = "none"
 			metricMap["value"], err = strconv.Atoi(itemTrimFields[0])
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		} else { // <action> <value>
 			metricMap["action"] = itemTrimFields[0]
 			metricMap["value"], err = strconv.Atoi(itemTrimFields[1])
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 		thenMap["metric"] = append(thenMap["metric"].([]map[string]interface{}), metricMap)
@@ -1578,13 +1578,13 @@ func readPolicyStatementOptsThen(itemTrim string, thenMap map[string]interface{}
 			preferenceMap["action"] = "none"
 			preferenceMap["value"], err = strconv.Atoi(itemTrimFields[0])
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		} else { // <action> <value>
 			preferenceMap["action"] = itemTrimFields[0]
 			preferenceMap["value"], err = strconv.Atoi(itemTrimFields[1])
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 		thenMap["preference"] = append(thenMap["preference"].([]map[string]interface{}), preferenceMap)
@@ -1608,7 +1608,7 @@ func readPolicyStatementOptsTo(itemTrim string, toMap map[string]interface{}) (e
 	case balt.CutPrefixInString(&itemTrim, "local-preference "):
 		toMap["local_preference"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "instance "):
 		toMap["routing_instance"] = itemTrim
@@ -1617,7 +1617,7 @@ func readPolicyStatementOptsTo(itemTrim string, toMap map[string]interface{}) (e
 	case balt.CutPrefixInString(&itemTrim, "metric "):
 		toMap["metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "neighbor "):
 		toMap["neighbor"] = append(toMap["neighbor"].([]string), itemTrim)
@@ -1630,7 +1630,7 @@ func readPolicyStatementOptsTo(itemTrim string, toMap map[string]interface{}) (e
 	case balt.CutPrefixInString(&itemTrim, "preference "):
 		toMap["preference"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "protocol "):
 		toMap["protocol"] = append(toMap["protocol"].([]string), itemTrim)

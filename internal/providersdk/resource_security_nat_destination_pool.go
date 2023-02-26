@@ -327,7 +327,7 @@ func readSecurityNatDestinationPool(name string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "address port "):
 				confRead.addressPort, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "address to "):
 				confRead.addressTo = itemTrim

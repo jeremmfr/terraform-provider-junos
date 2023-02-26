@@ -469,7 +469,7 @@ func readSnmp(junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " falling-threshold "):
 					confRead.healthMonitor[0]["falling_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == " idp":
 					confRead.healthMonitor[0]["idp"] = true
@@ -477,29 +477,29 @@ func readSnmp(junSess *junos.Session,
 					confRead.healthMonitor[0]["idp"] = true
 					confRead.healthMonitor[0]["idp_falling_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " idp interval "):
 					confRead.healthMonitor[0]["idp"] = true
 					confRead.healthMonitor[0]["idp_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " idp rising-threshold "):
 					confRead.healthMonitor[0]["idp"] = true
 					confRead.healthMonitor[0]["idp_rising_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " interval "):
 					confRead.healthMonitor[0]["interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " rising-threshold "):
 					confRead.healthMonitor[0]["rising_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "if-count-with-filter-interfaces":

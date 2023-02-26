@@ -302,7 +302,7 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "hold-time "):
 		confRead.holdTime, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "import "):
 		confRead.importPolicy = append(confRead.importPolicy, itemTrim)
@@ -323,7 +323,7 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 		case balt.CutPrefixInString(&itemTrim, "loops "):
 			confRead.localAsLoops, err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		default:
 			confRead.localAs = itemTrim
@@ -333,7 +333,7 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "local-preference "):
 		confRead.localPreference, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "log-updown":
 		confRead.logUpdown = true
@@ -347,7 +347,7 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 			case balt.CutPrefixInString(&itemTrim, " "):
 				confRead.metricOutIgpOffset, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case balt.CutPrefixInString(&itemTrim, "minimum-igp"):
@@ -355,13 +355,13 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 			if balt.CutPrefixInString(&itemTrim, " ") {
 				confRead.metricOutMinimumIgpOffset, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		default:
 			confRead.metricOut, err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "mtu-discovery":
@@ -389,7 +389,7 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "out-delay "):
 		confRead.outDelay, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "passive":
 		confRead.passive = true
@@ -398,7 +398,7 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "preference "):
 		confRead.preference, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "remove-private":
 		confRead.removePrivate = true
@@ -483,39 +483,39 @@ func readBgpOptsBfd(itemTrim string, bfdRead map[string]interface{}) (err error)
 	case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
 		bfdRead["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
 		bfdRead["holddown_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
 		bfdRead["minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
 		bfdRead["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "multiplier "):
 		bfdRead["multiplier"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "session-mode "):
 		bfdRead["session_mode"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
 		bfdRead["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
 		bfdRead["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "version "):
 		bfdRead["version"] = itemTrim
@@ -628,7 +628,7 @@ func readBgpOptsFamily(itemTrim string, opts []map[string]interface{}) (_ []map[
 		case balt.CutPrefixInString(&itemTrim, "maximum "):
 			readOptsPL["maximum"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return append(opts, readOpts), fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 
 		case balt.CutPrefixInString(&itemTrim, "teardown idle-timeout "):
@@ -637,13 +637,13 @@ func readBgpOptsFamily(itemTrim string, opts []map[string]interface{}) (_ []map[
 			} else {
 				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return append(opts, readOpts), fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case balt.CutPrefixInString(&itemTrim, "teardown "):
 			readOptsPL["teardown"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return append(opts, readOpts), fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, "prefix-limit "):
@@ -661,7 +661,7 @@ func readBgpOptsFamily(itemTrim string, opts []map[string]interface{}) (_ []map[
 		case balt.CutPrefixInString(&itemTrim, "maximum "):
 			readOptsPL["maximum"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return append(opts, readOpts), fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "teardown idle-timeout "):
 			if itemTrim == "forever" {
@@ -669,13 +669,13 @@ func readBgpOptsFamily(itemTrim string, opts []map[string]interface{}) (_ []map[
 			} else {
 				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return append(opts, readOpts), fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case balt.CutPrefixInString(&itemTrim, "teardown "):
 			readOptsPL["teardown"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return append(opts, readOpts), fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}
@@ -721,12 +721,12 @@ func readBgpOptsGracefulRestart(itemTrim string, grRead map[string]interface{}) 
 	case balt.CutPrefixInString(&itemTrim, "restart-time "):
 		grRead["restart_time"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "stale-routes-time "):
 		grRead["stale_route_time"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 

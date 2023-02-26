@@ -383,19 +383,19 @@ func readSecurityNatSourcePool(name string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "pool-utilization-alarm clear-threshold "):
 				confRead.poolUtilizationAlarmClearThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "pool-utilization-alarm raise-threshold "):
 				confRead.poolUtilizationAlarmRaiseThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "port no-translation":
 				confRead.portNoTranslation = true
 			case balt.CutPrefixInString(&itemTrim, "port port-overloading-factor "):
 				confRead.portOverloadingFactor, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "port range to "):
 				portRange += "-" + itemTrim

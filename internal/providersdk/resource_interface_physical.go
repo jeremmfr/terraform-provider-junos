@@ -1183,12 +1183,12 @@ func readInterfacePhysical(interFace string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "mtu "):
 				confRead.mtu, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "native-vlan-id "):
 				confRead.vlanNative, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
 				confRead.trunk = true
@@ -1353,27 +1353,27 @@ func (confRead *interfacePhysicalOptions) readInterfacePhysicalParentEtherOpts(i
 		case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
 			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
 			parentEtherOptsBFDLiveDetect["holddown_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
 			parentEtherOptsBFDLiveDetect["minimum_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
 			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "multiplier "):
 			parentEtherOptsBFDLiveDetect["multiplier"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "neighbor "):
 			parentEtherOptsBFDLiveDetect["neighbor"] = itemTrim
@@ -1382,12 +1382,12 @@ func (confRead *interfacePhysicalOptions) readInterfacePhysicalParentEtherOpts(i
 		case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
 			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
 			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "version "):
 			parentEtherOptsBFDLiveDetect["version"] = itemTrim
@@ -1415,7 +1415,7 @@ func (confRead *interfacePhysicalOptions) readInterfacePhysicalParentEtherOpts(i
 		case balt.CutPrefixInString(&itemTrim, "admin-key "):
 			lacp["admin_key"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "periodic "):
 			lacp["periodic"] = itemTrim
@@ -1426,7 +1426,7 @@ func (confRead *interfacePhysicalOptions) readInterfacePhysicalParentEtherOpts(i
 		case balt.CutPrefixInString(&itemTrim, "system-priority "):
 			lacp["system_priority"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "loopback":
@@ -1444,12 +1444,12 @@ func (confRead *interfacePhysicalOptions) readInterfacePhysicalParentEtherOpts(i
 	case balt.CutPrefixInString(&itemTrim, "minimum-links "):
 		confRead.parentEtherOpts[0]["minimum_links"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "redundancy-group "):
 		confRead.parentEtherOpts[0]["redundancy_group"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "source-address-filter "):
 		confRead.parentEtherOpts[0]["source_address_filter"] = append(

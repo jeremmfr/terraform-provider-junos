@@ -1483,7 +1483,7 @@ func (confRead *servicesOptions) readServicesApplicationIdentification(itemTrim 
 	case balt.CutPrefixInString(&itemTrim, " application-system-cache-timeout "):
 		confRead.appIdent[0]["application_system_cache_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, " application-system-cache"):
 		if len(confRead.appIdent[0]["application_system_cache"].([]map[string]interface{})) == 0 {
@@ -1519,7 +1519,7 @@ func (confRead *servicesOptions) readServicesApplicationIdentification(itemTrim 
 		case balt.CutPrefixInString(&itemTrim, "automatic interval "):
 			download["automatic_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "automatic start-time "):
 			download["automatic_start_time"] = itemTrim
@@ -1541,23 +1541,23 @@ func (confRead *servicesOptions) readServicesApplicationIdentification(itemTrim 
 		if balt.CutPrefixInString(&itemTrim, " max-packet-threshold ") {
 			enablePerfMode["max_packet_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, " global-offload-byte-limit "):
 		confRead.appIdent[0]["global_offload_byte_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, " imap-cache-size "):
 		confRead.appIdent[0]["imap_cache_size"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, " imap-cache-timeout "):
 		confRead.appIdent[0]["imap_cache_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, " inspection-limit tcp"):
 		if len(confRead.appIdent[0]["inspection_limit_tcp"].([]map[string]interface{})) == 0 {
@@ -1572,12 +1572,12 @@ func (confRead *servicesOptions) readServicesApplicationIdentification(itemTrim 
 		case balt.CutPrefixInString(&itemTrim, " byte-limit "):
 			inspLimitTCP["byte_limit"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " packet-limit "):
 			inspLimitTCP["packet_limit"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, " inspection-limit udp"):
@@ -1593,30 +1593,30 @@ func (confRead *servicesOptions) readServicesApplicationIdentification(itemTrim 
 		case balt.CutPrefixInString(&itemTrim, " byte-limit "):
 			inspLimitUDP["byte_limit"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " packet-limit "):
 			inspLimitUDP["packet_limit"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, " max-memory "):
 		confRead.appIdent[0]["max_memory"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, " max-transactions "):
 		confRead.appIdent[0]["max_transactions"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == " micro-apps":
 		confRead.appIdent[0]["micro_apps"] = true
 	case balt.CutPrefixInString(&itemTrim, " statistics interval "):
 		confRead.appIdent[0]["statistics_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -1652,7 +1652,7 @@ func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string)
 		case balt.CutPrefixInString(&itemTrim, " authentication-entry-timeout "):
 			adAccess["auth_entry_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " filter exclude "):
 			adAccess["filter_exclude"] = append(adAccess["filter_exclude"].([]string), itemTrim)
@@ -1661,19 +1661,19 @@ func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string)
 		case balt.CutPrefixInString(&itemTrim, " firewall-authentication-forced-timeout "):
 			adAccess["firewall_auth_forced_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " invalid-authentication-entry-timeout "):
 			adAccess["invalid_auth_entry_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case itemTrim == " no-on-demand-probe":
 			adAccess["no_on_demand_probe"] = true
 		case balt.CutPrefixInString(&itemTrim, " wmi-timeout "):
 			adAccess["wmi_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, "device-information authentication-source "):
@@ -1702,17 +1702,17 @@ func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string)
 		case balt.CutPrefixInString(&itemTrim, "authentication-entry-timeout "):
 			userIdentIdentityMgmt["authentication_entry_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "batch-query items-per-batch "):
 			userIdentIdentityMgmt["batch_query_items_per_batch"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "batch-query query-interval "):
 			userIdentIdentityMgmt["batch_query_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "connection "):
 			if len(userIdentIdentityMgmt["connection"].([]map[string]interface{})) == 0 {
@@ -1748,7 +1748,7 @@ func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string)
 			case balt.CutPrefixInString(&itemTrim, "port "):
 				userIdentIdentityMgmtConnect["port"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "primary ca-certificate "):
 				userIdentIdentityMgmtConnect["primary_ca_certificate"] = strings.Trim(itemTrim, "\"")
@@ -1781,14 +1781,14 @@ func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string)
 		case balt.CutPrefixInString(&itemTrim, "invalid-authentication-entry-timeout "):
 			userIdentIdentityMgmt["invalid_authentication_entry_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case itemTrim == "ip-query no-ip-query":
 			userIdentIdentityMgmt["ip_query_disable"] = true
 		case balt.CutPrefixInString(&itemTrim, "ip-query query-delay-time "):
 			userIdentIdentityMgmt["ip_query_delay_time"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}

@@ -1582,7 +1582,7 @@ func readSecurityIdpCustomAttack(customAttack string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "time-binding count "):
 				confRead.timeBindingCount, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "time-binding scope "):
 				confRead.timeBindingScope = itemTrim
@@ -1907,42 +1907,42 @@ func readSecurityIdpCustomAttackTypeSignatureProtoICMP(itemTrim string, protoICM
 	case balt.CutPrefixInString(&itemTrim, "checksum-validate value "):
 		protoICMP["checksum_validate_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "code match "):
 		protoICMP["code_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "code value "):
 		protoICMP["code_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "data-length match "):
 		protoICMP["data_length_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "data-length value "):
 		protoICMP["data_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "identification match "):
 		protoICMP["identification_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "identification value "):
 		protoICMP["identification_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "sequence-number match "):
 		protoICMP["sequence_number_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "sequence-number value "):
 		protoICMP["sequence_number_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "type match "):
 		protoICMP["type_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "type value "):
 		protoICMP["type_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -1956,7 +1956,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 	case balt.CutPrefixInString(&itemTrim, "checksum-validate value "):
 		protoIPv4["checksum_validate_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "destination match "):
 		protoIPv4["destination_match"] = itemTrim
@@ -1967,14 +1967,14 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 	case balt.CutPrefixInString(&itemTrim, "identification value "):
 		protoIPv4["identification_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "ihl match "):
 		protoIPv4["ihl_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "ihl value "):
 		protoIPv4["ihl_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "ip-flags "):
 		protoIPv4["ip_flags"] = append(protoIPv4["ip_flags"].([]string), itemTrim)
@@ -1983,7 +1983,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 	case balt.CutPrefixInString(&itemTrim, "protocol value "):
 		protoIPv4["protocol_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "source match "):
 		protoIPv4["source_match"] = itemTrim
@@ -1994,21 +1994,21 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 	case balt.CutPrefixInString(&itemTrim, "tos value "):
 		protoIPv4["tos_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "total-length match "):
 		protoIPv4["total_length_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "total-length value "):
 		protoIPv4["total_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "ttl match "):
 		protoIPv4["ttl_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "ttl value "):
 		protoIPv4["ttl_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -2030,42 +2030,42 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 	case balt.CutPrefixInString(&itemTrim, "extension-header destination-option option-type value "):
 		protoIPv6["extension_header_destination_option_type_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "extension-header routing-header header-type match "):
 		protoIPv6["extension_header_routing_header_type_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "extension-header routing-header header-type value "):
 		protoIPv6["extension_header_routing_header_type_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-label match "):
 		protoIPv6["flow_label_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "flow-label value "):
 		protoIPv6["flow_label_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "hop-limit match "):
 		protoIPv6["hop_limit_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "hop-limit value "):
 		protoIPv6["hop_limit_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "next-header match "):
 		protoIPv6["next_header_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "next-header value "):
 		protoIPv6["next_header_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "payload-length match "):
 		protoIPv6["payload_length_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "payload-length value "):
 		protoIPv6["payload_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "source match "):
 		protoIPv6["source_match"] = itemTrim
@@ -2076,7 +2076,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 	case balt.CutPrefixInString(&itemTrim, "traffic-class value "):
 		protoIPv6["traffic_class_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -2090,70 +2090,70 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 	case balt.CutPrefixInString(&itemTrim, "ack-number value "):
 		protoTCP["ack_number_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "checksum-validate match "):
 		protoTCP["checksum_validate_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "checksum-validate value "):
 		protoTCP["checksum_validate_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "data-length match "):
 		protoTCP["data_length_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "data-length value "):
 		protoTCP["data_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "destination-port match "):
 		protoTCP["destination_port_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "destination-port value "):
 		protoTCP["destination_port_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "header-length match "):
 		protoTCP["header_length_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "header-length value "):
 		protoTCP["header_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "mss match "):
 		protoTCP["mss_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "mss value "):
 		protoTCP["mss_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "option match "):
 		protoTCP["option_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "option value "):
 		protoTCP["option_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "reserved match "):
 		protoTCP["reserved_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "reserved value "):
 		protoTCP["reserved_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "sequence-number match "):
 		protoTCP["sequence_number_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "sequence-number value "):
 		protoTCP["sequence_number_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "source-port match "):
 		protoTCP["source_port_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "source-port value "):
 		protoTCP["source_port_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "tcp-flags "):
 		protoTCP["tcp_flags"] = append(protoTCP["tcp_flags"].([]string), itemTrim)
@@ -2162,21 +2162,21 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 	case balt.CutPrefixInString(&itemTrim, "urgent-pointer value "):
 		protoTCP["urgent_pointer_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "window-scale match "):
 		protoTCP["window_scale_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "window-scale value "):
 		protoTCP["window_scale_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "window-size match "):
 		protoTCP["window_size_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "window-size value "):
 		protoTCP["window_size_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -2190,28 +2190,28 @@ func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP 
 	case balt.CutPrefixInString(&itemTrim, "checksum-validate value "):
 		protoUDP["checksum_validate_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "data-length match "):
 		protoUDP["data_length_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "data-length value "):
 		protoUDP["data_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "destination-port match "):
 		protoUDP["destination_port_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "destination-port value "):
 		protoUDP["destination_port_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "source-port match "):
 		protoUDP["source_port_match"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "source-port value "):
 		protoUDP["source_port_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 

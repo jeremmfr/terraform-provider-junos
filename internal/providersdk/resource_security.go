@@ -1980,17 +1980,17 @@ func (confRead *securityOptions) readSecurityFlow(itemTrim string) (err error) {
 		case balt.CutPrefixInString(&itemTrim, " early-ageout "):
 			confRead.flow[0]["aging"].([]map[string]interface{})[0]["early_ageout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " high-watermark "):
 			confRead.flow[0]["aging"].([]map[string]interface{})[0]["high_watermark"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " low-watermark "):
 			confRead.flow[0]["aging"].([]map[string]interface{})[0]["low_watermark"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "allow-dns-reply":
@@ -2043,7 +2043,7 @@ func (confRead *securityOptions) readSecurityFlow(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "route-change-timeout "):
 		confRead.flow[0]["route_change_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "syn-flood-protection-mode "):
 		confRead.flow[0]["syn_flood_protection_mode"] = itemTrim
@@ -2063,7 +2063,7 @@ func (confRead *securityOptions) readSecurityFlow(itemTrim string) (err error) {
 		case balt.CutPrefixInString(&itemTrim, "all-tcp mss "):
 			confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["all_tcp_mss"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "gre-in"):
 			if len(confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["gre_in"].([]map[string]interface{})) == 0 {
@@ -2077,7 +2077,7 @@ func (confRead *securityOptions) readSecurityFlow(itemTrim string) (err error) {
 				confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["gre_in"].([]map[string]interface{})[0]["mss"],
 					err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case balt.CutPrefixInString(&itemTrim, "gre-out"):
@@ -2092,7 +2092,7 @@ func (confRead *securityOptions) readSecurityFlow(itemTrim string) (err error) {
 				confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["gre_out"].([]map[string]interface{})[0]["mss"],
 					err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case balt.CutPrefixInString(&itemTrim, "ipsec-vpn"):
@@ -2107,7 +2107,7 @@ func (confRead *securityOptions) readSecurityFlow(itemTrim string) (err error) {
 				confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["ipsec_vpn"].([]map[string]interface{})[0]["mss"],
 					err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -2148,7 +2148,7 @@ func (confRead *securityOptions) readSecurityFlow(itemTrim string) (err error) {
 		case balt.CutPrefixInString(&itemTrim, "tcp-initial-timeout "):
 			flowTCPSession["tcp_initial_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "time-wait-state"):
 			if len(flowTCPSession["time_wait_state"].([]map[string]interface{})) == 0 {
@@ -2168,7 +2168,7 @@ func (confRead *securityOptions) readSecurityFlow(itemTrim string) (err error) {
 			case balt.CutPrefixInString(&itemTrim, " session-timeout "):
 				timeWaitState["session_timeout"], err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -2215,7 +2215,7 @@ func (confRead *securityOptions) readSecurityIdpSecurityPackage(itemTrim string)
 	case balt.CutPrefixInString(&itemTrim, "automatic interval "):
 		confRead.idpSecurityPackage[0]["automatic_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "automatic start-time "):
 		confRead.idpSecurityPackage[0]["automatic_start_time"] = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]
@@ -2246,7 +2246,7 @@ func (confRead *securityOptions) readSecurityIdpSensorConfig(itemTrim string) (e
 	case balt.CutPrefixInString(&itemTrim, "log cache-size "):
 		confRead.idpSensorConfig[0]["log_cache_size"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "log suppression"):
 		if len(confRead.idpSensorConfig[0]["log_suppression"].([]map[string]interface{})) == 0 {
@@ -2271,17 +2271,17 @@ func (confRead *securityOptions) readSecurityIdpSensorConfig(itemTrim string) (e
 		case balt.CutPrefixInString(&itemTrim, " max-logs-operate "):
 			logSupp["max_logs_operate"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " max-time-report "):
 			logSupp["max_time_report"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " start-log "):
 			logSupp["start_log"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, "packet-log "):
@@ -2303,24 +2303,24 @@ func (confRead *securityOptions) readSecurityIdpSensorConfig(itemTrim string) (e
 		case balt.CutPrefixInString(&itemTrim, "host port "):
 			packetLog["host_port"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "host "):
 			packetLog["host_address"] = itemTrim
 		case balt.CutPrefixInString(&itemTrim, "max-sessions "):
 			packetLog["max_sessions"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "threshold-logging-interval "):
 			packetLog["threshold_logging_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "total-memory "):
 			packetLog["total_memory"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, "security-configuration protection-mode "):
@@ -2357,7 +2357,7 @@ func (confRead *securityOptions) readSecurityIkeTraceOptions(itemTrim string) (e
 		case balt.CutPrefixInString(&itemTrim, " files "):
 			file["files"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " match "):
 			file["match"] = strings.Trim(itemTrim, "\"")
@@ -2376,7 +2376,7 @@ func (confRead *securityOptions) readSecurityIkeTraceOptions(itemTrim string) (e
 				file["size"], err = strconv.Atoi(itemTrim)
 			}
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case itemTrim == " world-readable":
 			file["world_readable"] = true
@@ -2392,7 +2392,7 @@ func (confRead *securityOptions) readSecurityIkeTraceOptions(itemTrim string) (e
 	case balt.CutPrefixInString(&itemTrim, "rate-limit "):
 		confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -2424,7 +2424,7 @@ func (confRead *securityOptions) readSecurityLog(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "event-rate "):
 		confRead.log[0]["event_rate"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "facility-override "):
 		confRead.log[0]["facility_override"] = itemTrim
@@ -2442,7 +2442,7 @@ func (confRead *securityOptions) readSecurityLog(itemTrim string) (err error) {
 		case balt.CutPrefixInString(&itemTrim, " files "):
 			file["files"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " name "):
 			file["name"] = itemTrim
@@ -2451,7 +2451,7 @@ func (confRead *securityOptions) readSecurityLog(itemTrim string) (err error) {
 		case balt.CutPrefixInString(&itemTrim, " size "):
 			file["size"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, "format "):
@@ -2459,14 +2459,14 @@ func (confRead *securityOptions) readSecurityLog(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "max-database-record "):
 		confRead.log[0]["max_database_record"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "mode "):
 		confRead.log[0]["mode"] = itemTrim
 	case balt.CutPrefixInString(&itemTrim, "rate-cap "):
 		confRead.log[0]["rate_cap"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "report":
 		confRead.log[0]["report"] = true
@@ -2490,7 +2490,7 @@ func (confRead *securityOptions) readSecurityLog(itemTrim string) (err error) {
 		case balt.CutPrefixInString(&itemTrim, " tcp-connections "):
 			transport["tcp_connections"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " tls-profile "):
 			transport["tls_profile"] = itemTrim
@@ -2526,7 +2526,7 @@ func (confRead *securityOptions) readSecurityUserIdentAuthSource(itemTrim string
 		confRead.userIdentAuthSource[0]["unified_access_control_priority"], err = strconv.Atoi(itemTrim)
 	}
 	if err != nil {
-		return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -2560,7 +2560,7 @@ func (confRead *securityOptions) readSecurityUtm(itemTrim string) (err error) {
 		case balt.CutPrefixInString(&itemTrim, " port "):
 			utmFeatProfWebFiltJunEnhServer["port"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case balt.CutPrefixInString(&itemTrim, " proxy-profile "):
 			utmFeatProfWebFiltJunEnhServer["proxy_profile"] = strings.Trim(itemTrim, "\"")

@@ -692,29 +692,29 @@ func readOspf(version, routingInstance string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " ignore-count "):
 					dbPro["ignore_count"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " ignore-time "):
 					dbPro["ignore_time"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " maximum-lsa "):
 					dbPro["maximum_lsa"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " reset-time "):
 					dbPro["reset_time"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == " warning-only":
 					dbPro["warning_only"] = true
 				case balt.CutPrefixInString(&itemTrim, " warning-threshold "):
 					dbPro["warning_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "disable":
@@ -726,7 +726,7 @@ func readOspf(version, routingInstance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "external-preference "):
 				confRead.externalPreference, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "forwarding-address-to-broadcast":
 				confRead.forwardingAddressToBroadcast = true
@@ -755,12 +755,12 @@ func readOspf(version, routingInstance string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "notify-duration "):
 					grR["notify_duration"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "restart-duration "):
 					grR["restart_duration"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "import "):
@@ -768,12 +768,12 @@ func readOspf(version, routingInstance string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "labeled-preference "):
 				confRead.labeledPreference, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "lsa-refresh-interval "):
 				confRead.lsaRefreshInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "no-nssa-abr":
 				confRead.noNssaAbr = true
@@ -798,18 +798,18 @@ func readOspf(version, routingInstance string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " timeout "):
 					confRead.overload[0]["timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "prefix-export-limit "):
 				confRead.prefixExportLimit, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "reference-bandwidth "):
 				confRead.referenceBandwidth = itemTrim
@@ -833,19 +833,19 @@ func readOspf(version, routingInstance string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "delay "):
 					confRead.spfOptions[0]["delay"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "holddown "):
 					confRead.spfOptions[0]["holddown"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "no-ignore-our-externals":
 					confRead.spfOptions[0]["no_ignore_our_externals"] = true
 				case balt.CutPrefixInString(&itemTrim, "rapid-runs "):
 					confRead.spfOptions[0]["rapid_runs"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			}

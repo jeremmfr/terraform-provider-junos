@@ -1430,7 +1430,7 @@ func readOspfArea(idArea, version, realm, routingInstance string, junSess *junos
 				case balt.CutPrefixInString(&itemTrim, "override-metric "):
 					areaRange["override_metric"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "restrict":
 					areaRange["restrict"] = true
@@ -1478,7 +1478,7 @@ func readOspfArea(idArea, version, realm, routingInstance string, junSess *junos
 					case balt.CutPrefixInString(&itemTrim, "override-metric "):
 						areaRange["override_metric"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					case itemTrim == "restrict":
 						areaRange["restrict"] = true
@@ -1499,12 +1499,12 @@ func readOspfArea(idArea, version, realm, routingInstance string, junSess *junos
 					case balt.CutPrefixInString(&itemTrim, " default-metric "):
 						defaultLsa["default_metric"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					case balt.CutPrefixInString(&itemTrim, " metric-type "):
 						defaultLsa["metric_type"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					case itemTrim == " type-7":
 						defaultLsa["type_7"] = true
@@ -1526,7 +1526,7 @@ func readOspfArea(idArea, version, realm, routingInstance string, junSess *junos
 				case balt.CutPrefixInString(&itemTrim, " default-metric "):
 					confRead.stub[0]["default_metric"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == " no-summaries":
 					confRead.stub[0]["no_summaries"] = true
@@ -1574,7 +1574,7 @@ func readOspfArea(idArea, version, realm, routingInstance string, junSess *junos
 					virtualLink["transit_delay"], err = strconv.Atoi(itemTrim)
 				}
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 				confRead.virtualLink = append(confRead.virtualLink, virtualLink)
 			}
@@ -1595,7 +1595,7 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 		itemTrimFields := strings.Split(itemTrim, " ")
 		keyID, err := strconv.Atoi(itemTrimFields[0])
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrimFields[0], err)
+			return fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 		}
 		authMD5 := map[string]interface{}{
 			"key_id":     keyID,
@@ -1623,7 +1623,7 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 		}
 		metric, err := strconv.Atoi(itemTrimFields[2])
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrimFields[2], err)
+			return fmt.Errorf(failedConvAtoiError, itemTrimFields[2], err)
 		}
 		interfaceOptions["bandwidth_based_metrics"] = append(
 			interfaceOptions["bandwidth_based_metrics"].([]map[string]interface{}), map[string]interface{}{
@@ -1656,7 +1656,7 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 	case balt.CutPrefixInString(&itemTrim, "dead-interval "):
 		interfaceOptions["dead_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "demand-circuit":
 		interfaceOptions["demand_circuit"] = true
@@ -1669,7 +1669,7 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 	case balt.CutPrefixInString(&itemTrim, "hello-interval "):
 		interfaceOptions["hello_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "interface-type "):
 		interfaceOptions["interface_type"] = itemTrim
@@ -1692,12 +1692,12 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 	case balt.CutPrefixInString(&itemTrim, "metric "):
 		interfaceOptions["metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "mtu "):
 		interfaceOptions["mtu"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "neighbor "):
 		itemTrimFields := strings.Split(itemTrim, " ") // <address> (eligible)?
@@ -1738,17 +1738,17 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 	case balt.CutPrefixInString(&itemTrim, "poll-interval "):
 		interfaceOptions["poll_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "priority "):
 		interfaceOptions["priority"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "retransmit-interval "):
 		interfaceOptions["retransmit_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "secondary":
 		interfaceOptions["secondary"] = true
@@ -1757,12 +1757,12 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 	case balt.CutPrefixInString(&itemTrim, "te-metric "):
 		interfaceOptions["te_metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "transit-delay "):
 		interfaceOptions["transit_delay"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -1780,41 +1780,41 @@ func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) (err 
 	case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
 		bfd["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "full-neighbors-only":
 		bfd["full_neighbors_only"] = true
 	case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
 		bfd["holddown_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
 		bfd["minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
 		bfd["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "multiplier "):
 		bfd["multiplier"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "no-adaptation":
 		bfd["no_adaptation"] = true
 	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
 		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
 		bfd["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "version "):
 		bfd["version"] = itemTrim

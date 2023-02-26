@@ -660,17 +660,17 @@ func readSystemSyslogFile(filename string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, " files "):
 					confRead.archive[0]["files"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " size "):
 					confRead.archive[0]["size"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " transfer-interval "):
 					confRead.archive[0]["transfer_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case balt.CutPrefixInString(&itemTrim, " start-time "):
 					confRead.archive[0]["start_time"] = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]

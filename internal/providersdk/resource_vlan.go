@@ -459,7 +459,7 @@ func readVlan(vlan string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "community-vlans "):
 				commVlan, err := strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 				confRead.communityVlans = append(confRead.communityVlans, commVlan)
 			case balt.CutPrefixInString(&itemTrim, "description "):
@@ -473,7 +473,7 @@ func readVlan(vlan string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "isolated-vlan "):
 				confRead.isolatedVlan, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "l3-interface "):
 				confRead.l3Interface = itemTrim
@@ -482,12 +482,12 @@ func readVlan(vlan string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "service-id "):
 				confRead.serviceID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "vlan-id "):
 				confRead.vlanID, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "vlan-id-list "):
 				confRead.vlanIDList = append(confRead.vlanIDList, itemTrim)
@@ -508,7 +508,7 @@ func readVlan(vlan string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "vni "):
 					vxlan["vni"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 					showConfigEvpn, err := junSess.Command(junos.CmdShowConfig + "protocols evpn" + junos.PipeDisplaySetRelative)
 					if err != nil {
@@ -538,7 +538,7 @@ func readVlan(vlan string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "unreachable-vtep-aging-timer "):
 					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			}

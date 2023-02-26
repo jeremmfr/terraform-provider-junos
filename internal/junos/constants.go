@@ -31,7 +31,6 @@ const (
 	OspfV2 = "ospf"
 	OspfV3 = "ospf3"
 
-	FailedConvAtoiError           = "failed to convert value from '%s' to integer: %w"
 	CantReadValuesNotEnoughFields = "can't read values for %s in '%s': not enough fields"
 
 	EnvHost                  = "JUNOS_HOST"

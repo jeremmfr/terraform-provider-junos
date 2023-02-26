@@ -309,7 +309,7 @@ func readSystemNtpServer(address string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "key "):
 				confRead.key, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "prefer":
 				confRead.prefer = true
@@ -318,7 +318,7 @@ func readSystemNtpServer(address string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "version "):
 				confRead.version, err = strconv.Atoi(itemTrim)
 				if err != nil {
-					return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
