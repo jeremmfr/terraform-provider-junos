@@ -268,6 +268,7 @@ resource "junos_security_ike_policy" "testacc_ikepol" {
   proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
   mode                = "main"
   pre_shared_key_text = "thePassWord"
+  reauth_frequency    = 50
 }
 resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name               = "testacc_ikegateway"
@@ -345,6 +346,7 @@ resource "junos_security_ike_policy" "testacc_ikepol" {
   proposal_set        = "standard"
   mode                = "main"
   pre_shared_key_text = "mysecret"
+  description         = "testacc ikepol"
 }
 resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name               = "testacc_ikegateway"

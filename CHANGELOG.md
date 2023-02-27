@@ -20,6 +20,9 @@ ENHANCEMENTS:
 * **resource/junos_security_ike_gateway**:
   * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
   * add `distinguished_name_container` and `distinguished_name_wildcard` arguments inside `remote_identity` block argument
+* **resource/junos_security_ike_policy**:
+  * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
+  * add `description` and `reauth_frequency` arguments
 * **resource/junos_security_ike_proposal**:
   * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
   * add `description` argument

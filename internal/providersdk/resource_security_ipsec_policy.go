@@ -19,6 +19,18 @@ type ipsecPolicyOptions struct {
 	proposals   []string
 }
 
+func listProposalSet() []string {
+	return []string{
+		"basic",
+		"compatible",
+		"prime-128",
+		"prime-256",
+		"standard",
+		"suiteb-gcm-128",
+		"suiteb-gcm-256",
+	}
+}
+
 func resourceIpsecPolicy() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceIpsecPolicyCreate,
