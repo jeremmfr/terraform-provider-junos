@@ -196,7 +196,6 @@ func Provider() *schema.Provider {
 			"junos_security_idp_custom_attack_group":                     resourceSecurityIdpCustomAttackGroup(),
 			"junos_security_idp_policy":                                  resourceSecurityIdpPolicy(),
 			"junos_security_ike_policy":                                  resourceIkePolicy(),
-			"junos_security_ike_proposal":                                resourceIkeProposal(),
 			"junos_security_ipsec_policy":                                resourceIpsecPolicy(),
 			"junos_security_ipsec_proposal":                              resourceIpsecProposal(),
 			"junos_security_ipsec_vpn":                                   resourceIpsecVpn(),

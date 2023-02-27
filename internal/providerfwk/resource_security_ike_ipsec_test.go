@@ -338,6 +338,7 @@ resource "junos_security_ike_proposal" "testacc_ikeprop" {
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group1"
   lifetime_seconds         = 3600
+  description              = "testacc ikeprop"
 }
 resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"

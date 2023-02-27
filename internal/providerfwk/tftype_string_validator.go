@@ -270,6 +270,10 @@ func newStringDoubleQuoteExclusionValidator() stringRuneExclusionValidator {
 	return newStringRuneExclusionValidator('"')
 }
 
+func newStringSpaceExclusionValidator() stringRuneExclusionValidator {
+	return newStringRuneExclusionValidator('\t', '\n', '\v', '\f', '\r', ' ', 0x85, 0xA0)
+}
+
 func (v stringRuneExclusionValidator) Description(ctx context.Context) string {
 	return fmt.Sprintf("Must be a string without characters %s .", string(v.runes))
 }
