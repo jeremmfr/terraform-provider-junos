@@ -381,6 +381,7 @@ resource "junos_security_ipsec_policy" "testacc_ipsecpol" {
   name         = "testacc_ipsecpol"
   proposal_set = "standard"
   pfs_keys     = "group1"
+  description  = "testacc ipsecpol"
 }
 resource "junos_security_ipsec_vpn" "testacc_ipsecvpn2" {
   name = "testacc_ipsecvpn2"
