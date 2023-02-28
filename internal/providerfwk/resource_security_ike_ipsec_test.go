@@ -375,6 +375,7 @@ resource "junos_security_ipsec_proposal" "testacc_ipsecprop" {
   authentication_algorithm = "hmac-sha1-96"
   protocol                 = "esp"
   encryption_algorithm     = "aes-256-cbc"
+  description              = "testacc ipsecprop"
 }
 resource "junos_security_ipsec_policy" "testacc_ipsecpol" {
   name         = "testacc_ipsecpol"
