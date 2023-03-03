@@ -83,25 +83,21 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 						resource.TestMatchResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
 							"bind_interface", regexp.MustCompile(`^st0\.\d+$`)),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"ike.#", "1"),
+							"ike.gateway", "testacc_ikegateway"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"ike.0.gateway", "testacc_ikegateway"),
+							"ike.policy", "testacc_ipsecpol"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"ike.0.policy", "testacc_ipsecpol"),
+							"ike.identity_local", "192.0.2.64/26"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"ike.0.identity_local", "192.0.2.64/26"),
+							"ike.identity_remote", "192.0.2.128/26"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"ike.0.identity_remote", "192.0.2.128/26"),
+							"ike.identity_service", "any"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"ike.0.identity_service", "any"),
+							"vpn_monitor.destination_ip", "192.0.2.129"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"vpn_monitor.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"vpn_monitor.0.destination_ip", "192.0.2.129"),
-						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"vpn_monitor.0.optimized", "true"),
+							"vpn_monitor.optimized", "true"),
 						resource.TestMatchResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"vpn_monitor.0.source_interface", regexp.MustCompile(`^st0\.\d+$`)),
+							"vpn_monitor.source_interface", regexp.MustCompile(`^st0\.\d+$`)),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
 							"establish_tunnels", "on-traffic"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
@@ -617,6 +613,10 @@ resource "junos_security_ipsec_policy" "testacc_ipsecpol" {
   pfs_keys  = "group2"
 }
 resource "junos_security_ipsec_vpn" "testacc_ipsecvpn" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
   name           = "testacc_ipsecvpn"
   bind_interface = junos_interface_logical.testacc_ipsecvpn_bind.name
   ike {
@@ -633,6 +633,9 @@ resource "junos_security_ipsec_vpn" "testacc_ipsecvpn" {
     name      = "ts-2"
     local_ip  = "192.0.2.128/26"
     remote_ip = "192.0.3.192/26"
+  }
+  udp_encapsulate {
+    dest_port = "1025"
   }
 }
 resource "junos_interface_logical" "testacc_ipsecvpn_bind" {
@@ -674,6 +677,18 @@ resource "junos_security_ike_gateway" "testacc_ikegateway" {
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface_logical.testacc_ikegateway.name
 }
+resource "junos_security_ipsec_vpn" "testacc_ipsecvpn" {
+  name = "testacc_ipsecvpn"
+  manual {
+    external_interface       = junos_interface_logical.testacc_ikegateway.name
+    protocol                 = "esp"
+    spi                      = 256
+    authentication_algorithm = "hmac-sha-256-128"
+    authentication_key_text  = "AuthenticationKey123456789012345"
+    encryption_algorithm     = "aes-256-gcm"
+    encryption_key_text      = "Encryp"
+  }
+}
 `, interFace)
 }
 
@@ -707,6 +722,23 @@ resource "junos_security_ike_gateway" "testacc_ikegateway" {
   }
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface_logical.testacc_ikegateway.name
+}
+resource "junos_security_ipsec_vpn" "testacc_ipsecvpn2" {
+  name            = "testacc_ipsecvpn2"
+  copy_outer_dscp = true
+  manual {
+    external_interface       = junos_interface_logical.testacc_ikegateway.name
+    protocol                 = "esp"
+    spi                      = 500
+    authentication_algorithm = "hmac-sha-256-128"
+    authentication_key_hexa  = "00112233445566778899AABBCCDDEEFFaabbccddeeff00112233445566778899"
+    encryption_algorithm     = "aes-256-gcm"
+    encryption_key_hexa      = "00112233445566778899AABBCCDDEEFFaabbccddeeff00112233445566778899"
+    gateway                  = "192.0.2.128"
+  }
+  multi_sa_forwarding_class = ["network-control", "best-effort"]
+  df_bit                    = "clear"
+  udp_encapsulate {}
 }
 `, interFace)
 }

@@ -195,7 +195,6 @@ func Provider() *schema.Provider {
 			"junos_security_idp_custom_attack":                           resourceSecurityIdpCustomAttack(),
 			"junos_security_idp_custom_attack_group":                     resourceSecurityIdpCustomAttackGroup(),
 			"junos_security_idp_policy":                                  resourceSecurityIdpPolicy(),
-			"junos_security_ipsec_vpn":                                   resourceIpsecVpn(),
 			"junos_security_log_stream":                                  resourceSecurityLogStream(),
 			"junos_security_nat_destination":                             resourceSecurityNatDestination(),
 			"junos_security_nat_destination_pool":                        resourceSecurityNatDestinationPool(),

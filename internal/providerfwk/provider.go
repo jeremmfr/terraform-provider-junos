@@ -193,6 +193,7 @@ func (p *junosProvider) Resources(ctx context.Context) []func() resource.Resourc
 		newSecurityIkeProposalResource,
 		newSecurityIpsecPolicyResource,
 		newSecurityIpsecProposalResource,
+		newSecurityIpsecVpnResource,
 		newSecurityPolicyResource,
 		newSecurityPolicyTunnelPairPolicyResource,
 		newSecurityZoneResource,

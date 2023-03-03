@@ -24,6 +24,7 @@ const (
 	addressNameFormat
 	dnsNameFormat
 	interfaceFormat
+	hexadecimalFormat
 )
 
 func (f stringFormat) InvalidRune() func(rune) bool {
@@ -47,6 +48,10 @@ func (f stringFormat) InvalidRune() func(rune) bool {
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
 				r != '-' && r != '/' && r != '.' && r != ':'
 		}
+	case hexadecimalFormat:
+		return func(r rune) bool {
+			return (r < 'a' || r > 'f') && (r < 'A' || r > 'F') && (r < '0' || r > '9')
+		}
 	default:
 		return func(r rune) bool {
 			return true
@@ -64,17 +69,26 @@ func (f stringFormat) String() string {
 		return "letters, numbers, dashes, dots and underscores"
 	case interfaceFormat:
 		return "letters, numbers, dashes, slashes, dots and colons"
+	case hexadecimalFormat:
+		return "A-F or a-f letters and numbers"
 	default:
 		return ""
 	}
 }
 
 type stringFormatValidator struct {
-	format stringFormat
+	format    stringFormat
+	sensitive bool
 }
 
 func newStringFormatValidator(format stringFormat) stringFormatValidator {
 	return stringFormatValidator{format: format}
+}
+
+func (v stringFormatValidator) WithSensitiveData() stringFormatValidator {
+	v.sensitive = true
+
+	return v
 }
 
 func (v stringFormatValidator) Description(ctx context.Context) string {
@@ -94,6 +108,16 @@ func (v stringFormatValidator) ValidateString(
 
 	value := req.ConfigValue.ValueString()
 	if index := strings.IndexFunc(value, v.format.InvalidRune()); index != -1 {
+		if v.sensitive {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid String Character",
+				fmt.Sprintf("string has an unauthorized character: not in %s", v.format),
+			)
+
+			return
+		}
+
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid String Character",
@@ -128,6 +152,46 @@ func (v stringIPAddressValidator) ValidateString(
 			req.Path,
 			"Invalid IP Address",
 			fmt.Sprintf("string is not an IP address: %q", value),
+		)
+
+		return
+	}
+}
+
+type stringCIDRValidator struct{}
+
+func (v stringCIDRValidator) Description(ctx context.Context) string {
+	return "Must be a valid CIDR."
+}
+
+func (v stringCIDRValidator) MarkdownDescription(ctx context.Context) string {
+	return "Must be a valid CIDR."
+}
+
+func (v stringCIDRValidator) ValidateString(
+	ctx context.Context, req validator.StringRequest, resp *validator.StringResponse,
+) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+
+	ipAddr, _, err := net.ParseCIDR(value)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid CIDR",
+			fmt.Sprintf("%s", err),
+		)
+
+		return
+	}
+	if ipAddr == nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid CIDR",
+			fmt.Sprintf("invalid CIDR: %q", value),
 		)
 
 		return
