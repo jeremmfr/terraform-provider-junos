@@ -1,16 +1,15 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosSecurityGlobalPolicy_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
-			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
@@ -30,7 +29,7 @@ func TestAccJunosSecurityGlobalPolicy_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_global_policy.testacc_secglobpolicy",
 							"policy.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_global_policy.testacc_secglobpolicy",
-							"policy.0.permit_application_services.#", "1"),
+							"policy.0.permit_application_services.idp", "true"),
 						resource.TestCheckResourceAttr("junos_security_global_policy.testacc_secglobpolicy",
 							"policy.1.then", "deny"),
 					),
