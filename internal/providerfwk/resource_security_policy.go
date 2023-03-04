@@ -6,6 +6,10 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -87,7 +91,7 @@ func (rsc *securityPolicy) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"to_zone": schema.StringAttribute{
@@ -98,7 +102,7 @@ func (rsc *securityPolicy) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 		},
@@ -112,7 +116,7 @@ func (rsc *securityPolicy) Schema(
 							Description: "The name of policy.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 63),
-								newStringFormatValidator(defaultFormat),
+								tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 							},
 						},
 						"match_source_address": schema.SetAttribute{
@@ -123,7 +127,7 @@ func (rsc *securityPolicy) Schema(
 								setvalidator.SizeAtLeast(1),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthBetween(1, 250),
-									newStringDoubleQuoteExclusionValidator(),
+									tfvalidator.StringDoubleQuoteExclusion(),
 								),
 							},
 						},
@@ -135,7 +139,7 @@ func (rsc *securityPolicy) Schema(
 								setvalidator.SizeAtLeast(1),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthBetween(1, 250),
-									newStringDoubleQuoteExclusionValidator(),
+									tfvalidator.StringDoubleQuoteExclusion(),
 								),
 							},
 						},
@@ -144,7 +148,7 @@ func (rsc *securityPolicy) Schema(
 							Computed:    true,
 							Description: "Action of policy.",
 							PlanModifiers: []planmodifier.String{
-								newStringDefaultModifier("permit"),
+								tfplanmodifier.StringDefault("permit"),
 							},
 							Validators: []validator.String{
 								stringvalidator.OneOf("permit", "reject", "deny"),
@@ -154,21 +158,21 @@ func (rsc *securityPolicy) Schema(
 							Optional:    true,
 							Description: "Enable count.",
 							Validators: []validator.Bool{
-								boolTrueValidator{},
+								tfvalidator.BoolTrue(),
 							},
 						},
 						"log_init": schema.BoolAttribute{
 							Optional:    true,
 							Description: "Log at session init time.",
 							Validators: []validator.Bool{
-								boolTrueValidator{},
+								tfvalidator.BoolTrue(),
 							},
 						},
 						"log_close": schema.BoolAttribute{
 							Optional:    true,
 							Description: "Log at session close time.",
 							Validators: []validator.Bool{
-								boolTrueValidator{},
+								tfvalidator.BoolTrue(),
 							},
 						},
 						"match_application": schema.SetAttribute{
@@ -179,7 +183,7 @@ func (rsc *securityPolicy) Schema(
 								setvalidator.SizeAtLeast(1),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthBetween(1, 250),
-									newStringDoubleQuoteExclusionValidator(),
+									tfvalidator.StringDoubleQuoteExclusion(),
 								),
 							},
 						},
@@ -187,7 +191,7 @@ func (rsc *securityPolicy) Schema(
 							Optional:    true,
 							Description: "Exclude destination addresses.",
 							Validators: []validator.Bool{
-								boolTrueValidator{},
+								tfvalidator.BoolTrue(),
 							},
 						},
 						"match_dynamic_application": schema.SetAttribute{
@@ -198,7 +202,7 @@ func (rsc *securityPolicy) Schema(
 								setvalidator.SizeAtLeast(1),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthBetween(1, 250),
-									newStringDoubleQuoteExclusionValidator(),
+									tfvalidator.StringDoubleQuoteExclusion(),
 								),
 							},
 						},
@@ -206,7 +210,7 @@ func (rsc *securityPolicy) Schema(
 							Optional:    true,
 							Description: "Exclude source addresses.",
 							Validators: []validator.Bool{
-								boolTrueValidator{},
+								tfvalidator.BoolTrue(),
 							},
 						},
 						"match_source_end_user_profile": schema.StringAttribute{
@@ -214,7 +218,7 @@ func (rsc *securityPolicy) Schema(
 							Description: "Match source end user profile (device identity profile).",
 							Validators: []validator.String{
 								stringvalidator.LengthAtLeast(1),
-								newStringDoubleQuoteExclusionValidator(),
+								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
 						"permit_tunnel_ipsec_vpn": schema.StringAttribute{
@@ -222,7 +226,7 @@ func (rsc *securityPolicy) Schema(
 							Description: "Name of vpn to permit with a tunnel ipsec.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 63),
-								newStringDoubleQuoteExclusionValidator(),
+								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
 					},
@@ -235,7 +239,7 @@ func (rsc *securityPolicy) Schema(
 									Description: "Specify advanced-anti-malware policy name.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
-										newStringDoubleQuoteExclusionValidator(),
+										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
 								"application_firewall_rule_set": schema.StringAttribute{
@@ -243,7 +247,7 @@ func (rsc *securityPolicy) Schema(
 									Description: "Service rule-set name for Application firewall.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
-										newStringDoubleQuoteExclusionValidator(),
+										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
 								"application_traffic_control_rule_set": schema.StringAttribute{
@@ -251,7 +255,7 @@ func (rsc *securityPolicy) Schema(
 									Description: "Service rule-set name Application traffic control.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
-										newStringDoubleQuoteExclusionValidator(),
+										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
 								"gprs_gtp_profile": schema.StringAttribute{
@@ -259,7 +263,7 @@ func (rsc *securityPolicy) Schema(
 									Description: "Specify GPRS Tunneling Protocol profile name.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
-										newStringDoubleQuoteExclusionValidator(),
+										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
 								"gprs_sctp_profile": schema.StringAttribute{
@@ -267,14 +271,14 @@ func (rsc *securityPolicy) Schema(
 									Description: "Specify GPRS stream control protocol profile name.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
-										newStringDoubleQuoteExclusionValidator(),
+										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
 								"idp": schema.BoolAttribute{
 									Optional:    true,
 									Description: "Enable Intrusion detection and prevention.",
 									Validators: []validator.Bool{
-										boolTrueValidator{},
+										tfvalidator.BoolTrue(),
 									},
 								},
 								"idp_policy": schema.StringAttribute{
@@ -282,21 +286,21 @@ func (rsc *securityPolicy) Schema(
 									Description: "Specify idp policy name.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
-										newStringDoubleQuoteExclusionValidator(),
+										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
 								"redirect_wx": schema.BoolAttribute{
 									Optional:    true,
 									Description: "Set WX redirection.",
 									Validators: []validator.Bool{
-										boolTrueValidator{},
+										tfvalidator.BoolTrue(),
 									},
 								},
 								"reverse_redirect_wx": schema.BoolAttribute{
 									Optional:    true,
 									Description: "Set WX reverse redirection.",
 									Validators: []validator.Bool{
-										boolTrueValidator{},
+										tfvalidator.BoolTrue(),
 									},
 								},
 								"security_intelligence_policy": schema.StringAttribute{
@@ -304,7 +308,7 @@ func (rsc *securityPolicy) Schema(
 									Description: "Specify security-intelligence policy name.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
-										newStringDoubleQuoteExclusionValidator(),
+										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
 								"utm_policy": schema.StringAttribute{
@@ -312,7 +316,7 @@ func (rsc *securityPolicy) Schema(
 									Description: "Specify utm policy name.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
-										newStringDoubleQuoteExclusionValidator(),
+										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
 							},
@@ -325,12 +329,12 @@ func (rsc *securityPolicy) Schema(
 											Description: "Specify SSL proxy service profile name.",
 											Validators: []validator.String{
 												stringvalidator.LengthBetween(1, 250),
-												newStringDoubleQuoteExclusionValidator(),
+												tfvalidator.StringDoubleQuoteExclusion(),
 											},
 										},
 									},
 									PlanModifiers: []planmodifier.Object{
-										removeNullBlockModifier{},
+										tfplanmodifier.BlockRemoveNull(),
 									},
 								},
 								"uac_policy": schema.SingleNestedBlock{
@@ -341,17 +345,17 @@ func (rsc *securityPolicy) Schema(
 											Description: "Specify captive portal.",
 											Validators: []validator.String{
 												stringvalidator.LengthBetween(1, 250),
-												newStringDoubleQuoteExclusionValidator(),
+												tfvalidator.StringDoubleQuoteExclusion(),
 											},
 										},
 									},
 									PlanModifiers: []planmodifier.Object{
-										removeNullBlockModifier{},
+										tfplanmodifier.BlockRemoveNull(),
 									},
 								},
 							},
 							PlanModifiers: []planmodifier.Object{
-								removeNullBlockModifier{},
+								tfplanmodifier.BlockRemoveNull(),
 							},
 						},
 					},
@@ -609,13 +613,13 @@ func (rsc *securityPolicy) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if policyExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" from %q to %q already exists",
@@ -626,7 +630,7 @@ func (rsc *securityPolicy) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -636,9 +640,9 @@ func (rsc *securityPolicy) Create(
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -651,7 +655,7 @@ func (rsc *securityPolicy) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -761,19 +765,19 @@ func (rsc *securityPolicy) Update(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -783,15 +787,15 @@ func (rsc *securityPolicy) Update(
 		return
 	}
 	if err := junSess.ConfigSet(listLinesToPairPolicy); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Set Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -835,15 +839,15 @@ func (rsc *securityPolicy) Delete(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -1087,7 +1091,7 @@ func (rscData *securityPolicyData) read(_ context.Context, fromZone, toZone stri
 			if balt.CutPrefixInString(&itemTrim, "policy ") {
 				itemTrimFields := strings.Split(itemTrim, " ")
 				var policy securityPolicyPolicy
-				rscData.Policy, policy = extractBlockWithTFTypesString(rscData.Policy, "Name", itemTrimFields[0])
+				rscData.Policy, policy = tfdata.ExtractBlockWithTFTypesString(rscData.Policy, "Name", itemTrimFields[0])
 				policy.Name = types.StringValue(itemTrimFields[0])
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {

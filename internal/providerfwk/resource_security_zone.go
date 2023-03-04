@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -86,7 +89,7 @@ func (rsc *securityZone) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"address_book_configure_singly": schema.BoolAttribute{
@@ -94,7 +97,7 @@ func (rsc *securityZone) Schema(
 				Description: "Disable management of address-book in this resource " +
 					"to be able to manage them with specific resources.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"advance_policy_based_routing_profile": schema.StringAttribute{
@@ -102,14 +105,14 @@ func (rsc *securityZone) Schema(
 				Description: "Enable Advance Policy Based Routing on this zone with a profile.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"application_tracking": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Enable Application tracking support for this zone.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"description": schema.StringAttribute{
@@ -117,7 +120,7 @@ func (rsc *securityZone) Schema(
 				Description: "Text description of zone.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 900),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"inbound_protocols": schema.SetAttribute{
@@ -128,7 +131,7 @@ func (rsc *securityZone) Schema(
 					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 32),
-						newStringDoubleQuoteExclusionValidator(),
+						tfvalidator.StringDoubleQuoteExclusion(),
 					),
 				},
 			},
@@ -140,7 +143,7 @@ func (rsc *securityZone) Schema(
 					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 32),
-						newStringDoubleQuoteExclusionValidator(),
+						tfvalidator.StringDoubleQuoteExclusion(),
 					),
 				},
 			},
@@ -148,7 +151,7 @@ func (rsc *securityZone) Schema(
 				Optional:    true,
 				Description: "Enable Reverse route lookup when there is change in ingress interface.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"screen": schema.StringAttribute{
@@ -156,21 +159,21 @@ func (rsc *securityZone) Schema(
 				Description: "Name of ids option object (screen) applied to the zone.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 32),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"source_identity_log": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Show user and group info in session log for this zone.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"tcp_rst": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Send RST for NON-SYN packet not matching TCP session.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 		},
@@ -184,14 +187,14 @@ func (rsc *securityZone) Schema(
 							Description: "Name of network address.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 63),
-								newStringFormatValidator(addressNameFormat),
+								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
 							},
 						},
 						"network": schema.StringAttribute{
 							Required:    true,
 							Description: "CIDR value of network address (`192.0.0.0/24`).",
 							Validators: []validator.String{
-								stringCIDRNetworkValidator{},
+								tfvalidator.StringCIDRNetwork(),
 							},
 						},
 						"description": schema.StringAttribute{
@@ -199,7 +202,7 @@ func (rsc *securityZone) Schema(
 							Description: "Description of network address.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 900),
-								newStringDoubleQuoteExclusionValidator(),
+								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
 					},
@@ -214,7 +217,7 @@ func (rsc *securityZone) Schema(
 							Description: "Name of dns name address.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 63),
-								newStringFormatValidator(addressNameFormat),
+								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
 							},
 						},
 						"fqdn": schema.StringAttribute{
@@ -222,7 +225,7 @@ func (rsc *securityZone) Schema(
 							Description: "Fully qualified domain name.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 253),
-								newStringFormatValidator(dnsNameFormat),
+								tfvalidator.StringFormat(tfvalidator.DNSNameFormat),
 							},
 						},
 						"description": schema.StringAttribute{
@@ -230,21 +233,21 @@ func (rsc *securityZone) Schema(
 							Description: "Description of dns name address.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 900),
-								newStringDoubleQuoteExclusionValidator(),
+								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
 						"ipv4_only": schema.BoolAttribute{
 							Optional:    true,
 							Description: "IPv4 dns address.",
 							Validators: []validator.Bool{
-								boolTrueValidator{},
+								tfvalidator.BoolTrue(),
 							},
 						},
 						"ipv6_only": schema.BoolAttribute{
 							Optional:    true,
 							Description: "IPv6 dns address.",
 							Validators: []validator.Bool{
-								boolTrueValidator{},
+								tfvalidator.BoolTrue(),
 							},
 						},
 					},
@@ -259,21 +262,21 @@ func (rsc *securityZone) Schema(
 							Description: "Name of range address.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 63),
-								newStringFormatValidator(addressNameFormat),
+								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
 							},
 						},
 						"from": schema.StringAttribute{
 							Required:    true,
 							Description: "Lower limit of address range.",
 							Validators: []validator.String{
-								stringIPAddressValidator{},
+								tfvalidator.StringIPAddress(),
 							},
 						},
 						"to": schema.StringAttribute{
 							Required:    true,
 							Description: "Upper limit of address range.",
 							Validators: []validator.String{
-								stringIPAddressValidator{},
+								tfvalidator.StringIPAddress(),
 							},
 						},
 						"description": schema.StringAttribute{
@@ -281,7 +284,7 @@ func (rsc *securityZone) Schema(
 							Description: "Description of range address.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 900),
-								newStringDoubleQuoteExclusionValidator(),
+								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
 					},
@@ -296,7 +299,7 @@ func (rsc *securityZone) Schema(
 							Description: "Name of address-set.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 63),
-								newStringFormatValidator(addressNameFormat),
+								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
 							},
 						},
 						"address": schema.SetAttribute{
@@ -307,7 +310,7 @@ func (rsc *securityZone) Schema(
 								setvalidator.SizeAtLeast(1),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthBetween(1, 63),
-									newStringFormatValidator(addressNameFormat),
+									tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
 								),
 							},
 						},
@@ -319,7 +322,7 @@ func (rsc *securityZone) Schema(
 								setvalidator.SizeAtLeast(1),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthBetween(1, 63),
-									newStringFormatValidator(addressNameFormat),
+									tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
 								),
 							},
 						},
@@ -328,7 +331,7 @@ func (rsc *securityZone) Schema(
 							Description: "Description of address-set.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 900),
-								newStringDoubleQuoteExclusionValidator(),
+								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
 					},
@@ -343,14 +346,14 @@ func (rsc *securityZone) Schema(
 							Description: "Name of wildcard address.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 63),
-								newStringFormatValidator(addressNameFormat),
+								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
 							},
 						},
 						"network": schema.StringAttribute{
 							Required:    true,
 							Description: "Numeric IPv4 wildcard address with in the form of a.d.d.r/netmask.",
 							Validators: []validator.String{
-								stringWildcardNetworkValidator{},
+								tfvalidator.StringWildcardNetwork(),
 							},
 						},
 						"description": schema.StringAttribute{
@@ -358,7 +361,7 @@ func (rsc *securityZone) Schema(
 							Description: "Description of wildcard address.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 900),
-								newStringDoubleQuoteExclusionValidator(),
+								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
 					},
@@ -666,13 +669,13 @@ func (rsc *securityZone) Create(
 	}
 	zoneExists, err := checkSecurityZonesExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if zoneExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -682,7 +685,7 @@ func (rsc *securityZone) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -692,9 +695,9 @@ func (rsc *securityZone) Create(
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -702,7 +705,7 @@ func (rsc *securityZone) Create(
 
 	zoneExists, err = checkSecurityZonesExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -828,13 +831,13 @@ func (rsc *securityZone) Update(
 	}
 
 	if err := state.delOpts(ctx, addressBookConfiguredSingly, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -844,9 +847,9 @@ func (rsc *securityZone) Update(
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -890,15 +893,15 @@ func (rsc *securityZone) Delete(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -1147,7 +1150,8 @@ func (rscData *securityZoneData) read(_ context.Context, name string, junSess *j
 			case balt.CutPrefixInString(&itemTrim, "address-book address-set "):
 				itemTrimFields := strings.Split(itemTrim, " ")
 				var adSet securityZoneBlockAddressBookSet
-				rscData.AddressBookSet, adSet = extractBlockWithTFTypesString(rscData.AddressBookSet, "Name", itemTrimFields[0])
+				rscData.AddressBookSet, adSet = tfdata.ExtractBlockWithTFTypesString(
+					rscData.AddressBookSet, "Name", itemTrimFields[0])
 				adSet.Name = types.StringValue(itemTrimFields[0])
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
@@ -1180,7 +1184,7 @@ func (rscData *securityZoneData) read(_ context.Context, name string, junSess *j
 			case balt.CutPrefixInString(&itemTrim, "interfaces "):
 				itemTrimFields := strings.Split(itemTrim, " ")
 				var interFace securityZoneDataSourceBlockInterface
-				rscData.Interface, interFace = extractBlockWithTFTypesString(rscData.Interface, "Name", itemTrimFields[0])
+				rscData.Interface, interFace = tfdata.ExtractBlockWithTFTypesString(rscData.Interface, "Name", itemTrimFields[0])
 				interFace.Name = types.StringValue(itemTrimFields[0])
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {

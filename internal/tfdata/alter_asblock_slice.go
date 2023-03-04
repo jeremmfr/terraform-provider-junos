@@ -1,4 +1,4 @@
-package providerfwk
+package tfdata
 
 import (
 	"reflect"
@@ -12,7 +12,7 @@ import (
 //   - if the value of this field is equal with inputValue,
 //     remove element from slice and return the new slice and the element
 //   - if not equal, create a new empty struct and return the slice unaltered and the new struct.
-func extractBlockWithTFTypesString[B any](blocks []B, structFieldName, inputValue string) ([]B, B) { //nolint: ireturn
+func ExtractBlockWithTFTypesString[B any](blocks []B, structFieldName, inputValue string) ([]B, B) { //nolint: ireturn
 	for i, block := range blocks {
 		fieldValue := reflect.ValueOf(block).FieldByNameFunc(func(name string) bool {
 			return strings.EqualFold(structFieldName, name)

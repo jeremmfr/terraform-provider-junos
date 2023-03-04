@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -84,7 +86,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"zone_b": schema.StringAttribute{
@@ -95,7 +97,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"policy_a_to_b": schema.StringAttribute{
@@ -106,7 +108,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"policy_b_to_a": schema.StringAttribute{
@@ -117,7 +119,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 		},
@@ -199,13 +201,13 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if !policyExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Missing Configuration Error",
 			fmt.Sprintf("security policy from %q to %q doesn't exist",
@@ -221,13 +223,13 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if !policyExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Missing Configuration Error",
 			fmt.Sprintf("security policy from %q to %q doesn't exist",
@@ -245,13 +247,13 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if pairPolicyExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q(%q) / %q(%q) already exists",
@@ -262,7 +264,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -272,9 +274,9 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -289,7 +291,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -388,15 +390,15 @@ func (rsc *securityPolicyTunnelPairPolicy) Delete(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return

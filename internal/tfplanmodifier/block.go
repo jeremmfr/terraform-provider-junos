@@ -1,4 +1,4 @@
-package providerfwk
+package tfplanmodifier
 
 import (
 	"context"
@@ -6,17 +6,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-type removeNullBlockModifier struct{}
+var _ planmodifier.Object = BlockRemoveNull()
 
-func (m removeNullBlockModifier) Description(ctx context.Context) string {
+type BlockRemoveNullModifier struct{}
+
+func BlockRemoveNull() BlockRemoveNullModifier {
+	return BlockRemoveNullModifier{}
+}
+
+func (m BlockRemoveNullModifier) Description(ctx context.Context) string {
 	return "If block is not configured, modify plan to null"
 }
 
-func (m removeNullBlockModifier) MarkdownDescription(ctx context.Context) string {
+func (m BlockRemoveNullModifier) MarkdownDescription(ctx context.Context) string {
 	return "If block is not configured, modify plan to null"
 }
 
-func (m removeNullBlockModifier) PlanModifyObject(
+func (m BlockRemoveNullModifier) PlanModifyObject(
 	ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse,
 ) {
 	// Reference: https://github.com/hashicorp/terraform/issues/32460

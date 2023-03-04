@@ -1,4 +1,4 @@
-package providerfwk
+package tfplanmodifier
 
 import (
 	"context"
@@ -8,26 +8,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type stringDefaultModifier struct {
+var _ planmodifier.String = StringDefault("")
+
+type StringDefaultModifier struct {
 	defaultValue string
 }
 
 // If value is not configured, defaults to defaultValue.
-func newStringDefaultModifier(defaultValue string) planmodifier.String {
-	return stringDefaultModifier{
+func StringDefault(defaultValue string) StringDefaultModifier {
+	return StringDefaultModifier{
 		defaultValue: defaultValue,
 	}
 }
 
-func (m stringDefaultModifier) Description(ctx context.Context) string {
+func (m StringDefaultModifier) Description(ctx context.Context) string {
 	return fmt.Sprintf("If value is not configured, defaults to %q", m.defaultValue)
 }
 
-func (m stringDefaultModifier) MarkdownDescription(ctx context.Context) string {
+func (m StringDefaultModifier) MarkdownDescription(ctx context.Context) string {
 	return fmt.Sprintf("If value is not configured, defaults to `%s`", m.defaultValue)
 }
 
-func (m stringDefaultModifier) PlanModifyString(
+func (m StringDefaultModifier) PlanModifyString(
 	ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse,
 ) {
 	if !req.ConfigValue.IsNull() {

@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -86,7 +89,7 @@ func (rsc *securityIpsecProposal) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 32),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"authentication_algorithm": schema.StringAttribute{
@@ -94,7 +97,7 @@ func (rsc *securityIpsecProposal) Schema(
 				Description: "Authentication algorithm.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					newStringSpaceExclusionValidator(),
+					tfvalidator.StringSpaceExclusion(),
 				},
 			},
 			"description": schema.StringAttribute{
@@ -102,7 +105,7 @@ func (rsc *securityIpsecProposal) Schema(
 				Description: "Text description of IPSec proposal.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 900),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"encryption_algorithm": schema.StringAttribute{
@@ -110,7 +113,7 @@ func (rsc *securityIpsecProposal) Schema(
 				Description: "Encryption algorithm.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					newStringSpaceExclusionValidator(),
+					tfvalidator.StringSpaceExclusion(),
 				},
 			},
 			"lifetime_seconds": schema.Int64Attribute{
@@ -209,13 +212,13 @@ func (rsc *securityIpsecProposal) Create(
 	}
 	proposalExists, err := checkSecurityIpsecProposalExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if proposalExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -225,7 +228,7 @@ func (rsc *securityIpsecProposal) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -235,9 +238,9 @@ func (rsc *securityIpsecProposal) Create(
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -245,7 +248,7 @@ func (rsc *securityIpsecProposal) Create(
 
 	proposalExists, err = checkSecurityIpsecProposalExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -344,13 +347,13 @@ func (rsc *securityIpsecProposal) Update(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -360,9 +363,9 @@ func (rsc *securityIpsecProposal) Update(
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -406,15 +409,15 @@ func (rsc *securityIpsecProposal) Delete(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -532,12 +535,12 @@ func (rscData *securityIpsecProposalData) read(_ context.Context, name string, j
 			case balt.CutPrefixInString(&itemTrim, "description "):
 				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "lifetime-kilobytes "):
-				rscData.LifetimeKilobytes, err = convAtoi64Value(itemTrim)
+				rscData.LifetimeKilobytes, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "lifetime-seconds "):
-				rscData.LifetimeSeconds, err = convAtoi64Value(itemTrim)
+				rscData.LifetimeSeconds, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
 					return err
 				}

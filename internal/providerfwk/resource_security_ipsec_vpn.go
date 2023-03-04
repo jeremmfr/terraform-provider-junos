@@ -6,6 +6,10 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -89,7 +93,7 @@ func (rsc *securityIpsecVpn) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 32),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"bind_interface": schema.StringAttribute{
@@ -97,14 +101,14 @@ func (rsc *securityIpsecVpn) Schema(
 				Description: "Interface to bind vpn for route-based vpn.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					newStringFormatValidator(interfaceFormat),
+					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
 				},
 			},
 			"copy_outer_dscp": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Enable copying outer IP header DSCP and ECN to inner IP header.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"df_bit": schema.StringAttribute{
@@ -129,7 +133,7 @@ func (rsc *securityIpsecVpn) Schema(
 					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 32),
-						newStringDoubleQuoteExclusionValidator(),
+						tfvalidator.StringDoubleQuoteExclusion(),
 					),
 				},
 			},
@@ -144,7 +148,7 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "The name of security IKE gateway (phase-1).",
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 32),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 					"policy": schema.StringAttribute{
@@ -153,21 +157,21 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "The name of IPSec policy.",
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 32),
-							newStringFormatValidator(defaultFormat),
+							tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 						},
 					},
 					"identity_local": schema.StringAttribute{
 						Optional:    true,
 						Description: "IPSec proxy-id local parameter.",
 						Validators: []validator.String{
-							stringCIDRValidator{},
+							tfvalidator.StringCIDR(),
 						},
 					},
 					"identity_remote": schema.StringAttribute{
 						Optional:    true,
 						Description: "IPSec proxy-id remote parameter.",
 						Validators: []validator.String{
-							stringCIDRValidator{},
+							tfvalidator.StringCIDR(),
 						},
 					},
 					"identity_service": schema.StringAttribute{
@@ -175,12 +179,12 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "IPSec proxy-id service parameter.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"manual": schema.SingleNestedBlock{
@@ -192,7 +196,7 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "External interface for the security association.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringFormatValidator(interfaceFormat),
+							tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
 						},
 					},
 					"protocol": schema.StringAttribute{
@@ -216,7 +220,7 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "Define authentication algorithm.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringSpaceExclusionValidator(),
+							tfvalidator.StringSpaceExclusion(),
 						},
 					},
 					"authentication_key_hexa": schema.StringAttribute{
@@ -225,7 +229,7 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "Define an authentication key with format as hexadecimal.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringFormatValidator(hexadecimalFormat).WithSensitiveData(),
+							tfvalidator.StringFormat(tfvalidator.HexadecimalFormat).WithSensitiveData(),
 						},
 					},
 					"authentication_key_text": schema.StringAttribute{
@@ -234,7 +238,7 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "Define an authentication key with format as text.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 					"encryption_algorithm": schema.StringAttribute{
@@ -242,7 +246,7 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "Define encryption algorithm.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringSpaceExclusionValidator(),
+							tfvalidator.StringSpaceExclusion(),
 						},
 					},
 					"encryption_key_hexa": schema.StringAttribute{
@@ -251,7 +255,7 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "Define an encryption key with format as hexadecimal.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringFormatValidator(hexadecimalFormat).WithSensitiveData(),
+							tfvalidator.StringFormat(tfvalidator.HexadecimalFormat).WithSensitiveData(),
 						},
 					},
 					"encryption_key_text": schema.StringAttribute{
@@ -260,19 +264,19 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "Define an encryption key with format as text.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 					"gateway": schema.StringAttribute{
 						Optional:    true,
 						Description: "Define the IPSec peer.",
 						Validators: []validator.String{
-							stringIPAddressValidator{},
+							tfvalidator.StringIPAddress(),
 						},
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"traffic_selector": schema.ListNestedBlock{
@@ -284,22 +288,22 @@ func (rsc *securityIpsecVpn) Schema(
 							Description: "Name of traffic-selector.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 32),
-								newStringDoubleQuoteExclusionValidator(),
-								newStringSpaceExclusionValidator(),
+								tfvalidator.StringDoubleQuoteExclusion(),
+								tfvalidator.StringSpaceExclusion(),
 							},
 						},
 						"local_ip": schema.StringAttribute{
 							Required:    true,
 							Description: "CIDR for IP addresses of local traffic-selector.",
 							Validators: []validator.String{
-								stringCIDRValidator{},
+								tfvalidator.StringCIDR(),
 							},
 						},
 						"remote_ip": schema.StringAttribute{
 							Required:    true,
 							Description: "CIDR for IP addresses of remote traffic-selector.",
 							Validators: []validator.String{
-								stringCIDRValidator{},
+								tfvalidator.StringCIDR(),
 							},
 						},
 					},
@@ -317,7 +321,7 @@ func (rsc *securityIpsecVpn) Schema(
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"vpn_monitor": schema.SingleNestedBlock{
@@ -327,14 +331,14 @@ func (rsc *securityIpsecVpn) Schema(
 						Optional:    true,
 						Description: "IP destination for monitor message.",
 						Validators: []validator.String{
-							stringIPAddressValidator{},
+							tfvalidator.StringIPAddress(),
 						},
 					},
 					"optimized": schema.BoolAttribute{
 						Optional:    true,
 						Description: "Optimize for scalability.",
 						Validators: []validator.Bool{
-							boolTrueValidator{},
+							tfvalidator.BoolTrue(),
 						},
 					},
 					"source_interface": schema.StringAttribute{
@@ -343,19 +347,19 @@ func (rsc *securityIpsecVpn) Schema(
 						Description: "Set source interface for monitor message.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringFormatValidator(interfaceFormat),
+							tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
 						},
 					},
 					"source_interface_auto": schema.BoolAttribute{
 						Optional:    true,
 						Description: "Compute the source_interface to 'bind_interface'.",
 						Validators: []validator.Bool{
-							boolTrueValidator{},
+							tfvalidator.BoolTrue(),
 						},
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 		},
@@ -738,13 +742,13 @@ func (rsc *securityIpsecVpn) Create(
 	}
 	vpnExists, err := checkSecurityIpsecVpnExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if vpnExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -754,7 +758,7 @@ func (rsc *securityIpsecVpn) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -764,9 +768,9 @@ func (rsc *securityIpsecVpn) Create(
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -774,7 +778,7 @@ func (rsc *securityIpsecVpn) Create(
 
 	vpnExists, err = checkSecurityIpsecVpnExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -888,13 +892,13 @@ func (rsc *securityIpsecVpn) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -904,9 +908,9 @@ func (rsc *securityIpsecVpn) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -950,15 +954,15 @@ func (rsc *securityIpsecVpn) Delete(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -1185,20 +1189,20 @@ func (rscData *securityIpsecVpnData) read(_ context.Context, name string, junSes
 				case balt.CutPrefixInString(&itemTrim, "protocol "):
 					rscData.Manual.Protocol = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "spi "):
-					rscData.Manual.Spi, err = convAtoi64Value(itemTrim)
+					rscData.Manual.Spi, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
 						return err
 					}
 				case balt.CutPrefixInString(&itemTrim, "authentication algorithm "):
 					rscData.Manual.AuthenticationAlgorithm = types.StringValue(itemTrim)
 				case balt.CutPrefixInString(&itemTrim, "authentication key hexadecimal "):
-					rscData.Manual.AuthenticationKeyHexa, err = junosDecode(strings.Trim(itemTrim, "\""),
+					rscData.Manual.AuthenticationKeyHexa, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""),
 						"authentication key hexadecimal")
 					if err != nil {
 						return err
 					}
 				case balt.CutPrefixInString(&itemTrim, "authentication key ascii-text "):
-					rscData.Manual.AuthenticationKeyText, err = junosDecode(strings.Trim(itemTrim, "\""),
+					rscData.Manual.AuthenticationKeyText, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""),
 						"authentication key ascii-text")
 					if err != nil {
 						return err
@@ -1206,13 +1210,13 @@ func (rscData *securityIpsecVpnData) read(_ context.Context, name string, junSes
 				case balt.CutPrefixInString(&itemTrim, "encryption algorithm "):
 					rscData.Manual.EncryptionAlgorithm = types.StringValue(itemTrim)
 				case balt.CutPrefixInString(&itemTrim, "encryption key hexadecimal "):
-					rscData.Manual.EncryptionKeyHexa, err = junosDecode(strings.Trim(itemTrim, "\""),
+					rscData.Manual.EncryptionKeyHexa, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""),
 						"encryption key hexadecimal")
 					if err != nil {
 						return err
 					}
 				case balt.CutPrefixInString(&itemTrim, "encryption key ascii-text "):
-					rscData.Manual.EncryptionKeyText, err = junosDecode(strings.Trim(itemTrim, "\""),
+					rscData.Manual.EncryptionKeyText, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""),
 						"encryption key ascii-text")
 					if err != nil {
 						return err
@@ -1228,7 +1232,7 @@ func (rscData *securityIpsecVpnData) read(_ context.Context, name string, junSes
 					rscData.UDPEncapsulate = &securityIpsecVpnUDPEncapsulate{}
 				}
 				if balt.CutPrefixInString(&itemTrim, " dest-port ") {
-					rscData.UDPEncapsulate.DestPort, err = convAtoi64Value(itemTrim)
+					rscData.UDPEncapsulate.DestPort, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
 						return err
 					}
@@ -1236,7 +1240,7 @@ func (rscData *securityIpsecVpnData) read(_ context.Context, name string, junSes
 			case balt.CutPrefixInString(&itemTrim, "traffic-selector "):
 				itemTrimFields := strings.Split(itemTrim, " ")
 				var trafficSelector securityIpsecVpnTrafficSelector
-				rscData.TrafficSelector, trafficSelector = extractBlockWithTFTypesString(
+				rscData.TrafficSelector, trafficSelector = tfdata.ExtractBlockWithTFTypesString(
 					rscData.TrafficSelector, "Name", strings.Trim(itemTrimFields[0], "\""))
 				trafficSelector.Name = types.StringValue(strings.Trim(itemTrimFields[0], "\""))
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")

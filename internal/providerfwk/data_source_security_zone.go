@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -73,7 +74,7 @@ func (dsc *securityZoneDataSource) Schema(
 				Description: "The name of security zone.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"advance_policy_based_routing_profile": schema.StringAttribute{

@@ -6,6 +6,10 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -88,7 +92,7 @@ func (rsc *securityIkePolicy) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 32),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"proposals": schema.ListAttribute{
@@ -99,7 +103,7 @@ func (rsc *securityIkePolicy) Schema(
 					listvalidator.SizeAtLeast(1),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 32),
-						newStringDoubleQuoteExclusionValidator(),
+						tfvalidator.StringDoubleQuoteExclusion(),
 					),
 				},
 			},
@@ -123,7 +127,7 @@ func (rsc *securityIkePolicy) Schema(
 				Description: "Text description of IKE policy.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 900),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"mode": schema.StringAttribute{
@@ -131,7 +135,7 @@ func (rsc *securityIkePolicy) Schema(
 				Computed:    true,
 				Description: "IKE mode for Phase 1.",
 				PlanModifiers: []planmodifier.String{
-					newStringDefaultModifier("main"),
+					tfplanmodifier.StringDefault("main"),
 				},
 				Validators: []validator.String{
 					stringvalidator.OneOf("main", "aggressive"),
@@ -143,7 +147,7 @@ func (rsc *securityIkePolicy) Schema(
 				Description: "Preshared key with format as hexadecimal.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"pre_shared_key_text": schema.StringAttribute{
@@ -152,7 +156,7 @@ func (rsc *securityIkePolicy) Schema(
 				Description: "Preshared key wit format as text.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"reauth_frequency": schema.Int64Attribute{
@@ -275,13 +279,13 @@ func (rsc *securityIkePolicy) Create(
 	}
 	policyExists, err := checkSecurityIkePolicyExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if policyExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -291,7 +295,7 @@ func (rsc *securityIkePolicy) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -301,9 +305,9 @@ func (rsc *securityIkePolicy) Create(
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -311,7 +315,7 @@ func (rsc *securityIkePolicy) Create(
 
 	policyExists, err = checkSecurityIkePolicyExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -410,13 +414,13 @@ func (rsc *securityIkePolicy) Update(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -426,9 +430,9 @@ func (rsc *securityIkePolicy) Update(
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -472,15 +476,15 @@ func (rsc *securityIkePolicy) Delete(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -604,17 +608,17 @@ func (rscData *securityIkePolicyData) read(_ context.Context, name string, junSe
 			case balt.CutPrefixInString(&itemTrim, "proposal-set "):
 				rscData.ProposalSet = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "pre-shared-key hexadecimal "):
-				rscData.PreSharedKeyHexa, err = junosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key hexadecimal")
+				rscData.PreSharedKeyHexa, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key hexadecimal")
 				if err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "pre-shared-key ascii-text "):
-				rscData.PreSharedKeyText, err = junosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key ascii-text")
+				rscData.PreSharedKeyText, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key ascii-text")
 				if err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "reauth-frequency "):
-				rscData.ReauthFrequency, err = convAtoi64Value(itemTrim)
+				rscData.ReauthFrequency, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
 					return err
 				}

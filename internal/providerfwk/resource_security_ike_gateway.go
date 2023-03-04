@@ -6,6 +6,10 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -88,7 +92,7 @@ func (rsc *securityIkeGateway) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 32),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"external_interface": schema.StringAttribute{
@@ -96,7 +100,7 @@ func (rsc *securityIkeGateway) Schema(
 				Description: "Interface for IKE negotiations.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					newStringFormatValidator(interfaceFormat),
+					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
 				},
 			},
 			"policy": schema.StringAttribute{
@@ -104,7 +108,7 @@ func (rsc *securityIkeGateway) Schema(
 				Description: "Name of the IKE policy.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 32),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"address": schema.ListAttribute{
@@ -114,7 +118,7 @@ func (rsc *securityIkeGateway) Schema(
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 5),
 					listvalidator.ValueStringsAre(
-						stringIPAddressValidator{},
+						tfvalidator.StringIPAddress(),
 					),
 				},
 			},
@@ -122,21 +126,21 @@ func (rsc *securityIkeGateway) Schema(
 				Optional:    true,
 				Description: "Accept peer IKE-ID in general.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"local_address": schema.StringAttribute{
 				Optional:    true,
 				Description: "Local IP for IKE negotiations.",
 				Validators: []validator.String{
-					stringIPAddressValidator{},
+					tfvalidator.StringIPAddress(),
 				},
 			},
 			"no_nat_traversal": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Disable IPSec NAT traversal.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"version": schema.StringAttribute{
@@ -162,7 +166,7 @@ func (rsc *securityIkeGateway) Schema(
 						Optional:    true,
 						Description: "Use a fully-qualified domain name.",
 						Validators: []validator.String{
-							newStringFormatValidator(dnsNameFormat),
+							tfvalidator.StringFormat(tfvalidator.DNSNameFormat),
 						},
 					},
 					"ike_user_type": schema.StringAttribute{
@@ -176,21 +180,21 @@ func (rsc *securityIkeGateway) Schema(
 						Optional:    true,
 						Description: "Use an IPV4 address to identify the dynamic peer.",
 						Validators: []validator.String{
-							stringIPAddressValidator{},
+							tfvalidator.StringIPAddress(),
 						},
 					},
 					"inet6": schema.StringAttribute{
 						Optional:    true,
 						Description: "Use an IPV6 address to identify the dynamic peer.",
 						Validators: []validator.String{
-							stringIPAddressValidator{},
+							tfvalidator.StringIPAddress(),
 						},
 					},
 					"reject_duplicate_connection": schema.BoolAttribute{
 						Optional:    true,
 						Description: "Reject new connection from duplicate IKE-id.",
 						Validators: []validator.Bool{
-							boolTrueValidator{},
+							tfvalidator.BoolTrue(),
 						},
 					},
 					"user_at_hostname": schema.StringAttribute{
@@ -198,7 +202,7 @@ func (rsc *securityIkeGateway) Schema(
 						Description: "Use an e-mail address.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 				},
@@ -211,7 +215,7 @@ func (rsc *securityIkeGateway) Schema(
 								Description: "Container string for a distinguished name.",
 								Validators: []validator.String{
 									stringvalidator.LengthAtLeast(1),
-									newStringDoubleQuoteExclusionValidator(),
+									tfvalidator.StringDoubleQuoteExclusion(),
 								},
 							},
 							"wildcard": schema.StringAttribute{
@@ -219,17 +223,17 @@ func (rsc *securityIkeGateway) Schema(
 								Description: "Wildcard string for a distinguished name.",
 								Validators: []validator.String{
 									stringvalidator.LengthAtLeast(1),
-									newStringDoubleQuoteExclusionValidator(),
+									tfvalidator.StringDoubleQuoteExclusion(),
 								},
 							},
 						},
 						PlanModifiers: []planmodifier.Object{
-							removeNullBlockModifier{},
+							tfplanmodifier.BlockRemoveNull(),
 						},
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"aaa": schema.SingleNestedBlock{
@@ -240,7 +244,7 @@ func (rsc *securityIkeGateway) Schema(
 						Description: "Access profile that contains authentication information.",
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 250),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 					"client_password": schema.StringAttribute{
@@ -249,7 +253,7 @@ func (rsc *securityIkeGateway) Schema(
 						Description: "AAA client password.",
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 128),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 					"client_username": schema.StringAttribute{
@@ -257,12 +261,12 @@ func (rsc *securityIkeGateway) Schema(
 						Description: "AAA client username.",
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 128),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"dead_peer_detection": schema.SingleNestedBlock{
@@ -291,7 +295,7 @@ func (rsc *securityIkeGateway) Schema(
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"local_identity": schema.SingleNestedBlock{
@@ -310,12 +314,12 @@ func (rsc *securityIkeGateway) Schema(
 						Description: "Value for IKE identity.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"remote_identity": schema.SingleNestedBlock{
@@ -334,7 +338,7 @@ func (rsc *securityIkeGateway) Schema(
 						Description: "Value for IKE identity.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 					"distinguished_name_container": schema.StringAttribute{
@@ -342,7 +346,7 @@ func (rsc *securityIkeGateway) Schema(
 						Description: "Container string for a distinguished name.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 					"distinguished_name_wildcard": schema.StringAttribute{
@@ -350,12 +354,12 @@ func (rsc *securityIkeGateway) Schema(
 						Description: "Wildcard string for a distinguished name.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
-							newStringDoubleQuoteExclusionValidator(),
+							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
 				},
 				PlanModifiers: []planmodifier.Object{
-					removeNullBlockModifier{},
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 		},
@@ -687,13 +691,13 @@ func (rsc *securityIkeGateway) Create(
 	}
 	gatewayExists, err := checkSecurityIkeGatewayExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if gatewayExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -703,7 +707,7 @@ func (rsc *securityIkeGateway) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -713,9 +717,9 @@ func (rsc *securityIkeGateway) Create(
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -723,7 +727,7 @@ func (rsc *securityIkeGateway) Create(
 
 	gatewayExists, err = checkSecurityIkeGatewayExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -822,13 +826,13 @@ func (rsc *securityIkeGateway) Update(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -838,9 +842,9 @@ func (rsc *securityIkeGateway) Update(
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -884,15 +888,15 @@ func (rsc *securityIkeGateway) Delete(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -1114,7 +1118,7 @@ func (rscData *securityIkeGatewayData) read(_ context.Context, name string, junS
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "connections-limit "):
-					rscData.DynamicRemote.ConnectionsLimit, err = convAtoi64Value(itemTrim)
+					rscData.DynamicRemote.ConnectionsLimit, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
 						return err
 					}
@@ -1149,7 +1153,7 @@ func (rscData *securityIkeGatewayData) read(_ context.Context, name string, junS
 				case balt.CutPrefixInString(&itemTrim, "access-profile "):
 					rscData.Aaa.AccessProfile = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "client password "):
-					rscData.Aaa.ClientPassword, err = junosDecode(strings.Trim(itemTrim, "\""), "aaa client password")
+					rscData.Aaa.ClientPassword, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "aaa client password")
 					if err != nil {
 						return err
 					}
@@ -1162,7 +1166,7 @@ func (rscData *securityIkeGatewayData) read(_ context.Context, name string, junS
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " interval "):
-					rscData.DeadPeerDetection.Interval, err = convAtoi64Value(itemTrim)
+					rscData.DeadPeerDetection.Interval, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
 						return err
 					}
@@ -1173,7 +1177,7 @@ func (rscData *securityIkeGatewayData) read(_ context.Context, name string, junS
 				case itemTrim == " probe-idle-tunnel":
 					rscData.DeadPeerDetection.SendMode = types.StringValue("probe-idle-tunnel")
 				case balt.CutPrefixInString(&itemTrim, " threshold "):
-					rscData.DeadPeerDetection.Threshold, err = convAtoi64Value(itemTrim)
+					rscData.DeadPeerDetection.Threshold, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
 						return err
 					}

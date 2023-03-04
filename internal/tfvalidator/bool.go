@@ -1,4 +1,4 @@
-package providerfwk
+package tfvalidator
 
 import (
 	"context"
@@ -6,18 +6,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
+var _ validator.Bool = BoolTrue()
+
+type BoolTrueValidator struct{}
+
 // Must be true or null, false is not supported.
-type boolTrueValidator struct{}
+func BoolTrue() BoolTrueValidator {
+	return BoolTrueValidator{}
+}
 
-func (m boolTrueValidator) Description(ctx context.Context) string {
+func (m BoolTrueValidator) Description(ctx context.Context) string {
 	return "Must be true or null, false is not supported"
 }
 
-func (m boolTrueValidator) MarkdownDescription(ctx context.Context) string {
+func (m BoolTrueValidator) MarkdownDescription(ctx context.Context) string {
 	return "Must be true or null, false is not supported"
 }
 
-func (m boolTrueValidator) ValidateBool(
+func (m BoolTrueValidator) ValidateBool(
 	ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse,
 ) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {

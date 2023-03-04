@@ -67,5 +67,3 @@ issues:
     - text: "github.com/hashicorp/terraform-plugin-framework/datasource"
       linters:
         - ireturn
-
-   

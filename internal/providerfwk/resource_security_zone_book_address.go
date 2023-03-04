@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -85,7 +87,7 @@ func (rsc *securityZoneBookAddress) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(addressNameFormat),
+					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
 				},
 			},
 			"zone": schema.StringAttribute{
@@ -96,14 +98,14 @@ func (rsc *securityZoneBookAddress) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 63),
-					newStringFormatValidator(defaultFormat),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"cidr": schema.StringAttribute{
 				Optional:    true,
 				Description: "CIDR of address.",
 				Validators: []validator.String{
-					stringCIDRNetworkValidator{},
+					tfvalidator.StringCIDRNetwork(),
 				},
 			},
 			"description": schema.StringAttribute{
@@ -111,21 +113,21 @@ func (rsc *securityZoneBookAddress) Schema(
 				Description: "Description of address.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 900),
-					newStringDoubleQuoteExclusionValidator(),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"dns_ipv4_only": schema.BoolAttribute{
 				Optional:    true,
 				Description: "IPv4 dns address.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"dns_ipv6_only": schema.BoolAttribute{
 				Optional:    true,
 				Description: "IPv6 dns address.",
 				Validators: []validator.Bool{
-					boolTrueValidator{},
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"dns_name": schema.StringAttribute{
@@ -133,28 +135,28 @@ func (rsc *securityZoneBookAddress) Schema(
 				Description: "DNS address name.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 253),
-					newStringFormatValidator(dnsNameFormat),
+					tfvalidator.StringFormat(tfvalidator.DNSNameFormat),
 				},
 			},
 			"range_from": schema.StringAttribute{
 				Optional:    true,
 				Description: "Lower limit of address range.",
 				Validators: []validator.String{
-					stringIPAddressValidator{},
+					tfvalidator.StringIPAddress(),
 				},
 			},
 			"range_to": schema.StringAttribute{
 				Optional:    true,
 				Description: "Upper limit of address range.",
 				Validators: []validator.String{
-					stringIPAddressValidator{},
+					tfvalidator.StringIPAddress(),
 				},
 			},
 			"wildcard": schema.StringAttribute{
 				Optional:    true,
 				Description: "Numeric IPv4 wildcard address in the form of `a.d.d.r/netmask`.",
 				Validators: []validator.String{
-					stringWildcardNetworkValidator{},
+					tfvalidator.StringWildcardNetwork(),
 				},
 			},
 		},
@@ -337,13 +339,13 @@ func (rsc *securityZoneBookAddress) Create(
 	}
 	zonesExists, err := checkSecurityZonesExists(ctx, plan.Zone.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if !zonesExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddAttributeError(
 			path.Root("zone"),
 			"Missing Configuration Error",
@@ -359,13 +361,13 @@ func (rsc *securityZoneBookAddress) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if addressExists {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already exists in zone %q",
@@ -376,7 +378,7 @@ func (rsc *securityZoneBookAddress) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -386,9 +388,9 @@ func (rsc *securityZoneBookAddress) Create(
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -401,7 +403,7 @@ func (rsc *securityZoneBookAddress) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -505,13 +507,13 @@ func (rsc *securityZoneBookAddress) Update(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -521,9 +523,9 @@ func (rsc *securityZoneBookAddress) Update(
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -567,15 +569,15 @@ func (rsc *securityZoneBookAddress) Delete(
 	}
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(diagWarns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(diagWarns("Config Clear Warning", junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
