@@ -35,6 +35,9 @@ func (m StringDefaultModifier) PlanModifyString(
 	if !req.ConfigValue.IsNull() {
 		return
 	}
+	if req.Plan.Raw.IsNull() {
+		return
+	}
 
 	resp.PlanValue = types.StringValue(m.defaultValue)
 }

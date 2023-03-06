@@ -17,6 +17,9 @@ func ExtractBlockWithTFTypesString[B any](blocks []B, structFieldName, inputValu
 		fieldValue := reflect.ValueOf(block).FieldByNameFunc(func(name string) bool {
 			return strings.EqualFold(structFieldName, name)
 		})
+		if !fieldValue.IsValid() {
+			continue
+		}
 		if tfString, ok := fieldValue.Interface().(types.String); ok {
 			if tfString.ValueString() == inputValue {
 				blocks = append(blocks[:i], blocks[i+1:]...)
