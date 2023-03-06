@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.1.0
 	github.com/jeremmfr/go-netconf v0.4.10
 	github.com/jeremmfr/go-utils v0.8.0
-	github.com/jeremmfr/junosdecode v1.1.0
+	github.com/jeremmfr/junosdecode v1.1.1
 	golang.org/x/crypto v0.6.0
 )
 

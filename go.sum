@@ -135,8 +135,8 @@ github.com/jeremmfr/go-netconf v0.4.10 h1:7HIXwk0y6xU7sY61rs/tYsZ5jw7kL98/9B7fmj
 github.com/jeremmfr/go-netconf v0.4.10/go.mod h1:Ogr6BZsbqCgwHSVwwV7AljD5Phfy1WLF1WWEWA/eLhw=
 github.com/jeremmfr/go-utils v0.8.0 h1:erWRiUjS1nXhK1RXSRCmrxWchQ8nSvd0K/JR8v7V4hM=
 github.com/jeremmfr/go-utils v0.8.0/go.mod h1:Lkn95iSzCRviFhn2/0XmqzWGmxI+kkoqKAZqip7VUmM=
-github.com/jeremmfr/junosdecode v1.1.0 h1:Os8QeOzyL+BPuDZJMjyJgz4QPOgA8EChgKB2Ih5wwCc=
-github.com/jeremmfr/junosdecode v1.1.0/go.mod h1:nTY0XbZC2ePbZdV0wuUboSMtGrJxtpwWVYfHjrS2Oqw=
+github.com/jeremmfr/junosdecode v1.1.1 h1:wOFfJIwLXP9s0eQzzAhuX7a7N1mc+AWgDLYAmR7VoWg=
+github.com/jeremmfr/junosdecode v1.1.1/go.mod h1:nTY0XbZC2ePbZdV0wuUboSMtGrJxtpwWVYfHjrS2Oqw=
 github.com/jeremmfr/terraform-plugin-sdk/v2 v2.24.2-0.20221116074330-912f8cae0310 h1:Wb254o3dRKCZLyF/V83KOOS2xdGjW9vciBbBxOMUl/U=
 github.com/jeremmfr/terraform-plugin-sdk/v2 v2.24.2-0.20221116074330-912f8cae0310/go.mod h1:+tNlb0wkfdsDJ7JEiERLz4HzM19HyiuIoGzTsM7rPpw=
 github.com/jessevdk/go-flags v1.5.0/go.mod h1:Fw0T6WPc1dYxT4mKEZRfG5kJhaTDP9pj1c2EWnYs/m4=
