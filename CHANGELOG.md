@@ -9,6 +9,7 @@ BREAKING CHANGES with new `v2`:
 * **resource/junos_security_ipsec_vpn**: remove deprecated `bind_interface_auto` argument
 * **resource/junos_system_radius_server**: remove deprecated `accouting_timeout` attribute
 * remove deprecated **junos_interface** resource and data source
+* **provider**: remove `aes128-cbc` cipher from default ciphers when `ssh_ciphers` is not specified
 
 FEATURES:
 
@@ -16,6 +17,7 @@ ENHANCEMENTS:
 
 * refactor provider to integrate new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework),  
   the resources and data sources will migrate progressively to this new plugin
+* **provider**: add new cipher `aes256-gcm@openssh.com` in default ciphers when `ssh_ciphers` is not specified
 * **resource/junos_security_address_book**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
 * **resource/junos_security_global_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
 * **resource/junos_security_ike_gateway**:

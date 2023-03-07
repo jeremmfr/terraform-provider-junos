@@ -147,11 +147,11 @@ The following arguments are supported in the `provider` block:
   Ciphers used in SSH connection.  
   Defaults to [
   `aes128-gcm@openssh.com`,
+  `aes256-gcm@openssh.com`,
   `chacha20-poly1305@openssh.com`,
   `aes128-ctr`,
   `aes192-ctr`,
-  `aes256-ctr`,
-  `aes128-cbc`
+  `aes256-ctr`
   ]
 
 - **ssh_timeout_to_establish** (Optional, Number)  
