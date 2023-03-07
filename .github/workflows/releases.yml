@@ -63,18 +63,14 @@ jobs:
             echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           fi
       - name: Define version in build
-        run: echo ${RELEASE_VERSION} > version/version.txt
+        run: echo ${RELEASE_VERSION} > internal/version/version.txt
       - name: Build
-        run: go build -o ${REPO_NAME}_v${RELEASE_VERSION}
+        run: go build -ldflags "-s -w" -o ${REPO_NAME}_v${RELEASE_VERSION} -trimpath .
       - name: Rename binary for windows
         run: |
           if [[ "${{ matrix.goos }}" == "windows" ]] ; then
             mv ${REPO_NAME}_v${RELEASE_VERSION} ${REPO_NAME}_v${RELEASE_VERSION}.exe
           fi
-      - name: Install zip utils
-        run: |
-          sudo apt update
-          sudo apt install -y zip
       - name: Create archive zip
         run: zip ${REPO_NAME}_${RELEASE_VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}.zip ${REPO_NAME}_v${RELEASE_VERSION}*
       - name: Upload archive zip to release
@@ -94,6 +90,8 @@ jobs:
     needs: [release,assets]
     runs-on: ubuntu-latest
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
       - name: Install utils
         run: |
           sudo apt update
