@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
+## v2.0.0 (Unreleased)
+
 BREAKING CHANGES with new `v2`:
 
 * **resource/junos_bgp_group**, **resource/junos_bgp_neighbor**: remove deprecated `multipath` argument
@@ -18,7 +20,7 @@ ENHANCEMENTS:
 * refactor provider to integrate new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework),  
   the resources and data sources will migrate progressively to this new plugin
 * **provider**: add new cipher `aes256-gcm@openssh.com` in default ciphers when `ssh_ciphers` is not specified
-* **resource/junos_security_address_book**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_address_book**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value) (Fix [#403](https://github.com/jeremmfr/terraform-provider-junos/issues/403))
 * **resource/junos_security_global_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
 * **resource/junos_security_ike_gateway**:
   * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
