@@ -1,12 +1,4 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
-## upcoming release
-
-FEATURES:
-
-ENHANCEMENTS:
-
-BUG FIXES:
-
 ## 1.33.0 (February 07, 2023)
 
 ENHANCEMENTS:
