@@ -531,7 +531,11 @@ func (rsc *securityIkePolicy) ImportState(
 	}
 }
 
-func checkSecurityIkePolicyExists(_ context.Context, name string, junSess *junos.Session) (bool, error) {
+func checkSecurityIkePolicyExists(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig + "security ike policy \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
@@ -547,7 +551,11 @@ func (rscData *securityIkePolicyData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityIkePolicyData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityIkePolicyData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ike policy \"" + rscData.Name.ValueString() + "\" "
@@ -580,8 +588,11 @@ func (rscData *securityIkePolicyData) set(_ context.Context, junSess *junos.Sess
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityIkePolicyData) read(_ context.Context, name string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityIkePolicyData) read(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ike policy \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -629,7 +640,9 @@ func (rscData *securityIkePolicyData) read(_ context.Context, name string, junSe
 	return nil
 }
 
-func (rscData *securityIkePolicyData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityIkePolicyData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security ike policy \"" + rscData.Name.ValueString() + "\"",
 	}

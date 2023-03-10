@@ -633,8 +633,11 @@ func (rsc *securityZoneBookAddress) ImportState(
 	}
 }
 
-func checkSecurityZoneBookAddressExists(_ context.Context, zone, name string, junSess *junos.Session,
-) (bool, error) {
+func checkSecurityZoneBookAddressExists(
+	_ context.Context, zone, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security zones security-zone " + zone + " address-book address " + name + junos.PipeDisplaySet)
 	if err != nil {
@@ -651,7 +654,11 @@ func (rscData *securityZoneBookAddressData) fillID() {
 	rscData.ID = types.StringValue(rscData.Zone.ValueString() + junos.IDSeparator + rscData.Name.ValueString())
 }
 
-func (rscData *securityZoneBookAddressData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityZoneBookAddressData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security zones security-zone " +
@@ -682,8 +689,11 @@ func (rscData *securityZoneBookAddressData) set(_ context.Context, junSess *juno
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityZoneBookAddressData) read(_ context.Context, zone, name string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityZoneBookAddressData) read(
+	_ context.Context, zone, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security zones security-zone " + zone + " address-book address " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -733,7 +743,9 @@ func (rscData *securityZoneBookAddressData) read(_ context.Context, zone, name s
 	return nil
 }
 
-func (rscData *securityZoneBookAddressData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityZoneBookAddressData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security zones security-zone " + rscData.Zone.ValueString() +
 			" address-book address " + rscData.Name.ValueString(),

@@ -58,12 +58,16 @@ const (
 )
 
 // Metadata returns the provider type name.
-func (p *junosProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *junosProvider) Metadata(
+	_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse,
+) {
 	resp.TypeName = providerName
 	resp.Version = version.Get()
 }
 
-func (p *junosProvider) Schema(ctx context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *junosProvider) Schema(
+	ctx context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"ip": schema.StringAttribute{

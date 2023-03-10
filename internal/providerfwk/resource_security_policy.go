@@ -903,7 +903,11 @@ func (rsc *securityPolicy) ImportState(
 	}
 }
 
-func checkSecurityPolicyExists(_ context.Context, fromZone, toZone string, junSess *junos.Session) (bool, error) {
+func checkSecurityPolicyExists(
+	_ context.Context, fromZone, toZone string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security policies from-zone " + fromZone + " to-zone " + toZone + junos.PipeDisplaySet)
 	if err != nil {
@@ -920,7 +924,11 @@ func (rscData *securityPolicyData) fillID() {
 	rscData.ID = types.StringValue(rscData.FromZone.ValueString() + junos.IDSeparator + rscData.ToZone.ValueString())
 }
 
-func (rscData *securityPolicyData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityPolicyData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security policies" +
@@ -1014,7 +1022,11 @@ func (rscData *securityPolicyData) set(_ context.Context, junSess *junos.Session
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (block *securityPolicyPolicyPermitApplicationServices) set(setPrefixPolicy string) ([]string, error) {
+func (block *securityPolicyPolicyPermitApplicationServices) set(
+	setPrefixPolicy string,
+) (
+	[]string, error,
+) {
 	configSet := make([]string, 0)
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + "then permit application-services "
 	if v := block.AdvancedAntiMalwarePolicy.ValueString(); v != "" {
@@ -1069,8 +1081,11 @@ func (block *securityPolicyPolicyPermitApplicationServices) set(setPrefixPolicy 
 	return configSet, nil
 }
 
-func (rscData *securityPolicyData) read(_ context.Context, fromZone, toZone string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityPolicyData) read(
+	_ context.Context, fromZone, toZone string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security policies from-zone " + fromZone + " to-zone " + toZone + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -1144,7 +1159,9 @@ func (rscData *securityPolicyData) read(_ context.Context, fromZone, toZone stri
 	return nil
 }
 
-func (block *securityPolicyPolicyPermitApplicationServices) read(itemTrim string) {
+func (block *securityPolicyPolicyPermitApplicationServices) read(
+	itemTrim string,
+) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "advanced-anti-malware-policy "):
 		block.AdvancedAntiMalwarePolicy = types.StringValue(strings.Trim(itemTrim, "\""))
@@ -1197,7 +1214,9 @@ func (block *securityPolicyPolicyPermitApplicationServices) read(itemTrim string
 
 func readSecurityPolicyTunnelPairPolicyLines(
 	_ context.Context, fromZone, toZone string, junSess *junos.Session,
-) ([]string, error) {
+) (
+	[]string, error,
+) {
 	listLines := make([]string, 0)
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security policies from-zone " + fromZone + " to-zone " + toZone + junos.PipeDisplaySet)
@@ -1221,7 +1240,9 @@ func readSecurityPolicyTunnelPairPolicyLines(
 	return listLines, nil
 }
 
-func (rscData *securityPolicyData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityPolicyData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security policies from-zone " + rscData.FromZone.ValueString() + " to-zone " + rscData.ToZone.ValueString(),
 	}

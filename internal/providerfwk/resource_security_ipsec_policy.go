@@ -486,7 +486,11 @@ func (rsc *securityIpsecPolicy) ImportState(
 	}
 }
 
-func checkSecurityIpsecPolicyExists(_ context.Context, name string, junSess *junos.Session) (bool, error) {
+func checkSecurityIpsecPolicyExists(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ipsec policy " + name + junos.PipeDisplaySet)
 	if err != nil {
@@ -503,7 +507,11 @@ func (rscData *securityIpsecPolicyData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityIpsecPolicyData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityIpsecPolicyData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ipsec policy " + rscData.Name.ValueString() + " "
@@ -523,8 +531,11 @@ func (rscData *securityIpsecPolicyData) set(_ context.Context, junSess *junos.Se
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityIpsecPolicyData) read(_ context.Context, name string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityIpsecPolicyData) read(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ipsec policy " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -557,7 +568,9 @@ func (rscData *securityIpsecPolicyData) read(_ context.Context, name string, jun
 	return nil
 }
 
-func (rscData *securityIpsecPolicyData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityIpsecPolicyData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security ipsec policy " + rscData.Name.ValueString(),
 	}

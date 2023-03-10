@@ -493,7 +493,11 @@ func (rscData *securityPolicyTunnelPairPolicyData) fillID() {
 	)
 }
 
-func (rscData *securityPolicyTunnelPairPolicyData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityPolicyTunnelPairPolicyData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0, 2)
 
 	configSet = append(configSet, "set security policies from-zone "+
@@ -565,7 +569,9 @@ func (rscData *securityPolicyTunnelPairPolicyData) read(
 	return nil
 }
 
-func (rscData *securityPolicyTunnelPairPolicyData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityPolicyTunnelPairPolicyData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security policies" +
 			" from-zone " + rscData.ZoneA.ValueString() + " to-zone " + rscData.ZoneB.ValueString() +

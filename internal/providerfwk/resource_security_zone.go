@@ -946,7 +946,11 @@ func (rsc *securityZone) ImportState(
 	}
 }
 
-func checkSecurityZonesExists(_ context.Context, name string, junSess *junos.Session) (bool, error) {
+func checkSecurityZonesExists(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig + "security zones security-zone " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
@@ -962,7 +966,11 @@ func (rscData *securityZoneData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityZoneData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityZoneData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 	setPrefix := "set security zones security-zone " + rscData.Name.ValueString() + " "
 
@@ -1081,7 +1089,11 @@ func (rscData *securityZoneData) set(_ context.Context, junSess *junos.Session) 
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityZoneData) read(_ context.Context, name string, junSess *junos.Session) (err error) {
+func (rscData *securityZoneData) read(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security zones security-zone " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -1222,7 +1234,9 @@ func (rscData *securityZoneData) read(_ context.Context, name string, junSess *j
 	return nil
 }
 
-func (rscData *securityZoneData) delOpts(_ context.Context, addressBookSingly bool, junSess *junos.Session) error {
+func (rscData *securityZoneData) delOpts(
+	_ context.Context, addressBookSingly bool, junSess *junos.Session,
+) error {
 	listLinesToDelete := []string{
 		"advance-policy-based-routing-profile",
 		"description",
@@ -1245,7 +1259,9 @@ func (rscData *securityZoneData) delOpts(_ context.Context, addressBookSingly bo
 	return junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityZoneData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityZoneData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security zones security-zone " + rscData.Name.ValueString(),
 	}

@@ -733,7 +733,11 @@ func (rscData *securityGlobalPolicyData) fillID() {
 	rscData.ID = types.StringValue("security_global_policy")
 }
 
-func (rscData *securityGlobalPolicyData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityGlobalPolicyData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security policies global policy "
@@ -820,8 +824,11 @@ func (rscData *securityGlobalPolicyData) set(_ context.Context, junSess *junos.S
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityGlobalPolicyData) read(_ context.Context, junSess *junos.Session,
-) (err error) {
+func (rscData *securityGlobalPolicyData) read(
+	_ context.Context, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig + "security policies global" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
@@ -893,7 +900,9 @@ func (rscData *securityGlobalPolicyData) read(_ context.Context, junSess *junos.
 	return nil
 }
 
-func (rscData *securityGlobalPolicyData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityGlobalPolicyData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security policies global",
 	}

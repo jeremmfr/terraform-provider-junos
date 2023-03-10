@@ -943,7 +943,11 @@ func (rsc *securityIkeGateway) ImportState(
 	}
 }
 
-func checkSecurityIkeGatewayExists(_ context.Context, name string, junSess *junos.Session) (bool, error) {
+func checkSecurityIkeGatewayExists(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ike gateway \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
@@ -960,7 +964,11 @@ func (rscData *securityIkeGatewayData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityIkeGatewayData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityIkeGatewayData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ike gateway \"" + rscData.Name.ValueString() + "\" "
@@ -1087,8 +1095,11 @@ func (rscData *securityIkeGatewayData) set(_ context.Context, junSess *junos.Ses
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityIkeGatewayData) read(_ context.Context, name string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityIkeGatewayData) read(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ike gateway \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -1228,7 +1239,9 @@ func (rscData *securityIkeGatewayData) read(_ context.Context, name string, junS
 	return nil
 }
 
-func (rscData *securityIkeGatewayData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityIkeGatewayData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security ike gateway \"" + rscData.Name.ValueString() + "\"",
 	}

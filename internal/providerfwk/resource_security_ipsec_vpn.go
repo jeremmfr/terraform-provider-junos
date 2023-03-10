@@ -1009,7 +1009,11 @@ func (rsc *securityIpsecVpn) ImportState(
 	}
 }
 
-func checkSecurityIpsecVpnExists(_ context.Context, name string, junSess *junos.Session) (bool, error) {
+func checkSecurityIpsecVpnExists(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig + "security ipsec vpn \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
@@ -1025,7 +1029,11 @@ func (rscData *securityIpsecVpnData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityIpsecVpnData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityIpsecVpnData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ipsec vpn \"" + rscData.Name.ValueString() + "\" "
@@ -1136,8 +1144,11 @@ func (rscData *securityIpsecVpnData) set(_ context.Context, junSess *junos.Sessi
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityIpsecVpnData) read(_ context.Context, name string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityIpsecVpnData) read(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ipsec vpn \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -1270,7 +1281,9 @@ func (rscData *securityIpsecVpnData) read(_ context.Context, name string, junSes
 	return nil
 }
 
-func (rscData *securityIpsecVpnData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityIpsecVpnData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security ipsec vpn \"" + rscData.Name.ValueString() + "\"",
 	}

@@ -471,7 +471,11 @@ func (rsc *securityIkeProposal) ImportState(
 	}
 }
 
-func checkSecurityIkeProposalExists(_ context.Context, name string, junSess *junos.Session) (bool, error) {
+func checkSecurityIkeProposalExists(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ike proposal \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
@@ -488,7 +492,11 @@ func (rscData *securityIkeProposalData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityIkeProposalData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityIkeProposalData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ike proposal \"" + rscData.Name.ValueString() + "\" "
@@ -514,8 +522,11 @@ func (rscData *securityIkeProposalData) set(_ context.Context, junSess *junos.Se
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityIkeProposalData) read(_ context.Context, name string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityIkeProposalData) read(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ike proposal \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -555,7 +566,9 @@ func (rscData *securityIkeProposalData) read(_ context.Context, name string, jun
 	return nil
 }
 
-func (rscData *securityIkeProposalData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityIkeProposalData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security ike proposal \"" + rscData.Name.ValueString() + "\"",
 	}

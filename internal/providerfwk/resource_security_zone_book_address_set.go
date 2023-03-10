@@ -535,8 +535,11 @@ func (rsc *securityZoneBookAddressSet) ImportState(
 	}
 }
 
-func checkSecurityZoneBookAddressSetExists(_ context.Context, zone, name string, junSess *junos.Session,
-) (bool, error) {
+func checkSecurityZoneBookAddressSetExists(
+	_ context.Context, zone, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security zones security-zone " + zone + " address-book address-set " + name + junos.PipeDisplaySet)
 	if err != nil {
@@ -553,7 +556,11 @@ func (rscData *securityZoneBookAddressSetData) fillID() {
 	rscData.ID = types.StringValue(rscData.Zone.ValueString() + junos.IDSeparator + rscData.Name.ValueString())
 }
 
-func (rscData *securityZoneBookAddressSetData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityZoneBookAddressSetData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security zones security-zone " +
@@ -574,8 +581,11 @@ func (rscData *securityZoneBookAddressSetData) set(_ context.Context, junSess *j
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityZoneBookAddressSetData) read(_ context.Context, zone, name string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityZoneBookAddressSetData) read(
+	_ context.Context, zone, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security zones security-zone " + zone + " address-book address-set " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -607,7 +617,9 @@ func (rscData *securityZoneBookAddressSetData) read(_ context.Context, zone, nam
 	return nil
 }
 
-func (rscData *securityZoneBookAddressSetData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityZoneBookAddressSetData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security zones security-zone " + rscData.Zone.ValueString() +
 			" address-book address-set " + rscData.Name.ValueString(),

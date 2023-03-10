@@ -858,7 +858,11 @@ func (rsc *securityAddressBook) ImportState(
 	}
 }
 
-func checkSecurityAddressBookExists(_ context.Context, name string, junSess *junos.Session) (bool, error) {
+func checkSecurityAddressBookExists(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security address-book \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
@@ -875,7 +879,11 @@ func (rscData *securityAddressBookData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityAddressBookData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityAddressBookData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 	setPrefix := "set security address-book \"" + rscData.Name.ValueString() + "\" "
 
@@ -974,7 +982,11 @@ func (rscData *securityAddressBookData) set(_ context.Context, junSess *junos.Se
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityAddressBookData) read(_ context.Context, name string, junSess *junos.Session) (err error) {
+func (rscData *securityAddressBookData) read(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security address-book \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -1087,7 +1099,9 @@ func (rscData *securityAddressBookData) read(_ context.Context, name string, jun
 	return nil
 }
 
-func (rscData *securityAddressBookData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityAddressBookData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security address-book \"" + rscData.Name.ValueString() + "\"",
 	}

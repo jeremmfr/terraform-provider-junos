@@ -464,7 +464,11 @@ func (rsc *securityIpsecProposal) ImportState(
 	}
 }
 
-func checkSecurityIpsecProposalExists(_ context.Context, name string, junSess *junos.Session) (bool, error) {
+func checkSecurityIpsecProposalExists(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	bool, error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ipsec proposal " + name + junos.PipeDisplaySet)
 	if err != nil {
@@ -481,7 +485,11 @@ func (rscData *securityIpsecProposalData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityIpsecProposalData) set(_ context.Context, junSess *junos.Session) (path.Path, error) {
+func (rscData *securityIpsecProposalData) set(
+	_ context.Context, junSess *junos.Session,
+) (
+	path.Path, error,
+) {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ipsec proposal " + rscData.Name.ValueString() + " "
@@ -509,8 +517,11 @@ func (rscData *securityIpsecProposalData) set(_ context.Context, junSess *junos.
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityIpsecProposalData) read(_ context.Context, name string, junSess *junos.Session,
-) (err error) {
+func (rscData *securityIpsecProposalData) read(
+	_ context.Context, name string, junSess *junos.Session,
+) (
+	err error,
+) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ipsec proposal " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -553,7 +564,9 @@ func (rscData *securityIpsecProposalData) read(_ context.Context, name string, j
 	return nil
 }
 
-func (rscData *securityIpsecProposalData) del(_ context.Context, junSess *junos.Session) error {
+func (rscData *securityIpsecProposalData) del(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security ipsec proposal " + rscData.Name.ValueString(),
 	}
