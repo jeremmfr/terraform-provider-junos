@@ -1,6 +1,6 @@
 default: install
 
-.PHONY: install testacc testacc_srx testacc_router testacc_switch testunit cleanout
+.PHONY: install testacc testacc_srx testacc_router testacc_switch testunit cleanout changemd
 
 # Install to use dev_overrides in provider_installation of Terraform
 install:
@@ -36,3 +36,6 @@ testunit:
 # Cleanup out files from tests
 cleanout:
 	find . -maxdepth 1 -name "*.out" -type f -delete
+
+changemd:
+	cp .changes/.template.md .changes/$(shell git rev-parse --abbrev-ref HEAD).md
