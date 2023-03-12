@@ -824,7 +824,7 @@ func (rsc *securityIpsecVpn) Read(
 
 		return
 	}
-	if data.ID.ValueString() == "" {
+	if data.ID.IsNull() {
 		resp.State.RemoveResource(ctx)
 
 		return
