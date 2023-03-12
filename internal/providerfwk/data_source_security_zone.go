@@ -306,7 +306,7 @@ func (dsc *securityZoneDataSource) Read(
 
 		return
 	}
-	if rscData.Name.IsNull() {
+	if rscData.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf(dsc.junosName()+" %q doesn't exist", name.ValueString()),

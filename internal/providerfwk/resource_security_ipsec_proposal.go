@@ -435,13 +435,14 @@ func (rsc *securityIpsecProposal) ImportState(
 	}
 	defer junSess.Close()
 
-	proposalExists, err := checkSecurityIpsecProposalExists(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+	var data securityIpsecProposalData
+	if err := data.read(ctx, req.ID, junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
-	if !proposalExists {
+
+	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
@@ -450,18 +451,7 @@ func (rsc *securityIpsecProposal) ImportState(
 
 		return
 	}
-
-	var data securityIpsecProposalData
-	err = data.read(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-
-	if !data.ID.IsNull() {
-		resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkSecurityIpsecProposalExists(

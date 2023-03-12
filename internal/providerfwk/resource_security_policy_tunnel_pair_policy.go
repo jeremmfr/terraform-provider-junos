@@ -425,20 +425,15 @@ func (rsc *securityPolicyTunnelPairPolicy) ImportState(
 
 		return
 	}
-	pairPolicyExists, err := checkSecurityPolicyTunnelPairPolicyExists(
-		ctx,
-		idList[0],
-		idList[1],
-		idList[2],
-		idList[3],
-		junSess,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+
+	var data securityPolicyTunnelPairPolicyData
+	if err := data.read(ctx, idList[0], idList[1], idList[2], idList[3], junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
-	if !pairPolicyExists {
+
+	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
@@ -448,18 +443,7 @@ func (rsc *securityPolicyTunnelPairPolicy) ImportState(
 
 		return
 	}
-
-	var data securityPolicyTunnelPairPolicyData
-	err = data.read(ctx, idList[0], idList[1], idList[2], idList[3], junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-
-	if !data.ID.IsNull() {
-		resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkSecurityPolicyTunnelPairPolicyExists(

@@ -604,13 +604,15 @@ func (rsc *securityZoneBookAddress) ImportState(
 
 		return
 	}
-	addressExists, err := checkSecurityZoneBookAddressExists(ctx, idList[0], idList[1], junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+
+	var data securityZoneBookAddressData
+	if err := data.read(ctx, idList[0], idList[1], junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
-	if !addressExists {
+
+	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
@@ -619,18 +621,7 @@ func (rsc *securityZoneBookAddress) ImportState(
 
 		return
 	}
-
-	var data securityZoneBookAddressData
-	err = data.read(ctx, idList[0], idList[1], junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-
-	if !data.ID.IsNull() {
-		resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkSecurityZoneBookAddressExists(

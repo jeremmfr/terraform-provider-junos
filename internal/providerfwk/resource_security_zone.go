@@ -919,13 +919,14 @@ func (rsc *securityZone) ImportState(
 	}
 	defer junSess.Close()
 
-	zoneExists, err := checkSecurityZonesExists(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+	var data securityZoneData
+	if err := data.read(ctx, req.ID, junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
-	if !zoneExists {
+
+	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
@@ -934,16 +935,7 @@ func (rsc *securityZone) ImportState(
 
 		return
 	}
-
-	var data securityZoneData
-	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-	if !data.ID.IsNull() {
-		resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkSecurityZonesExists(

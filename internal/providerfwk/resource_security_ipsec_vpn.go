@@ -983,13 +983,14 @@ func (rsc *securityIpsecVpn) ImportState(
 	}
 	defer junSess.Close()
 
-	vpnExists, err := checkSecurityIpsecVpnExists(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+	var data securityIpsecVpnData
+	if err := data.read(ctx, req.ID, junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
-	if !vpnExists {
+
+	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
@@ -998,18 +999,7 @@ func (rsc *securityIpsecVpn) ImportState(
 
 		return
 	}
-
-	var data securityIpsecVpnData
-	err = data.read(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-
-	if !data.ID.IsNull() {
-		resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkSecurityIpsecVpnExists(

@@ -719,8 +719,7 @@ func (rsc *securityGlobalPolicy) ImportState(
 	defer junSess.Close()
 
 	var data securityGlobalPolicyData
-	err = data.read(ctx, junSess)
-	if err != nil {
+	if err := data.read(ctx, junSess); err != nil {
 		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return

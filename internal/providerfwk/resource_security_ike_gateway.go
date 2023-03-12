@@ -914,13 +914,14 @@ func (rsc *securityIkeGateway) ImportState(
 	}
 	defer junSess.Close()
 
-	gatewayExists, err := checkSecurityIkeGatewayExists(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+	var data securityIkeGatewayData
+	if err := data.read(ctx, req.ID, junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
-	if !gatewayExists {
+
+	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
@@ -929,18 +930,7 @@ func (rsc *securityIkeGateway) ImportState(
 
 		return
 	}
-
-	var data securityIkeGatewayData
-	err = data.read(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-
-	if !data.ID.IsNull() {
-		resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkSecurityIkeGatewayExists(

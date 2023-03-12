@@ -829,13 +829,14 @@ func (rsc *securityAddressBook) ImportState(
 	}
 	defer junSess.Close()
 
-	bookExists, err := checkSecurityAddressBookExists(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+	var data securityAddressBookData
+	if err := data.read(ctx, req.ID, junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
-	if !bookExists {
+
+	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
@@ -844,18 +845,7 @@ func (rsc *securityAddressBook) ImportState(
 
 		return
 	}
-
-	var data securityAddressBookData
-	err = data.read(ctx, req.ID, junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-
-	if !data.ID.IsNull() {
-		resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkSecurityAddressBookExists(

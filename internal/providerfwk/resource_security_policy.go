@@ -874,13 +874,15 @@ func (rsc *securityPolicy) ImportState(
 
 		return
 	}
-	policyExists, err := checkSecurityPolicyExists(ctx, idList[0], idList[1], junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+
+	var data securityPolicyData
+	if err := data.read(ctx, idList[0], idList[1], junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
-	if !policyExists {
+
+	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
@@ -889,18 +891,7 @@ func (rsc *securityPolicy) ImportState(
 
 		return
 	}
-
-	var data securityPolicyData
-	err = data.read(ctx, idList[0], idList[1], junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-
-	if !data.ID.IsNull() {
-		resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkSecurityPolicyExists(
