@@ -37,9 +37,9 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Text description of routing instance.
 - **instance_export** (Optional, List of String)  
-  Export policy for instance RIBs
+  Export policy for instance RIBs.
 - **instance_import** (Optional, List of String)  
-  Import policy for instance RIBs
+  Import policy for instance RIBs.
 - **route_distinguisher** (Optional, String)  
   Route distinguisher for this instance.
 - **router_id** (Optional, String)  

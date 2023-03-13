@@ -185,12 +185,14 @@ func (p *junosProvider) Schema(
 
 func (p *junosProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		newRoutingInstanceDataSource,
 		newSecurityZoneDataSource,
 	}
 }
 
 func (p *junosProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		newRoutingInstance,
 		newSecurityAddressBookResource,
 		newSecurityGlobalPolicyResource,
 		newSecurityIkeGatewayResource,

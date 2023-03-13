@@ -17,10 +17,18 @@ var (
 	_ validator.String = StringWildcardNetwork()
 )
 
-type StringIPAddressValidator struct{}
+type StringIPAddressValidator struct {
+	v4only bool
+}
 
 func StringIPAddress() StringIPAddressValidator {
 	return StringIPAddressValidator{}
+}
+
+func (v StringIPAddressValidator) IPv4Only() StringIPAddressValidator {
+	v.v4only = true
+
+	return v
 }
 
 func (v StringIPAddressValidator) Description(ctx context.Context) string {
@@ -40,7 +48,8 @@ func (v StringIPAddressValidator) ValidateString(
 
 	value := req.ConfigValue.ValueString()
 
-	if ip := net.ParseIP(value); ip == nil {
+	ip := net.ParseIP(value)
+	if ip == nil {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid IP Address",
@@ -48,6 +57,15 @@ func (v StringIPAddressValidator) ValidateString(
 		)
 
 		return
+	}
+	if v.v4only {
+		if ip.To4() == nil {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid IPv4 Address",
+				fmt.Sprintf("string is not an IPv4 address: %q", value),
+			)
+		}
 	}
 }
 

@@ -35,9 +35,9 @@ The following arguments are supported:
   List of source address prefix ranges to accept.  
   Conflict with `client_list_name`.
 - **routing_instance** (Optional, Block List)  
-  For each name of routing-instance, accept clients.
+  For each name of routing instance, accept clients.
   - **name** (Required, String)  
-    Name of routing-instance.
+    Name of routing instance.
   - **client_list_name** (Optional, String)  
     The name of client list or prefix list.
   - **clients** (Optional, Set of String)  

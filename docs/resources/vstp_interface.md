@@ -21,7 +21,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   Interface name or `all`.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Configure VSTP interface in routing-instance.  
+  Configure VSTP interface in routing instance.  
   Need to be `default` (for root level) or name of routing instance.  
   Defaults to `default`.
 - **vlan** (Optional, String)  

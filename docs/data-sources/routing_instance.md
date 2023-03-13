@@ -35,11 +35,11 @@ The following attributes are exported:
 - **description** (String)  
   Text description of routing instance.
 - **instance_export** (List of String)  
-  Export policy for instance RIBs
+  Export policy for instance RIBs.
 - **instance_import** (List of String)  
-  Import policy for instance RIBs
+  Import policy for instance RIBs.
 - **interface** (Set of String)  
-  List of interfaces in routing-instance.
+  List of interfaces in routing instance.
 - **route_distinguisher** (String)  
   Route distinguisher for this instance.
 - **router_id** (String)  
