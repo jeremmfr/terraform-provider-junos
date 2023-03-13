@@ -29,9 +29,8 @@ The following arguments are supported:
 - **st0_also_on_destroy** (Optional, Boolean)  
   When destroy this resource, if the name has prefix `st0.`,
   delete all configurations (not keep empty st0 interface).  
-  Usually, `st0.x` interfaces are completely deleted with `bind_interface_auto` argument in
-  `junos_security_ipsec_vpn` resource or by `junos_interface_st0_unit` resource because of
-  the dependency, but only if st0.x interface is empty or disable.
+  Usually, `st0.x` interfaces are completely deleted by `junos_interface_st0_unit` resource
+  because of the dependency, but only if st0.x interface is empty or disable.
 - **description** (Optional, String)  
   Description for interface.
 - **disable** (Optional, Boolean)  

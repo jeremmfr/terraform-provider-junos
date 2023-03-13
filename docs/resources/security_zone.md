@@ -30,13 +30,13 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   The name of security zone.
 - **address_book** (Optional, Block Set)  
-  For each name of address to declare.
+  For each name of network address to declare.
   - **name** (Required, String)  
-    Name of address.
+    Name of network address.
   - **network** (Required, String)  
-    CIDR of address.
+    CIDR value of network address (`192.0.0.0/24`).
   - **description** (Optional, String)  
-    Description of address.
+    Description of network address.
 - **address_book_configure_singly** (Optional, Boolean)  
   Disable management of address-book in this resource to be able to manage them with specific
   resources.  
@@ -44,11 +44,11 @@ The following arguments are supported:
 - **address_book_dns** (Optional, Block Set)  
   For each name of dns-name address to declare.
   - **name** (Required, String)  
-    Name of address.
+    Name of dns name address.
   - **fqdn** (Required, String)  
     Fully qualified domain name.
   - **description** (Optional, String)  
-    Description of address.
+    Description of dns name address.
   - **ipv4_only** (Optional, Boolean)  
     IPv4 dns address.
   - **ipv6_only** (Optional, Boolean)  
@@ -56,13 +56,13 @@ The following arguments are supported:
 - **address_book_range** (Optional, Block Set)  
   For each name of range-address to declare.
   - **name** (Required, String)  
-    Name of address.
+    Name of range address.
   - **from** (Required, String)  
     Lower limit of address range.
   - **to** (Required, String)  
     Upper limit of address range.
   - **description** (Optional, String)  
-    Description of address.
+    Description of range address.
 - **address_book_set** (Optional, Block Set)  
   For each name of address-set to declare.
   - **name** (Required, String)  
@@ -76,11 +76,11 @@ The following arguments are supported:
 - **address_book_wildcard** (Optional, Block Set)  
   For each name of wildcard-address to declare.
   - **name** (Required, String)  
-    Name of address.
+    Name of wildcard address.
   - **network** (Required, String)  
     Numeric IPv4 wildcard address with in the form of a.d.d.r/netmask.
   - **description** (Optional, String)  
-    Description of address.
+    Description of wildcard address.
 - **advance_policy_based_routing_profile** (Optional, String)  
   Enable Advance Policy Based Routing on this zone with a profile.
 - **application_tracking** (Optional, Boolean)  

@@ -37,16 +37,6 @@ The following arguments are supported:
 - **no_disable_on_destroy** (Optional, Boolean)  
   When destroy this resource, delete all configurations => do not add
   `disable` + `description NC` or `apply-groups` with `group_interface_delete` provider argument on interface.
-- **ae_lacp** (Optional, String, **Deprecated**)  
-  Add lacp option in aggregated-ether-options.  
-  Need to be `active` or `passive` for initiate transmission or respond.  
-  Deprecated argument, use the `parent_ether_opts` argument instead.
-- **ae_link_speed**  (Optional, String, **Deprecated**)  
-  Link speed of individual interface that joins the AE.  
-  Deprecated argument, use the `parent_ether_opts` argument instead.
-- **ae_minimum_links** (Optional, Number, **Deprecated**)  
-  Minimum number of aggregated links.  
-  Deprecated argument, use the `parent_ether_opts` argument instead.
 - **description** (Optional, String)  
   Description for interface.
 - **disable** (Optional, Boolean)  
@@ -73,9 +63,6 @@ The following arguments are supported:
     Don't enable loopback.
   - **redundant_parent** (Optional, String)  
     Name of a redundant ethernet interface to join.
-- **ether802_3ad** (Optional, String, **Deprecated**)  
-  Name of aggregated device for add this interface to link of 802.3ad interface.  
-  Deprecated argument, use the `ether_opts` or `gigether_opts` argument instead.
 - **gigether_opts** (Optional, Block)  
   Declare `gigether-options` configuration.  
   Conflict with `ether_opts`.

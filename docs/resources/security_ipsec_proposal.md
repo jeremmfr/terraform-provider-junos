@@ -4,12 +4,12 @@ page_title: "Junos: junos_security_ipsec_proposal"
 
 # junos_security_ipsec_proposal
 
-Provides a security ipsec proposal resource.
+Provides a security IPSec proposal resource.
 
 ## Example Usage
 
 ```hcl
-# Add an ipsec proposal
+# Add an IPSec proposal
 resource "junos_security_ipsec_proposal" "demo_vpn_proposal" {
   name                     = "ipsec-proposal"
   authentication_algorithm = "hmac-sha1-96"
@@ -24,9 +24,11 @@ resource "junos_security_ipsec_proposal" "demo_vpn_proposal" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of ipsec proposal.
+  The name of IPSec proposal.
 - **authentication_algorithm** (Optional, String)  
   Authentication algorithm.
+- **description** (Optional, String)  
+  Text description of IPSec proposal.
 - **encryption_algorithm** (Optional, String)  
   Encryption algorithm.
 - **lifetime_seconds** (Optional, Number)  
@@ -46,7 +48,7 @@ The following attributes are exported:
 
 ## Import
 
-Junos security ipsec proposal can be imported using an id made up of `<name>`, e.g.
+Junos security IPSec proposal can be imported using an id made up of `<name>`, e.g.
 
 ```shell
 $ terraform import junos_security_ipsec_proposal.demo_vpn_proposal ipsec-proposal

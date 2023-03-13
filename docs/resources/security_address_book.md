@@ -63,14 +63,6 @@ The following arguments are supported:
     CIDR value of network address (`192.0.0.0/24`).
   - **description** (Optional, String)  
     Description of network address.
-- **wildcard_address** (Optional, Block Set)  
-  For each name of wildcard address.
-  - **name** (Required, String)  
-    Name of wildcard address.
-  - **value** (Required, String)  
-    Network and mask of wildcard address (`192.0.0.0/255.255.0.255`).
-  - **description** (Optional, String)  
-    Description of wildcard address.
 - **dns_name** (Optional, Block Set)  
   For each name of dns name address.
   - **name** (Required, String)  
@@ -93,6 +85,14 @@ The following arguments are supported:
     IP address of end of range.
   - **description** (Optional, String)  
     Description of range address.
+- **wildcard_address** (Optional, Block Set)  
+  For each name of wildcard address.
+  - **name** (Required, String)  
+    Name of wildcard address.
+  - **value** (Required, String)  
+    Network and mask of wildcard address (`192.0.0.0/255.255.0.255`).
+  - **description** (Optional, String)  
+    Description of wildcard address.
 - **address_set** (Optional, Block Set)  
   For each name of address-set to declare.
   - **name** (Required, String)  

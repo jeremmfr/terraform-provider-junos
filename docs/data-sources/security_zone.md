@@ -4,12 +4,12 @@ page_title: "Junos: junos_security_zone"
 
 # junos_security_zone
 
-Get information from a security zone.
+Get configuration from a security zone.
 
 ## Example Usage
 
 ```hcl
-# Read security zone
+# Read security zone configuration
 data "junos_security_zone" "demo_zone" {
   name = "DemoZone"
 }
@@ -31,19 +31,19 @@ The following attributes are exported:
 - **address_book** (Block Set)  
   For each name of address.
   - **name** (String)  
-    Name of address.
+    Name of network address.
   - **network** (String)  
-    CIDR of address.
+    CIDR value of network address.
   - **description** (String)  
-    Description of address.
+    Description of network address.
 - **address_book_dns** (Block Set)  
   For each name of dns-name address.
   - **name** (String)  
-    Name of address.
+    Name of dns name address.
   - **fqdn** (String)  
     Fully qualified domain name.
   - **description** (String)  
-    Description of address.
+    Description of dns name address.
   - **ipv4_only** (Boolean)  
     IPv4 dns address.
   - **ipv6_only** (Boolean)  
@@ -51,13 +51,13 @@ The following attributes are exported:
 - **address_book_range** (Block Set)  
   For each name of range-address.
   - **name** (String)  
-    Name of address.
+    Name of range address.
   - **from** (String)  
     Lower limit of address range.
   - **to** (String)  
     Upper limit of address range.
   - **description** (String)  
-    Description of address.
+    Description of range address.
 - **address_book_set** (Block Set)  
   For each name of address-set.
   - **name** (String)  
@@ -71,11 +71,11 @@ The following attributes are exported:
 - **address_book_wildcard** (Block Set)  
   For each name of wildcard-address.
   - **name** (String)  
-    Name of address.
+    Name of wildcard address.
   - **network** (String)  
     Numeric IPv4 wildcard address with in the form of a.d.d.r/netmask.
   - **description** (String)  
-    Description of address.
+    Description of wildcard address.
 - **advance_policy_based_routing_profile** (String)  
   Enable Advance Policy Based Routing on this zone with a profile.
 - **application_tracking** (Boolean)  

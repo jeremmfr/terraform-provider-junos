@@ -147,9 +147,6 @@ The following arguments are supported:
   Enable TCP path MTU discovery.
 - **multihop** (Optional, Boolean)  
   Configure an EBGP multihop session.
-- **multipath** (Optional, Boolean, **Deprecated**)  
-  Allow load sharing among multiple BGP paths.  
-  Deprecated argument, use the `bgp_multipath` argument instead.
 - **out_delay** (Optional, Number)  
   How long before exporting routes from routing table.
 - **passive** (Optional, Boolean)  

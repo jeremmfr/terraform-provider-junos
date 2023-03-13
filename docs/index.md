@@ -147,11 +147,11 @@ The following arguments are supported in the `provider` block:
   Ciphers used in SSH connection.  
   Defaults to [
   `aes128-gcm@openssh.com`,
+  `aes256-gcm@openssh.com`,
   `chacha20-poly1305@openssh.com`,
   `aes128-ctr`,
   `aes192-ctr`,
-  `aes256-ctr`,
-  `aes128-cbc`
+  `aes256-ctr`
   ]
 
 - **ssh_timeout_to_establish** (Optional, Number)  
@@ -205,8 +205,6 @@ The following arguments are supported in the `provider` block:
   - **junos_interface_st0_unit** cannot take into account the option and run still
     normal process.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
-  - **junos_security_ipsec_vpn** with `bind_interface_auto`=`true` cannot take into account the
-    option and run still normal process.
 
   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment
   variable.  
@@ -225,7 +223,6 @@ The following arguments are supported in the `provider` block:
   in tfstate. A `terraform refresh` will be able to detect parts of errors but
   **be careful with this option**.  
   There are exceptions for resources :
-  - **junos_interface**, it's a deprecated resource
   - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
@@ -242,7 +239,6 @@ The following arguments are supported in the `provider` block:
   As with `fake_create_with_setfile`, this option may leave extra config (not managed by Terraform)
   on Junos device. **Be careful with this option**.  
   There are exceptions for resources :
-  - **junos_interface**, it's a deprecated resource
   - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
