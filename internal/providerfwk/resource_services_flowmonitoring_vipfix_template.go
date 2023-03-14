@@ -13,6 +13,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -124,6 +125,13 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"flow_key_output_interface": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Include output interface.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"flow_key_vlan_id": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Include vlan ID.",
@@ -139,6 +147,17 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) Schema(
 					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+					),
+				},
+			},
+			"mpls_template_label_position": schema.ListAttribute{
+				ElementType: types.Int64Type,
+				Optional:    true,
+				Description: "One or more MPLS label positions (1..8).",
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
+					listvalidator.ValueInt64sAre(
+						int64validator.Between(1, 8),
 					),
 				},
 			},
@@ -215,49 +234,77 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) Schema(
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
+			"template_refresh_rate": schema.SingleNestedBlock{
+				Description: "Declare `template-refresh-rate` configuration.",
+				Attributes: map[string]schema.Attribute{
+					"packets": schema.Int64Attribute{
+						Optional:    true,
+						Description: "In number of packets (1..480000)",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 480000),
+						},
+					},
+					"seconds": schema.Int64Attribute{
+						Optional:    true,
+						Description: "In number of seconds (10..600).",
+						Validators: []validator.Int64{
+							int64validator.Between(10, 600),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
 		},
 	}
 }
 
 type servicesFlowMonitoringVIPFixTemplateData struct {
-	FlowKeyFlowDirection      types.Bool                                             `tfsdk:"flow_key_flow_direction"`
-	FlowKeyVlanID             types.Bool                                             `tfsdk:"flow_key_vlan_id"`
-	NexthopLearningEnable     types.Bool                                             `tfsdk:"nexthop_learning_enable"`
-	NexthopLearningDisable    types.Bool                                             `tfsdk:"nexthop_learning_disable"`
-	ID                        types.String                                           `tfsdk:"id"`
-	Name                      types.String                                           `tfsdk:"name"`
-	Type                      types.String                                           `tfsdk:"type"`
-	FlowActiveTimeout         types.Int64                                            `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout       types.Int64                                            `tfsdk:"flow_inactive_timeout"`
-	IPTemplateExportExtension []types.String                                         `tfsdk:"ip_template_export_extension"`
-	ObservationDomainID       types.Int64                                            `tfsdk:"observation_domain_id"`
-	OptionTemplateID          types.Int64                                            `tfsdk:"option_template_id"`
-	TemplateID                types.Int64                                            `tfsdk:"template_id"`
-	TunnelObservationIPv4     types.Bool                                             `tfsdk:"tunnel_observation_ipv4"`
-	TunnelObservationIPv6     types.Bool                                             `tfsdk:"tunnel_observation_ipv6"`
-	OptionRefreshRate         *servicesFlowMonitoringVIPFixTemplateOptionRefreshRate `tfsdk:"option_refresh_rate"`
+	FlowKeyFlowDirection      types.Bool                                       `tfsdk:"flow_key_flow_direction"`
+	FlowKeyOutputInterface    types.Bool                                       `tfsdk:"flow_key_output_interface"`
+	FlowKeyVlanID             types.Bool                                       `tfsdk:"flow_key_vlan_id"`
+	NexthopLearningEnable     types.Bool                                       `tfsdk:"nexthop_learning_enable"`
+	NexthopLearningDisable    types.Bool                                       `tfsdk:"nexthop_learning_disable"`
+	TunnelObservationIPv4     types.Bool                                       `tfsdk:"tunnel_observation_ipv4"`
+	TunnelObservationIPv6     types.Bool                                       `tfsdk:"tunnel_observation_ipv6"`
+	ID                        types.String                                     `tfsdk:"id"`
+	Name                      types.String                                     `tfsdk:"name"`
+	Type                      types.String                                     `tfsdk:"type"`
+	FlowActiveTimeout         types.Int64                                      `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout       types.Int64                                      `tfsdk:"flow_inactive_timeout"`
+	IPTemplateExportExtension []types.String                                   `tfsdk:"ip_template_export_extension"`
+	MPLSTemplateLabelPosition []types.Int64                                    `tfsdk:"mpls_template_label_position"`
+	ObservationDomainID       types.Int64                                      `tfsdk:"observation_domain_id"`
+	OptionTemplateID          types.Int64                                      `tfsdk:"option_template_id"`
+	TemplateID                types.Int64                                      `tfsdk:"template_id"`
+	OptionRefreshRate         *servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"option_refresh_rate"`
+	TemplateRefreshRate       *servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"template_refresh_rate"`
 }
 
 type servicesFlowMonitoringVIPFixTemplateConfig struct {
-	FlowKeyFlowDirection      types.Bool                                             `tfsdk:"flow_key_flow_direction"`
-	FlowKeyVlanID             types.Bool                                             `tfsdk:"flow_key_vlan_id"`
-	NexthopLearningEnable     types.Bool                                             `tfsdk:"nexthop_learning_enable"`
-	NexthopLearningDisable    types.Bool                                             `tfsdk:"nexthop_learning_disable"`
-	ID                        types.String                                           `tfsdk:"id"`
-	Name                      types.String                                           `tfsdk:"name"`
-	Type                      types.String                                           `tfsdk:"type"`
-	FlowActiveTimeout         types.Int64                                            `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout       types.Int64                                            `tfsdk:"flow_inactive_timeout"`
-	IPTemplateExportExtension types.Set                                              `tfsdk:"ip_template_export_extension"`
-	ObservationDomainID       types.Int64                                            `tfsdk:"observation_domain_id"`
-	OptionTemplateID          types.Int64                                            `tfsdk:"option_template_id"`
-	TemplateID                types.Int64                                            `tfsdk:"template_id"`
-	TunnelObservationIPv4     types.Bool                                             `tfsdk:"tunnel_observation_ipv4"`
-	TunnelObservationIPv6     types.Bool                                             `tfsdk:"tunnel_observation_ipv6"`
-	OptionRefreshRate         *servicesFlowMonitoringVIPFixTemplateOptionRefreshRate `tfsdk:"option_refresh_rate"`
+	FlowKeyFlowDirection      types.Bool                                       `tfsdk:"flow_key_flow_direction"`
+	FlowKeyOutputInterface    types.Bool                                       `tfsdk:"flow_key_output_interface"`
+	FlowKeyVlanID             types.Bool                                       `tfsdk:"flow_key_vlan_id"`
+	NexthopLearningEnable     types.Bool                                       `tfsdk:"nexthop_learning_enable"`
+	NexthopLearningDisable    types.Bool                                       `tfsdk:"nexthop_learning_disable"`
+	TunnelObservationIPv4     types.Bool                                       `tfsdk:"tunnel_observation_ipv4"`
+	TunnelObservationIPv6     types.Bool                                       `tfsdk:"tunnel_observation_ipv6"`
+	ID                        types.String                                     `tfsdk:"id"`
+	Name                      types.String                                     `tfsdk:"name"`
+	Type                      types.String                                     `tfsdk:"type"`
+	FlowActiveTimeout         types.Int64                                      `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout       types.Int64                                      `tfsdk:"flow_inactive_timeout"`
+	IPTemplateExportExtension types.Set                                        `tfsdk:"ip_template_export_extension"`
+	MPLSTemplateLabelPosition types.List                                       `tfsdk:"mpls_template_label_position"`
+	ObservationDomainID       types.Int64                                      `tfsdk:"observation_domain_id"`
+	OptionTemplateID          types.Int64                                      `tfsdk:"option_template_id"`
+	TemplateID                types.Int64                                      `tfsdk:"template_id"`
+	OptionRefreshRate         *servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"option_refresh_rate"`
+	TemplateRefreshRate       *servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"template_refresh_rate"`
 }
 
-type servicesFlowMonitoringVIPFixTemplateOptionRefreshRate struct {
+type servicesFlowMonitoringVIPFixTemplateRefreshRate struct {
 	Packets types.Int64 `tfsdk:"packets"`
 	Seconds types.Int64 `tfsdk:"seconds"`
 }
@@ -285,6 +332,16 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) ValidateConfig(
 				path.Root("ip_template_export_extension"),
 				"Conflict Configuration Error",
 				fmt.Sprintf("ip_template_export_extension not compatible with type %q", v),
+			)
+		}
+	}
+	if !config.MPLSTemplateLabelPosition.IsNull() &&
+		!config.Type.IsNull() && !config.Type.IsUnknown() {
+		if v := config.Type.ValueString(); v != "mpls-template" {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("mpls_template_label_position"),
+				"Conflict Configuration Error",
+				fmt.Sprintf("mpls_template_label_position not compatible with type %q", v),
 			)
 		}
 	}
@@ -626,7 +683,16 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) set(
 			return path.Root("ip_template_export_extension"),
 				fmt.Errorf("ip_template_export_extension not compatible with type %q", v2)
 		}
-		configSet = append(configSet, setPrefix+rscData.Type.ValueString()+" export-extension "+v.ValueString())
+		configSet = append(configSet,
+			setPrefix+rscData.Type.ValueString()+" export-extension "+v.ValueString())
+	}
+	for _, v := range rscData.MPLSTemplateLabelPosition {
+		if v2 := rscData.Type.ValueString(); v2 != "mpls-template" {
+			return path.Root("mpls_template_label_position"),
+				fmt.Errorf("mpls_template_label_position not compatible with type %q", v2)
+		}
+		configSet = append(configSet,
+			setPrefix+rscData.Type.ValueString()+" label-position "+utils.ConvI64toa(v.ValueInt64()))
 	}
 	if !rscData.FlowActiveTimeout.IsNull() {
 		configSet = append(configSet, setPrefix+"flow-active-timeout "+
@@ -638,6 +704,9 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) set(
 	}
 	if rscData.FlowKeyFlowDirection.ValueBool() {
 		configSet = append(configSet, setPrefix+"flow-key flow-direction")
+	}
+	if rscData.FlowKeyOutputInterface.ValueBool() {
+		configSet = append(configSet, setPrefix+"flow-key output-interface")
 	}
 	if rscData.FlowKeyVlanID.ValueBool() {
 		configSet = append(configSet, setPrefix+"flow-key vlan-id")
@@ -670,6 +739,17 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) set(
 	if !rscData.TemplateID.IsNull() {
 		configSet = append(configSet, setPrefix+"template-id "+
 			utils.ConvI64toa(rscData.TemplateID.ValueInt64()))
+	}
+	if rscData.TemplateRefreshRate != nil {
+		configSet = append(configSet, setPrefix+"template-refresh-rate")
+		if !rscData.TemplateRefreshRate.Packets.IsNull() {
+			configSet = append(configSet, setPrefix+"template-refresh-rate packets "+
+				utils.ConvI64toa(rscData.TemplateRefreshRate.Packets.ValueInt64()))
+		}
+		if !rscData.TemplateRefreshRate.Seconds.IsNull() {
+			configSet = append(configSet, setPrefix+"template-refresh-rate seconds "+
+				utils.ConvI64toa(rscData.TemplateRefreshRate.Seconds.ValueInt64()))
+		}
 	}
 	if rscData.TunnelObservationIPv4.ValueBool() {
 		configSet = append(configSet, setPrefix+"tunnel-observation ipv4")
@@ -711,6 +791,13 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) read(
 			case balt.CutPrefixInString(&itemTrim, "ipv4-template export-extension "):
 				rscData.Type = types.StringValue("ipv4-template")
 				rscData.IPTemplateExportExtension = append(rscData.IPTemplateExportExtension, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "mpls-template label-position "):
+				rscData.Type = types.StringValue("mpls-template")
+				number, err := tfdata.ConvAtoi64Value(itemTrim)
+				if err != nil {
+					return err
+				}
+				rscData.MPLSTemplateLabelPosition = append(rscData.MPLSTemplateLabelPosition, number)
 			case balt.CutPrefixInString(&itemTrim, "flow-active-timeout "):
 				rscData.FlowActiveTimeout, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
@@ -723,6 +810,8 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) read(
 				}
 			case itemTrim == "flow-key flow-direction":
 				rscData.FlowKeyFlowDirection = types.BoolValue(true)
+			case itemTrim == "flow-key output-interface":
+				rscData.FlowKeyOutputInterface = types.BoolValue(true)
 			case itemTrim == "flow-key vlan-id":
 				rscData.FlowKeyVlanID = types.BoolValue(true)
 			case itemTrim == "nexthop-learning enable":
@@ -736,7 +825,7 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "option-refresh-rate"):
 				if rscData.OptionRefreshRate == nil {
-					rscData.OptionRefreshRate = &servicesFlowMonitoringVIPFixTemplateOptionRefreshRate{}
+					rscData.OptionRefreshRate = &servicesFlowMonitoringVIPFixTemplateRefreshRate{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " packets "):
@@ -754,6 +843,22 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) read(
 				rscData.OptionTemplateID, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
 					return err
+				}
+			case balt.CutPrefixInString(&itemTrim, "template-refresh-rate"):
+				if rscData.TemplateRefreshRate == nil {
+					rscData.TemplateRefreshRate = &servicesFlowMonitoringVIPFixTemplateRefreshRate{}
+				}
+				switch {
+				case balt.CutPrefixInString(&itemTrim, " packets "):
+					rscData.TemplateRefreshRate.Packets, err = tfdata.ConvAtoi64Value(itemTrim)
+					if err != nil {
+						return err
+					}
+				case balt.CutPrefixInString(&itemTrim, " seconds "):
+					rscData.TemplateRefreshRate.Seconds, err = tfdata.ConvAtoi64Value(itemTrim)
+					if err != nil {
+						return err
+					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "template-id "):
 				rscData.TemplateID, err = tfdata.ConvAtoi64Value(itemTrim)

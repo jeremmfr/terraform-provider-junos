@@ -31,10 +31,15 @@ The following arguments are supported:
   Period of inactivity that marks a flow inactive (10..600).
 - **flow_key_flow_direction** (Optional, Boolean)  
   Include flow direction.
+- **flow_key_output_interface** (Optional, Boolean)  
+  Include output interface.
 - **flow_key_vlan_id** (Optional, Boolean)  
   Include vlan ID.
 - **ip_template_export_extension** (Optional, Set of String)  
   Export-extension for `ipv4-template`, `ipv6-template` type.
+- **mpls_template_label_position** (Optional, List of number)  
+  One or more MPLS label positions (1..8).  
+  `type` need to be `mpls-template`.
 - **nexthop_learning_enable** (Optional, Boolean)  
   Enable nexthop learning.
 - **nexthop_learning_disable** (Optional, Boolean)  
@@ -51,6 +56,12 @@ The following arguments are supported:
   Options template id (1024..65535).
 - **template_id** (Optional, Number)  
   Template id (1024..65535).
+- **template_refresh_rate** (Optional, Block)  
+  Declare `template-refresh-rate` configuration.
+  - **packets** (Optional, Number)  
+    In number of packets (1..480000).
+  - **seconds** (Optional, Number)  
+    In number of seconds (10..600).
 - **tunnel_observation_ipv4** (Optional, Boolean)  
   Tunnel observation IPv4.
 - **tunnel_observation_ipv6** (Optional, Boolean)  
