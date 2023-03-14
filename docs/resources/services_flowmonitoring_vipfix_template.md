@@ -21,10 +21,10 @@ resource "junos_services_flowmonitoring_vipfix_template" "demo" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Name of flow-monitoring ip-fix template.
+  Name of flow-monitoring version-ipfix template.
 - **type** (Required, String)  
   Type of template.  
-  Need to be `ipv4-template`, `ipv6-template` or `mpls-template`.
+  Need to be `bridge-template`, `ipv4-template`, `ipv6-template` or `mpls-template`.
 - **flow_active_timeout** (Optional, Number)  
   Interval after which active flow is exported (10..600).
 - **flow_inactive_timeout** (Optional, Number)  
@@ -44,9 +44,9 @@ The following arguments are supported:
 - **option_refresh_rate** (Optional, Block)  
   Declare `option-refresh-rate` configuration.
   - **packets** (Optional, Number)  
-    In number of packets (1..480000)
+    In number of packets (1..480000).
   - **seconds** (Optional, Number)  
-    In number of seconds (10..600)
+    In number of seconds (10..600).
 - **option_template_id** (Optional, Number)  
   Options template id (1024..65535).
 - **template_id** (Optional, Number)  

@@ -210,7 +210,6 @@ func Provider() *schema.Provider {
 			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
 			"junos_services":                                             resourceServices(),
 			"junos_services_advanced_anti_malware_policy":                resourceServicesAdvancedAntiMalwarePolicy(),
-			"junos_services_flowmonitoring_vipfix_template":              resourceServicesFlowMonitoringVIPFixTemplate(),
 			"junos_services_proxy_profile":                               resourceServicesProxyProfile(),
 			"junos_services_rpm_probe":                                   resourceServicesRpmProbe(),
 			"junos_services_ssl_initiation_profile":                      resourceServicesSSLInitiationProfile(),
