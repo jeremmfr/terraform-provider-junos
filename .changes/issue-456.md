@@ -1,4 +1,8 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
+FEATURES:
+
+* add **junos_services_flowmonitoring_v9_template** resource (Partial fix [#456](https://github.com/jeremmfr/terraform-provider-junos/issues/456))
+
 ENHANCEMENTS:
 
 * **resource/junos_services_flowmonitoring_vipfix_template**:
