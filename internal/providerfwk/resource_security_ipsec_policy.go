@@ -270,7 +270,6 @@ func (rsc *securityIpsecPolicy) Create(
 
 	policyExists, err = checkSecurityIpsecPolicyExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
