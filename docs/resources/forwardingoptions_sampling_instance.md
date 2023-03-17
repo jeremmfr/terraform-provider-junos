@@ -33,7 +33,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   Name for sampling instance.
 - **disable** (Optional, Boolean)  
-  Disable sampling instance
+  Disable sampling instance.
 - **family_inet_input** (Optional, Block)  
   Declare `family inet input` configuration.  
   See [below for nested schema](#input-arguments).
@@ -50,7 +50,7 @@ The following arguments are supported:
   Declare `family mpls input` configuration.  
   See [below for nested schema](#input-arguments).
 - **family_mpls_output** (Optional, Block)  
-  Declare `family inet6 output` configuration.  
+  Declare `family mpls output` configuration.  
   See [below for nested schema](#output-arguments).
 - **input** (Optional, Block)  
   Declare `input` configuration.  
@@ -63,11 +63,11 @@ The following arguments are supported:
 - **max_packets_per_second** (Optional, Number)  
   Threshold of samples per second before dropping.
 - **maximum_packet_length** (Optional, Number)  
-  Maximum length of the sampled packet (0..9192 bytes)
+  Maximum length of the sampled packet (0..9192 bytes).
 - **rate** (Optional, Number)  
-  Ratio of packets to be sampled (1 out of N) (1..16000000)
+  Ratio of packets to be sampled (1 out of N) (1..16000000).
 - **run_length** (Optional, Number)  
-  Number of samples after initial trigger (0..20)
+  Number of samples after initial trigger (0..20).
 
 ---
 
@@ -91,7 +91,7 @@ The following arguments are supported:
   - **aggregation_autonomous_system** (Optional, Boolean)  
     Aggregate by autonomous system number.
   - **aggregation_destination_prefix** (Optional, Boolean)  
-    Aggregate by destination prefix
+    Aggregate by destination prefix.
   - **aggregation_protocol_port** (Optional, Boolean)  
     Aggregate by protocol and port number.
   - **aggregation_source_destination_prefix** (Optional, Boolean)  
@@ -99,7 +99,7 @@ The following arguments are supported:
   - **aggregation_source_destination_prefix_caida_compliant** (Optional, Boolean)  
     Compatible with Caida record format for prefix aggregation (v8).
   - **aggregation_source_prefix** (Optional, Boolean)  
-    Aggregate by source prefix
+    Aggregate by source prefix.
   - **autonomous_system_type** (Optional, String)  
     Type of autonomous system number to export.  
     Need to be `origin` or `peer`.
@@ -119,12 +119,12 @@ The following arguments are supported:
     Format of exported cflowd aggregates.  
     Need to be `5` or `8`.  
     **Only available for `family inet`**.
-  - **version_ipfix_template** (Optional, String)  
-    Template to export data in version ipfix format.
   - **version9_template** (Optional, String)  
     Template to export data in version 9 format.
+  - **version_ipfix_template** (Optional, String)  
+    Template to export data in version ipfix format.
 - **inline_jflow_export_rate** (Optional, Number)  
-  Inline processing of sampled packets with flow export rate of monitored packets in kpps (1..3200)
+  Inline processing of sampled packets with flow export rate of monitored packets in kpps (1..3200).
 - **inline_jflow_source_address** (Optional, String)  
   Inline processing of sampled packets with address to use for generating monitored packets.
 - **interface** (Optional, Block List)  

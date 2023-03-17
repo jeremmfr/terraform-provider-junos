@@ -162,7 +162,6 @@ func Provider() *schema.Provider {
 			"junos_forwardingoptions_dhcprelay":                          resourceForwardingOptionsDhcpRelay(),
 			"junos_forwardingoptions_dhcprelay_group":                    resourceForwardingOptionsDhcpRelayGroup(),
 			"junos_forwardingoptions_dhcprelay_servergroup":              resourceForwardingOptionsDhcpRelayServerGroup(),
-			"junos_forwardingoptions_sampling_instance":                  resourceForwardingOptionsSamplingInstance(),
 			"junos_generate_route":                                       resourceGenerateRoute(),
 			"junos_group_dual_system":                                    resourceGroupDualSystem(),
 			"junos_igmp_snooping_vlan":                                   resourceIgmpSnoopingVlan(),
