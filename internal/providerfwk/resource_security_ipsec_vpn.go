@@ -1027,8 +1027,8 @@ func (rscData *securityIpsecVpnData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ipsec vpn \"" + rscData.Name.ValueString() + "\" "
+
 	if v := rscData.BindInterface.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"bind-interface "+v)
 	}

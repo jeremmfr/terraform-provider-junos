@@ -920,7 +920,6 @@ func (rscData *securityPolicyData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security policies" +
 		" from-zone " + rscData.FromZone.ValueString() +
 		" to-zone " + rscData.ToZone.ValueString() +
@@ -1019,6 +1018,7 @@ func (block *securityPolicyPolicyPermitApplicationServices) set(
 ) {
 	configSet := make([]string, 0)
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + "then permit application-services "
+
 	if v := block.AdvancedAntiMalwarePolicy.ValueString(); v != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+"advanced-anti-malware-policy \""+v+"\"")
 	}

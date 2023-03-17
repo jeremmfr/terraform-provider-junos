@@ -546,8 +546,8 @@ func (rscData *securityIkePolicyData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ike policy \"" + rscData.Name.ValueString() + "\" "
+
 	if v := rscData.Mode.ValueString(); v != "" {
 		if v != "main" && v != "aggressive" {
 			return path.Root("mode"),

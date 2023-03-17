@@ -480,8 +480,8 @@ func (rscData *securityIpsecProposalData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ipsec proposal " + rscData.Name.ValueString() + " "
+
 	if v := rscData.AuthenticationAlgorithm.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-algorithm "+v)
 	}

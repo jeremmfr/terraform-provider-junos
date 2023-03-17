@@ -487,8 +487,8 @@ func (rscData *securityIkeProposalData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ike proposal \"" + rscData.Name.ValueString() + "\" "
+
 	if v := rscData.AuthenticationMethod.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-method "+v)
 	}

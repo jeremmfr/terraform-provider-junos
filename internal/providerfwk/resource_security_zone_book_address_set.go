@@ -552,9 +552,9 @@ func (rscData *securityZoneBookAddressSetData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security zones security-zone " +
 		rscData.Zone.ValueString() + " address-book address-set " + rscData.Name.ValueString() + " "
+
 	if len(rscData.Address) == 0 && len(rscData.AddressSet) == 0 {
 		return path.Empty(), fmt.Errorf("at least one element of address or address_set must be specified")
 	}

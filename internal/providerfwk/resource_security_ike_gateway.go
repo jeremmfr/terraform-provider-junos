@@ -959,8 +959,8 @@ func (rscData *securityIkeGatewayData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ike gateway \"" + rscData.Name.ValueString() + "\" "
+
 	configSet = append(configSet, setPrefix+"ike-policy \""+rscData.Policy.ValueString()+"\"")
 	configSet = append(configSet, setPrefix+"external-interface "+rscData.ExternalInterface.ValueString())
 	for _, v := range rscData.Address {

@@ -502,8 +502,8 @@ func (rscData *securityIpsecPolicyData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ipsec policy " + rscData.Name.ValueString() + " "
+
 	if v := rscData.Description.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
