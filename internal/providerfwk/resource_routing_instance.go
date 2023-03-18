@@ -49,7 +49,7 @@ func (rsc *routingInstance) junosName() string {
 }
 
 func (rsc *routingInstance) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }

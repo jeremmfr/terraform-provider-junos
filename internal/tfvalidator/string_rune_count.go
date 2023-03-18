@@ -69,7 +69,7 @@ func (t runeType) Rune() rune {
 	}
 }
 
-func (v StringRuneCountValidator) Description(ctx context.Context) string {
+func (v StringRuneCountValidator) Description(_ context.Context) string {
 	if v.number > 1 {
 		return fmt.Sprintf("Must be a string with %d %s.", v.number, v.char.Plural())
 	}
@@ -77,7 +77,7 @@ func (v StringRuneCountValidator) Description(ctx context.Context) string {
 	return fmt.Sprintf("Must be a string with %d %s.", v.number, v.char.Singular())
 }
 
-func (v StringRuneCountValidator) MarkdownDescription(ctx context.Context) string {
+func (v StringRuneCountValidator) MarkdownDescription(_ context.Context) string {
 	if v.number > 1 {
 		return fmt.Sprintf("Must be a string with %d %s.", v.number, v.char.Plural())
 	}
@@ -86,7 +86,7 @@ func (v StringRuneCountValidator) MarkdownDescription(ctx context.Context) strin
 }
 
 func (v StringRuneCountValidator) ValidateString(
-	ctx context.Context, req validator.StringRequest, resp *validator.StringResponse,
+	_ context.Context, req validator.StringRequest, resp *validator.StringResponse,
 ) {
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return

@@ -38,7 +38,7 @@ func newRoutingInstanceDataSource() datasource.DataSource {
 }
 
 func (dsc *routingInstanceDataSource) Metadata(
-	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse,
+	_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse,
 ) {
 	resp.TypeName = dsc.typeName()
 }
