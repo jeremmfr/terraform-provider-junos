@@ -332,7 +332,7 @@ func resourceChassisClusterUpdate(ctx context.Context, d *schema.ResourceData, m
 	return append(diagWarns, resourceChassisClusterReadWJunSess(d, junSess)...)
 }
 
-func resourceChassisClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceChassisClusterDelete(ctx context.Context, _ *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
 		junSess := clt.NewSessionWithoutNetconf(ctx)

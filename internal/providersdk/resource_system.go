@@ -1127,7 +1127,7 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	return append(diagWarns, resourceSystemReadWJunSess(d, junSess)...)
 }
 
-func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemDelete(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
 	return nil
 }
 

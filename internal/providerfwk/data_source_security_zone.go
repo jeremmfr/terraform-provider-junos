@@ -38,7 +38,7 @@ func newSecurityZoneDataSource() datasource.DataSource {
 }
 
 func (dsc *securityZoneDataSource) Metadata(
-	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse,
+	_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse,
 ) {
 	resp.TypeName = dsc.typeName()
 }

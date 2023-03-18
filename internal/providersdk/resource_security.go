@@ -1198,7 +1198,7 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 	return configSet, nil
 }
 
-func setSecurityFlow(flow interface{}) ([]string, error) { //nolint: gocognit
+func setSecurityFlow(flow interface{}) ([]string, error) { //nolint:gocognit
 	setPrefix := "set security flow "
 	configSet := make([]string, 0)
 	if flow != nil {
