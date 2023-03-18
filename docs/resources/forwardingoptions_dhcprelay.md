@@ -151,7 +151,7 @@ The following arguments are supported:
 - **forward_only** (Optional, Boolean)  
   Forward DHCP packets without creating binding.
 - **forward_only_replies** (Optional, Boolean)  
-  Forward-only replies from server to appropriate routing-instance based on options
+  Forward-only replies from server to appropriate routing instance based on options
 - **forward_only_routing_instance** (Optional, String)  
   Name of routing instance to forward-only.  
   `forward_only` need to be true.

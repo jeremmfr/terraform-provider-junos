@@ -21,7 +21,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   VLAN name or `all`.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Configure IGMP snooping vlan in routing-instance.  
+  Configure IGMP snooping vlan in routing instance.  
   Need to be `default` (for root level) or name of routing instance.  
   Defaults to `default`.
 - **immediate_leave** (Optional, Boolean)  

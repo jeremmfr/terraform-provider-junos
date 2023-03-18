@@ -56,7 +56,7 @@ The following arguments are supported:
   - **port** (Optional, Number)  
     Host port number.
   - **routing_instance** (Optional, String)  
-    Routing-instance name.
+    Routing instance name.
 - **rate_limit** (Optional, Number)  
   Rate-limit for security logs.
 - **severity** (Optional, String)  

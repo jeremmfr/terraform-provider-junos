@@ -16,6 +16,7 @@ func TestStringIPAddress(t *testing.T) {
 	type testCase struct {
 		val         types.String
 		expectError bool
+		v4only      bool
 	}
 	tests := map[string]testCase{
 		"unknown": {
@@ -30,9 +31,28 @@ func TestStringIPAddress(t *testing.T) {
 			val:         types.StringValue("192.0.2.1"),
 			expectError: false,
 		},
+		"valid v6": {
+			val:         types.StringValue("2001:2::1"),
+			expectError: false,
+		},
 		"invalid": {
 			val:         types.StringValue("292.0.2.1"),
 			expectError: true,
+		},
+		"valid with v4only": {
+			val:         types.StringValue("192.0.2.1"),
+			expectError: false,
+			v4only:      true,
+		},
+		"valid v6 but with v4only": {
+			val:         types.StringValue("2001:2::1"),
+			expectError: true,
+			v4only:      true,
+		},
+		"invalid with v4only": {
+			val:         types.StringValue("292.0.2.1"),
+			expectError: true,
+			v4only:      true,
 		},
 	}
 
@@ -46,7 +66,13 @@ func TestStringIPAddress(t *testing.T) {
 				ConfigValue:    test.val,
 			}
 			response := validator.StringResponse{}
-			tfvalidator.StringIPAddress().ValidateString(context.TODO(), request, &response)
+
+			switch {
+			case test.v4only:
+				tfvalidator.StringIPAddress().IPv4Only().ValidateString(context.TODO(), request, &response)
+			default:
+				tfvalidator.StringIPAddress().ValidateString(context.TODO(), request, &response)
+			}
 
 			if !response.Diagnostics.HasError() && test.expectError {
 				t.Fatal("expected error, got no error")

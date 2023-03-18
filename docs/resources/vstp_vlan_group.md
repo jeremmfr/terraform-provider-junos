@@ -22,7 +22,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   VLAN group name.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Configure VSTP vlan-group in routing-instance.  
+  Configure VSTP vlan-group in routing instance.  
   Need to be `default` (for root level) or name of routing instance.  
   Defaults to `default`.
 - **vlan** (Required, Set of String)  

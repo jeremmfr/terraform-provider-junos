@@ -21,7 +21,7 @@ The following arguments are supported:
 - **vlan_id** (Required, String, Forces new resource)  
   VLAN id or `all`.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Configure VSTP vlan in routing-instance.  
+  Configure VSTP vlan in routing instance.  
   Need to be `default` (for root level) or name of routing instance.  
   Defaults to `default`.
 - **backup_bridge_priority** (Optional, String)  

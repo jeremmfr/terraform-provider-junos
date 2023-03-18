@@ -68,9 +68,9 @@ The following arguments are supported:
 - **location** (Optional, String)  
   Physical location of system.
 - **routing_instance_access** (Optional, Boolean)  
-  Enable SNMP routing-instance.
+  Enable SNMP routing instance.
 - **routing_instance_access_list** (Optional, Set of String)  
-  Allow/Deny SNMP access to routing-instances.
+  Allow/Deny SNMP access to routing instances.
 
 ## Attributes Reference
 

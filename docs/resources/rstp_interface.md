@@ -21,7 +21,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   Interface name or `all`.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Configure RSTP interface in routing-instance.  
+  Configure RSTP interface in routing instance.  
   Need to be `default` (for root level) or name of routing instance.  
   Defaults to `default`.
 - **access_trunk** (Optional, Boolean)  

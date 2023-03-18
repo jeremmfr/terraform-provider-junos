@@ -33,7 +33,7 @@ The following arguments are supported:
   Need to be `default` (for root level) or the name of routing instance.  
   Defaults to `default`.
 - **routing_instance_evpn** (Optional, Boolean, Forces new resource)  
-  Configure routing-instance is an evpn instance-type.
+  Configure routing instance is an evpn instance-type.
 - **encapsulation** (Required, String)  
   Encapsulation type for EVPN.  
   Need to be `mpls` or `vxlan`.
