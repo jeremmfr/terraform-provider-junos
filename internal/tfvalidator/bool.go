@@ -15,16 +15,16 @@ func BoolTrue() BoolTrueValidator {
 	return BoolTrueValidator{}
 }
 
-func (m BoolTrueValidator) Description(ctx context.Context) string {
+func (m BoolTrueValidator) Description(_ context.Context) string {
 	return "Must be true or null, false is not supported"
 }
 
-func (m BoolTrueValidator) MarkdownDescription(ctx context.Context) string {
+func (m BoolTrueValidator) MarkdownDescription(_ context.Context) string {
 	return "Must be true or null, false is not supported"
 }
 
 func (m BoolTrueValidator) ValidateBool(
-	ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse,
+	_ context.Context, req validator.BoolRequest, resp *validator.BoolResponse,
 ) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return

@@ -54,7 +54,7 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 	return sess, nil
 }
 
-func (clt *Client) NewSessionWithoutNetconf(ctx context.Context) *Session {
+func (clt *Client) NewSessionWithoutNetconf(_ context.Context) *Session {
 	sess := Session{
 		logFile: clt.logFile,
 	}

@@ -182,7 +182,7 @@ func resourceSystemRootAuthenticationUpdate(ctx context.Context, d *schema.Resou
 	return append(diagWarns, resourceSystemRootAuthenticationReadWJunSess(d, junSess)...)
 }
 
-func resourceSystemRootAuthenticationDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+func resourceSystemRootAuthenticationDelete(_ context.Context, _ *schema.ResourceData, _ interface{},
 ) diag.Diagnostics {
 	return nil
 }

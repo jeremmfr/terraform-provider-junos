@@ -12,7 +12,7 @@ import (
 //   - if the value of this field is equal with inputValue,
 //     remove element from slice and return the new slice and the element
 //   - if not equal, create a new empty struct and return the slice unaltered and the new struct.
-func ExtractBlockWithTFTypesString[B any]( //nolint: ireturn
+func ExtractBlockWithTFTypesString[B any]( //nolint:ireturn
 	blocks []B, structFieldName, inputValue string,
 ) (
 	[]B, B,

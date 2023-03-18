@@ -84,16 +84,16 @@ func (v StringFormatValidator) WithSensitiveData() StringFormatValidator {
 	return v
 }
 
-func (v StringFormatValidator) Description(ctx context.Context) string {
+func (v StringFormatValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("Must be a string consisting of %s.", v.format.String())
 }
 
-func (v StringFormatValidator) MarkdownDescription(ctx context.Context) string {
+func (v StringFormatValidator) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("Must be a string consisting of %s.", v.format.String())
 }
 
 func (v StringFormatValidator) ValidateString(
-	ctx context.Context, req validator.StringRequest, resp *validator.StringResponse,
+	_ context.Context, req validator.StringRequest, resp *validator.StringResponse,
 ) {
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return

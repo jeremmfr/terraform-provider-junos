@@ -87,11 +87,11 @@ func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceNullCommitFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNullCommitFileRead(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
 	return nil
 }
 
-func resourceNullCommitFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNullCommitFileDelete(_ context.Context, d *schema.ResourceData, _ interface{}) diag.Diagnostics {
 	d.SetId("")
 
 	return nil

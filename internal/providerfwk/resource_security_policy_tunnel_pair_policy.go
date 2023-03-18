@@ -43,7 +43,7 @@ func (rsc *securityPolicyTunnelPairPolicy) junosName() string {
 }
 
 func (rsc *securityPolicyTunnelPairPolicy) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -350,7 +350,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Read(
 }
 
 func (rsc *securityPolicyTunnelPairPolicy) Update(
-	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
+	_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse,
 ) {
 }
 
