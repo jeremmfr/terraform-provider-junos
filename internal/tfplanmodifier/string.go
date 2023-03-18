@@ -21,16 +21,16 @@ func StringDefault(defaultValue string) StringDefaultModifier {
 	}
 }
 
-func (m StringDefaultModifier) Description(ctx context.Context) string {
+func (m StringDefaultModifier) Description(_ context.Context) string {
 	return fmt.Sprintf("If value is not configured, defaults to %q", m.defaultValue)
 }
 
-func (m StringDefaultModifier) MarkdownDescription(ctx context.Context) string {
+func (m StringDefaultModifier) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("If value is not configured, defaults to `%s`", m.defaultValue)
 }
 
 func (m StringDefaultModifier) PlanModifyString(
-	ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse,
+	_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse,
 ) {
 	if !req.ConfigValue.IsNull() {
 		return

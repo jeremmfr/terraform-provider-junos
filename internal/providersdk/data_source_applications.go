@@ -272,7 +272,7 @@ func dataSourceApplicationsSearch(junSess *junos.Session) (map[string]applicatio
 	return results, nil
 }
 
-func dataSourceApplicationsFilter( //nolint: gocognit
+func dataSourceApplicationsFilter( //nolint:gocognit
 	d *schema.ResourceData, results map[string]applicationOptions,
 ) error {
 	if mName := d.Get("match_name").(string); mName != "" {

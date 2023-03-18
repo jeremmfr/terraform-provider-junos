@@ -187,7 +187,7 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosSecurityConfigUpdate(testaccSecurity),
+					Config: testAccJunosSecurityConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.#", "1"),
@@ -453,7 +453,7 @@ resource "junos_security" "testacc_security" {
 `, interFace)
 }
 
-func testAccJunosSecurityConfigUpdate(interFace string) string {
+func testAccJunosSecurityConfigUpdate() string {
 	return `
 resource "junos_security" "testacc_security" {
   flow {

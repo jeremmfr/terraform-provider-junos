@@ -11,35 +11,35 @@ BREAKING CHANGES with new `v2`:
 
 ENHANCEMENTS:
 
-* refactor provider to integrate new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework),  
+* refactor provider to integrate new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework),  
   the resources and data sources will migrate progressively to this new plugin
 * **provider**: add new cipher `aes256-gcm@openssh.com` in default ciphers when `ssh_ciphers` is not specified
-* **resource/junos_security_address_book**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value) (Fix [#403](https://github.com/jeremmfr/terraform-provider-junos/issues/403))
-* **resource/junos_security_global_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_address_book**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value) (Fix [#403](https://github.com/jeremmfr/terraform-provider-junos/issues/403))
+* **resource/junos_security_global_policy**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
 * **resource/junos_security_ike_gateway**:
-  * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
   * add `distinguished_name_container` and `distinguished_name_wildcard` arguments inside `remote_identity` block argument
 * **resource/junos_security_ike_policy**:
-  * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
   * add `description` and `reauth_frequency` arguments
 * **resource/junos_security_ike_proposal**:
-  * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
   * add `description` argument
 * **resource/junos_security_ipsec_policy**:
-  * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
   * add `description` argument
 * **resource/junos_security_ipsec_proposal**:
-  * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
   * add `description` argument
 * **resource/junos_security_ipsec_vpn**:
-  * resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
   * add `copy_outer_dscp`, `manual`, `multi_sa_forwarding_class` and `udp_encapsulate` arguments
-* **resource/junos_security_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **resource/junos_security_policy_tunnel_pair_policy**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **resource/junos_security_zone**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **data-source/junos_security_zone**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) like resource
-* **resource/junos_security_zone_book_address**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
-* **resource/junos_security_zone_book_address_set**: resource now use new [terraform-plugin-framework](github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_policy**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_policy_tunnel_pair_policy**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_zone**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and some of config errors are now sent during Plan instead of during Apply (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **data-source/junos_security_zone**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) like resource
+* **resource/junos_security_zone_book_address**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) (optional boolean attributes doesn't accept value *false*, optional string attributes doesn't accept *empty* value)
+* **resource/junos_security_zone_book_address_set**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) (optional string attributes doesn't accept *empty* value)
 
 BUG FIXES:
 

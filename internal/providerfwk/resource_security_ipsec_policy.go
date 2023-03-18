@@ -46,7 +46,7 @@ func (rsc *securityIpsecPolicy) junosName() string {
 }
 
 func (rsc *securityIpsecPolicy) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -270,7 +270,6 @@ func (rsc *securityIpsecPolicy) Create(
 
 	policyExists, err = checkSecurityIpsecPolicyExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -503,8 +502,8 @@ func (rscData *securityIpsecPolicyData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ipsec policy " + rscData.Name.ValueString() + " "
+
 	if v := rscData.Description.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}

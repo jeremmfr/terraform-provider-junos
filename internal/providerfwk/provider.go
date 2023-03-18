@@ -66,7 +66,7 @@ func (p *junosProvider) Metadata(
 }
 
 func (p *junosProvider) Schema(
-	ctx context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse,
+	_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -183,14 +183,14 @@ func (p *junosProvider) Schema(
 	}
 }
 
-func (p *junosProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		newRoutingInstanceDataSource,
 		newSecurityZoneDataSource,
 	}
 }
 
-func (p *junosProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		newRoutingInstance,
 		newSecurityAddressBookResource,

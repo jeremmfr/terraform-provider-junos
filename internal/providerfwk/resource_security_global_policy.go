@@ -48,7 +48,7 @@ func (rsc *securityGlobalPolicy) junosName() string {
 }
 
 func (rsc *securityGlobalPolicy) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -565,7 +565,7 @@ func (rsc *securityGlobalPolicy) Create(
 }
 
 func (rsc *securityGlobalPolicy) Read(
-	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse,
+	ctx context.Context, _ resource.ReadRequest, resp *resource.ReadResponse,
 ) {
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
@@ -662,7 +662,7 @@ func (rsc *securityGlobalPolicy) Update(
 }
 
 func (rsc *securityGlobalPolicy) Delete(
-	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse,
+	ctx context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse,
 ) {
 	var empty securityGlobalPolicyData
 
@@ -708,7 +708,7 @@ func (rsc *securityGlobalPolicy) Delete(
 }
 
 func (rsc *securityGlobalPolicy) ImportState(
-	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
+	ctx context.Context, _ resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
@@ -738,7 +738,6 @@ func (rscData *securityGlobalPolicyData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security policies global policy "
 
 	policyName := make(map[string]struct{})

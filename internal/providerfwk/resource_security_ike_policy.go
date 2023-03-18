@@ -50,7 +50,7 @@ func (rsc *securityIkePolicy) junosName() string {
 }
 
 func (rsc *securityIkePolicy) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -315,7 +315,6 @@ func (rsc *securityIkePolicy) Create(
 
 	policyExists, err = checkSecurityIkePolicyExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -547,8 +546,8 @@ func (rscData *securityIkePolicyData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ike policy \"" + rscData.Name.ValueString() + "\" "
+
 	if v := rscData.Mode.ValueString(); v != "" {
 		if v != "main" && v != "aggressive" {
 			return path.Root("mode"),

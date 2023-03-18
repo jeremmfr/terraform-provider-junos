@@ -131,7 +131,7 @@ func resourceInterfacePhysicalDisableRead(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func resourceInterfacePhysicalDisableDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+func resourceInterfacePhysicalDisableDelete(_ context.Context, _ *schema.ResourceData, _ interface{},
 ) diag.Diagnostics {
 	return nil
 }

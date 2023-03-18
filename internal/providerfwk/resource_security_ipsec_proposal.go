@@ -47,7 +47,7 @@ func (rsc *securityIpsecProposal) junosName() string {
 }
 
 func (rsc *securityIpsecProposal) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -248,7 +248,6 @@ func (rsc *securityIpsecProposal) Create(
 
 	proposalExists, err = checkSecurityIpsecProposalExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -481,8 +480,8 @@ func (rscData *securityIpsecProposalData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ipsec proposal " + rscData.Name.ValueString() + " "
+
 	if v := rscData.AuthenticationAlgorithm.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-algorithm "+v)
 	}

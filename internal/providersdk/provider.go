@@ -257,7 +257,7 @@ func Provider() *schema.Provider {
 	}
 }
 
-func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func configureProvider(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	hostIP := os.Getenv(junos.EnvHost)
 	if v, ok := d.GetOk("ip"); ok {
 		hostIP = v.(string)

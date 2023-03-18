@@ -52,7 +52,7 @@ func (rsc *securityIpsecVpn) junosName() string {
 }
 
 func (rsc *securityIpsecVpn) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -781,7 +781,6 @@ func (rsc *securityIpsecVpn) Create(
 
 	vpnExists, err = checkSecurityIpsecVpnExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -1028,8 +1027,8 @@ func (rscData *securityIpsecVpnData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ipsec vpn \"" + rscData.Name.ValueString() + "\" "
+
 	if v := rscData.BindInterface.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"bind-interface "+v)
 	}

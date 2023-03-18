@@ -779,7 +779,7 @@ func resourceForwardingOptionsDhcpRelayImport(ctx context.Context, d *schema.Res
 	return result, nil
 }
 
-func setForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
+func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	d *schema.ResourceData, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
@@ -1195,7 +1195,7 @@ func setForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 	return junSess.ConfigSet(configSet)
 }
 
-func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
+func readForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	instance, version string, junSess *junos.Session,
 ) (confRead fwdOptsDhcpRelayOptions, err error) {
 	// default -1

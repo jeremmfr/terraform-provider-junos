@@ -43,7 +43,7 @@ func (rsc *securityPolicyTunnelPairPolicy) junosName() string {
 }
 
 func (rsc *securityPolicyTunnelPairPolicy) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -291,7 +291,6 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -351,7 +350,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Read(
 }
 
 func (rsc *securityPolicyTunnelPairPolicy) Update(
-	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
+	_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse,
 ) {
 }
 

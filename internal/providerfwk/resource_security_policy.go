@@ -49,7 +49,7 @@ func (rsc *securityPolicy) junosName() string {
 }
 
 func (rsc *securityPolicy) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -655,7 +655,6 @@ func (rsc *securityPolicy) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -921,7 +920,6 @@ func (rscData *securityPolicyData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security policies" +
 		" from-zone " + rscData.FromZone.ValueString() +
 		" to-zone " + rscData.ToZone.ValueString() +
@@ -1020,6 +1018,7 @@ func (block *securityPolicyPolicyPermitApplicationServices) set(
 ) {
 	configSet := make([]string, 0)
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + "then permit application-services "
+
 	if v := block.AdvancedAntiMalwarePolicy.ValueString(); v != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+"advanced-anti-malware-policy \""+v+"\"")
 	}

@@ -46,7 +46,7 @@ func (rsc *securityZoneBookAddressSet) junosName() string {
 }
 
 func (rsc *securityZoneBookAddressSet) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -305,7 +305,6 @@ func (rsc *securityZoneBookAddressSet) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -553,9 +552,9 @@ func (rscData *securityZoneBookAddressSetData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security zones security-zone " +
 		rscData.Zone.ValueString() + " address-book address-set " + rscData.Name.ValueString() + " "
+
 	if len(rscData.Address) == 0 && len(rscData.AddressSet) == 0 {
 		return path.Empty(), fmt.Errorf("at least one element of address or address_set must be specified")
 	}

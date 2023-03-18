@@ -196,7 +196,7 @@ func resourceChassisRedundancyUpdate(ctx context.Context, d *schema.ResourceData
 	return append(diagWarns, resourceChassisRedundancyReadWJunSess(d, junSess)...)
 }
 
-func resourceChassisRedundancyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceChassisRedundancyDelete(ctx context.Context, _ *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
 		junSess := clt.NewSessionWithoutNetconf(ctx)

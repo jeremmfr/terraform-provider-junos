@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
 
-var testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){ //nolint: gochecknoglobals
+var testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){ //nolint:gochecknoglobals
 	"junos": testAccNewProtoV5MuxProviderServer(),
 }
 

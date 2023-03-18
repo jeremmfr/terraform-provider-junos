@@ -221,7 +221,7 @@ func resourceLayer2ControlUpdate(ctx context.Context, d *schema.ResourceData, m 
 	return append(diagWarns, resourceLayer2ControlReadWJunSess(d, junSess)...)
 }
 
-func resourceLayer2ControlDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceLayer2ControlDelete(ctx context.Context, _ *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
 	if clt.FakeDeleteAlso() {
 		junSess := clt.NewSessionWithoutNetconf(ctx)

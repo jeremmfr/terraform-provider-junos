@@ -50,7 +50,7 @@ func (rsc *securityIkeGateway) junosName() string {
 }
 
 func (rsc *securityIkeGateway) Metadata(
-	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse,
+	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
@@ -727,7 +727,6 @@ func (rsc *securityIkeGateway) Create(
 
 	gatewayExists, err = checkSecurityIkeGatewayExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
 		return
@@ -960,8 +959,8 @@ func (rscData *securityIkeGatewayData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set security ike gateway \"" + rscData.Name.ValueString() + "\" "
+
 	configSet = append(configSet, setPrefix+"ike-policy \""+rscData.Policy.ValueString()+"\"")
 	configSet = append(configSet, setPrefix+"external-interface "+rscData.ExternalInterface.ValueString())
 	for _, v := range rscData.Address {

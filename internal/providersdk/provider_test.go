@@ -18,10 +18,10 @@ import (
 )
 
 var (
-	testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){ //nolint: gochecknoglobals
+	testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){ //nolint:gochecknoglobals
 		"junos": testAccNewProtoV5MuxProviderServer(),
 	}
-	testAccProvider = providersdk.Provider() //nolint: gochecknoglobals
+	testAccProvider = providersdk.Provider() //nolint:gochecknoglobals
 )
 
 func testAccNewProtoV5MuxProviderServer() func() (tfprotov5.ProviderServer, error) {
@@ -44,7 +44,7 @@ func TestProvider(t *testing.T) {
 	}
 }
 
-func TestProvider_impl(t *testing.T) {
+func TestProvider_impl(_ *testing.T) {
 	var _ *schema.Provider = providersdk.Provider()
 }
 
