@@ -33,6 +33,7 @@ var (
 	_ resource.ResourceWithConfigure      = &servicesFlowMonitoringVIPFixTemplate{}
 	_ resource.ResourceWithValidateConfig = &servicesFlowMonitoringVIPFixTemplate{}
 	_ resource.ResourceWithImportState    = &servicesFlowMonitoringVIPFixTemplate{}
+	_ resource.ResourceWithUpgradeState   = &servicesFlowMonitoringVIPFixTemplate{}
 )
 
 type servicesFlowMonitoringVIPFixTemplate struct {
@@ -77,6 +78,7 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
+		Version:     1,
 		Description: "Provides a " + rsc.junosName() + ".",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
