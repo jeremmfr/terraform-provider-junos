@@ -8,6 +8,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -78,7 +79,7 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "An identifier for the resource with format `<name>`.",
+				Description: "An identifier for the resource with format `<name>_-_<routing_instance>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -92,6 +93,19 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"routing_instance": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Routing instance for sampling instance.",
+				PlanModifiers: []planmodifier.String{
+					tfplanmodifier.StringDefault(junos.DefaultW),
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"disable": schema.BoolAttribute{
@@ -605,6 +619,7 @@ type forwardingoptionsSamplingInstanceData struct {
 	Disable           types.Bool                                              `tfsdk:"disable"`
 	ID                types.String                                            `tfsdk:"id"`
 	Name              types.String                                            `tfsdk:"name"`
+	RoutingInstance   types.String                                            `tfsdk:"routing_instance"`
 	FamilyInetInput   *forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_inet_input"`
 	FamilyInetOutput  *forwardingoptionsSamplingInstanceFamilyInetOutputData  `tfsdk:"family_inet_output"`
 	FamilyInet6Input  *forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_inet6_input"`
@@ -618,6 +633,7 @@ type forwardingoptionsSamplingInstanceConfig struct {
 	Disable           types.Bool                                               `tfsdk:"disable"`
 	ID                types.String                                             `tfsdk:"id"`
 	Name              types.String                                             `tfsdk:"name"`
+	RoutingInstance   types.String                                             `tfsdk:"routing_instance"`
 	FamilyInetInput   *forwardingoptionsSamplingInstanceInput                  `tfsdk:"family_inet_input"`
 	FamilyInetOutput  *forwardingoptionsSamplingInstanceFamilyInetOutputConfig `tfsdk:"family_inet_output"`
 	FamilyInet6Input  *forwardingoptionsSamplingInstanceInput                  `tfsdk:"family_inet6_input"`
@@ -979,7 +995,31 @@ func (rsc *forwardingoptionsSamplingInstance) Create(
 
 		return
 	}
-	instanceExists, err := checkForwardingoptionsSamplingInstanceExists(ctx, plan.Name.ValueString(), junSess)
+	if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		instanceExists, err := checkRoutingInstanceExists(ctx, v, junSess)
+		if err != nil {
+			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
+			resp.Diagnostics.AddError("Pre Check Error", err.Error())
+
+			return
+		}
+		if !instanceExists {
+			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
+			resp.Diagnostics.AddAttributeError(
+				path.Root("routing_instance"),
+				"Missing Configuration Error",
+				fmt.Sprintf("routing instance %q doesn't exist", v),
+			)
+
+			return
+		}
+	}
+	instanceExists, err := checkForwardingoptionsSamplingInstanceExists(
+		ctx,
+		plan.Name.ValueString(),
+		plan.RoutingInstance.ValueString(),
+		junSess,
+	)
 	if err != nil {
 		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
@@ -1015,7 +1055,12 @@ func (rsc *forwardingoptionsSamplingInstance) Create(
 		return
 	}
 
-	instanceExists, err = checkForwardingoptionsSamplingInstanceExists(ctx, plan.Name.ValueString(), junSess)
+	instanceExists, err = checkForwardingoptionsSamplingInstanceExists(
+		ctx,
+		plan.Name.ValueString(),
+		plan.RoutingInstance.ValueString(),
+		junSess,
+	)
 	if err != nil {
 		resp.Diagnostics.AddError("Post Check Error", err.Error())
 
@@ -1052,7 +1097,7 @@ func (rsc *forwardingoptionsSamplingInstance) Read(
 	defer junSess.Close()
 
 	junos.MutexLock()
-	err = data.read(ctx, state.Name.ValueString(), junSess)
+	err = data.read(ctx, state.Name.ValueString(), state.RoutingInstance.ValueString(), junSess)
 	junos.MutexUnlock()
 	if err != nil {
 		resp.Diagnostics.AddError("Config Read Error", err.Error())
@@ -1204,17 +1249,26 @@ func (rsc *forwardingoptionsSamplingInstance) ImportState(
 	defer junSess.Close()
 
 	var data forwardingoptionsSamplingInstanceData
-	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+	idSplit := strings.Split(req.ID, junos.IDSeparator)
+	if len(idSplit) > 1 {
+		if err := data.read(ctx, idSplit[0], idSplit[1], junSess); err != nil {
+			resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
+			return
+		}
+	} else {
+		if err := data.read(ctx, idSplit[0], junos.DefaultW, junSess); err != nil {
+			resp.Diagnostics.AddError("Config Read Error", err.Error())
+
+			return
+		}
 	}
 
 	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			"Not Found Error",
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <name>)", req.ID),
+				"(id must be <name> or <name>"+junos.IDSeparator+"<routing_instance>)", req.ID),
 		)
 
 		return
@@ -1223,12 +1277,18 @@ func (rsc *forwardingoptionsSamplingInstance) ImportState(
 }
 
 func checkForwardingoptionsSamplingInstanceExists(
-	_ context.Context, name string, junSess *junos.Session,
+	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
-	bool, error,
+	_ bool, err error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
+	var showConfig string
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
+	} else {
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
+	}
 	if err != nil {
 		return false, err
 	}
@@ -1240,7 +1300,11 @@ func checkForwardingoptionsSamplingInstanceExists(
 }
 
 func (rscData *forwardingoptionsSamplingInstanceData) fillID() {
-	rscData.ID = types.StringValue(rscData.Name.ValueString())
+	if v := rscData.RoutingInstance.ValueString(); v != "" {
+		rscData.ID = types.StringValue(rscData.Name.ValueString() + junos.IDSeparator + v)
+	} else {
+		rscData.ID = types.StringValue(rscData.Name.ValueString() + junos.IDSeparator + junos.DefaultW)
+	}
 }
 
 func (rscData *forwardingoptionsSamplingInstanceData) set(
@@ -1250,6 +1314,11 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 ) {
 	configSet := make([]string, 0)
 	setPrefix := "set forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\" "
+
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		setPrefix = junos.SetRoutingInstances + v +
+			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\" "
+	}
 
 	if rscData.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+"disable")
@@ -1663,17 +1732,28 @@ func (block *forwardingoptionsSamplingInstanceOutputInterface) configSet(setPref
 }
 
 func (rscData *forwardingoptionsSamplingInstanceData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
 	err error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	var showConfig string
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	} else {
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	}
 	if err != nil {
 		return err
 	}
 	if showConfig != junos.EmptyW {
 		rscData.Name = types.StringValue(name)
+		if routingInstance == "" {
+			rscData.RoutingInstance = types.StringValue(junos.DefaultW)
+		} else {
+			rscData.RoutingInstance = types.StringValue(routingInstance)
+		}
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
@@ -2043,8 +2123,13 @@ func (block *forwardingoptionsSamplingInstanceOutputInterface) read(itemTrim str
 func (rscData *forwardingoptionsSamplingInstanceData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := []string{
-		"delete forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\"",
+	configSet := make([]string, 1)
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		configSet[0] = junos.DelRoutingInstances + v +
+			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\""
+	} else {
+		configSet[0] = "delete " +
+			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\""
 	}
 
 	return junSess.ConfigSet(configSet)

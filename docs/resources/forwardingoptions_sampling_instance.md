@@ -32,6 +32,10 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   Name for sampling instance.
+- **routing_instance** (Optional, String, Forces new resource)  
+  Routing instance if not root level.  
+  Need to be `default` or name of routing instance.  
+  Defaults to `default`
 - **disable** (Optional, Boolean)  
   Disable sampling instance.
 - **family_inet_input** (Optional, Block)  
@@ -143,11 +147,12 @@ The following arguments are supported:
 The following attributes are exported:
 
 - **id** (String)  
-  An identifier for the resource with format `<name>`.
+  An identifier for the resource with format `<name>_-_<routing_instance>`.
 
 ## Import
 
-Junos forwarding-options sampling instance can be imported using an id made up of `<name>`, e.g.
+Junos forwarding-options sampling instance can be imported using an id made up of
+`<name>` or `<name>_-_<routing_instance>`, e.g.
 
 ```shell
 $ terraform import junos_forwardingoptions_sampling_instance.demo demo
