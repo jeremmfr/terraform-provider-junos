@@ -31,6 +31,7 @@ var (
 	_ resource.ResourceWithConfigure      = &forwardingoptionsSamplingInstance{}
 	_ resource.ResourceWithValidateConfig = &forwardingoptionsSamplingInstance{}
 	_ resource.ResourceWithImportState    = &forwardingoptionsSamplingInstance{}
+	_ resource.ResourceWithUpgradeState   = &forwardingoptionsSamplingInstance{}
 )
 
 type forwardingoptionsSamplingInstance struct {
@@ -75,6 +76,7 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
+		Version:     1,
 		Description: "Provides a " + rsc.junosName() + ".",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -98,7 +100,7 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 			"routing_instance": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "Routing instance for sampling instance.",
+				Description: "Routing instance for sampling instance if not root level.",
 				PlanModifiers: []planmodifier.String{
 					tfplanmodifier.StringDefault(junos.DefaultW),
 					stringplanmodifier.RequiresReplace(),
