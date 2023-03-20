@@ -31,6 +31,7 @@ var (
 	_ resource.ResourceWithConfigure      = &securityIkeGateway{}
 	_ resource.ResourceWithValidateConfig = &securityIkeGateway{}
 	_ resource.ResourceWithImportState    = &securityIkeGateway{}
+	_ resource.ResourceWithUpgradeState   = &securityIkeGateway{}
 )
 
 type securityIkeGateway struct {
@@ -75,6 +76,7 @@ func (rsc *securityIkeGateway) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
+		Version:     1,
 		Description: "Provides a " + rsc.junosName() + ".",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
