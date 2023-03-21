@@ -359,6 +359,8 @@ func (rsc *routingInstance) Create(
 			"Conflict Configuration Error",
 			"type must specified with empty string when configure_type_singly is enabled",
 		)
+
+		return
 	}
 
 	if rsc.client.FakeCreateSetFile() {
