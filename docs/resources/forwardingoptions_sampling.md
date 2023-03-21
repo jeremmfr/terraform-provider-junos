@@ -1,26 +1,28 @@
 ---
-page_title: "Junos: junos_forwardingoptions_sampling_instance"
+page_title: "Junos: junos_forwardingoptions_sampling"
 ---
 
-# junos_forwardingoptions_sampling_instance
+# junos_forwardingoptions_sampling
 
-Provides a forwarding-options sampling instance resource.
+Configure static configuration in `forwarding-options sampling` block for root or
+routing-instance level.
 
 ## Example Usage
 
 ```hcl
-# Add a forwarding-options sampling instance
-resource "junos_forwardingoptions_sampling_instance" "demo" {
-  name = "demo"
+# Configure forwarding-options sampling
+resource "junos_forwardingoptions_sampling" "demo" {
   family_inet_input {
     rate = 1
   }
   family_inet_output {
-    inline_jflow_source_address = "192.0.2.2"
     flow_server {
-      hostname               = "192.0.2.1"
-      port                   = 3000
-      version_ipfix_template = "demo"
+      hostname = "192.0.2.1"
+      port     = 3000
+    }
+    interface {
+      name           = "si-0/1/0"
+      source_address = "192.0.2.2"
     }
   }
 }
@@ -30,8 +32,6 @@ resource "junos_forwardingoptions_sampling_instance" "demo" {
 
 The following arguments are supported:
 
-- **name** (Required, String, Forces new resource)  
-  Name for sampling instance.
 - **routing_instance** (Optional, String, Forces new resource)  
   Routing instance if not root level.  
   Need to be `default` or name of routing instance.  
@@ -59,6 +59,10 @@ The following arguments are supported:
 - **input** (Optional, Block)  
   Declare `input` configuration.  
   See [below for nested schema](#input-arguments).
+- **pre_rewrite_tos** (Optional, Boolean)  
+  Sample the packet retaining tos value before normalization.
+- **sample_once** (Optional, Boolean)  
+  Sample the packet for active-monitoring only once.
 
 ---
 
@@ -82,6 +86,25 @@ The following arguments are supported:
 - **extension_service** (Optional, List of String)  
   Define the customer specific sampling configuration.  
   **Not available for `family mpls`**.
+- **file** (Optional, Block)  
+  Configure parameters for dumping sampled packets.  
+  **Only available for `family inet`**.
+  - **filename** (Required, String)  
+    Name of file to contain sampled packet dumps.
+  - **disable** (Optional, Boolean)  
+    Disable sampled packet dumps.
+  - **files** (Optional, Number)  
+    Maximum number of sampled packet dump files (2..10000).
+  - **no_stamp** (Optional, Boolean)  
+    Don't timestamp every packet in the dump.
+  - **no_world_readable** (Optional, Boolean)  
+    Don't allow any user to read the sampled dump.
+  - **size** (Optional, Number)  
+    Maximum sample dump file size (1024..104857600).
+  - **stamp** (Optional, Boolean)  
+    Timestamp every packet in the dump.
+  - **world_readable** (Optional, Boolean)  
+    Allow any user to read the sampled dump.
 - **flow_active_timeout** (Optional, Number)  
   Interval after which an active flow is exported (60..1800 seconds).
 - **flow_inactive_timeout** (Optional, Number)  
@@ -121,16 +144,17 @@ The following arguments are supported:
     Source IPv4 address for cflowd packets.
   - **version** (Optional, Number)  
     Format of exported cflowd aggregates.  
-    Need to be `5` or `8`.  
+    Need to be `5`, `8` or `500`.  
     **Only available for `family inet`**.
   - **version9_template** (Optional, String)  
     Template to export data in version 9 format.
-  - **version_ipfix_template** (Optional, String)  
-    Template to export data in version ipfix format.
 - **inline_jflow_export_rate** (Optional, Number)  
-  Inline processing of sampled packets with flow export rate of monitored packets in kpps (1..3200).
+  Inline processing of sampled packets with
+  flow export rate of monitored packets in kpps (1..3200).  
+  **Not available for `family mpls`**.
 - **inline_jflow_source_address** (Optional, String)  
-  Inline processing of sampled packets with address to use for generating monitored packets.
+  Inline processing of sampled packets with address to use for generating monitored packets.  
+  **Not available for `family mpls`**.
 - **interface** (Optional, Block List)  
   For each name of interface, configure interfaces used to send monitored information.
   - **name** (Required, String)  
@@ -147,13 +171,13 @@ The following arguments are supported:
 The following attributes are exported:
 
 - **id** (String)  
-  An identifier for the resource with format `<name>_-_<routing_instance>`.
+  An identifier for the resource with format `<routing_instance>`.
 
 ## Import
 
-Junos forwarding-options sampling instance can be imported using an id made up of
-`<name>` or `<name>_-_<routing_instance>`, e.g.
+Junos forwarding-options sampling can be imported using an id made up of
+`<routing_instance>`, e.g.
 
 ```shell
-$ terraform import junos_forwardingoptions_sampling_instance.demo demo
+$ terraform import junos_forwardingoptions_sampling_instance.demo default
 ```

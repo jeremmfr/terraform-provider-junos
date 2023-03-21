@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccJunosForwardingOptionsSamplingInstance_basic(t *testing.T) {
+func TestAccJunosForwardingoptionsSamplingInstance_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosForwardingOptionsSamplingInstanceConfigCreate(),
+					Config: testAccJunosForwardingoptionsSamplingInstanceConfigCreate(),
 				},
 				{
-					Config: testAccJunosForwardingOptionsSamplingInstanceConfigUpdate(),
+					Config: testAccJunosForwardingoptionsSamplingInstanceConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_forwardingoptions_sampling_instance.testacc_sampInstance",
@@ -39,7 +39,7 @@ func TestAccJunosForwardingOptionsSamplingInstance_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosForwardingOptionsSamplingInstanceConfigCreate() string {
+func testAccJunosForwardingoptionsSamplingInstanceConfigCreate() string {
 	return `
 resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance" {
   depends_on = [
@@ -76,6 +76,11 @@ resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance2" {
     }
   }
 }
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance2" {
+  name = "testacc_sampInstance@2"
+  type = "ipv4-template"
+}
+
 resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance3" {
   name = "testacc_instance@3"
   family_inet6_input {
@@ -90,6 +95,11 @@ resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance3" {
     }
   }
 }
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance3" {
+  name = "testacc_sampInstance@3"
+  type = "ipv6-template"
+}
+
 resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance4" {
   name = "testacc_instance@4"
   family_mpls_input {
@@ -103,6 +113,10 @@ resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance4" {
       version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance4.name
     }
   }
+}
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance4" {
+  name = "testacc_sampInstance@4"
+  type = "mpls-template"
 }
 
 resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance5" {
@@ -120,7 +134,6 @@ resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance5" {
     }
   }
 }
-
 resource "junos_routing_instance" "testacc_sampInstance5" {
   name = "testacc_sampInstance5"
 }
@@ -132,22 +145,10 @@ resource "junos_interface_logical" "testacc_sampInstance" {
   name = "si-0/1/0.0"
   family_inet {}
 }
-resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance2" {
-  name = "testacc_sampInstance@2"
-  type = "ipv4-template"
-}
-resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance3" {
-  name = "testacc_sampInstance@3"
-  type = "ipv6-template"
-}
-resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance4" {
-  name = "testacc_sampInstance@4"
-  type = "mpls-template"
-}
 `
 }
 
-func testAccJunosForwardingOptionsSamplingInstanceConfigUpdate() string {
+func testAccJunosForwardingoptionsSamplingInstanceConfigUpdate() string {
 	return `
 resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance" {
   depends_on = [
@@ -186,6 +187,7 @@ resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance" {
     }
   }
 }
+
 resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance2" {
   name = "testacc_instance@2"
   family_inet_input {
@@ -210,6 +212,11 @@ resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance2" {
     }
   }
 }
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance2" {
+  name = "testacc_sampInstance@2"
+  type = "ipv4-template"
+}
+
 resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance3" {
   name = "testacc_instance@3"
   family_inet6_input {
@@ -233,6 +240,10 @@ resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance3" {
     }
   }
 }
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance3" {
+  name = "testacc_sampInstance@3"
+  type = "ipv6-template"
+}
 
 resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance5" {
   name             = "testacc_instance@5"
@@ -249,7 +260,6 @@ resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance5" {
     }
   }
 }
-
 resource "junos_routing_instance" "testacc_sampInstance5" {
   name = "testacc_sampInstance5"
 }
@@ -260,15 +270,6 @@ resource "junos_system_ntp_server" "testacc_sampInstance" {
 resource "junos_interface_logical" "testacc_sampInstance" {
   name = "si-0/1/0.0"
   family_inet {}
-}
-resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance2" {
-  name = "testacc_sampInstance@2"
-  type = "ipv4-template"
-}
-
-resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance3" {
-  name = "testacc_sampInstance@3"
-  type = "ipv6-template"
 }
 `
 }

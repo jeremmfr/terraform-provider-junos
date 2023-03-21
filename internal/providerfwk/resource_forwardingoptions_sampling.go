@@ -27,36 +27,35 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                   = &forwardingoptionsSamplingInstance{}
-	_ resource.ResourceWithConfigure      = &forwardingoptionsSamplingInstance{}
-	_ resource.ResourceWithValidateConfig = &forwardingoptionsSamplingInstance{}
-	_ resource.ResourceWithImportState    = &forwardingoptionsSamplingInstance{}
-	_ resource.ResourceWithUpgradeState   = &forwardingoptionsSamplingInstance{}
+	_ resource.Resource                   = &forwardingoptionsSampling{}
+	_ resource.ResourceWithConfigure      = &forwardingoptionsSampling{}
+	_ resource.ResourceWithValidateConfig = &forwardingoptionsSampling{}
+	_ resource.ResourceWithImportState    = &forwardingoptionsSampling{}
 )
 
-type forwardingoptionsSamplingInstance struct {
+type forwardingoptionsSampling struct {
 	client *junos.Client
 }
 
-func newForwardingoptionsSamplingInstance() resource.Resource {
-	return &forwardingoptionsSamplingInstance{}
+func newForwardingoptionsSampling() resource.Resource {
+	return &forwardingoptionsSampling{}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) typeName() string {
-	return providerName + "_forwardingoptions_sampling_instance"
+func (rsc *forwardingoptionsSampling) typeName() string {
+	return providerName + "_forwardingoptions_sampling"
 }
 
-func (rsc *forwardingoptionsSamplingInstance) junosName() string {
-	return "forwarding-options sampling instance"
+func (rsc *forwardingoptionsSampling) junosName() string {
+	return "forwarding-options sampling"
 }
 
-func (rsc *forwardingoptionsSamplingInstance) Metadata(
+func (rsc *forwardingoptionsSampling) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
 
-func (rsc *forwardingoptionsSamplingInstance) Configure(
+func (rsc *forwardingoptionsSampling) Configure(
 	ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
 ) {
 	// Prevent panic if the provider has not been configured.
@@ -72,35 +71,23 @@ func (rsc *forwardingoptionsSamplingInstance) Configure(
 	rsc.client = client
 }
 
-func (rsc *forwardingoptionsSamplingInstance) Schema(
+func (rsc *forwardingoptionsSampling) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: "Configure static configuration in `" + rsc.junosName() + "` block",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "An identifier for the resource with format `<name>_-_<routing_instance>`.",
+				Description: "An identifier for the resource with format `<routing_instance>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required:    true,
-				Description: "Name for sampling instance.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 250),
-					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 			"routing_instance": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "Routing instance for sampling instance if not root level.",
+				Description: "Routing instance if not root level.",
 				PlanModifiers: []planmodifier.String{
 					tfplanmodifier.StringDefault(junos.DefaultW),
 					stringplanmodifier.RequiresReplace(),
@@ -112,7 +99,21 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 			},
 			"disable": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Disable sampling instance.",
+				Description: "Disable global sampling instance.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"pre_rewrite_tos": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Sample the packet retaining tos value before normalization.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"sample_once": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Sample the packet for active-monitoring only once.",
 				Validators: []validator.Bool{
 					tfvalidator.BoolTrue(),
 				},
@@ -130,6 +131,74 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 				Description: "Declare `family inet output` configuration.",
 				Attributes:  rsc.schemaFamilyInetOutputAttributes(),
 				Blocks: map[string]schema.Block{
+					"file": schema.SingleNestedBlock{
+						Description: "Configure parameters for dumping sampled packets.",
+						Attributes: map[string]schema.Attribute{
+							"filename": schema.StringAttribute{
+								Required:    false, // true when SingleNestedBlock is specified
+								Optional:    true,
+								Description: "Name of file to contain sampled packet dumps.",
+								Validators: []validator.String{
+									stringvalidator.LengthAtLeast(1),
+									tfvalidator.StringDoubleQuoteExclusion(),
+									tfvalidator.StringSpaceExclusion(),
+									tfvalidator.StringRuneExclusion('/', '%'),
+								},
+							},
+							"disable": schema.BoolAttribute{
+								Optional:    true,
+								Description: "Disable sampled packet dumps.",
+								Validators: []validator.Bool{
+									tfvalidator.BoolTrue(),
+								},
+							},
+							"files": schema.Int64Attribute{
+								Optional:    true,
+								Description: "Maximum number of sampled packet dump files (2..10000).",
+								Validators: []validator.Int64{
+									int64validator.Between(2, 10000),
+								},
+							},
+							"no_stamp": schema.BoolAttribute{
+								Optional:    true,
+								Description: "Don't timestamp every packet in the dump.",
+								Validators: []validator.Bool{
+									tfvalidator.BoolTrue(),
+								},
+							},
+							"no_world_readable": schema.BoolAttribute{
+								Optional:    true,
+								Description: "Don't allow any user to read the sampled dump.",
+								Validators: []validator.Bool{
+									tfvalidator.BoolTrue(),
+								},
+							},
+							"size": schema.Int64Attribute{
+								Optional:    true,
+								Description: "Maximum sample dump file size (1024..104857600).",
+								Validators: []validator.Int64{
+									int64validator.Between(1024, 104857600),
+								},
+							},
+							"stamp": schema.BoolAttribute{
+								Optional:    true,
+								Description: "Timestamp every packet in the dump.",
+								Validators: []validator.Bool{
+									tfvalidator.BoolTrue(),
+								},
+							},
+							"world_readable": schema.BoolAttribute{
+								Optional:    true,
+								Description: "Allow any user to read the sampled dump.",
+								Validators: []validator.Bool{
+									tfvalidator.BoolTrue(),
+								},
+							},
+						},
+						PlanModifiers: []planmodifier.Object{
+							tfplanmodifier.BlockRemoveNull(),
+						},
+					},
 					"flow_server": schema.SetNestedBlock{
 						Description: "For each hostname, configure sending traffic aggregates in cflowd format.",
 						NestedObject: schema.NestedBlockObject{
@@ -246,20 +315,12 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 									Optional:    true,
 									Description: "Format of exported cflowd aggregates.",
 									Validators: []validator.Int64{
-										int64validator.OneOf(5, 8),
+										int64validator.OneOf(5, 8, 500),
 									},
 								},
 								"version9_template": schema.StringAttribute{
 									Optional:    true,
 									Description: "Template to export data in version 9 format.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"version_ipfix_template": schema.StringAttribute{
-									Optional:    true,
-									Description: "Template to export data in version ipfix format.",
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
 										tfvalidator.StringDoubleQuoteExclusion(),
@@ -325,20 +386,6 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 							int64validator.Between(15, 1800),
 						},
 					},
-					"inline_jflow_export_rate": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Inline processing of sampled packets with flow export rate of monitored packets in kpps (1..3200).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 3200),
-						},
-					},
-					"inline_jflow_source_address": schema.StringAttribute{
-						Optional:    true,
-						Description: "Inline processing of sampled packets with address to use for generating monitored packets.",
-						Validators: []validator.String{
-							tfvalidator.StringIPAddress(),
-						},
-					},
 				},
 				Blocks: rsc.schemaOutputBlock(),
 				PlanModifiers: []planmodifier.Object{
@@ -356,7 +403,7 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) schemaInputAttributes() map[string]schema.Attribute {
+func (rsc *forwardingoptionsSampling) schemaInputAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"max_packets_per_second": schema.Int64Attribute{
 			Optional:    true,
@@ -389,7 +436,7 @@ func (rsc *forwardingoptionsSamplingInstance) schemaInputAttributes() map[string
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) schemaFamilyInetOutputAttributes() map[string]schema.Attribute {
+func (rsc *forwardingoptionsSampling) schemaFamilyInetOutputAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"aggregate_export_interval": schema.Int64Attribute{
 			Optional:    true,
@@ -441,7 +488,7 @@ func (rsc *forwardingoptionsSamplingInstance) schemaFamilyInetOutputAttributes()
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) schemaOutputBlock() map[string]schema.Block {
+func (rsc *forwardingoptionsSampling) schemaOutputBlock() map[string]schema.Block {
 	return map[string]schema.Block{
 		"flow_server": schema.SetNestedBlock{
 			Description: "For each hostname, configure sending traffic aggregates in cflowd format.",
@@ -563,14 +610,6 @@ func (rsc *forwardingoptionsSamplingInstance) schemaOutputBlock() map[string]sch
 							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
-					"version_ipfix_template": schema.StringAttribute{
-						Optional:    true,
-						Description: "Template to export data in version ipfix format.",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 250),
-							tfvalidator.StringDoubleQuoteExclusion(),
-						},
-					},
 				},
 			},
 		},
@@ -583,7 +622,7 @@ func (rsc *forwardingoptionsSamplingInstance) schemaOutputBlock() map[string]sch
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) schemaOutputInterfaceAttributes() map[string]schema.Attribute {
+func (rsc *forwardingoptionsSampling) schemaOutputInterfaceAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"name": schema.StringAttribute{
 			Required:    true,
@@ -617,66 +656,80 @@ func (rsc *forwardingoptionsSamplingInstance) schemaOutputInterfaceAttributes() 
 	}
 }
 
-type forwardingoptionsSamplingInstanceData struct {
-	Disable           types.Bool                                              `tfsdk:"disable"`
-	ID                types.String                                            `tfsdk:"id"`
-	Name              types.String                                            `tfsdk:"name"`
-	RoutingInstance   types.String                                            `tfsdk:"routing_instance"`
-	FamilyInetInput   *forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_inet_input"`
-	FamilyInetOutput  *forwardingoptionsSamplingInstanceFamilyInetOutputData  `tfsdk:"family_inet_output"`
-	FamilyInet6Input  *forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_inet6_input"`
-	FamilyInet6Output *forwardingoptionsSamplingInstanceFamilyInet6OutputData `tfsdk:"family_inet6_output"`
-	FamilyMplsInput   *forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput  *forwardingoptionsSamplingInstanceFamilyMplsOutputData  `tfsdk:"family_mpls_output"`
-	Input             *forwardingoptionsSamplingInstanceInput                 `tfsdk:"input"`
+type forwardingoptionsSamplingData struct {
+	Disable           types.Bool                                      `tfsdk:"disable"`
+	PreRewriteTos     types.Bool                                      `tfsdk:"pre_rewrite_tos"`
+	SampleOnce        types.Bool                                      `tfsdk:"sample_once"`
+	ID                types.String                                    `tfsdk:"id"`
+	RoutingInstance   types.String                                    `tfsdk:"routing_instance"`
+	FamilyInetInput   *forwardingoptionsSamplingInput                 `tfsdk:"family_inet_input"`
+	FamilyInetOutput  *forwardingoptionsSamplingFamilyInetOutputData  `tfsdk:"family_inet_output"`
+	FamilyInet6Input  *forwardingoptionsSamplingInput                 `tfsdk:"family_inet6_input"`
+	FamilyInet6Output *forwardingoptionsSamplingFamilyInet6OutputData `tfsdk:"family_inet6_output"`
+	FamilyMplsInput   *forwardingoptionsSamplingInput                 `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput  *forwardingoptionsSamplingFamilyMplsOutputData  `tfsdk:"family_mpls_output"`
+	Input             *forwardingoptionsSamplingInput                 `tfsdk:"input"`
 }
 
-type forwardingoptionsSamplingInstanceConfig struct {
-	Disable           types.Bool                                               `tfsdk:"disable"`
-	ID                types.String                                             `tfsdk:"id"`
-	Name              types.String                                             `tfsdk:"name"`
-	RoutingInstance   types.String                                             `tfsdk:"routing_instance"`
-	FamilyInetInput   *forwardingoptionsSamplingInstanceInput                  `tfsdk:"family_inet_input"`
-	FamilyInetOutput  *forwardingoptionsSamplingInstanceFamilyInetOutputConfig `tfsdk:"family_inet_output"`
-	FamilyInet6Input  *forwardingoptionsSamplingInstanceInput                  `tfsdk:"family_inet6_input"`
-	FamilyInet6Output *forwardingoptionsSamplingInstanceFamilyInetOutputConfig `tfsdk:"family_inet6_output"`
-	FamilyMplsInput   *forwardingoptionsSamplingInstanceInput                  `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput  *forwardingoptionsSamplingInstanceFamilyMplsOutputConfig `tfsdk:"family_mpls_output"`
-	Input             *forwardingoptionsSamplingInstanceInput                  `tfsdk:"input"`
+type forwardingoptionsSamplingConfig struct {
+	Disable           types.Bool                                        `tfsdk:"disable"`
+	PreRewriteTos     types.Bool                                        `tfsdk:"pre_rewrite_tos"`
+	SampleOnce        types.Bool                                        `tfsdk:"sample_once"`
+	ID                types.String                                      `tfsdk:"id"`
+	RoutingInstance   types.String                                      `tfsdk:"routing_instance"`
+	FamilyInetInput   *forwardingoptionsSamplingInput                   `tfsdk:"family_inet_input"`
+	FamilyInetOutput  *forwardingoptionsSamplingFamilyInetOutputConfig  `tfsdk:"family_inet_output"`
+	FamilyInet6Input  *forwardingoptionsSamplingInput                   `tfsdk:"family_inet6_input"`
+	FamilyInet6Output *forwardingoptionsSamplingFamilyInet6OutputConfig `tfsdk:"family_inet6_output"`
+	FamilyMplsInput   *forwardingoptionsSamplingInput                   `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput  *forwardingoptionsSamplingFamilyMplsOutputConfig  `tfsdk:"family_mpls_output"`
+	Input             *forwardingoptionsSamplingInput                   `tfsdk:"input"`
 }
 
-type forwardingoptionsSamplingInstanceInput struct {
+type forwardingoptionsSamplingInput struct {
 	MaxPacketsPerSecond types.Int64 `tfsdk:"max_packets_per_second"`
 	MaximumPacketLength types.Int64 `tfsdk:"maximum_packet_length"`
 	Rate                types.Int64 `tfsdk:"rate"`
 	RunLength           types.Int64 `tfsdk:"run_length"`
 }
 
-//nolint:lll
-type forwardingoptionsSamplingInstanceFamilyInetOutputData struct {
-	AggregateExportInterval  types.Int64                                                   `tfsdk:"aggregate_export_interval"`
-	ExtensionService         []types.String                                                `tfsdk:"extension_service"`
-	FlowActiveTimeout        types.Int64                                                   `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64                                                   `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64                                                   `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String                                                  `tfsdk:"inline_jflow_source_address"`
-	FlowServer               []forwardingoptionsSamplingInstanceFamilyInetOutputFlowServer `tfsdk:"flow_server"`
-	Interface                []forwardingoptionsSamplingInstanceOutputInterface            `tfsdk:"interface"`
+type forwardingoptionsSamplingFamilyInetOutputData struct {
+	AggregateExportInterval  types.Int64                                           `tfsdk:"aggregate_export_interval"`
+	ExtensionService         []types.String                                        `tfsdk:"extension_service"`
+	File                     *forwardingoptionsSamplingFamilyInetOutputFile        `tfsdk:"file"`
+	FlowActiveTimeout        types.Int64                                           `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64                                           `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64                                           `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String                                          `tfsdk:"inline_jflow_source_address"`
+	FlowServer               []forwardingoptionsSamplingFamilyInetOutputFlowServer `tfsdk:"flow_server"`
+	Interface                []forwardingoptionsSamplingOutputInterface            `tfsdk:"interface"`
 }
 
-type forwardingoptionsSamplingInstanceFamilyInetOutputConfig struct {
-	AggregateExportInterval  types.Int64  `tfsdk:"aggregate_export_interval"`
-	ExtensionService         types.List   `tfsdk:"extension_service"`
-	FlowActiveTimeout        types.Int64  `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64  `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64  `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String `tfsdk:"inline_jflow_source_address"`
-	FlowServer               types.Set    `tfsdk:"flow_server"`
-	Interface                types.List   `tfsdk:"interface"`
+type forwardingoptionsSamplingFamilyInetOutputConfig struct {
+	AggregateExportInterval  types.Int64                                    `tfsdk:"aggregate_export_interval"`
+	ExtensionService         types.List                                     `tfsdk:"extension_service"`
+	File                     *forwardingoptionsSamplingFamilyInetOutputFile `tfsdk:"file"`
+	FlowActiveTimeout        types.Int64                                    `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64                                    `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64                                    `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String                                   `tfsdk:"inline_jflow_source_address"`
+	FlowServer               types.Set                                      `tfsdk:"flow_server"`
+	Interface                types.List                                     `tfsdk:"interface"`
+}
+
+type forwardingoptionsSamplingFamilyInetOutputFile struct {
+	Disable         types.Bool   `tfsdk:"disable"`
+	NoStamp         types.Bool   `tfsdk:"no_stamp"`
+	NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
+	Stamp           types.Bool   `tfsdk:"stamp"`
+	WorldReadable   types.Bool   `tfsdk:"world_readable"`
+	Filename        types.String `tfsdk:"filename"`
+	Files           types.Int64  `tfsdk:"files"`
+	Size            types.Int64  `tfsdk:"size"`
 }
 
 //nolint:lll
-type forwardingoptionsSamplingInstanceFamilyInetOutputFlowServer struct {
+type forwardingoptionsSamplingFamilyInetOutputFlowServer struct {
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 	AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
@@ -694,32 +747,22 @@ type forwardingoptionsSamplingInstanceFamilyInetOutputFlowServer struct {
 	SourceAddress                                    types.String `tfsdk:"source_address"`
 	Version                                          types.Int64  `tfsdk:"version"`
 	Version9Template                                 types.String `tfsdk:"version9_template"`
-	VersionIPFixTemplate                             types.String `tfsdk:"version_ipfix_template"`
 }
 
-type forwardingoptionsSamplingInstanceFamilyInet6OutputData struct {
-	AggregateExportInterval  types.Int64                                         `tfsdk:"aggregate_export_interval"`
-	ExtensionService         []types.String                                      `tfsdk:"extension_service"`
-	FlowActiveTimeout        types.Int64                                         `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64                                         `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64                                         `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String                                        `tfsdk:"inline_jflow_source_address"`
-	FlowServer               []forwardingoptionsSamplingInstanceOutputFlowServer `tfsdk:"flow_server"`
-	Interface                []forwardingoptionsSamplingInstanceOutputInterface  `tfsdk:"interface"`
+type forwardingoptionsSamplingFamilyInet6OutputData struct {
+	AggregateExportInterval  types.Int64                                 `tfsdk:"aggregate_export_interval"`
+	ExtensionService         []types.String                              `tfsdk:"extension_service"`
+	FlowActiveTimeout        types.Int64                                 `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64                                 `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64                                 `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String                                `tfsdk:"inline_jflow_source_address"`
+	FlowServer               []forwardingoptionsSamplingOutputFlowServer `tfsdk:"flow_server"`
+	Interface                []forwardingoptionsSamplingOutputInterface  `tfsdk:"interface"`
 }
 
-type forwardingoptionsSamplingInstanceFamilyMplsOutputData struct {
-	AggregateExportInterval  types.Int64                                         `tfsdk:"aggregate_export_interval"`
-	FlowActiveTimeout        types.Int64                                         `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64                                         `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64                                         `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String                                        `tfsdk:"inline_jflow_source_address"`
-	FlowServer               []forwardingoptionsSamplingInstanceOutputFlowServer `tfsdk:"flow_server"`
-	Interface                []forwardingoptionsSamplingInstanceOutputInterface  `tfsdk:"interface"`
-}
-
-type forwardingoptionsSamplingInstanceFamilyMplsOutputConfig struct {
+type forwardingoptionsSamplingFamilyInet6OutputConfig struct {
 	AggregateExportInterval  types.Int64  `tfsdk:"aggregate_export_interval"`
+	ExtensionService         types.List   `tfsdk:"extension_service"`
 	FlowActiveTimeout        types.Int64  `tfsdk:"flow_active_timeout"`
 	FlowInactiveTimeout      types.Int64  `tfsdk:"flow_inactive_timeout"`
 	InlineJflowExportRate    types.Int64  `tfsdk:"inline_jflow_export_rate"`
@@ -728,8 +771,24 @@ type forwardingoptionsSamplingInstanceFamilyMplsOutputConfig struct {
 	Interface                types.List   `tfsdk:"interface"`
 }
 
+type forwardingoptionsSamplingFamilyMplsOutputData struct {
+	AggregateExportInterval types.Int64                                 `tfsdk:"aggregate_export_interval"`
+	FlowActiveTimeout       types.Int64                                 `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout     types.Int64                                 `tfsdk:"flow_inactive_timeout"`
+	FlowServer              []forwardingoptionsSamplingOutputFlowServer `tfsdk:"flow_server"`
+	Interface               []forwardingoptionsSamplingOutputInterface  `tfsdk:"interface"`
+}
+
+type forwardingoptionsSamplingFamilyMplsOutputConfig struct {
+	AggregateExportInterval types.Int64 `tfsdk:"aggregate_export_interval"`
+	FlowActiveTimeout       types.Int64 `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout     types.Int64 `tfsdk:"flow_inactive_timeout"`
+	FlowServer              types.Set   `tfsdk:"flow_server"`
+	Interface               types.List  `tfsdk:"interface"`
+}
+
 //nolint:lll
-type forwardingoptionsSamplingInstanceOutputFlowServer struct {
+type forwardingoptionsSamplingOutputFlowServer struct {
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 	AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
@@ -746,17 +805,16 @@ type forwardingoptionsSamplingInstanceOutputFlowServer struct {
 	RoutingInstance                                  types.String `tfsdk:"routing_instance"`
 	SourceAddress                                    types.String `tfsdk:"source_address"`
 	Version9Template                                 types.String `tfsdk:"version9_template"`
-	VersionIPFixTemplate                             types.String `tfsdk:"version_ipfix_template"`
 }
 
-type forwardingoptionsSamplingInstanceOutputInterface struct {
+type forwardingoptionsSamplingOutputInterface struct {
 	Name          types.String `tfsdk:"name"`
 	EngineID      types.Int64  `tfsdk:"engine_id"`
 	EngineType    types.Int64  `tfsdk:"engine_type"`
 	SourceAddress types.String `tfsdk:"source_address"`
 }
 
-func (block *forwardingoptionsSamplingInstanceInput) IsEmpty() bool {
+func (block *forwardingoptionsSamplingInput) IsEmpty() bool {
 	switch {
 	case !block.MaxPacketsPerSecond.IsNull():
 		return false
@@ -771,10 +829,10 @@ func (block *forwardingoptionsSamplingInstanceInput) IsEmpty() bool {
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
+func (rsc *forwardingoptionsSampling) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
-	var config forwardingoptionsSamplingInstanceConfig
+	var config forwardingoptionsSamplingConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -809,14 +867,8 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				"cannot set family_mpls_input block if input block is used",
 			)
 		}
-	} else if config.FamilyInetInput == nil &&
-		config.FamilyInet6Input == nil &&
-		config.FamilyMplsInput == nil {
-		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
-			"one of input, family_inet_input, family_inet6_input or family_mpls_input must be specified",
-		)
 	}
+
 	if config.FamilyInetInput != nil {
 		if config.FamilyInetInput.IsEmpty() {
 			resp.Diagnostics.AddAttributeError(
@@ -855,8 +907,42 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 	}
 
 	if config.FamilyInetOutput != nil {
+		if config.Input == nil &&
+			config.FamilyInetInput == nil {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("family_inet_output").AtName("*"),
+				"Missing Configuration Error",
+				"one of input or family_inet_input must be specified with family_inet_output",
+			)
+		}
+		if config.FamilyInetOutput.File != nil {
+			if config.FamilyInetOutput.File.Filename.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("family_inet_output").AtName("file"),
+					"Missing Configuration Error",
+					"filename must be specified in family_inet_output.file block",
+				)
+			}
+			if !config.FamilyInetOutput.File.NoStamp.IsNull() &&
+				!config.FamilyInetOutput.File.Stamp.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("family_inet_output").AtName("file").AtName("stamp"),
+					"Conflict Configuration Error",
+					"no_stamp and stamp can't be true in same time in family_inet_output.file block",
+				)
+			}
+			if !config.FamilyInetOutput.File.NoWorldReadable.IsNull() &&
+				!config.FamilyInetOutput.File.WorldReadable.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("family_inet_output").AtName("file").AtName("world_readable"),
+					"Conflict Configuration Error",
+					"no_world_readable and world_readable can't be true in same time in family_inet_output.file block",
+				)
+			}
+		}
 		if config.FamilyInetOutput.AggregateExportInterval.IsNull() &&
 			config.FamilyInetOutput.ExtensionService.IsNull() &&
+			config.FamilyInetOutput.File == nil &&
 			config.FamilyInetOutput.FlowActiveTimeout.IsNull() &&
 			config.FamilyInetOutput.FlowInactiveTimeout.IsNull() &&
 			config.FamilyInetOutput.FlowServer.IsNull() &&
@@ -886,6 +972,14 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		}
 	}
 	if config.FamilyInet6Output != nil {
+		if config.Input == nil &&
+			config.FamilyInet6Input == nil {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("family_inet6_output").AtName("*"),
+				"Missing Configuration Error",
+				"one of input or family_inet6_input must be specified with family_inet6_output",
+			)
+		}
 		if config.FamilyInet6Output.AggregateExportInterval.IsNull() &&
 			config.FamilyInet6Output.ExtensionService.IsNull() &&
 			config.FamilyInet6Output.FlowActiveTimeout.IsNull() &&
@@ -917,12 +1011,18 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		}
 	}
 	if config.FamilyMplsOutput != nil {
+		if config.Input == nil &&
+			config.FamilyMplsInput == nil {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("family_mpls_output").AtName("*"),
+				"Missing Configuration Error",
+				"one of input or family_mpls_input must be specified with family_mpls_output",
+			)
+		}
 		if config.FamilyMplsOutput.AggregateExportInterval.IsNull() &&
 			config.FamilyMplsOutput.FlowActiveTimeout.IsNull() &&
 			config.FamilyMplsOutput.FlowInactiveTimeout.IsNull() &&
 			config.FamilyMplsOutput.FlowServer.IsNull() &&
-			config.FamilyMplsOutput.InlineJflowExportRate.IsNull() &&
-			config.FamilyMplsOutput.InlineJflowSourceAddress.IsNull() &&
 			config.FamilyMplsOutput.Interface.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_mpls_output").AtName("*"),
@@ -930,39 +1030,15 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				"family_mpls_output block is empty",
 			)
 		}
-		if config.FamilyMplsOutput.InlineJflowSourceAddress.IsNull() {
-			if !config.FamilyMplsOutput.InlineJflowExportRate.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("family_mpls_output").AtName("inline_jflow_export_rate"),
-					"Missing Configuration Error",
-					"inline_jflow_source_address must be specified with inline_jflow_export_rate in family_mpls_output block",
-				)
-			}
-		} else if config.FamilyMplsOutput.FlowServer.IsNull() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("family_mpls_output").AtName("inline_jflow_source_address"),
-				"Missing Configuration Error",
-				"flow_server must be specified with inline_jflow_source_address in family_mpls_output block",
-			)
-		}
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) Create(
+func (rsc *forwardingoptionsSampling) Create(
 	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse,
 ) {
-	var plan forwardingoptionsSamplingInstanceData
+	var plan forwardingoptionsSamplingData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-	if plan.Name.ValueString() == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("name"),
-			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
-		)
-
 		return
 	}
 
@@ -1016,23 +1092,28 @@ func (rsc *forwardingoptionsSamplingInstance) Create(
 			return
 		}
 	}
-	instanceExists, err := checkForwardingoptionsSamplingInstanceExists(
-		ctx,
-		plan.Name.ValueString(),
-		plan.RoutingInstance.ValueString(),
-		junSess,
-	)
+	var check forwardingoptionsSamplingData
+	err = check.read(ctx, plan.RoutingInstance.ValueString(), junSess)
 	if err != nil {
 		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
-	if instanceExists {
+	if check.FamilyInetInput != nil ||
+		check.FamilyInetOutput != nil ||
+		check.FamilyInet6Input != nil ||
+		check.FamilyInet6Output != nil ||
+		check.FamilyMplsInput != nil ||
+		check.FamilyMplsOutput != nil ||
+		check.Input != nil ||
+		!check.Disable.IsNull() ||
+		!check.PreRewriteTos.IsNull() ||
+		!check.SampleOnce.IsNull() {
 		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+			fmt.Sprintf(rsc.junosName()+" with routing-instance %q already configured", plan.RoutingInstance.ValueString()),
 		)
 
 		return
@@ -1057,35 +1138,14 @@ func (rsc *forwardingoptionsSamplingInstance) Create(
 		return
 	}
 
-	instanceExists, err = checkForwardingoptionsSamplingInstanceExists(
-		ctx,
-		plan.Name.ValueString(),
-		plan.RoutingInstance.ValueString(),
-		junSess,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
-
-		return
-	}
-	if !instanceExists {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-				"=> check your config", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
 	plan.fillID()
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func (rsc *forwardingoptionsSamplingInstance) Read(
+func (rsc *forwardingoptionsSampling) Read(
 	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse,
 ) {
-	var state, data forwardingoptionsSamplingInstanceData
+	var state, data forwardingoptionsSamplingData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1099,7 +1159,25 @@ func (rsc *forwardingoptionsSamplingInstance) Read(
 	defer junSess.Close()
 
 	junos.MutexLock()
-	err = data.read(ctx, state.Name.ValueString(), state.RoutingInstance.ValueString(), junSess)
+	if v := state.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		instanceExists, err := checkRoutingInstanceExists(ctx, v, junSess)
+		if err != nil {
+			junos.MutexLock()
+
+			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
+			resp.Diagnostics.AddError("Config Read Error", err.Error())
+
+			return
+		}
+		if !instanceExists {
+			junos.MutexLock()
+
+			resp.State.RemoveResource(ctx)
+
+			return
+		}
+	}
+	err = data.read(ctx, state.RoutingInstance.ValueString(), junSess)
 	junos.MutexUnlock()
 	if err != nil {
 		resp.Diagnostics.AddError("Config Read Error", err.Error())
@@ -1115,10 +1193,10 @@ func (rsc *forwardingoptionsSamplingInstance) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (rsc *forwardingoptionsSamplingInstance) Update(
+func (rsc *forwardingoptionsSampling) Update(
 	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
 ) {
-	var plan, state forwardingoptionsSamplingInstanceData
+	var plan, state forwardingoptionsSamplingData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -1189,10 +1267,10 @@ func (rsc *forwardingoptionsSamplingInstance) Update(
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func (rsc *forwardingoptionsSamplingInstance) Delete(
+func (rsc *forwardingoptionsSampling) Delete(
 	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse,
 ) {
-	var state forwardingoptionsSamplingInstanceData
+	var state forwardingoptionsSamplingData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1239,7 +1317,7 @@ func (rsc *forwardingoptionsSamplingInstance) Delete(
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) ImportState(
+func (rsc *forwardingoptionsSampling) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
 	junSess, err := rsc.client.StartNewSession(ctx)
@@ -1250,80 +1328,60 @@ func (rsc *forwardingoptionsSamplingInstance) ImportState(
 	}
 	defer junSess.Close()
 
-	var data forwardingoptionsSamplingInstanceData
-	idSplit := strings.Split(req.ID, junos.IDSeparator)
-	if len(idSplit) > 1 {
-		if err := data.read(ctx, idSplit[0], idSplit[1], junSess); err != nil {
+	var data forwardingoptionsSamplingData
+	if req.ID != junos.DefaultW {
+		instanceExists, err := checkRoutingInstanceExists(ctx, req.ID, junSess)
+		if err != nil {
 			resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 			return
 		}
-	} else {
-		if err := data.read(ctx, idSplit[0], junos.DefaultW, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Read Error", err.Error())
+		if !instanceExists {
+			resp.Diagnostics.AddError(
+				"Not Found Error",
+				fmt.Sprintf("routing instance %q doesn't exist", req.ID),
+			)
 
 			return
 		}
 	}
-
-	if data.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <name> or <name>"+junos.IDSeparator+"<routing_instance>)", req.ID),
-		)
+	if err := data.read(ctx, req.ID, junSess); err != nil {
+		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
-func checkForwardingoptionsSamplingInstanceExists(
-	_ context.Context, name, routingInstance string, junSess *junos.Session,
-) (
-	_ bool, err error,
-) {
-	var showConfig string
-	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
-			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
-	} else {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
-	}
-	if err != nil {
-		return false, err
-	}
-	if showConfig == junos.EmptyW {
-		return false, nil
-	}
-
-	return true, nil
-}
-
-func (rscData *forwardingoptionsSamplingInstanceData) fillID() {
+func (rscData *forwardingoptionsSamplingData) fillID() {
 	if v := rscData.RoutingInstance.ValueString(); v != "" {
-		rscData.ID = types.StringValue(rscData.Name.ValueString() + junos.IDSeparator + v)
+		rscData.ID = types.StringValue(v)
 	} else {
-		rscData.ID = types.StringValue(rscData.Name.ValueString() + junos.IDSeparator + junos.DefaultW)
+		rscData.ID = types.StringValue(junos.DefaultW)
 	}
 }
 
-func (rscData *forwardingoptionsSamplingInstanceData) set(
+func (rscData *forwardingoptionsSamplingData) set(
 	_ context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-	setPrefix := "set forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\" "
+	setPrefix := "set forwarding-options sampling "
 
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + v +
-			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\" "
+		setPrefix = junos.SetRoutingInstances + v + " forwarding-options sampling "
 	}
 
 	if rscData.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+"disable")
+	}
+	if rscData.PreRewriteTos.ValueBool() {
+		configSet = append(configSet, setPrefix+"pre-rewrite-tos")
+	}
+	if rscData.SampleOnce.ValueBool() {
+		configSet = append(configSet, setPrefix+"sample-once")
 	}
 	if rscData.FamilyInetInput != nil {
 		blockSet := rscData.FamilyInetInput.configSet(setPrefix + "family inet input ")
@@ -1387,7 +1445,7 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (block *forwardingoptionsSamplingInstanceInput) configSet(
+func (block *forwardingoptionsSamplingInput) configSet(
 	setPrefix string,
 ) []string {
 	configSet := make([]string, 0)
@@ -1412,7 +1470,7 @@ func (block *forwardingoptionsSamplingInstanceInput) configSet(
 	return configSet
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
+func (block *forwardingoptionsSamplingFamilyInetOutputData) configSet(
 	setPrefix string,
 ) (
 	[]string, // configSet
@@ -1429,6 +1487,30 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
 	for _, v := range block.ExtensionService {
 		configSet = append(configSet, setPrefix+"extension-service \""+v.ValueString()+"\"")
 	}
+	if block.File != nil {
+		configSet = append(configSet, setPrefix+"file filename \""+block.File.Filename.ValueString()+"\"")
+		if block.File.Disable.ValueBool() {
+			configSet = append(configSet, setPrefix+"file disable")
+		}
+		if !block.File.Files.IsNull() {
+			configSet = append(configSet, setPrefix+"file files "+utils.ConvI64toa(block.File.Files.ValueInt64()))
+		}
+		if block.File.NoStamp.ValueBool() {
+			configSet = append(configSet, setPrefix+"file no-stamp")
+		}
+		if block.File.NoWorldReadable.ValueBool() {
+			configSet = append(configSet, setPrefix+"file no-world-readable")
+		}
+		if !block.File.Size.IsNull() {
+			configSet = append(configSet, setPrefix+"file size "+utils.ConvI64toa(block.File.Size.ValueInt64()))
+		}
+		if block.File.Stamp.ValueBool() {
+			configSet = append(configSet, setPrefix+"file stamp")
+		}
+		if block.File.WorldReadable.ValueBool() {
+			configSet = append(configSet, setPrefix+"file world-readable")
+		}
+	}
 	if !block.FlowActiveTimeout.IsNull() {
 		configSet = append(configSet, setPrefix+"flow-active-timeout "+
 			utils.ConvI64toa(block.FlowActiveTimeout.ValueInt64()))
@@ -1437,11 +1519,18 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
 		configSet = append(configSet, setPrefix+"flow-inactive-timeout "+
 			utils.ConvI64toa(block.FlowInactiveTimeout.ValueInt64()))
 	}
+	if !block.InlineJflowExportRate.IsNull() {
+		configSet = append(configSet, setPrefix+"inline-jflow flow-export-rate "+
+			utils.ConvI64toa(block.InlineJflowExportRate.ValueInt64()))
+	}
+	if v := block.InlineJflowSourceAddress.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"inline-jflow source-address "+v)
+	}
 	flowServerHostname := make(map[string]struct{})
-	for i, blockFlowServer := range block.FlowServer {
+	for _, blockFlowServer := range block.FlowServer {
 		hostname := blockFlowServer.Hostname.ValueString()
 		if _, ok := flowServerHostname[hostname]; ok {
-			return configSet, path.Root("family_inet_output").AtName("flow_server").AtListIndex(i).AtName("hostname"),
+			return configSet, path.Root("family_inet_output").AtName("flow_server"),
 				fmt.Errorf("multiple blocks flow_server with the same hostname %q", hostname)
 		}
 		flowServerHostname[hostname] = struct{}{}
@@ -1464,8 +1553,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
 			}
 		} else if blockFlowServer.AggregationSourceDestinationPrefixCaidaCompliant.ValueBool() {
 			return configSet,
-				path.Root("family_inet_output").AtName("flow_server").AtListIndex(i).
-					AtName("aggregation_source_destination_prefix_caida_compliant"),
+				path.Root("family_inet_output").AtName("flow_server"),
 				fmt.Errorf("aggregation_source_destination_prefix_caida_compliant = true "+
 					"without aggregation_source_destination_prefix on flow-server %q", hostname)
 		}
@@ -1501,16 +1589,6 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
 		if v := blockFlowServer.Version9Template.ValueString(); v != "" {
 			configSet = append(configSet, setPrefixFlowServer+"version9 template \""+v+"\"")
 		}
-		if v := blockFlowServer.VersionIPFixTemplate.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixFlowServer+"version-ipfix template \""+v+"\"")
-		}
-	}
-	if !block.InlineJflowExportRate.IsNull() {
-		configSet = append(configSet, setPrefix+"inline-jflow flow-export-rate "+
-			utils.ConvI64toa(block.InlineJflowExportRate.ValueInt64()))
-	}
-	if v := block.InlineJflowSourceAddress.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"inline-jflow source-address "+v)
 	}
 	interfaceName := make(map[string]struct{})
 	for i, blockInterface := range block.Interface {
@@ -1525,7 +1603,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
 	return configSet, path.Empty(), nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) configSet(
+func (block *forwardingoptionsSamplingFamilyInet6OutputData) configSet(
 	setPrefix string,
 ) (
 	[]string, // configSet
@@ -1551,18 +1629,15 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) configSet(
 			utils.ConvI64toa(block.FlowInactiveTimeout.ValueInt64()))
 	}
 	flowServerHostname := make(map[string]struct{})
-	for i, blockFlowServer := range block.FlowServer {
+	for _, blockFlowServer := range block.FlowServer {
 		if _, ok := flowServerHostname[blockFlowServer.Hostname.ValueString()]; ok {
-			return configSet, path.Root("family_inet6_output").AtName("flow_server").AtListIndex(i).AtName("hostname"),
+			return configSet, path.Root("family_inet6_output").AtName("flow_server"),
 				fmt.Errorf("multiple blocks flow_server with the same hostname %q", blockFlowServer.Hostname.ValueString())
 		}
 		flowServerHostname[blockFlowServer.Hostname.ValueString()] = struct{}{}
-		blockSet, pathErr, err := blockFlowServer.configSet(
-			setPrefix,
-			path.Root("family_inet6_output").AtName("flow_server").AtListIndex(i),
-		)
+		blockSet, err := blockFlowServer.configSet(setPrefix)
 		if err != nil {
-			return configSet, pathErr, err
+			return configSet, path.Root("family_inet6_output").AtName("flow_server"), err
 		}
 		configSet = append(configSet, blockSet...)
 	}
@@ -1586,7 +1661,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) configSet(
 	return configSet, path.Empty(), nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) configSet(
+func (block *forwardingoptionsSamplingFamilyMplsOutputData) configSet(
 	setPrefix string,
 ) (
 	[]string, // configSet
@@ -1609,28 +1684,18 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) configSet(
 			utils.ConvI64toa(block.FlowInactiveTimeout.ValueInt64()))
 	}
 	flowServerHostname := make(map[string]struct{})
-	for i, blockFlowServer := range block.FlowServer {
+	for _, blockFlowServer := range block.FlowServer {
 		hostname := blockFlowServer.Hostname.ValueString()
 		if _, ok := flowServerHostname[hostname]; ok {
-			return configSet, path.Root("family_mpls_output").AtName("flow_server").AtListIndex(i).AtName("hostname"),
+			return configSet, path.Root("family_mpls_output").AtName("flow_server"),
 				fmt.Errorf("multiple blocks flow_server with the same hostname %q", hostname)
 		}
 		flowServerHostname[hostname] = struct{}{}
-		blockSet, pathErr, err := blockFlowServer.configSet(
-			setPrefix,
-			path.Root("family_mpls_output").AtName("flow_server").AtListIndex(i),
-		)
+		blockSet, err := blockFlowServer.configSet(setPrefix)
 		if err != nil {
-			return configSet, pathErr, err
+			return configSet, path.Root("family_mpls_output").AtName("flow_server"), err
 		}
 		configSet = append(configSet, blockSet...)
-	}
-	if !block.InlineJflowExportRate.IsNull() {
-		configSet = append(configSet, setPrefix+"inline-jflow flow-export-rate "+
-			utils.ConvI64toa(block.InlineJflowExportRate.ValueInt64()))
-	}
-	if v := block.InlineJflowSourceAddress.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"inline-jflow source-address "+v)
 	}
 	interfaceName := make(map[string]struct{})
 	for i, blockInterface := range block.Interface {
@@ -1645,13 +1710,10 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) configSet(
 	return configSet, path.Empty(), nil
 }
 
-func (block *forwardingoptionsSamplingInstanceOutputFlowServer) configSet(
+func (block *forwardingoptionsSamplingOutputFlowServer) configSet(
 	setPrefix string,
-	pathRoot path.Path,
 ) (
-	[]string, // configSet
-	path.Path, // pathErr
-	error, // error
+	[]string, error,
 ) {
 	configSet := make([]string, 0)
 	setPrefix += "flow-server " + block.Hostname.ValueString() + " "
@@ -1674,7 +1736,6 @@ func (block *forwardingoptionsSamplingInstanceOutputFlowServer) configSet(
 		}
 	} else if block.AggregationSourceDestinationPrefixCaidaCompliant.ValueBool() {
 		return configSet,
-			pathRoot.AtName("aggregation_source_destination_prefix_caida_compliant"),
 			fmt.Errorf("aggregation_source_destination_prefix_caida_compliant = true "+
 				"without aggregation_source_destination_prefix on flow-server %q", block.Hostname.ValueString())
 	}
@@ -1706,14 +1767,11 @@ func (block *forwardingoptionsSamplingInstanceOutputFlowServer) configSet(
 	if v := block.Version9Template.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"version9 template \""+v+"\"")
 	}
-	if v := block.VersionIPFixTemplate.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"version-ipfix template \""+v+"\"")
-	}
 
-	return configSet, path.Empty(), nil
+	return configSet, nil
 }
 
-func (block *forwardingoptionsSamplingInstanceOutputInterface) configSet(setPrefix string) []string {
+func (block *forwardingoptionsSamplingOutputInterface) configSet(setPrefix string) []string {
 	configSet := make([]string, 0)
 	setPrefix += "interface " + block.Name.ValueString() + " "
 
@@ -1733,30 +1791,29 @@ func (block *forwardingoptionsSamplingInstanceOutputInterface) configSet(setPref
 	return configSet
 }
 
-func (rscData *forwardingoptionsSamplingInstanceData) read(
-	_ context.Context, name, routingInstance string, junSess *junos.Session,
+func (rscData *forwardingoptionsSamplingData) read(
+	_ context.Context, routingInstance string, junSess *junos.Session,
 ) (
 	err error,
 ) {
 	var showConfig string
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
-			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
+			"forwarding-options sampling" + junos.PipeDisplaySetRelative)
 	} else {
 		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
+			"forwarding-options sampling" + junos.PipeDisplaySetRelative)
 	}
 	if err != nil {
 		return err
 	}
+	if routingInstance == "" {
+		rscData.RoutingInstance = types.StringValue(junos.DefaultW)
+	} else {
+		rscData.RoutingInstance = types.StringValue(routingInstance)
+	}
+	rscData.fillID()
 	if showConfig != junos.EmptyW {
-		rscData.Name = types.StringValue(name)
-		if routingInstance == "" {
-			rscData.RoutingInstance = types.StringValue(junos.DefaultW)
-		} else {
-			rscData.RoutingInstance = types.StringValue(routingInstance)
-		}
-		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
@@ -1768,51 +1825,55 @@ func (rscData *forwardingoptionsSamplingInstanceData) read(
 			switch {
 			case itemTrim == junos.DisableW:
 				rscData.Disable = types.BoolValue(true)
+			case itemTrim == "pre-rewrite-tos":
+				rscData.PreRewriteTos = types.BoolValue(true)
+			case itemTrim == "sample-once":
+				rscData.SampleOnce = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "family inet input "):
 				if rscData.FamilyInetInput == nil {
-					rscData.FamilyInetInput = &forwardingoptionsSamplingInstanceInput{}
+					rscData.FamilyInetInput = &forwardingoptionsSamplingInput{}
 				}
 				if err := rscData.FamilyInetInput.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family inet6 input "):
 				if rscData.FamilyInet6Input == nil {
-					rscData.FamilyInet6Input = &forwardingoptionsSamplingInstanceInput{}
+					rscData.FamilyInet6Input = &forwardingoptionsSamplingInput{}
 				}
 				if err := rscData.FamilyInet6Input.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family mpls input "):
 				if rscData.FamilyMplsInput == nil {
-					rscData.FamilyMplsInput = &forwardingoptionsSamplingInstanceInput{}
+					rscData.FamilyMplsInput = &forwardingoptionsSamplingInput{}
 				}
 				if err := rscData.FamilyMplsInput.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "input "):
 				if rscData.Input == nil {
-					rscData.Input = &forwardingoptionsSamplingInstanceInput{}
+					rscData.Input = &forwardingoptionsSamplingInput{}
 				}
 				if err := rscData.Input.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family inet output "):
 				if rscData.FamilyInetOutput == nil {
-					rscData.FamilyInetOutput = &forwardingoptionsSamplingInstanceFamilyInetOutputData{}
+					rscData.FamilyInetOutput = &forwardingoptionsSamplingFamilyInetOutputData{}
 				}
 				if err := rscData.FamilyInetOutput.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family inet6 output "):
 				if rscData.FamilyInet6Output == nil {
-					rscData.FamilyInet6Output = &forwardingoptionsSamplingInstanceFamilyInet6OutputData{}
+					rscData.FamilyInet6Output = &forwardingoptionsSamplingFamilyInet6OutputData{}
 				}
 				if err := rscData.FamilyInet6Output.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family mpls output "):
 				if rscData.FamilyMplsOutput == nil {
-					rscData.FamilyMplsOutput = &forwardingoptionsSamplingInstanceFamilyMplsOutputData{}
+					rscData.FamilyMplsOutput = &forwardingoptionsSamplingFamilyMplsOutputData{}
 				}
 				if err := rscData.FamilyMplsOutput.read(itemTrim); err != nil {
 					return err
@@ -1824,7 +1885,7 @@ func (rscData *forwardingoptionsSamplingInstanceData) read(
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceInput) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingInput) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "max-packets-per-second "):
 		block.MaxPacketsPerSecond, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -1851,7 +1912,7 @@ func (block *forwardingoptionsSamplingInstanceInput) read(itemTrim string) (err 
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingFamilyInetOutputData) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "aggregate-export-interval "):
 		block.AggregateExportInterval, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -1860,6 +1921,45 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTri
 		}
 	case balt.CutPrefixInString(&itemTrim, "extension-service "):
 		block.ExtensionService = append(block.ExtensionService, types.StringValue(strings.Trim(itemTrim, "\"")))
+	case balt.CutPrefixInString(&itemTrim, "file "):
+		if block.File == nil {
+			block.File = &forwardingoptionsSamplingFamilyInetOutputFile{}
+		}
+		switch {
+		case itemTrim == "disable":
+			block.File.Disable = types.BoolValue(true)
+		case balt.CutPrefixInString(&itemTrim, "filename "):
+			block.File.Filename = types.StringValue(strings.Trim(itemTrim, "\""))
+		case balt.CutPrefixInString(&itemTrim, "files "):
+			block.File.Files, err = tfdata.ConvAtoi64Value(itemTrim)
+			if err != nil {
+				return err
+			}
+		case itemTrim == "no-stamp":
+			block.File.NoStamp = types.BoolValue(true)
+		case itemTrim == "no-world-readable":
+			block.File.NoWorldReadable = types.BoolValue(true)
+		case balt.CutPrefixInString(&itemTrim, "size "):
+			switch {
+			case balt.CutSuffixInString(&itemTrim, "k"):
+				block.File.Size, err = tfdata.ConvAtoi64Value(itemTrim)
+				block.File.Size = types.Int64Value(block.File.Size.ValueInt64() * 1024)
+			case balt.CutSuffixInString(&itemTrim, "m"):
+				block.File.Size, err = tfdata.ConvAtoi64Value(itemTrim)
+				block.File.Size = types.Int64Value(block.File.Size.ValueInt64() * 1024 * 1024)
+			case balt.CutSuffixInString(&itemTrim, "g"):
+				block.File.Size = types.Int64Value(block.File.Size.ValueInt64() * 1024 * 1024 * 1024)
+			default:
+				block.File.Size, err = tfdata.ConvAtoi64Value(itemTrim)
+			}
+			if err != nil {
+				return err
+			}
+		case itemTrim == "stamp":
+			block.File.Stamp = types.BoolValue(true)
+		case itemTrim == "world-readable":
+			block.File.WorldReadable = types.BoolValue(true)
+		}
 	case balt.CutPrefixInString(&itemTrim, "flow-active-timeout "):
 		block.FlowActiveTimeout, err = tfdata.ConvAtoi64Value(itemTrim)
 		if err != nil {
@@ -1870,9 +1970,16 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTri
 		if err != nil {
 			return err
 		}
+	case balt.CutPrefixInString(&itemTrim, "inline-jflow flow-export-rate "):
+		block.InlineJflowExportRate, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "inline-jflow source-address "):
+		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var flowServer forwardingoptionsSamplingInstanceFamilyInetOutputFlowServer
+		var flowServer forwardingoptionsSamplingFamilyInetOutputFlowServer
 		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
 			block.FlowServer, "Hostname", itemTrimFields[0],
 		)
@@ -1921,20 +2028,11 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTri
 			}
 		case balt.CutPrefixInString(&itemTrim, "version9 template "):
 			flowServer.Version9Template = types.StringValue(strings.Trim(itemTrim, "\""))
-		case balt.CutPrefixInString(&itemTrim, "version-ipfix template "):
-			flowServer.VersionIPFixTemplate = types.StringValue(strings.Trim(itemTrim, "\""))
 		}
 		block.FlowServer = append(block.FlowServer, flowServer)
-	case balt.CutPrefixInString(&itemTrim, "inline-jflow flow-export-rate "):
-		block.InlineJflowExportRate, err = tfdata.ConvAtoi64Value(itemTrim)
-		if err != nil {
-			return err
-		}
-	case balt.CutPrefixInString(&itemTrim, "inline-jflow source-address "):
-		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingInstanceOutputInterface
+		var iFace forwardingoptionsSamplingOutputInterface
 		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
 			block.Interface, "Name", itemTrimFields[0],
 		)
@@ -1949,7 +2047,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTri
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingFamilyInet6OutputData) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "aggregate-export-interval "):
 		block.AggregateExportInterval, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -1970,7 +2068,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) read(itemTr
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var flowServer forwardingoptionsSamplingInstanceOutputFlowServer
+		var flowServer forwardingoptionsSamplingOutputFlowServer
 		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
 			block.FlowServer, "Hostname", itemTrimFields[0],
 		)
@@ -1989,7 +2087,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) read(itemTr
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingInstanceOutputInterface
+		var iFace forwardingoptionsSamplingOutputInterface
 		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
 			block.Interface, "Name", itemTrimFields[0],
 		)
@@ -2004,7 +2102,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) read(itemTr
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingFamilyMplsOutputData) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "aggregate-export-interval "):
 		block.AggregateExportInterval, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -2023,7 +2121,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) read(itemTri
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var flowServer forwardingoptionsSamplingInstanceOutputFlowServer
+		var flowServer forwardingoptionsSamplingOutputFlowServer
 		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
 			block.FlowServer, "Hostname", itemTrimFields[0],
 		)
@@ -2033,16 +2131,9 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) read(itemTri
 			return err
 		}
 		block.FlowServer = append(block.FlowServer, flowServer)
-	case balt.CutPrefixInString(&itemTrim, "inline-jflow flow-export-rate "):
-		block.InlineJflowExportRate, err = tfdata.ConvAtoi64Value(itemTrim)
-		if err != nil {
-			return err
-		}
-	case balt.CutPrefixInString(&itemTrim, "inline-jflow source-address "):
-		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingInstanceOutputInterface
+		var iFace forwardingoptionsSamplingOutputInterface
 		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
 			block.Interface, "Name", itemTrimFields[0],
 		)
@@ -2057,7 +2148,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) read(itemTri
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceOutputFlowServer) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingOutputFlowServer) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "port "):
 		block.Port, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -2096,14 +2187,12 @@ func (block *forwardingoptionsSamplingInstanceOutputFlowServer) read(itemTrim st
 		block.SourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "version9 template "):
 		block.Version9Template = types.StringValue(strings.Trim(itemTrim, "\""))
-	case balt.CutPrefixInString(&itemTrim, "version-ipfix template "):
-		block.VersionIPFixTemplate = types.StringValue(strings.Trim(itemTrim, "\""))
 	}
 
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceOutputInterface) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingOutputInterface) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "engine-id "):
 		block.EngineID, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -2122,16 +2211,24 @@ func (block *forwardingoptionsSamplingInstanceOutputInterface) read(itemTrim str
 	return nil
 }
 
-func (rscData *forwardingoptionsSamplingInstanceData) del(
+func (rscData *forwardingoptionsSamplingData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 1)
+	delPrefix := "delete forwarding-options sampling "
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		configSet[0] = junos.DelRoutingInstances + v +
-			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\""
-	} else {
-		configSet[0] = "delete " +
-			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\""
+		delPrefix = junos.DelRoutingInstances + v + " forwarding-options sampling "
+	}
+	configSet := []string{
+		delPrefix + junos.DisableW,
+		delPrefix + "pre-rewrite-tos",
+		delPrefix + "sample-once",
+		delPrefix + "family inet input",
+		delPrefix + "family inet output",
+		delPrefix + "family inet6 input",
+		delPrefix + "family inet6 output",
+		delPrefix + "family mpls input",
+		delPrefix + "family mpls output",
+		delPrefix + "input",
 	}
 
 	return junSess.ConfigSet(configSet)
