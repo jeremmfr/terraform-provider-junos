@@ -33,6 +33,7 @@ var (
 	_ resource.ResourceWithModifyPlan     = &securityIpsecVpn{}
 	_ resource.ResourceWithValidateConfig = &securityIpsecVpn{}
 	_ resource.ResourceWithImportState    = &securityIpsecVpn{}
+	_ resource.ResourceWithUpgradeState   = &securityIpsecVpn{}
 )
 
 type securityIpsecVpn struct {
@@ -77,6 +78,7 @@ func (rsc *securityIpsecVpn) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
+		Version:     1,
 		Description: "Provides a " + rsc.junosName() + ".",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

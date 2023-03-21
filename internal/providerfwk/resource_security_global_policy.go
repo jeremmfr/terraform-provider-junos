@@ -29,6 +29,7 @@ var (
 	_ resource.ResourceWithConfigure      = &securityGlobalPolicy{}
 	_ resource.ResourceWithValidateConfig = &securityGlobalPolicy{}
 	_ resource.ResourceWithImportState    = &securityGlobalPolicy{}
+	_ resource.ResourceWithUpgradeState   = &securityGlobalPolicy{}
 )
 
 type securityGlobalPolicy struct {
@@ -73,6 +74,7 @@ func (rsc *securityGlobalPolicy) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
+		Version:     1,
 		Description: "Configure static configuration in `" + rsc.junosName() + "` block",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

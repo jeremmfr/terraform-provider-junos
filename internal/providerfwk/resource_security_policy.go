@@ -30,6 +30,7 @@ var (
 	_ resource.ResourceWithConfigure      = &securityPolicy{}
 	_ resource.ResourceWithValidateConfig = &securityPolicy{}
 	_ resource.ResourceWithImportState    = &securityPolicy{}
+	_ resource.ResourceWithUpgradeState   = &securityPolicy{}
 )
 
 type securityPolicy struct {
@@ -74,6 +75,7 @@ func (rsc *securityPolicy) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
+		Version:     1,
 		Description: "Provides a " + rsc.junosName() + ".",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
