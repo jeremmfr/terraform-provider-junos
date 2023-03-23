@@ -8,7 +8,6 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -104,10 +104,8 @@ func (rsc *securityIkeProposal) Schema(
 			"authentication_method": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
+				Default:     stringdefault.StaticString("pre-shared-keys"),
 				Description: "Authentication method.",
-				PlanModifiers: []planmodifier.String{
-					tfplanmodifier.StringDefault("pre-shared-keys"),
-				},
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringSpaceExclusion(),

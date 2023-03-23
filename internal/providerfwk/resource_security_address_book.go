@@ -8,7 +8,6 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -86,9 +86,9 @@ func (rsc *securityAddressBook) Schema(
 			"name": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
+				Default:     stringdefault.StaticString("global"),
 				Description: "The name of address book.",
 				PlanModifiers: []planmodifier.String{
-					tfplanmodifier.StringDefault("global"),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{

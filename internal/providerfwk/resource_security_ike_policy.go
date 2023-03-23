@@ -8,7 +8,6 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -133,10 +133,8 @@ func (rsc *securityIkePolicy) Schema(
 			"mode": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
+				Default:     stringdefault.StaticString("main"),
 				Description: "IKE mode for Phase 1.",
-				PlanModifiers: []planmodifier.String{
-					tfplanmodifier.StringDefault("main"),
-				},
 				Validators: []validator.String{
 					stringvalidator.OneOf("main", "aggressive"),
 				},
