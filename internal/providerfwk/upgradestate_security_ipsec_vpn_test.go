@@ -8,6 +8,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
@@ -34,6 +35,11 @@ func TestAccJunosSecurityIpsecVPNUpgradeStateV0toV1_basic(t *testing.T) {
 				{
 					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 					Config:                   testAccJunosSecurityIpsecVPNConfigV0(testaccInterface),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectEmptyPlan(),
+						},
+					},
 				},
 			},
 		})

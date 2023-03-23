@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 func TestAccJunosSecurityPolicyUpgradeStateV0toV1_basic(t *testing.T) {
@@ -26,6 +27,11 @@ func TestAccJunosSecurityPolicyUpgradeStateV0toV1_basic(t *testing.T) {
 				{
 					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 					Config:                   testAccJunosSecurityPolicyConfigV0(),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectEmptyPlan(),
+						},
+					},
 				},
 			},
 		})
