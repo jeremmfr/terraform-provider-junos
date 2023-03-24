@@ -697,8 +697,10 @@ func (rscData *servicesFlowMonitoringV9TemplateData) set(
 			return path.Root("mpls_template_label_position"),
 				fmt.Errorf("mpls_template_label_position not compatible with type %q", v2)
 		}
-		configSet = append(configSet,
-			setPrefix+rscData.Type.ValueString()+" label-position "+utils.ConvI64toa(v.ValueInt64()))
+		if !v.IsNull() {
+			configSet = append(configSet,
+				setPrefix+rscData.Type.ValueString()+" label-position "+utils.ConvI64toa(v.ValueInt64()))
+		}
 	}
 	if !rscData.FlowActiveTimeout.IsNull() {
 		configSet = append(configSet, setPrefix+"flow-active-timeout "+
