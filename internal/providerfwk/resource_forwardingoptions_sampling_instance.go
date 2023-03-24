@@ -1439,10 +1439,10 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
 			utils.ConvI64toa(block.FlowInactiveTimeout.ValueInt64()))
 	}
 	flowServerHostname := make(map[string]struct{})
-	for i, blockFlowServer := range block.FlowServer {
+	for _, blockFlowServer := range block.FlowServer {
 		hostname := blockFlowServer.Hostname.ValueString()
 		if _, ok := flowServerHostname[hostname]; ok {
-			return configSet, path.Root("family_inet_output").AtName("flow_server").AtListIndex(i).AtName("hostname"),
+			return configSet, path.Root("family_inet_output").AtName("flow_server"),
 				fmt.Errorf("multiple blocks flow_server with the same hostname %q", hostname)
 		}
 		flowServerHostname[hostname] = struct{}{}
@@ -1465,8 +1465,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
 			}
 		} else if blockFlowServer.AggregationSourceDestinationPrefixCaidaCompliant.ValueBool() {
 			return configSet,
-				path.Root("family_inet_output").AtName("flow_server").AtListIndex(i).
-					AtName("aggregation_source_destination_prefix_caida_compliant"),
+				path.Root("family_inet_output").AtName("flow_server"),
 				fmt.Errorf("aggregation_source_destination_prefix_caida_compliant = true "+
 					"without aggregation_source_destination_prefix on flow-server %q", hostname)
 		}
@@ -1552,18 +1551,15 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) configSet(
 			utils.ConvI64toa(block.FlowInactiveTimeout.ValueInt64()))
 	}
 	flowServerHostname := make(map[string]struct{})
-	for i, blockFlowServer := range block.FlowServer {
+	for _, blockFlowServer := range block.FlowServer {
 		if _, ok := flowServerHostname[blockFlowServer.Hostname.ValueString()]; ok {
-			return configSet, path.Root("family_inet6_output").AtName("flow_server").AtListIndex(i).AtName("hostname"),
+			return configSet, path.Root("family_inet6_output").AtName("flow_server"),
 				fmt.Errorf("multiple blocks flow_server with the same hostname %q", blockFlowServer.Hostname.ValueString())
 		}
 		flowServerHostname[blockFlowServer.Hostname.ValueString()] = struct{}{}
-		blockSet, pathErr, err := blockFlowServer.configSet(
-			setPrefix,
-			path.Root("family_inet6_output").AtName("flow_server").AtListIndex(i),
-		)
+		blockSet, err := blockFlowServer.configSet(setPrefix)
 		if err != nil {
-			return configSet, pathErr, err
+			return configSet, path.Root("family_inet6_output").AtName("flow_server"), err
 		}
 		configSet = append(configSet, blockSet...)
 	}
@@ -1610,19 +1606,16 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) configSet(
 			utils.ConvI64toa(block.FlowInactiveTimeout.ValueInt64()))
 	}
 	flowServerHostname := make(map[string]struct{})
-	for i, blockFlowServer := range block.FlowServer {
+	for _, blockFlowServer := range block.FlowServer {
 		hostname := blockFlowServer.Hostname.ValueString()
 		if _, ok := flowServerHostname[hostname]; ok {
-			return configSet, path.Root("family_mpls_output").AtName("flow_server").AtListIndex(i).AtName("hostname"),
+			return configSet, path.Root("family_mpls_output").AtName("flow_server"),
 				fmt.Errorf("multiple blocks flow_server with the same hostname %q", hostname)
 		}
 		flowServerHostname[hostname] = struct{}{}
-		blockSet, pathErr, err := blockFlowServer.configSet(
-			setPrefix,
-			path.Root("family_mpls_output").AtName("flow_server").AtListIndex(i),
-		)
+		blockSet, err := blockFlowServer.configSet(setPrefix)
 		if err != nil {
-			return configSet, pathErr, err
+			return configSet, path.Root("family_mpls_output").AtName("flow_server"), err
 		}
 		configSet = append(configSet, blockSet...)
 	}
@@ -1648,11 +1641,8 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) configSet(
 
 func (block *forwardingoptionsSamplingInstanceOutputFlowServer) configSet(
 	setPrefix string,
-	pathRoot path.Path,
 ) (
-	[]string, // configSet
-	path.Path, // pathErr
-	error, // error
+	[]string, error,
 ) {
 	configSet := make([]string, 0)
 	setPrefix += "flow-server " + block.Hostname.ValueString() + " "
@@ -1675,7 +1665,6 @@ func (block *forwardingoptionsSamplingInstanceOutputFlowServer) configSet(
 		}
 	} else if block.AggregationSourceDestinationPrefixCaidaCompliant.ValueBool() {
 		return configSet,
-			pathRoot.AtName("aggregation_source_destination_prefix_caida_compliant"),
 			fmt.Errorf("aggregation_source_destination_prefix_caida_compliant = true "+
 				"without aggregation_source_destination_prefix on flow-server %q", block.Hostname.ValueString())
 	}
@@ -1711,7 +1700,7 @@ func (block *forwardingoptionsSamplingInstanceOutputFlowServer) configSet(
 		configSet = append(configSet, setPrefix+"version-ipfix template \""+v+"\"")
 	}
 
-	return configSet, path.Empty(), nil
+	return configSet, nil
 }
 
 func (block *forwardingoptionsSamplingInstanceOutputInterface) configSet(setPrefix string) []string {
