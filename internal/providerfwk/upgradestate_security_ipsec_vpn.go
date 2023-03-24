@@ -124,6 +124,9 @@ func upgradeSecurityIpsecVpnV0toV1(
 	dataV1.TrafficSelector = dataV0.TrafficSelector
 	if len(dataV0.VpnMonitor) > 0 {
 		dataV1.VpnMonitor = &dataV0.VpnMonitor[0]
+		if !dataV1.VpnMonitor.SourceInterfaceAuto.IsNull() && !dataV1.VpnMonitor.SourceInterfaceAuto.ValueBool() {
+			dataV1.VpnMonitor.SourceInterfaceAuto = types.BoolNull()
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, dataV1)...)
