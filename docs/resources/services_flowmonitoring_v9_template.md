@@ -1,16 +1,16 @@
 ---
-page_title: "Junos: junos_services_flowmonitoring_vipfix_template"
+page_title: "Junos: junos_services_flowmonitoring_v9_template"
 ---
 
-# junos_services_flowmonitoring_vipfix_template
+# junos_services_flowmonitoring_v9_template
 
-Provides a services flow-monitoring version-ipfix template resource.
+Provides a services flow-monitoring version9 template resource.
 
 ## Example Usage
 
 ```hcl
-# Add a services flow-monitoring version-ipfix template
-resource "junos_services_flowmonitoring_vipfix_template" "demo" {
+# Add a services flow-monitoring version9 template
+resource "junos_services_flowmonitoring_v9_template" "demo" {
   name = "demo"
   type = "ipv4-template"
 }
@@ -21,10 +21,10 @@ resource "junos_services_flowmonitoring_vipfix_template" "demo" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Name of flow-monitoring version-ipfix template.
+  Name of flow-monitoring version9 template.
 - **type** (Required, String)  
   Type of template.  
-  Need to be `bridge-template`, `ipv4-template`, `ipv6-template` or `mpls-template`.
+  Need to be `bridge-template`, `ipv4-template`, `ipv6-template`, `mpls-template` or `peer-as-billing-template`.
 - **flow_active_timeout** (Optional, Number)  
   Interval after which active flow is exported (10..600).
 - **flow_inactive_timeout** (Optional, Number)  
@@ -44,8 +44,6 @@ The following arguments are supported:
   Enable nexthop learning.
 - **nexthop_learning_disable** (Optional, Boolean)  
   Disable nexthop learning.
-- **observation_domain_id** (Optional, Number)  
-  Observation Domain Id (0..255).
 - **option_refresh_rate** (Optional, Block)  
   Declare `option-refresh-rate` configuration.
   - **packets** (Optional, Number)  
@@ -54,6 +52,8 @@ The following arguments are supported:
     In number of seconds (10..600).
 - **option_template_id** (Optional, Number)  
   Options template id (1024..65535).
+- **source_id** (Optional, Number)  
+  Source Id (0..255).
 - **template_id** (Optional, Number)  
   Template id (1024..65535).
 - **template_refresh_rate** (Optional, Block)  
@@ -76,9 +76,9 @@ The following attributes are exported:
 
 ## Import
 
-Junos services flow-monitoring version-ipfix template can be imported using an id made up of
+Junos services flow-monitoring version9 template can be imported using an id made up of
 `<name>`, e.g.
 
 ```shell
-$ terraform import junos_services_flowmonitoring_vipfix_template.demo demo
+$ terraform import junos_services_flowmonitoring_v9_template.demo demo
 ```
