@@ -8,6 +8,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -115,139 +116,73 @@ func (dsc *securityZoneDataSource) Schema(
 				Computed:    true,
 				Description: "Send RST for NON-SYN packet not matching TCP session.",
 			},
-		},
-		Blocks: map[string]schema.Block{
-			"address_book": schema.SetNestedBlock{
+			"address_book": schema.SetAttribute{
+				Computed:    true,
 				Description: "For each name of address.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name of network address.",
-						},
-						"network": schema.StringAttribute{
-							Computed:    true,
-							Description: "CIDR value of network address.",
-						},
-						"description": schema.StringAttribute{
-							Computed:    true,
-							Description: "Description of network address.",
-						},
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":        types.StringType,
+						"network":     types.StringType,
+						"description": types.StringType,
 					},
 				},
 			},
-			"address_book_dns": schema.SetNestedBlock{
+			"address_book_dns": schema.SetAttribute{
+				Computed:    true,
 				Description: "For each name of dns-name address.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name of dns name address.",
-						},
-						"fqdn": schema.StringAttribute{
-							Computed:    true,
-							Description: "Fully qualified domain name.",
-						},
-						"description": schema.StringAttribute{
-							Computed:    true,
-							Description: "Description of dns name address.",
-						},
-						"ipv4_only": schema.BoolAttribute{
-							Computed:    true,
-							Description: "IPv4 dns address.",
-						},
-						"ipv6_only": schema.BoolAttribute{
-							Computed:    true,
-							Description: "IPv6 dns address.",
-						},
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":        types.StringType,
+						"fqdn":        types.StringType,
+						"description": types.StringType,
+						"ipv4_only":   types.BoolType,
+						"ipv6_only":   types.BoolType,
 					},
 				},
 			},
-			"address_book_range": schema.SetNestedBlock{
+			"address_book_range": schema.SetAttribute{
+				Computed:    true,
 				Description: "For each name of range-address.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name of range address.",
-						},
-						"from": schema.StringAttribute{
-							Computed:    true,
-							Description: "Lower limit of address range.",
-						},
-						"to": schema.StringAttribute{
-							Computed:    true,
-							Description: "Upper limit of address range.",
-						},
-						"description": schema.StringAttribute{
-							Computed:    true,
-							Description: "Description of range address.",
-						},
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":        types.StringType,
+						"from":        types.StringType,
+						"to":          types.StringType,
+						"description": types.StringType,
 					},
 				},
 			},
-			"address_book_set": schema.SetNestedBlock{
+			"address_book_set": schema.SetAttribute{
+				Computed:    true,
 				Description: "For each name of address-set.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name of address-set.",
-						},
-						"address": schema.SetAttribute{
-							ElementType: types.StringType,
-							Computed:    true,
-							Description: "List of address names.",
-						},
-						"address_set": schema.SetAttribute{
-							ElementType: types.StringType,
-							Computed:    true,
-							Description: "List of address-set names.",
-						},
-						"description": schema.StringAttribute{
-							Computed:    true,
-							Description: "Description of address-set.",
-						},
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":        types.StringType,
+						"address":     types.SetType{}.WithElementType(types.StringType),
+						"address_set": types.SetType{}.WithElementType(types.StringType),
+						"description": types.StringType,
 					},
 				},
 			},
-			"address_book_wildcard": schema.SetNestedBlock{
+			"address_book_wildcard": schema.SetAttribute{
+				Computed:    true,
 				Description: "For each name of wildcard-address.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name of wildcard address.",
-						},
-						"network": schema.StringAttribute{
-							Computed:    true,
-							Description: "Numeric IPv4 wildcard address with in the form of a.d.d.r/netmask.",
-						},
-						"description": schema.StringAttribute{
-							Computed:    true,
-							Description: "Description of wildcard address.",
-						},
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":        types.StringType,
+						"network":     types.StringType,
+						"description": types.StringType,
 					},
 				},
 			},
-			"interface": schema.SetNestedBlock{
+			"interface": schema.SetAttribute{
+				Computed:    true,
 				Description: "List of interfaces in security-zone.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Interface name.",
-						},
-						"inbound_protocols": schema.SetAttribute{
-							ElementType: types.StringType,
-							Computed:    true,
-							Description: "Protocol type of incoming traffic to accept.",
-						},
-						"inbound_services": schema.SetAttribute{
-							ElementType: types.StringType,
-							Computed:    true,
-							Description: "Type of incoming system-service traffic to accept.",
-						},
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":              types.StringType,
+						"inbound_protocols": types.SetType{}.WithElementType(types.StringType),
+						"inbound_services":  types.SetType{}.WithElementType(types.StringType),
 					},
 				},
 			},
