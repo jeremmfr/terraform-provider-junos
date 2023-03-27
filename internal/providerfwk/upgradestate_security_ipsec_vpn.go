@@ -96,14 +96,14 @@ func upgradeSecurityIpsecVpnV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		ID               types.String                      `tfsdk:"id"`
-		Name             types.String                      `tfsdk:"name"`
-		BindInterface    types.String                      `tfsdk:"bind_interface"`
-		DfBit            types.String                      `tfsdk:"df_bit"`
-		EstablishTunnels types.String                      `tfsdk:"establish_tunnels"`
-		Ike              []securityIpsecVpnIke             `tfsdk:"ike"`
-		TrafficSelector  []securityIpsecVpnTrafficSelector `tfsdk:"traffic_selector"`
-		VpnMonitor       []securityIpsecVpnVpnMonitor      `tfsdk:"vpn_monitor"`
+		ID               types.String                           `tfsdk:"id"`
+		Name             types.String                           `tfsdk:"name"`
+		BindInterface    types.String                           `tfsdk:"bind_interface"`
+		DfBit            types.String                           `tfsdk:"df_bit"`
+		EstablishTunnels types.String                           `tfsdk:"establish_tunnels"`
+		Ike              []securityIpsecVpnBlockIke             `tfsdk:"ike"`
+		TrafficSelector  []securityIpsecVpnBlockTrafficSelector `tfsdk:"traffic_selector"`
+		VpnMonitor       []securityIpsecVpnBlockVpnMonitor      `tfsdk:"vpn_monitor"`
 	}
 
 	var dataV0 modelV0

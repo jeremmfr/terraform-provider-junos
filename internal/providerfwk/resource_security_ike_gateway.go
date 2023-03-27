@@ -369,73 +369,74 @@ func (rsc *securityIkeGateway) Schema(
 }
 
 type securityIkeGatewayData struct {
-	GeneralIkeID      types.Bool                           `tfsdk:"general_ike_id"`
-	NoNatTraversal    types.Bool                           `tfsdk:"no_nat_traversal"`
-	ID                types.String                         `tfsdk:"id"`
-	Name              types.String                         `tfsdk:"name"`
-	ExternalInterface types.String                         `tfsdk:"external_interface"`
-	Policy            types.String                         `tfsdk:"policy"`
-	Address           []types.String                       `tfsdk:"address"`
-	LocalAddress      types.String                         `tfsdk:"local_address"`
-	Version           types.String                         `tfsdk:"version"`
-	Aaa               *securityIkeGatewayAaa               `tfsdk:"aaa"`
-	DeadPeerDetection *securityIkeGatewayDeadPeerDetection `tfsdk:"dead_peer_detection"`
-	DynamicRemote     *securityIkeGatewayDynamicRemote     `tfsdk:"dynamic_remote"`
-	LocalIdentity     *securityIkeGatewayLocalIdentity     `tfsdk:"local_identity"`
-	RemoteIdentity    *securityIkeGatewayRemoteIdentity    `tfsdk:"remote_identity"`
+	GeneralIkeID      types.Bool                                `tfsdk:"general_ike_id"`
+	NoNatTraversal    types.Bool                                `tfsdk:"no_nat_traversal"`
+	ID                types.String                              `tfsdk:"id"`
+	Name              types.String                              `tfsdk:"name"`
+	ExternalInterface types.String                              `tfsdk:"external_interface"`
+	Policy            types.String                              `tfsdk:"policy"`
+	Address           []types.String                            `tfsdk:"address"`
+	LocalAddress      types.String                              `tfsdk:"local_address"`
+	Version           types.String                              `tfsdk:"version"`
+	Aaa               *securityIkeGatewayBlockAaa               `tfsdk:"aaa"`
+	DeadPeerDetection *securityIkeGatewayBlockDeadPeerDetection `tfsdk:"dead_peer_detection"`
+	DynamicRemote     *securityIkeGatewayBlockDynamicRemote     `tfsdk:"dynamic_remote"`
+	LocalIdentity     *securityIkeGatewayBlockLocalIdentity     `tfsdk:"local_identity"`
+	RemoteIdentity    *securityIkeGatewayBlockRemoteIdentity    `tfsdk:"remote_identity"`
 }
 
 type securityIkeGatewayConfig struct {
-	GeneralIkeID      types.Bool                           `tfsdk:"general_ike_id"`
-	NoNatTraversal    types.Bool                           `tfsdk:"no_nat_traversal"`
-	ID                types.String                         `tfsdk:"id"`
-	Name              types.String                         `tfsdk:"name"`
-	ExternalInterface types.String                         `tfsdk:"external_interface"`
-	Policy            types.String                         `tfsdk:"policy"`
-	Address           types.List                           `tfsdk:"address"`
-	LocalAddress      types.String                         `tfsdk:"local_address"`
-	Version           types.String                         `tfsdk:"version"`
-	Aaa               *securityIkeGatewayAaa               `tfsdk:"aaa"`
-	DeadPeerDetection *securityIkeGatewayDeadPeerDetection `tfsdk:"dead_peer_detection"`
-	DynamicRemote     *securityIkeGatewayDynamicRemote     `tfsdk:"dynamic_remote"`
-	LocalIdentity     *securityIkeGatewayLocalIdentity     `tfsdk:"local_identity"`
-	RemoteIdentity    *securityIkeGatewayRemoteIdentity    `tfsdk:"remote_identity"`
+	GeneralIkeID      types.Bool                                `tfsdk:"general_ike_id"`
+	NoNatTraversal    types.Bool                                `tfsdk:"no_nat_traversal"`
+	ID                types.String                              `tfsdk:"id"`
+	Name              types.String                              `tfsdk:"name"`
+	ExternalInterface types.String                              `tfsdk:"external_interface"`
+	Policy            types.String                              `tfsdk:"policy"`
+	Address           types.List                                `tfsdk:"address"`
+	LocalAddress      types.String                              `tfsdk:"local_address"`
+	Version           types.String                              `tfsdk:"version"`
+	Aaa               *securityIkeGatewayBlockAaa               `tfsdk:"aaa"`
+	DeadPeerDetection *securityIkeGatewayBlockDeadPeerDetection `tfsdk:"dead_peer_detection"`
+	DynamicRemote     *securityIkeGatewayBlockDynamicRemote     `tfsdk:"dynamic_remote"`
+	LocalIdentity     *securityIkeGatewayBlockLocalIdentity     `tfsdk:"local_identity"`
+	RemoteIdentity    *securityIkeGatewayBlockRemoteIdentity    `tfsdk:"remote_identity"`
 }
 
-type securityIkeGatewayDynamicRemote struct {
-	ConnectionsLimit          types.Int64                                       `tfsdk:"connections_limit"`
-	Hostname                  types.String                                      `tfsdk:"hostname"`
-	IkeUserType               types.String                                      `tfsdk:"ike_user_type"`
-	Inet                      types.String                                      `tfsdk:"inet"`
-	Inet6                     types.String                                      `tfsdk:"inet6"`
-	RejectDuplicateConnection types.Bool                                        `tfsdk:"reject_duplicate_connection"`
-	UserAtHostname            types.String                                      `tfsdk:"user_at_hostname"`
-	DistinguishedName         *securityIkeGatewayDynamicRemoteDistinguishedName `tfsdk:"distinguished_name"`
+//nolint:lll
+type securityIkeGatewayBlockDynamicRemote struct {
+	ConnectionsLimit          types.Int64                                                 `tfsdk:"connections_limit"`
+	Hostname                  types.String                                                `tfsdk:"hostname"`
+	IkeUserType               types.String                                                `tfsdk:"ike_user_type"`
+	Inet                      types.String                                                `tfsdk:"inet"`
+	Inet6                     types.String                                                `tfsdk:"inet6"`
+	RejectDuplicateConnection types.Bool                                                  `tfsdk:"reject_duplicate_connection"`
+	UserAtHostname            types.String                                                `tfsdk:"user_at_hostname"`
+	DistinguishedName         *securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName `tfsdk:"distinguished_name"`
 }
 
-type securityIkeGatewayDynamicRemoteDistinguishedName struct {
+type securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName struct {
 	Container types.String `tfsdk:"container"`
 	Wildcard  types.String `tfsdk:"wildcard"`
 }
 
-type securityIkeGatewayAaa struct {
+type securityIkeGatewayBlockAaa struct {
 	AccessProfile  types.String `tfsdk:"access_profile"`
 	ClientPassword types.String `tfsdk:"client_password"`
 	ClientUsername types.String `tfsdk:"client_username"`
 }
 
-type securityIkeGatewayDeadPeerDetection struct {
+type securityIkeGatewayBlockDeadPeerDetection struct {
 	Interval  types.Int64  `tfsdk:"interval"`
 	SendMode  types.String `tfsdk:"send_mode"`
 	Threshold types.Int64  `tfsdk:"threshold"`
 }
 
-type securityIkeGatewayLocalIdentity struct {
+type securityIkeGatewayBlockLocalIdentity struct {
 	Type  types.String `tfsdk:"type"`
 	Value types.String `tfsdk:"value"`
 }
 
-type securityIkeGatewayRemoteIdentity struct {
+type securityIkeGatewayBlockRemoteIdentity struct {
 	Type                       types.String `tfsdk:"type"`
 	Value                      types.String `tfsdk:"value"`
 	DistinguishedNameContainer types.String `tfsdk:"distinguished_name_container"`
@@ -1116,7 +1117,7 @@ func (rscData *securityIkeGatewayData) read(
 				rscData.Address = append(rscData.Address, types.StringValue(itemTrim))
 			case balt.CutPrefixInString(&itemTrim, "dynamic "):
 				if rscData.DynamicRemote == nil {
-					rscData.DynamicRemote = &securityIkeGatewayDynamicRemote{}
+					rscData.DynamicRemote = &securityIkeGatewayBlockDynamicRemote{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "connections-limit "):
@@ -1126,7 +1127,7 @@ func (rscData *securityIkeGatewayData) read(
 					}
 				case balt.CutPrefixInString(&itemTrim, "distinguished-name"):
 					if rscData.DynamicRemote.DistinguishedName == nil {
-						rscData.DynamicRemote.DistinguishedName = &securityIkeGatewayDynamicRemoteDistinguishedName{}
+						rscData.DynamicRemote.DistinguishedName = &securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName{}
 					}
 					switch {
 					case balt.CutPrefixInString(&itemTrim, " container "):
@@ -1149,7 +1150,7 @@ func (rscData *securityIkeGatewayData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "aaa "):
 				if rscData.Aaa == nil {
-					rscData.Aaa = &securityIkeGatewayAaa{}
+					rscData.Aaa = &securityIkeGatewayBlockAaa{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "access-profile "):
@@ -1164,7 +1165,7 @@ func (rscData *securityIkeGatewayData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "dead-peer-detection"):
 				if rscData.DeadPeerDetection == nil {
-					rscData.DeadPeerDetection = &securityIkeGatewayDeadPeerDetection{}
+					rscData.DeadPeerDetection = &securityIkeGatewayBlockDeadPeerDetection{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " interval "):
@@ -1190,7 +1191,7 @@ func (rscData *securityIkeGatewayData) read(
 				rscData.LocalAddress = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "local-identity "):
 				if rscData.LocalIdentity == nil {
-					rscData.LocalIdentity = &securityIkeGatewayLocalIdentity{}
+					rscData.LocalIdentity = &securityIkeGatewayBlockLocalIdentity{}
 				}
 				itemTrimFields := strings.Split(itemTrim, " ")
 				rscData.LocalIdentity.Type = types.StringValue(itemTrimFields[0])
@@ -1202,7 +1203,7 @@ func (rscData *securityIkeGatewayData) read(
 				rscData.NoNatTraversal = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "remote-identity "):
 				if rscData.RemoteIdentity == nil {
-					rscData.RemoteIdentity = &securityIkeGatewayRemoteIdentity{}
+					rscData.RemoteIdentity = &securityIkeGatewayBlockRemoteIdentity{}
 				}
 				itemTrimFields := strings.Split(itemTrim, " ")
 				rscData.RemoteIdentity.Type = types.StringValue(itemTrimFields[0])

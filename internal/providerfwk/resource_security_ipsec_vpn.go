@@ -372,36 +372,36 @@ func (rsc *securityIpsecVpn) Schema(
 }
 
 type securityIpsecVpnData struct {
-	CopyOuterDscp          types.Bool                        `tfsdk:"copy_outer_dscp"`
-	ID                     types.String                      `tfsdk:"id"`
-	Name                   types.String                      `tfsdk:"name"`
-	BindInterface          types.String                      `tfsdk:"bind_interface"`
-	DfBit                  types.String                      `tfsdk:"df_bit"`
-	EstablishTunnels       types.String                      `tfsdk:"establish_tunnels"`
-	Ike                    *securityIpsecVpnIke              `tfsdk:"ike"`
-	Manual                 *securityIpsecVpnManual           `tfsdk:"manual"`
-	MultiSaForwardingClass []types.String                    `tfsdk:"multi_sa_forwarding_class"`
-	TrafficSelector        []securityIpsecVpnTrafficSelector `tfsdk:"traffic_selector"`
-	UDPEncapsulate         *securityIpsecVpnUDPEncapsulate   `tfsdk:"udp_encapsulate"`
-	VpnMonitor             *securityIpsecVpnVpnMonitor       `tfsdk:"vpn_monitor"`
+	CopyOuterDscp          types.Bool                             `tfsdk:"copy_outer_dscp"`
+	ID                     types.String                           `tfsdk:"id"`
+	Name                   types.String                           `tfsdk:"name"`
+	BindInterface          types.String                           `tfsdk:"bind_interface"`
+	DfBit                  types.String                           `tfsdk:"df_bit"`
+	EstablishTunnels       types.String                           `tfsdk:"establish_tunnels"`
+	Ike                    *securityIpsecVpnBlockIke              `tfsdk:"ike"`
+	Manual                 *securityIpsecVpnBlockManual           `tfsdk:"manual"`
+	MultiSaForwardingClass []types.String                         `tfsdk:"multi_sa_forwarding_class"`
+	TrafficSelector        []securityIpsecVpnBlockTrafficSelector `tfsdk:"traffic_selector"`
+	UDPEncapsulate         *securityIpsecVpnBlockUDPEncapsulate   `tfsdk:"udp_encapsulate"`
+	VpnMonitor             *securityIpsecVpnBlockVpnMonitor       `tfsdk:"vpn_monitor"`
 }
 
 type securityIpsecVpnConfig struct {
-	CopyOuterDscp          types.Bool                      `tfsdk:"copy_outer_dscp"`
-	ID                     types.String                    `tfsdk:"id"`
-	Name                   types.String                    `tfsdk:"name"`
-	BindInterface          types.String                    `tfsdk:"bind_interface"`
-	DfBit                  types.String                    `tfsdk:"df_bit"`
-	EstablishTunnels       types.String                    `tfsdk:"establish_tunnels"`
-	Ike                    *securityIpsecVpnIke            `tfsdk:"ike"`
-	Manual                 *securityIpsecVpnManual         `tfsdk:"manual"`
-	MultiSaForwardingClass types.Set                       `tfsdk:"multi_sa_forwarding_class"`
-	TrafficSelector        types.List                      `tfsdk:"traffic_selector"`
-	UDPEncapsulate         *securityIpsecVpnUDPEncapsulate `tfsdk:"udp_encapsulate"`
-	VpnMonitor             *securityIpsecVpnVpnMonitor     `tfsdk:"vpn_monitor"`
+	CopyOuterDscp          types.Bool                           `tfsdk:"copy_outer_dscp"`
+	ID                     types.String                         `tfsdk:"id"`
+	Name                   types.String                         `tfsdk:"name"`
+	BindInterface          types.String                         `tfsdk:"bind_interface"`
+	DfBit                  types.String                         `tfsdk:"df_bit"`
+	EstablishTunnels       types.String                         `tfsdk:"establish_tunnels"`
+	Ike                    *securityIpsecVpnBlockIke            `tfsdk:"ike"`
+	Manual                 *securityIpsecVpnBlockManual         `tfsdk:"manual"`
+	MultiSaForwardingClass types.Set                            `tfsdk:"multi_sa_forwarding_class"`
+	TrafficSelector        types.List                           `tfsdk:"traffic_selector"`
+	UDPEncapsulate         *securityIpsecVpnBlockUDPEncapsulate `tfsdk:"udp_encapsulate"`
+	VpnMonitor             *securityIpsecVpnBlockVpnMonitor     `tfsdk:"vpn_monitor"`
 }
 
-type securityIpsecVpnIke struct {
+type securityIpsecVpnBlockIke struct {
 	Gateway         types.String `tfsdk:"gateway"`
 	Policy          types.String `tfsdk:"policy"`
 	IdentityLocal   types.String `tfsdk:"identity_local"`
@@ -409,7 +409,7 @@ type securityIpsecVpnIke struct {
 	IdentityService types.String `tfsdk:"identity_service"`
 }
 
-type securityIpsecVpnManual struct {
+type securityIpsecVpnBlockManual struct {
 	ExternalInterface       types.String `tfsdk:"external_interface"`
 	Protocol                types.String `tfsdk:"protocol"`
 	Spi                     types.Int64  `tfsdk:"spi"`
@@ -422,17 +422,17 @@ type securityIpsecVpnManual struct {
 	Gateway                 types.String `tfsdk:"gateway"`
 }
 
-type securityIpsecVpnTrafficSelector struct {
+type securityIpsecVpnBlockTrafficSelector struct {
 	Name     types.String `tfsdk:"name"`
 	LocalIP  types.String `tfsdk:"local_ip"`
 	RemoteIP types.String `tfsdk:"remote_ip"`
 }
 
-type securityIpsecVpnUDPEncapsulate struct {
+type securityIpsecVpnBlockUDPEncapsulate struct {
 	DestPort types.Int64 `tfsdk:"dest_port"`
 }
 
-type securityIpsecVpnVpnMonitor struct {
+type securityIpsecVpnBlockVpnMonitor struct {
 	Optimized           types.Bool   `tfsdk:"optimized"`
 	SourceInterfaceAuto types.Bool   `tfsdk:"source_interface_auto"`
 	DestinationIP       types.String `tfsdk:"destination_ip"`
@@ -598,7 +598,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			)
 		}
 		if !config.TrafficSelector.IsUnknown() {
-			var configTrafficSelector []securityIpsecVpnTrafficSelector
+			var configTrafficSelector []securityIpsecVpnBlockTrafficSelector
 			asDiags := config.TrafficSelector.ElementsAs(ctx, &configTrafficSelector, false)
 			if asDiags.HasError() {
 				resp.Diagnostics.Append(asDiags...)
@@ -1170,7 +1170,7 @@ func (rscData *securityIpsecVpnData) read(
 				rscData.EstablishTunnels = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "ike "):
 				if rscData.Ike == nil {
-					rscData.Ike = &securityIpsecVpnIke{}
+					rscData.Ike = &securityIpsecVpnBlockIke{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "gateway "):
@@ -1186,7 +1186,7 @@ func (rscData *securityIpsecVpnData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "manual "):
 				if rscData.Manual == nil {
-					rscData.Manual = &securityIpsecVpnManual{}
+					rscData.Manual = &securityIpsecVpnBlockManual{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "external-interface "):
@@ -1234,7 +1234,7 @@ func (rscData *securityIpsecVpnData) read(
 					types.StringValue(strings.Trim(itemTrim, "\"")))
 			case balt.CutPrefixInString(&itemTrim, "udp-encapsulate"):
 				if rscData.UDPEncapsulate == nil {
-					rscData.UDPEncapsulate = &securityIpsecVpnUDPEncapsulate{}
+					rscData.UDPEncapsulate = &securityIpsecVpnBlockUDPEncapsulate{}
 				}
 				if balt.CutPrefixInString(&itemTrim, " dest-port ") {
 					rscData.UDPEncapsulate.DestPort, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -1244,7 +1244,7 @@ func (rscData *securityIpsecVpnData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "traffic-selector "):
 				itemTrimFields := strings.Split(itemTrim, " ")
-				var trafficSelector securityIpsecVpnTrafficSelector
+				var trafficSelector securityIpsecVpnBlockTrafficSelector
 				rscData.TrafficSelector, trafficSelector = tfdata.ExtractBlockWithTFTypesString(
 					rscData.TrafficSelector, "Name", strings.Trim(itemTrimFields[0], "\""))
 				trafficSelector.Name = types.StringValue(strings.Trim(itemTrimFields[0], "\""))
@@ -1258,7 +1258,7 @@ func (rscData *securityIpsecVpnData) read(
 				rscData.TrafficSelector = append(rscData.TrafficSelector, trafficSelector)
 			case balt.CutPrefixInString(&itemTrim, "vpn-monitor "):
 				if rscData.VpnMonitor == nil {
-					rscData.VpnMonitor = &securityIpsecVpnVpnMonitor{}
+					rscData.VpnMonitor = &securityIpsecVpnBlockVpnMonitor{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "destination-ip "):
