@@ -39,7 +39,7 @@ type forwardingoptionsSamplingInstance struct {
 	client *junos.Client
 }
 
-func newForwardingoptionsSamplingInstance() resource.Resource {
+func newForwardingoptionsSamplingInstanceResource() resource.Resource {
 	return &forwardingoptionsSamplingInstance{}
 }
 

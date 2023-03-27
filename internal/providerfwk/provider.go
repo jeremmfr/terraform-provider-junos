@@ -192,9 +192,9 @@ func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataS
 
 func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		newForwardingoptionsSampling,
-		newForwardingoptionsSamplingInstance,
-		newRoutingInstance,
+		newForwardingoptionsSamplingResource,
+		newForwardingoptionsSamplingInstanceResource,
+		newRoutingInstanceResource,
 		newSecurityAddressBookResource,
 		newSecurityGlobalPolicyResource,
 		newSecurityIkeGatewayResource,
@@ -208,8 +208,8 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSecurityZoneResource,
 		newSecurityZoneBookAddressResource,
 		newSecurityZoneBookAddressSetResource,
-		newServicesFlowMonitoringV9Template,
-		newServicesFlowMonitoringVIPFixTemplate,
+		newServicesFlowMonitoringV9TemplateResource,
+		newServicesFlowMonitoringVIPFixTemplateResource,
 	}
 }
 

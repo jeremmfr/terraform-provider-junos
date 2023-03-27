@@ -36,7 +36,7 @@ type routingInstance struct {
 	client *junos.Client
 }
 
-func newRoutingInstance() resource.Resource {
+func newRoutingInstanceResource() resource.Resource {
 	return &routingInstance{}
 }
 

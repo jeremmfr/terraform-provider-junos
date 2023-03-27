@@ -39,7 +39,7 @@ type servicesFlowMonitoringV9Template struct {
 	client *junos.Client
 }
 
-func newServicesFlowMonitoringV9Template() resource.Resource {
+func newServicesFlowMonitoringV9TemplateResource() resource.Resource {
 	return &servicesFlowMonitoringV9Template{}
 }
 

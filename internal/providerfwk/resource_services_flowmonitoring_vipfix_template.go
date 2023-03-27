@@ -40,7 +40,7 @@ type servicesFlowMonitoringVIPFixTemplate struct {
 	client *junos.Client
 }
 
-func newServicesFlowMonitoringVIPFixTemplate() resource.Resource {
+func newServicesFlowMonitoringVIPFixTemplateResource() resource.Resource {
 	return &servicesFlowMonitoringVIPFixTemplate{}
 }
 
