@@ -263,50 +263,50 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) Schema(
 }
 
 type servicesFlowMonitoringVIPFixTemplateData struct {
-	FlowKeyFlowDirection      types.Bool                                       `tfsdk:"flow_key_flow_direction"`
-	FlowKeyOutputInterface    types.Bool                                       `tfsdk:"flow_key_output_interface"`
-	FlowKeyVlanID             types.Bool                                       `tfsdk:"flow_key_vlan_id"`
-	NexthopLearningEnable     types.Bool                                       `tfsdk:"nexthop_learning_enable"`
-	NexthopLearningDisable    types.Bool                                       `tfsdk:"nexthop_learning_disable"`
-	TunnelObservationIPv4     types.Bool                                       `tfsdk:"tunnel_observation_ipv4"`
-	TunnelObservationIPv6     types.Bool                                       `tfsdk:"tunnel_observation_ipv6"`
-	ID                        types.String                                     `tfsdk:"id"`
-	Name                      types.String                                     `tfsdk:"name"`
-	Type                      types.String                                     `tfsdk:"type"`
-	FlowActiveTimeout         types.Int64                                      `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout       types.Int64                                      `tfsdk:"flow_inactive_timeout"`
-	IPTemplateExportExtension []types.String                                   `tfsdk:"ip_template_export_extension"`
-	MPLSTemplateLabelPosition []types.Int64                                    `tfsdk:"mpls_template_label_position"`
-	ObservationDomainID       types.Int64                                      `tfsdk:"observation_domain_id"`
-	OptionTemplateID          types.Int64                                      `tfsdk:"option_template_id"`
-	TemplateID                types.Int64                                      `tfsdk:"template_id"`
-	OptionRefreshRate         *servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"option_refresh_rate"`
-	TemplateRefreshRate       *servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"template_refresh_rate"`
+	FlowKeyFlowDirection      types.Bool                                            `tfsdk:"flow_key_flow_direction"`
+	FlowKeyOutputInterface    types.Bool                                            `tfsdk:"flow_key_output_interface"`
+	FlowKeyVlanID             types.Bool                                            `tfsdk:"flow_key_vlan_id"`
+	NexthopLearningEnable     types.Bool                                            `tfsdk:"nexthop_learning_enable"`
+	NexthopLearningDisable    types.Bool                                            `tfsdk:"nexthop_learning_disable"`
+	TunnelObservationIPv4     types.Bool                                            `tfsdk:"tunnel_observation_ipv4"`
+	TunnelObservationIPv6     types.Bool                                            `tfsdk:"tunnel_observation_ipv6"`
+	ID                        types.String                                          `tfsdk:"id"`
+	Name                      types.String                                          `tfsdk:"name"`
+	Type                      types.String                                          `tfsdk:"type"`
+	FlowActiveTimeout         types.Int64                                           `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout       types.Int64                                           `tfsdk:"flow_inactive_timeout"`
+	IPTemplateExportExtension []types.String                                        `tfsdk:"ip_template_export_extension"`
+	MPLSTemplateLabelPosition []types.Int64                                         `tfsdk:"mpls_template_label_position"`
+	ObservationDomainID       types.Int64                                           `tfsdk:"observation_domain_id"`
+	OptionTemplateID          types.Int64                                           `tfsdk:"option_template_id"`
+	TemplateID                types.Int64                                           `tfsdk:"template_id"`
+	OptionRefreshRate         *servicesFlowMonitoringVIPFixTemplateBlockRefreshRate `tfsdk:"option_refresh_rate"`
+	TemplateRefreshRate       *servicesFlowMonitoringVIPFixTemplateBlockRefreshRate `tfsdk:"template_refresh_rate"`
 }
 
 type servicesFlowMonitoringVIPFixTemplateConfig struct {
-	FlowKeyFlowDirection      types.Bool                                       `tfsdk:"flow_key_flow_direction"`
-	FlowKeyOutputInterface    types.Bool                                       `tfsdk:"flow_key_output_interface"`
-	FlowKeyVlanID             types.Bool                                       `tfsdk:"flow_key_vlan_id"`
-	NexthopLearningEnable     types.Bool                                       `tfsdk:"nexthop_learning_enable"`
-	NexthopLearningDisable    types.Bool                                       `tfsdk:"nexthop_learning_disable"`
-	TunnelObservationIPv4     types.Bool                                       `tfsdk:"tunnel_observation_ipv4"`
-	TunnelObservationIPv6     types.Bool                                       `tfsdk:"tunnel_observation_ipv6"`
-	ID                        types.String                                     `tfsdk:"id"`
-	Name                      types.String                                     `tfsdk:"name"`
-	Type                      types.String                                     `tfsdk:"type"`
-	FlowActiveTimeout         types.Int64                                      `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout       types.Int64                                      `tfsdk:"flow_inactive_timeout"`
-	IPTemplateExportExtension types.Set                                        `tfsdk:"ip_template_export_extension"`
-	MPLSTemplateLabelPosition types.List                                       `tfsdk:"mpls_template_label_position"`
-	ObservationDomainID       types.Int64                                      `tfsdk:"observation_domain_id"`
-	OptionTemplateID          types.Int64                                      `tfsdk:"option_template_id"`
-	TemplateID                types.Int64                                      `tfsdk:"template_id"`
-	OptionRefreshRate         *servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"option_refresh_rate"`
-	TemplateRefreshRate       *servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"template_refresh_rate"`
+	FlowKeyFlowDirection      types.Bool                                            `tfsdk:"flow_key_flow_direction"`
+	FlowKeyOutputInterface    types.Bool                                            `tfsdk:"flow_key_output_interface"`
+	FlowKeyVlanID             types.Bool                                            `tfsdk:"flow_key_vlan_id"`
+	NexthopLearningEnable     types.Bool                                            `tfsdk:"nexthop_learning_enable"`
+	NexthopLearningDisable    types.Bool                                            `tfsdk:"nexthop_learning_disable"`
+	TunnelObservationIPv4     types.Bool                                            `tfsdk:"tunnel_observation_ipv4"`
+	TunnelObservationIPv6     types.Bool                                            `tfsdk:"tunnel_observation_ipv6"`
+	ID                        types.String                                          `tfsdk:"id"`
+	Name                      types.String                                          `tfsdk:"name"`
+	Type                      types.String                                          `tfsdk:"type"`
+	FlowActiveTimeout         types.Int64                                           `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout       types.Int64                                           `tfsdk:"flow_inactive_timeout"`
+	IPTemplateExportExtension types.Set                                             `tfsdk:"ip_template_export_extension"`
+	MPLSTemplateLabelPosition types.List                                            `tfsdk:"mpls_template_label_position"`
+	ObservationDomainID       types.Int64                                           `tfsdk:"observation_domain_id"`
+	OptionTemplateID          types.Int64                                           `tfsdk:"option_template_id"`
+	TemplateID                types.Int64                                           `tfsdk:"template_id"`
+	OptionRefreshRate         *servicesFlowMonitoringVIPFixTemplateBlockRefreshRate `tfsdk:"option_refresh_rate"`
+	TemplateRefreshRate       *servicesFlowMonitoringVIPFixTemplateBlockRefreshRate `tfsdk:"template_refresh_rate"`
 }
 
-type servicesFlowMonitoringVIPFixTemplateRefreshRate struct {
+type servicesFlowMonitoringVIPFixTemplateBlockRefreshRate struct {
 	Packets types.Int64 `tfsdk:"packets"`
 	Seconds types.Int64 `tfsdk:"seconds"`
 }
@@ -829,7 +829,7 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "option-refresh-rate"):
 				if rscData.OptionRefreshRate == nil {
-					rscData.OptionRefreshRate = &servicesFlowMonitoringVIPFixTemplateRefreshRate{}
+					rscData.OptionRefreshRate = &servicesFlowMonitoringVIPFixTemplateBlockRefreshRate{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " packets "):
@@ -850,7 +850,7 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "template-refresh-rate"):
 				if rscData.TemplateRefreshRate == nil {
-					rscData.TemplateRefreshRate = &servicesFlowMonitoringVIPFixTemplateRefreshRate{}
+					rscData.TemplateRefreshRate = &servicesFlowMonitoringVIPFixTemplateBlockRefreshRate{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " packets "):

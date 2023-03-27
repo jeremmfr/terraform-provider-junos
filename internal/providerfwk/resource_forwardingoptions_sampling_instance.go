@@ -619,34 +619,34 @@ func (rsc *forwardingoptionsSamplingInstance) schemaOutputInterfaceAttributes() 
 }
 
 type forwardingoptionsSamplingInstanceData struct {
-	Disable           types.Bool                                              `tfsdk:"disable"`
-	ID                types.String                                            `tfsdk:"id"`
-	Name              types.String                                            `tfsdk:"name"`
-	RoutingInstance   types.String                                            `tfsdk:"routing_instance"`
-	FamilyInetInput   *forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_inet_input"`
-	FamilyInetOutput  *forwardingoptionsSamplingInstanceFamilyInetOutputData  `tfsdk:"family_inet_output"`
-	FamilyInet6Input  *forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_inet6_input"`
-	FamilyInet6Output *forwardingoptionsSamplingInstanceFamilyInet6OutputData `tfsdk:"family_inet6_output"`
-	FamilyMplsInput   *forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput  *forwardingoptionsSamplingInstanceFamilyMplsOutputData  `tfsdk:"family_mpls_output"`
-	Input             *forwardingoptionsSamplingInstanceInput                 `tfsdk:"input"`
-}
-
-type forwardingoptionsSamplingInstanceConfig struct {
 	Disable           types.Bool                                               `tfsdk:"disable"`
 	ID                types.String                                             `tfsdk:"id"`
 	Name              types.String                                             `tfsdk:"name"`
 	RoutingInstance   types.String                                             `tfsdk:"routing_instance"`
-	FamilyInetInput   *forwardingoptionsSamplingInstanceInput                  `tfsdk:"family_inet_input"`
-	FamilyInetOutput  *forwardingoptionsSamplingInstanceFamilyInetOutputConfig `tfsdk:"family_inet_output"`
-	FamilyInet6Input  *forwardingoptionsSamplingInstanceInput                  `tfsdk:"family_inet6_input"`
-	FamilyInet6Output *forwardingoptionsSamplingInstanceFamilyInetOutputConfig `tfsdk:"family_inet6_output"`
-	FamilyMplsInput   *forwardingoptionsSamplingInstanceInput                  `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput  *forwardingoptionsSamplingInstanceFamilyMplsOutputConfig `tfsdk:"family_mpls_output"`
-	Input             *forwardingoptionsSamplingInstanceInput                  `tfsdk:"input"`
+	FamilyInetInput   *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet_input"`
+	FamilyInetOutput  *forwardingoptionsSamplingInstanceBlockFamilyInetOutput  `tfsdk:"family_inet_output"`
+	FamilyInet6Input  *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet6_input"`
+	FamilyInet6Output *forwardingoptionsSamplingInstanceBlockFamilyInet6Output `tfsdk:"family_inet6_output"`
+	FamilyMplsInput   *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput  *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput  `tfsdk:"family_mpls_output"`
+	Input             *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"input"`
 }
 
-type forwardingoptionsSamplingInstanceInput struct {
+type forwardingoptionsSamplingInstanceConfig struct {
+	Disable           types.Bool                                                    `tfsdk:"disable"`
+	ID                types.String                                                  `tfsdk:"id"`
+	Name              types.String                                                  `tfsdk:"name"`
+	RoutingInstance   types.String                                                  `tfsdk:"routing_instance"`
+	FamilyInetInput   *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet_input"`
+	FamilyInetOutput  *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet_output"`
+	FamilyInet6Input  *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet6_input"`
+	FamilyInet6Output *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet6_output"`
+	FamilyMplsInput   *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput  *forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig `tfsdk:"family_mpls_output"`
+	Input             *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"input"`
+}
+
+type forwardingoptionsSamplingInstanceBlockInput struct {
 	MaxPacketsPerSecond types.Int64 `tfsdk:"max_packets_per_second"`
 	MaximumPacketLength types.Int64 `tfsdk:"maximum_packet_length"`
 	Rate                types.Int64 `tfsdk:"rate"`
@@ -654,18 +654,18 @@ type forwardingoptionsSamplingInstanceInput struct {
 }
 
 //nolint:lll
-type forwardingoptionsSamplingInstanceFamilyInetOutputData struct {
-	AggregateExportInterval  types.Int64                                                   `tfsdk:"aggregate_export_interval"`
-	ExtensionService         []types.String                                                `tfsdk:"extension_service"`
-	FlowActiveTimeout        types.Int64                                                   `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64                                                   `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64                                                   `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String                                                  `tfsdk:"inline_jflow_source_address"`
-	FlowServer               []forwardingoptionsSamplingInstanceFamilyInetOutputFlowServer `tfsdk:"flow_server"`
-	Interface                []forwardingoptionsSamplingInstanceOutputInterface            `tfsdk:"interface"`
+type forwardingoptionsSamplingInstanceBlockFamilyInetOutput struct {
+	AggregateExportInterval  types.Int64                                                             `tfsdk:"aggregate_export_interval"`
+	ExtensionService         []types.String                                                          `tfsdk:"extension_service"`
+	FlowActiveTimeout        types.Int64                                                             `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64                                                             `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64                                                             `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String                                                            `tfsdk:"inline_jflow_source_address"`
+	FlowServer               []forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer `tfsdk:"flow_server"`
+	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface            `tfsdk:"interface"`
 }
 
-type forwardingoptionsSamplingInstanceFamilyInetOutputConfig struct {
+type forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig struct {
 	AggregateExportInterval  types.Int64  `tfsdk:"aggregate_export_interval"`
 	ExtensionService         types.List   `tfsdk:"extension_service"`
 	FlowActiveTimeout        types.Int64  `tfsdk:"flow_active_timeout"`
@@ -677,7 +677,7 @@ type forwardingoptionsSamplingInstanceFamilyInetOutputConfig struct {
 }
 
 //nolint:lll
-type forwardingoptionsSamplingInstanceFamilyInetOutputFlowServer struct {
+type forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer struct {
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 	AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
@@ -698,28 +698,30 @@ type forwardingoptionsSamplingInstanceFamilyInetOutputFlowServer struct {
 	VersionIPFixTemplate                             types.String `tfsdk:"version_ipfix_template"`
 }
 
-type forwardingoptionsSamplingInstanceFamilyInet6OutputData struct {
-	AggregateExportInterval  types.Int64                                         `tfsdk:"aggregate_export_interval"`
-	ExtensionService         []types.String                                      `tfsdk:"extension_service"`
-	FlowActiveTimeout        types.Int64                                         `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64                                         `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64                                         `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String                                        `tfsdk:"inline_jflow_source_address"`
-	FlowServer               []forwardingoptionsSamplingInstanceOutputFlowServer `tfsdk:"flow_server"`
-	Interface                []forwardingoptionsSamplingInstanceOutputInterface  `tfsdk:"interface"`
+//nolint:lll
+type forwardingoptionsSamplingInstanceBlockFamilyInet6Output struct {
+	AggregateExportInterval  types.Int64                                                   `tfsdk:"aggregate_export_interval"`
+	ExtensionService         []types.String                                                `tfsdk:"extension_service"`
+	FlowActiveTimeout        types.Int64                                                   `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64                                                   `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64                                                   `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String                                                  `tfsdk:"inline_jflow_source_address"`
+	FlowServer               []forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer `tfsdk:"flow_server"`
+	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface  `tfsdk:"interface"`
 }
 
-type forwardingoptionsSamplingInstanceFamilyMplsOutputData struct {
-	AggregateExportInterval  types.Int64                                         `tfsdk:"aggregate_export_interval"`
-	FlowActiveTimeout        types.Int64                                         `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64                                         `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64                                         `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String                                        `tfsdk:"inline_jflow_source_address"`
-	FlowServer               []forwardingoptionsSamplingInstanceOutputFlowServer `tfsdk:"flow_server"`
-	Interface                []forwardingoptionsSamplingInstanceOutputInterface  `tfsdk:"interface"`
+//nolint:lll
+type forwardingoptionsSamplingInstanceBlockFamilyMplsOutput struct {
+	AggregateExportInterval  types.Int64                                                   `tfsdk:"aggregate_export_interval"`
+	FlowActiveTimeout        types.Int64                                                   `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64                                                   `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64                                                   `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String                                                  `tfsdk:"inline_jflow_source_address"`
+	FlowServer               []forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer `tfsdk:"flow_server"`
+	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface  `tfsdk:"interface"`
 }
 
-type forwardingoptionsSamplingInstanceFamilyMplsOutputConfig struct {
+type forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig struct {
 	AggregateExportInterval  types.Int64  `tfsdk:"aggregate_export_interval"`
 	FlowActiveTimeout        types.Int64  `tfsdk:"flow_active_timeout"`
 	FlowInactiveTimeout      types.Int64  `tfsdk:"flow_inactive_timeout"`
@@ -730,7 +732,7 @@ type forwardingoptionsSamplingInstanceFamilyMplsOutputConfig struct {
 }
 
 //nolint:lll
-type forwardingoptionsSamplingInstanceOutputFlowServer struct {
+type forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer struct {
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 	AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
@@ -750,14 +752,14 @@ type forwardingoptionsSamplingInstanceOutputFlowServer struct {
 	VersionIPFixTemplate                             types.String `tfsdk:"version_ipfix_template"`
 }
 
-type forwardingoptionsSamplingInstanceOutputInterface struct {
+type forwardingoptionsSamplingInstanceBlockOutputBlockInterface struct {
 	Name          types.String `tfsdk:"name"`
 	EngineID      types.Int64  `tfsdk:"engine_id"`
 	EngineType    types.Int64  `tfsdk:"engine_type"`
 	SourceAddress types.String `tfsdk:"source_address"`
 }
 
-func (block *forwardingoptionsSamplingInstanceInput) IsEmpty() bool {
+func (block *forwardingoptionsSamplingInstanceBlockInput) IsEmpty() bool {
 	switch {
 	case !block.MaxPacketsPerSecond.IsNull():
 		return false
@@ -1388,7 +1390,7 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (block *forwardingoptionsSamplingInstanceInput) configSet(
+func (block *forwardingoptionsSamplingInstanceBlockInput) configSet(
 	setPrefix string,
 ) []string {
 	configSet := make([]string, 0)
@@ -1413,7 +1415,7 @@ func (block *forwardingoptionsSamplingInstanceInput) configSet(
 	return configSet
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
+func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutput) configSet(
 	setPrefix string,
 ) (
 	[]string, // configSet
@@ -1525,7 +1527,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) configSet(
 	return configSet, path.Empty(), nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) configSet(
+func (block *forwardingoptionsSamplingInstanceBlockFamilyInet6Output) configSet(
 	setPrefix string,
 ) (
 	[]string, // configSet
@@ -1583,7 +1585,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) configSet(
 	return configSet, path.Empty(), nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) configSet(
+func (block *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) configSet(
 	setPrefix string,
 ) (
 	[]string, // configSet
@@ -1639,7 +1641,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) configSet(
 	return configSet, path.Empty(), nil
 }
 
-func (block *forwardingoptionsSamplingInstanceOutputFlowServer) configSet(
+func (block *forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer) configSet(
 	setPrefix string,
 ) (
 	[]string, error,
@@ -1703,7 +1705,7 @@ func (block *forwardingoptionsSamplingInstanceOutputFlowServer) configSet(
 	return configSet, nil
 }
 
-func (block *forwardingoptionsSamplingInstanceOutputInterface) configSet(setPrefix string) []string {
+func (block *forwardingoptionsSamplingInstanceBlockOutputBlockInterface) configSet(setPrefix string) []string {
 	configSet := make([]string, 0)
 	setPrefix += "interface " + block.Name.ValueString() + " "
 
@@ -1760,49 +1762,49 @@ func (rscData *forwardingoptionsSamplingInstanceData) read(
 				rscData.Disable = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "family inet input "):
 				if rscData.FamilyInetInput == nil {
-					rscData.FamilyInetInput = &forwardingoptionsSamplingInstanceInput{}
+					rscData.FamilyInetInput = &forwardingoptionsSamplingInstanceBlockInput{}
 				}
 				if err := rscData.FamilyInetInput.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family inet6 input "):
 				if rscData.FamilyInet6Input == nil {
-					rscData.FamilyInet6Input = &forwardingoptionsSamplingInstanceInput{}
+					rscData.FamilyInet6Input = &forwardingoptionsSamplingInstanceBlockInput{}
 				}
 				if err := rscData.FamilyInet6Input.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family mpls input "):
 				if rscData.FamilyMplsInput == nil {
-					rscData.FamilyMplsInput = &forwardingoptionsSamplingInstanceInput{}
+					rscData.FamilyMplsInput = &forwardingoptionsSamplingInstanceBlockInput{}
 				}
 				if err := rscData.FamilyMplsInput.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "input "):
 				if rscData.Input == nil {
-					rscData.Input = &forwardingoptionsSamplingInstanceInput{}
+					rscData.Input = &forwardingoptionsSamplingInstanceBlockInput{}
 				}
 				if err := rscData.Input.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family inet output "):
 				if rscData.FamilyInetOutput == nil {
-					rscData.FamilyInetOutput = &forwardingoptionsSamplingInstanceFamilyInetOutputData{}
+					rscData.FamilyInetOutput = &forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}
 				}
 				if err := rscData.FamilyInetOutput.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family inet6 output "):
 				if rscData.FamilyInet6Output == nil {
-					rscData.FamilyInet6Output = &forwardingoptionsSamplingInstanceFamilyInet6OutputData{}
+					rscData.FamilyInet6Output = &forwardingoptionsSamplingInstanceBlockFamilyInet6Output{}
 				}
 				if err := rscData.FamilyInet6Output.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family mpls output "):
 				if rscData.FamilyMplsOutput == nil {
-					rscData.FamilyMplsOutput = &forwardingoptionsSamplingInstanceFamilyMplsOutputData{}
+					rscData.FamilyMplsOutput = &forwardingoptionsSamplingInstanceBlockFamilyMplsOutput{}
 				}
 				if err := rscData.FamilyMplsOutput.read(itemTrim); err != nil {
 					return err
@@ -1814,7 +1816,7 @@ func (rscData *forwardingoptionsSamplingInstanceData) read(
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceInput) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingInstanceBlockInput) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "max-packets-per-second "):
 		block.MaxPacketsPerSecond, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -1841,7 +1843,7 @@ func (block *forwardingoptionsSamplingInstanceInput) read(itemTrim string) (err 
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutput) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "aggregate-export-interval "):
 		block.AggregateExportInterval, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -1862,7 +1864,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTri
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var flowServer forwardingoptionsSamplingInstanceFamilyInetOutputFlowServer
+		var flowServer forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer
 		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
 			block.FlowServer, "Hostname", itemTrimFields[0],
 		)
@@ -1924,7 +1926,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTri
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingInstanceOutputInterface
+		var iFace forwardingoptionsSamplingInstanceBlockOutputBlockInterface
 		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
 			block.Interface, "Name", itemTrimFields[0],
 		)
@@ -1939,7 +1941,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInetOutputData) read(itemTri
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingInstanceBlockFamilyInet6Output) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "aggregate-export-interval "):
 		block.AggregateExportInterval, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -1960,7 +1962,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) read(itemTr
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var flowServer forwardingoptionsSamplingInstanceOutputFlowServer
+		var flowServer forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer
 		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
 			block.FlowServer, "Hostname", itemTrimFields[0],
 		)
@@ -1979,7 +1981,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) read(itemTr
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingInstanceOutputInterface
+		var iFace forwardingoptionsSamplingInstanceBlockOutputBlockInterface
 		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
 			block.Interface, "Name", itemTrimFields[0],
 		)
@@ -1994,7 +1996,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyInet6OutputData) read(itemTr
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "aggregate-export-interval "):
 		block.AggregateExportInterval, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -2013,7 +2015,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) read(itemTri
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var flowServer forwardingoptionsSamplingInstanceOutputFlowServer
+		var flowServer forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer
 		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
 			block.FlowServer, "Hostname", itemTrimFields[0],
 		)
@@ -2032,7 +2034,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) read(itemTri
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingInstanceOutputInterface
+		var iFace forwardingoptionsSamplingInstanceBlockOutputBlockInterface
 		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
 			block.Interface, "Name", itemTrimFields[0],
 		)
@@ -2047,7 +2049,7 @@ func (block *forwardingoptionsSamplingInstanceFamilyMplsOutputData) read(itemTri
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceOutputFlowServer) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "port "):
 		block.Port, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -2093,7 +2095,7 @@ func (block *forwardingoptionsSamplingInstanceOutputFlowServer) read(itemTrim st
 	return nil
 }
 
-func (block *forwardingoptionsSamplingInstanceOutputInterface) read(itemTrim string) (err error) {
+func (block *forwardingoptionsSamplingInstanceBlockOutputBlockInterface) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "engine-id "):
 		block.EngineID, err = tfdata.ConvAtoi64Value(itemTrim)

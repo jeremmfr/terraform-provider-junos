@@ -155,16 +155,16 @@ func upgradeForwardingoptionsSamplingInstanceStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		Disable           types.Bool                                               `tfsdk:"disable"`
-		ID                types.String                                             `tfsdk:"id"`
-		Name              types.String                                             `tfsdk:"name"`
-		FamilyInetInput   []forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_inet_input"`
-		FamilyInetOutput  []forwardingoptionsSamplingInstanceFamilyInetOutputData  `tfsdk:"family_inet_output"`
-		FamilyInet6Input  []forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_inet6_input"`
-		FamilyInet6Output []forwardingoptionsSamplingInstanceFamilyInet6OutputData `tfsdk:"family_inet6_output"`
-		FamilyMplsInput   []forwardingoptionsSamplingInstanceInput                 `tfsdk:"family_mpls_input"`
-		FamilyMplsOutput  []forwardingoptionsSamplingInstanceFamilyMplsOutputData  `tfsdk:"family_mpls_output"`
-		Input             []forwardingoptionsSamplingInstanceInput                 `tfsdk:"input"`
+		Disable           types.Bool                                                `tfsdk:"disable"`
+		ID                types.String                                              `tfsdk:"id"`
+		Name              types.String                                              `tfsdk:"name"`
+		FamilyInetInput   []forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet_input"`
+		FamilyInetOutput  []forwardingoptionsSamplingInstanceBlockFamilyInetOutput  `tfsdk:"family_inet_output"`
+		FamilyInet6Input  []forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet6_input"`
+		FamilyInet6Output []forwardingoptionsSamplingInstanceBlockFamilyInet6Output `tfsdk:"family_inet6_output"`
+		FamilyMplsInput   []forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_mpls_input"`
+		FamilyMplsOutput  []forwardingoptionsSamplingInstanceBlockFamilyMplsOutput  `tfsdk:"family_mpls_output"`
+		Input             []forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"input"`
 	}
 
 	var dataV0 modelV0

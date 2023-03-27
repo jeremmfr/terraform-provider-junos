@@ -83,23 +83,24 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) UpgradeState(_ context.Context)
 func upgradeServicesFlowMonitoringVIPFixTemplateStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
+	//nolint:lll
 	type modelV0 struct {
-		FlowKeyFlowDirection      types.Bool                                        `tfsdk:"flow_key_flow_direction"`
-		FlowKeyVlanID             types.Bool                                        `tfsdk:"flow_key_vlan_id"`
-		NexthopLearningEnable     types.Bool                                        `tfsdk:"nexthop_learning_enable"`
-		NexthopLearningDisable    types.Bool                                        `tfsdk:"nexthop_learning_disable"`
-		TunnelObservationIPv4     types.Bool                                        `tfsdk:"tunnel_observation_ipv4"`
-		TunnelObservationIPv6     types.Bool                                        `tfsdk:"tunnel_observation_ipv6"`
-		ID                        types.String                                      `tfsdk:"id"`
-		Name                      types.String                                      `tfsdk:"name"`
-		Type                      types.String                                      `tfsdk:"type"`
-		FlowActiveTimeout         types.Int64                                       `tfsdk:"flow_active_timeout"`
-		FlowInactiveTimeout       types.Int64                                       `tfsdk:"flow_inactive_timeout"`
-		IPTemplateExportExtension []types.String                                    `tfsdk:"ip_template_export_extension"`
-		ObservationDomainID       types.Int64                                       `tfsdk:"observation_domain_id"`
-		OptionTemplateID          types.Int64                                       `tfsdk:"option_template_id"`
-		TemplateID                types.Int64                                       `tfsdk:"template_id"`
-		OptionRefreshRate         []servicesFlowMonitoringVIPFixTemplateRefreshRate `tfsdk:"option_refresh_rate"`
+		FlowKeyFlowDirection      types.Bool                                             `tfsdk:"flow_key_flow_direction"`
+		FlowKeyVlanID             types.Bool                                             `tfsdk:"flow_key_vlan_id"`
+		NexthopLearningEnable     types.Bool                                             `tfsdk:"nexthop_learning_enable"`
+		NexthopLearningDisable    types.Bool                                             `tfsdk:"nexthop_learning_disable"`
+		TunnelObservationIPv4     types.Bool                                             `tfsdk:"tunnel_observation_ipv4"`
+		TunnelObservationIPv6     types.Bool                                             `tfsdk:"tunnel_observation_ipv6"`
+		ID                        types.String                                           `tfsdk:"id"`
+		Name                      types.String                                           `tfsdk:"name"`
+		Type                      types.String                                           `tfsdk:"type"`
+		FlowActiveTimeout         types.Int64                                            `tfsdk:"flow_active_timeout"`
+		FlowInactiveTimeout       types.Int64                                            `tfsdk:"flow_inactive_timeout"`
+		IPTemplateExportExtension []types.String                                         `tfsdk:"ip_template_export_extension"`
+		ObservationDomainID       types.Int64                                            `tfsdk:"observation_domain_id"`
+		OptionTemplateID          types.Int64                                            `tfsdk:"option_template_id"`
+		TemplateID                types.Int64                                            `tfsdk:"template_id"`
+		OptionRefreshRate         []servicesFlowMonitoringVIPFixTemplateBlockRefreshRate `tfsdk:"option_refresh_rate"`
 	}
 
 	var dataV0 modelV0
