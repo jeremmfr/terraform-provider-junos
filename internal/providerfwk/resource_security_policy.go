@@ -995,7 +995,7 @@ func (rscData *securityPolicyData) set(
 					junos.PermitW, block.Then.ValueString(), block.Name.ValueString(),
 				)
 			}
-			configSetAppSvc, err := block.PermitApplicationServices.set(setPrefixPolicy)
+			configSetAppSvc, err := block.PermitApplicationServices.configSet(setPrefixPolicy)
 			if err != nil {
 				return path.Root("policy").AtListIndex(i).AtName("permit_application_services"), err
 			}
@@ -1012,7 +1012,7 @@ func (rscData *securityPolicyData) set(
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) set(
+func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) configSet(
 	setPrefixPolicy string,
 ) (
 	[]string, error,
