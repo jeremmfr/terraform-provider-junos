@@ -194,7 +194,7 @@ func upgradeSecurityGlobalPolicyV0toV1(
 	var dataV1 securityGlobalPolicyData
 	dataV1.ID = dataV0.ID
 	for _, blockV0 := range dataV0.Policy {
-		var blockV1 securityGlobalPolicyPolicy
+		var blockV1 securityGlobalPolicyBlockPolicy
 		blockV1.Count = blockV0.Count
 		blockV1.LogInit = blockV0.LogInit
 		blockV1.LogClose = blockV0.LogClose
@@ -210,7 +210,7 @@ func upgradeSecurityGlobalPolicyV0toV1(
 		blockV1.MatchApplication = blockV0.MatchApplication
 		blockV1.MatchDynamicApplication = blockV0.MatchDynamicApplication
 		if len(blockV0.PermitApplicationServices) > 0 {
-			blockV1.PermitApplicationServices = &securityPolicyPolicyPermitApplicationServices{}
+			blockV1.PermitApplicationServices = &securityPolicyBlockPolicyBlockPermitApplicationServices{}
 
 			blockV1.PermitApplicationServices.Idp = blockV0.PermitApplicationServices[0].Idp
 			blockV1.PermitApplicationServices.RedirectWx = blockV0.PermitApplicationServices[0].RedirectWx

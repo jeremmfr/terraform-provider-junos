@@ -198,7 +198,7 @@ func upgradesecurityPolicyV0toV1(
 	dataV1.FromZone = dataV0.FromZone
 	dataV1.ToZone = dataV0.ToZone
 	for _, blockV0 := range dataV0.Policy {
-		var blockV1 securityPolicyPolicy
+		var blockV1 securityPolicyBlockPolicy
 		blockV1.Count = blockV0.Count
 		blockV1.LogInit = blockV0.LogInit
 		blockV1.LogClose = blockV0.LogClose
@@ -213,7 +213,7 @@ func upgradesecurityPolicyV0toV1(
 		blockV1.MatchApplication = blockV0.MatchApplication
 		blockV1.MatchDynamicApplication = blockV0.MatchDynamicApplication
 		if len(blockV0.PermitApplicationServices) > 0 {
-			blockV1.PermitApplicationServices = &securityPolicyPolicyPermitApplicationServices{}
+			blockV1.PermitApplicationServices = &securityPolicyBlockPolicyBlockPermitApplicationServices{}
 
 			blockV1.PermitApplicationServices.Idp = blockV0.PermitApplicationServices[0].Idp
 			blockV1.PermitApplicationServices.RedirectWx = blockV0.PermitApplicationServices[0].RedirectWx

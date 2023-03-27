@@ -367,10 +367,10 @@ func (rsc *securityPolicy) Schema(
 }
 
 type securityPolicyData struct {
-	ID       types.String           `tfsdk:"id"`
-	FromZone types.String           `tfsdk:"from_zone"`
-	ToZone   types.String           `tfsdk:"to_zone"`
-	Policy   []securityPolicyPolicy `tfsdk:"policy"`
+	ID       types.String                `tfsdk:"id"`
+	FromZone types.String                `tfsdk:"from_zone"`
+	ToZone   types.String                `tfsdk:"to_zone"`
+	Policy   []securityPolicyBlockPolicy `tfsdk:"policy"`
 }
 
 type securityPolicyConfig struct {
@@ -381,42 +381,42 @@ type securityPolicyConfig struct {
 }
 
 //nolint:lll
-type securityPolicyPolicy struct {
-	Count                           types.Bool                                     `tfsdk:"count"`
-	LogInit                         types.Bool                                     `tfsdk:"log_init"`
-	LogClose                        types.Bool                                     `tfsdk:"log_close"`
-	MatchDestinationAddressExcluded types.Bool                                     `tfsdk:"match_destination_address_excluded"`
-	MatchSourceAddressExcluded      types.Bool                                     `tfsdk:"match_source_address_excluded"`
-	Name                            types.String                                   `tfsdk:"name"`
-	Then                            types.String                                   `tfsdk:"then"`
-	MatchSourceEndUserProfile       types.String                                   `tfsdk:"match_source_end_user_profile"`
-	PermitTunnelIpsecVpn            types.String                                   `tfsdk:"permit_tunnel_ipsec_vpn"`
-	MatchSourceAddress              []types.String                                 `tfsdk:"match_source_address"`
-	MatchDestinationAddress         []types.String                                 `tfsdk:"match_destination_address"`
-	MatchApplication                []types.String                                 `tfsdk:"match_application"`
-	MatchDynamicApplication         []types.String                                 `tfsdk:"match_dynamic_application"`
-	PermitApplicationServices       *securityPolicyPolicyPermitApplicationServices `tfsdk:"permit_application_services"`
+type securityPolicyBlockPolicy struct {
+	Count                           types.Bool                                               `tfsdk:"count"`
+	LogInit                         types.Bool                                               `tfsdk:"log_init"`
+	LogClose                        types.Bool                                               `tfsdk:"log_close"`
+	MatchDestinationAddressExcluded types.Bool                                               `tfsdk:"match_destination_address_excluded"`
+	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
+	Name                            types.String                                             `tfsdk:"name"`
+	Then                            types.String                                             `tfsdk:"then"`
+	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
+	PermitTunnelIpsecVpn            types.String                                             `tfsdk:"permit_tunnel_ipsec_vpn"`
+	MatchSourceAddress              []types.String                                           `tfsdk:"match_source_address"`
+	MatchDestinationAddress         []types.String                                           `tfsdk:"match_destination_address"`
+	MatchApplication                []types.String                                           `tfsdk:"match_application"`
+	MatchDynamicApplication         []types.String                                           `tfsdk:"match_dynamic_application"`
+	PermitApplicationServices       *securityPolicyBlockPolicyBlockPermitApplicationServices `tfsdk:"permit_application_services"`
 }
 
 //nolint:lll
-type securityPolicyPolicyConfig struct {
-	Count                           types.Bool                                     `tfsdk:"count"`
-	LogInit                         types.Bool                                     `tfsdk:"log_init"`
-	LogClose                        types.Bool                                     `tfsdk:"log_close"`
-	MatchDestinationAddressExcluded types.Bool                                     `tfsdk:"match_destination_address_excluded"`
-	MatchSourceAddressExcluded      types.Bool                                     `tfsdk:"match_source_address_excluded"`
-	Name                            types.String                                   `tfsdk:"name"`
-	Then                            types.String                                   `tfsdk:"then"`
-	MatchSourceEndUserProfile       types.String                                   `tfsdk:"match_source_end_user_profile"`
-	PermitTunnelIpsecVpn            types.String                                   `tfsdk:"permit_tunnel_ipsec_vpn"`
-	MatchSourceAddress              types.Set                                      `tfsdk:"match_source_address"`
-	MatchDestinationAddress         types.Set                                      `tfsdk:"match_destination_address"`
-	MatchApplication                types.Set                                      `tfsdk:"match_application"`
-	MatchDynamicApplication         types.Set                                      `tfsdk:"match_dynamic_application"`
-	PermitApplicationServices       *securityPolicyPolicyPermitApplicationServices `tfsdk:"permit_application_services"`
+type securityPolicyBlockPolicyConfig struct {
+	Count                           types.Bool                                               `tfsdk:"count"`
+	LogInit                         types.Bool                                               `tfsdk:"log_init"`
+	LogClose                        types.Bool                                               `tfsdk:"log_close"`
+	MatchDestinationAddressExcluded types.Bool                                               `tfsdk:"match_destination_address_excluded"`
+	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
+	Name                            types.String                                             `tfsdk:"name"`
+	Then                            types.String                                             `tfsdk:"then"`
+	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
+	PermitTunnelIpsecVpn            types.String                                             `tfsdk:"permit_tunnel_ipsec_vpn"`
+	MatchSourceAddress              types.Set                                                `tfsdk:"match_source_address"`
+	MatchDestinationAddress         types.Set                                                `tfsdk:"match_destination_address"`
+	MatchApplication                types.Set                                                `tfsdk:"match_application"`
+	MatchDynamicApplication         types.Set                                                `tfsdk:"match_dynamic_application"`
+	PermitApplicationServices       *securityPolicyBlockPolicyBlockPermitApplicationServices `tfsdk:"permit_application_services"`
 }
 
-type securityPolicyPolicyPermitApplicationServices struct {
+type securityPolicyBlockPolicyBlockPermitApplicationServices struct {
 	Idp                              types.Bool   `tfsdk:"idp"`
 	RedirectWx                       types.Bool   `tfsdk:"redirect_wx"`
 	ReverseRedirectWx                types.Bool   `tfsdk:"reverse_redirect_wx"`
@@ -436,7 +436,7 @@ type securityPolicyPolicyPermitApplicationServices struct {
 	UtmPolicy types.String `tfsdk:"utm_policy"`
 }
 
-func (block *securityPolicyPolicyPermitApplicationServices) IsEmpty() bool {
+func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) IsEmpty() bool {
 	switch {
 	case !block.AdvancedAntiMalwarePolicy.IsNull():
 		return false
@@ -485,7 +485,7 @@ func (rsc *securityPolicy) ValidateConfig(
 			"at least one policy block must be specified",
 		)
 	} else if !config.Policy.IsUnknown() {
-		var configPolicy []securityPolicyPolicyConfig
+		var configPolicy []securityPolicyBlockPolicyConfig
 		asDiags := config.Policy.ElementsAs(ctx, &configPolicy, false)
 		if asDiags.HasError() {
 			resp.Diagnostics.Append(asDiags...)
@@ -1012,7 +1012,7 @@ func (rscData *securityPolicyData) set(
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (block *securityPolicyPolicyPermitApplicationServices) set(
+func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) set(
 	setPrefixPolicy string,
 ) (
 	[]string, error,
@@ -1096,7 +1096,7 @@ func (rscData *securityPolicyData) read(
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			if balt.CutPrefixInString(&itemTrim, "policy ") {
 				itemTrimFields := strings.Split(itemTrim, " ")
-				var policy securityPolicyPolicy
+				var policy securityPolicyBlockPolicy
 				rscData.Policy, policy = tfdata.ExtractBlockWithTFTypesString(rscData.Policy, "Name", itemTrimFields[0])
 				policy.Name = types.StringValue(itemTrimFields[0])
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
@@ -1137,7 +1137,7 @@ func (rscData *securityPolicyData) read(
 					case balt.CutPrefixInString(&itemTrim, "permit application-services "):
 						policy.Then = types.StringValue(junos.PermitW)
 						if policy.PermitApplicationServices == nil {
-							policy.PermitApplicationServices = &securityPolicyPolicyPermitApplicationServices{}
+							policy.PermitApplicationServices = &securityPolicyBlockPolicyBlockPermitApplicationServices{}
 						}
 						policy.PermitApplicationServices.read(itemTrim)
 					}
@@ -1150,7 +1150,7 @@ func (rscData *securityPolicyData) read(
 	return nil
 }
 
-func (block *securityPolicyPolicyPermitApplicationServices) read(
+func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) read(
 	itemTrim string,
 ) {
 	switch {
