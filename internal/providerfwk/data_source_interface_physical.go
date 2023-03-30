@@ -100,6 +100,30 @@ func (dsc *interfacePhysicalDataSource) Schema(
 				Computed:    true,
 				Description: "Interface disabled.",
 			},
+			"encapsulation": schema.StringAttribute{
+				Computed:    true,
+				Description: "Physical link-layer encapsulation.",
+			},
+			"flexible_vlan_tagging": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Support for no tagging, or single and double 802.1q VLAN tagging.",
+			},
+			"gratuitous_arp_reply": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Enable gratuitous ARP reply.",
+			},
+			"hold_time_down": schema.Int64Attribute{
+				Computed:    true,
+				Description: "Link down hold time (milliseconds).",
+			},
+			"hold_time_up": schema.Int64Attribute{
+				Computed:    true,
+				Description: "Link up hold time (milliseconds).",
+			},
+			"link_mode": schema.StringAttribute{
+				Computed:    true,
+				Description: "Link operational mode.",
+			},
 			"esi": schema.ObjectAttribute{
 				Computed:    true,
 				Description: "ESI Config parameters. ",
@@ -142,6 +166,18 @@ func (dsc *interfacePhysicalDataSource) Schema(
 			"mtu": schema.Int64Attribute{
 				Computed:    true,
 				Description: "Maximum transmission unit.",
+			},
+			"no_gratuitous_arp_reply": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Don't enable gratuitous ARP reply.",
+			},
+			"no_gratuitous_arp_request": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Ignore gratuitous ARP request.",
+			},
+			"speed": schema.StringAttribute{
+				Computed:    true,
+				Description: "Link speed.",
 			},
 			"parent_ether_opts": schema.ObjectAttribute{
 				Computed:    true,
@@ -205,21 +241,30 @@ func (dsc *interfacePhysicalDataSource) Schema(
 }
 
 type interfacePhysicalDataSourceData struct {
-	Disable         types.Bool                             `tfsdk:"disable"`
-	Trunk           types.Bool                             `tfsdk:"trunk"`
-	VlanTagging     types.Bool                             `tfsdk:"vlan_tagging"`
-	ID              types.String                           `tfsdk:"id"`
-	ConfigInterface types.String                           `tfsdk:"config_interface"`
-	Match           types.String                           `tfsdk:"match"`
-	Name            types.String                           `tfsdk:"name"`
-	Description     types.String                           `tfsdk:"description"`
-	Mtu             types.Int64                            `tfsdk:"mtu"`
-	VlanMembers     []types.String                         `tfsdk:"vlan_members"`
-	VlanNative      types.Int64                            `tfsdk:"vlan_native"`
-	ESI             *interfacePhysicalBlockESI             `tfsdk:"esi"`
-	EtherOpts       *interfacePhysicalBlockEtherOpts       `tfsdk:"ether_opts"`
-	GigetherOpts    *interfacePhysicalBlockEtherOpts       `tfsdk:"gigether_opts"`
-	ParentEtherOpts *interfacePhysicalBlockParentEtherOpts `tfsdk:"parent_ether_opts"`
+	Disable                types.Bool                             `tfsdk:"disable"`
+	FlexibleVlanTagging    types.Bool                             `tfsdk:"flexible_vlan_tagging"`
+	GratuitousArpReply     types.Bool                             `tfsdk:"gratuitous_arp_reply"`
+	NoGratuitousArpReply   types.Bool                             `tfsdk:"no_gratuitous_arp_reply"`
+	NoGratuitousArpRequest types.Bool                             `tfsdk:"no_gratuitous_arp_request"`
+	Trunk                  types.Bool                             `tfsdk:"trunk"`
+	VlanTagging            types.Bool                             `tfsdk:"vlan_tagging"`
+	ID                     types.String                           `tfsdk:"id"`
+	ConfigInterface        types.String                           `tfsdk:"config_interface"`
+	Match                  types.String                           `tfsdk:"match"`
+	Name                   types.String                           `tfsdk:"name"`
+	Description            types.String                           `tfsdk:"description"`
+	Encapsulation          types.String                           `tfsdk:"encapsulation"`
+	HoldTimeDown           types.Int64                            `tfsdk:"hold_time_down"`
+	HoldTimeUp             types.Int64                            `tfsdk:"hold_time_up"`
+	LinkMode               types.String                           `tfsdk:"link_mode"`
+	Mtu                    types.Int64                            `tfsdk:"mtu"`
+	Speed                  types.String                           `tfsdk:"speed"`
+	VlanMembers            []types.String                         `tfsdk:"vlan_members"`
+	VlanNative             types.Int64                            `tfsdk:"vlan_native"`
+	ESI                    *interfacePhysicalBlockESI             `tfsdk:"esi"`
+	EtherOpts              *interfacePhysicalBlockEtherOpts       `tfsdk:"ether_opts"`
+	GigetherOpts           *interfacePhysicalBlockEtherOpts       `tfsdk:"gigether_opts"`
+	ParentEtherOpts        *interfacePhysicalBlockParentEtherOpts `tfsdk:"parent_ether_opts"`
 }
 
 func (dsc *interfacePhysicalDataSource) ValidateConfig(
@@ -352,11 +397,20 @@ func (dscData *interfacePhysicalDataSourceData) CopyFromResourceData(rscData int
 	dscData.Name = rscData.Name
 	dscData.Description = rscData.Description
 	dscData.Disable = rscData.Disable
+	dscData.Encapsulation = rscData.Encapsulation
 	dscData.ESI = rscData.ESI
 	dscData.EtherOpts = rscData.EtherOpts
+	dscData.FlexibleVlanTagging = rscData.FlexibleVlanTagging
 	dscData.GigetherOpts = rscData.GigetherOpts
+	dscData.GratuitousArpReply = rscData.GratuitousArpReply
+	dscData.HoldTimeDown = rscData.HoldTimeDown
+	dscData.HoldTimeUp = rscData.HoldTimeUp
+	dscData.LinkMode = rscData.LinkMode
 	dscData.Mtu = rscData.Mtu
+	dscData.NoGratuitousArpReply = rscData.NoGratuitousArpReply
+	dscData.NoGratuitousArpRequest = rscData.NoGratuitousArpRequest
 	dscData.ParentEtherOpts = rscData.ParentEtherOpts
+	dscData.Speed = rscData.Speed
 	dscData.Trunk = rscData.Trunk
 	dscData.VlanMembers = rscData.VlanMembers
 	dscData.VlanNative = rscData.VlanNative

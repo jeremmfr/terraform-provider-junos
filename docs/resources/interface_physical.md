@@ -41,6 +41,8 @@ The following arguments are supported:
   Description for interface.
 - **disable** (Optional, Boolean)  
   Disable this interface.
+- **encapsulation** (Optional, String)  
+  Physical link-layer encapsulation.
 - **esi** (Optional, Block)  
   Define ESI Config parameters.  
   See [below for nested schema](#esi-arguments).
@@ -63,6 +65,8 @@ The following arguments are supported:
     Don't enable loopback.
   - **redundant_parent** (Optional, String)  
     Name of a redundant ethernet interface to join.
+- **flexible_vlan_tagging** (Optional, Boolean)  
+  Support for no tagging, or single and double 802.1q VLAN tagging.
 - **gigether_opts** (Optional, Block)  
   Declare `gigether-options` configuration.  
   Conflict with `ether_opts`.
@@ -82,12 +86,30 @@ The following arguments are supported:
     Don't enable loopback.
   - **redundant_parent** (Optional, String)  
     Name of a redundant ethernet interface to join.
+- **gratuitous_arp_reply** (Optional, Boolean)  
+  Enable gratuitous ARP reply.
+- **hold_time_down** (Optional, Number)  
+  Link down hold time (milliseconds).  
+  `hold_time_up` must be specified together
+- **hold_time_up** (Optional, Number)  
+  Link up hold time (milliseconds).  
+  `hold_time_down` must be specified together
+- **link_mode** (Optional, String)  
+  Link operational mode.  
+  Need to be `automatic`, `full-duplex` or `half-duplex`.
 - **mtu** (Optional, Number)  
   Maximum transmission unit.
+- **no_gratuitous_arp_reply** (Optional, Boolean)  
+  Don't enable gratuitous ARP reply.
+- **no_gratuitous_arp_request** (Optional, Boolean)  
+  Ignore gratuitous ARP request.
 - **parent_ether_opts** (Optional, Block)  
   Declare `aggregated-ether-options` or `redundant-ether-options` configuration
   (it depends on the interface `name`).  
   See [below for nested schema](#parent_ether_opts-arguments).
+- **speed** (Optional, String)  
+  Link speed.  
+  Must be a valid speed (10m | 100m | 1g ...)
 - **trunk** (Optional, Boolean)  
   Interface mode is trunk.
 - **vlan_members** (Optional, List of String)  

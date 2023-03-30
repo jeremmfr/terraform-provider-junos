@@ -115,6 +115,9 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 								"parent_ether_opts.redundancy_group", "1"),
 						),
 					},
+					{
+						Config: testAccJunosInterfacePhysicalSRXConfigUpdate(testaccInterface),
+					},
 				},
 			})
 		}
@@ -201,8 +204,10 @@ resource "junos_interface_physical" "testacc_interface" {
   }
 }
 resource "junos_interface_physical" "testacc_interface2" {
-  name        = "%s"
-  description = "testacc_interface2"
+  name           = "%s"
+  description    = "testacc_interface2"
+  hold_time_down = 6000
+  hold_time_up   = 7000
   gigether_opts {
     flow_control     = true
     loopback         = true
@@ -244,8 +249,11 @@ resource "junos_interface_physical" "testacc_interface" {
   }
 }
 resource "junos_interface_physical" "testacc_interface2" {
-  name        = "%s"
-  description = "testacc_interface2"
+  name                      = "%s"
+  description               = "testacc_interface2"
+  link_mode                 = "automatic"
+  no_gratuitous_arp_reply   = true
+  no_gratuitous_arp_request = true
   ether_opts {
     flow_control     = true
     loopback         = true
@@ -266,8 +274,9 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
     junos_interface_physical.testacc_interface,
     junos_interface_logical.testacc_interfaceLO,
   ]
-  name        = "%s"
-  description = "testacc_interfaceAE"
+  name                 = "%s"
+  description          = "testacc_interfaceAE"
+  gratuitous_arp_reply = true
   parent_ether_opts {
     bfd_liveness_detection {
       local_address                      = "192.0.2.1"
@@ -391,4 +400,16 @@ resource "junos_interface_physical" "testacc_interface_reth" {
   }
 }
 `, interFace, interFace2)
+}
+
+func testAccJunosInterfacePhysicalSRXConfigUpdate(interFace string) string {
+	return fmt.Sprintf(`
+resource "junos_interface_physical" "testacc_interface" {
+  name                  = "%s"
+  description           = "testacc_interface2"
+  encapsulation         = "vlan-vpls"
+  speed                 = "1g"
+  flexible_vlan_tagging = true
+}
+`, interFace)
 }

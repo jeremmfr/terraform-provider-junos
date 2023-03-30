@@ -40,6 +40,8 @@ The following attributes are exported:
   Description for interface.
 - **disable** (Boolean)  
   Interface disabled.
+- **encapsulation** (String)  
+  Physical link-layer encapsulation.
 - **esi** (Block)  
   ESI Config parameters.  
   See [below for nested schema](#esi-attributes).
@@ -61,6 +63,8 @@ The following attributes are exported:
     Don't enable loopback.
   - **redundant_parent** (String)  
     Name of a redundant ethernet interface to join.
+- **flexible_vlan_tagging** (Boolean)  
+  Support for no tagging, or single and double 802.1q VLAN tagging.
 - **gigether_opts** (Block)  
   The `gigether-options` configuration.
   - **ae_8023ad** (String)  
@@ -79,12 +83,26 @@ The following attributes are exported:
     Don't enable loopback.
   - **redundant_parent** (String)  
     Name of a redundant ethernet interface to join.
-- **mtu** (Optional, Number)  
+- **gratuitous_arp_reply** (Boolean)  
+  Enable gratuitous ARP reply.
+- **hold_time_down** (Number)  
+  Link down hold time (milliseconds).
+- **hold_time_up** (Number)  
+  Link up hold time (milliseconds).
+- **link_mode** (String)  
+  Link operational mode.
+- **mtu** (Number)  
   Maximum transmission unit.
+- **no_gratuitous_arp_reply** (Boolean)  
+  Don't enable gratuitous ARP reply.
+- **no_gratuitous_arp_request** (Boolean)  
+  Ignore gratuitous ARP request.
 - **parent_ether_opts** (Block)  
   The `aggregated-ether-options` or `redundant-ether-options` configuration
   (it depends on the interface `name`).  
   See [below for nested schema](#parent_ether_opts-attributes).
+- **speed** (String)  
+  Link speed.
 - **trunk** (Boolean)  
   Interface mode is trunk.
 - **vlan_members** (List of String)  
