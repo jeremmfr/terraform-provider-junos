@@ -102,15 +102,15 @@ The following arguments are supported:
 ### esi arguments
 
 - **mode** (Required, String)  
-  ESI Mode
-- **identifier** (Optional, String)  
-  The ESI value for the interface
+  ESI Mode.
 - **auto_derive_lacp** (Optional, Boolean)  
-  Auto-derive ESI value for the interface
+  Auto-derive ESI value for the interface.
 - **df_election_type** (Optional, String)  
-  DF Election Type
+  DF Election Type.
+- **identifier** (Optional, String)  
+  The ESI value for the interface.
 - **source_bmac** (Optional, String)  
-  Unicast Source B-MAC address per ESI for PBB-EVPN
+  Unicast Source B-MAC address per ESI for PBB-EVPN.
 
 ---
 

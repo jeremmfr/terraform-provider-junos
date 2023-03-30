@@ -787,7 +787,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("name").(string)))...)
 	}
 	if emptyInt && !setInt {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), junSess)
+		intExists, err := junSess.CheckInterfaceExists(d.Get("name").(string))
 		if err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -832,7 +832,7 @@ func resourceInterfaceLogicalReadWJunSess(d *schema.ResourceData, clt *junos.Cli
 		return nil
 	}
 	if emptyInt && !setInt {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), junSess)
+		intExists, err := junSess.CheckInterfaceExists(d.Get("name").(string))
 		if err != nil {
 			junos.MutexUnlock()
 
@@ -1035,7 +1035,7 @@ func resourceInterfaceLogicalImport(ctx context.Context, d *schema.ResourceData,
 		return nil, fmt.Errorf("interface '%v' is disabled (NC), import is not possible", d.Id())
 	}
 	if emptyInt && !setInt {
-		intExists, err := checkInterfaceExists(d.Id(), junSess)
+		intExists, err := junSess.CheckInterfaceExists(d.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -1579,6 +1579,18 @@ func (confRead *interfaceLogicalOptions) readInterfaceLogicalSecurityInboundTraf
 	}
 
 	return nil
+}
+
+func delInterfaceNC(d *schema.ResourceData, groupInterfaceDelete string, junSess *junos.Session) error {
+	configSet := make([]string, 0, 3)
+	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
+	if groupInterfaceDelete != "" {
+		configSet = append(configSet, delPrefix+"apply-groups "+groupInterfaceDelete)
+	}
+	configSet = append(configSet, delPrefix+"description")
+	configSet = append(configSet, delPrefix+"disable")
+
+	return junSess.ConfigSet(configSet)
 }
 
 func delInterfaceLogical(d *schema.ResourceData, junSess *junos.Session) error {

@@ -33,6 +33,10 @@ func StringSpaceExclusion() StringRuneExclusionValidator {
 	return StringRuneExclusion('\t', '\n', '\v', '\f', '\r', ' ', 0x85, 0xA0)
 }
 
+func StringDotExclusion() StringRuneExclusionValidator {
+	return StringRuneExclusion('.')
+}
+
 func (v StringRuneExclusionValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("Must be a string without characters %s .", string(v.runes))
 }

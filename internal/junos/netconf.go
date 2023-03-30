@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jeremmfr/go-netconf/netconf"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
+
+	"github.com/jeremmfr/go-netconf/netconf"
 )
 
 const (
@@ -23,10 +24,11 @@ const (
 	rpcClearCandidate  = "<delete-config><target><candidate/></target></delete-config>"
 	rpcClose           = "<close-session/>"
 
-	RPCGetInterfacesInformationTerse = `<get-interface-information><terse/></get-interface-information>`
-	RPCGetInterfaceInformationTerse  = `<get-interface-information>%s<terse/></get-interface-information>`
-	RPCGetRouteAllInformation        = `<get-route-information><all/></get-route-information>`
-	RPCGetRouteAllTableInformation   = `<get-route-information><all/><table>%s</table></get-route-information>`
+	RPCGetInterfaceInformationInterfaceName = "<get-interface-information><interface-name>%s</interface-name></get-interface-information>" //nolint:lll
+	RPCGetInterfacesInformationTerse        = `<get-interface-information><terse/></get-interface-information>`
+	RPCGetInterfaceInformationTerse         = `<get-interface-information>%s<terse/></get-interface-information>`
+	RPCGetRouteAllInformation               = `<get-route-information><all/></get-route-information>`
+	RPCGetRouteAllTableInformation          = `<get-route-information><all/><table>%s</table></get-route-information>`
 
 	XMLStartTagConfigOut = "<configuration-output>"
 	XMLEndTagConfigOut   = "</configuration-output>"

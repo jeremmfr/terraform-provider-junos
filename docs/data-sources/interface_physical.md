@@ -99,15 +99,15 @@ The following attributes are exported:
 ### esi attributes
 
 - **mode** (String)  
-  ESI Mode
-- **identifier** (String)  
-  The ESI value for the interface
+  ESI Mode.
 - **auto_derive_lacp** (Boolean)  
-  Auto-derive ESI value for the interface
+  Auto-derive ESI value for the interface.
 - **df_election_type** (String)  
-  DF Election Type
+  DF Election Type.
+- **identifier** (String)  
+  The ESI value for the interface.
 - **source_bmac** (String)  
-  Unicast Source B-MAC address per ESI for PBB-EVPN
+  Unicast Source B-MAC address per ESI for PBB-EVPN.
 
 ---
 

@@ -241,3 +241,77 @@ func (v StringWildcardNetworkValidator) ValidateString(
 		}
 	}
 }
+
+type StringMACAddressValidator struct {
+	ietfFormat bool
+}
+
+func StringMACAddress() StringMACAddressValidator {
+	return StringMACAddressValidator{}
+}
+
+func (v StringMACAddressValidator) WithIETFFormat() StringMACAddressValidator {
+	v.ietfFormat = true
+
+	return v
+}
+
+func (v StringMACAddressValidator) Description(_ context.Context) string {
+	return "Must be a valid MAC address."
+}
+
+func (v StringMACAddressValidator) MarkdownDescription(_ context.Context) string {
+	return "Must be a valid MAC address."
+}
+
+func (v StringMACAddressValidator) ValidateString(
+	_ context.Context, req validator.StringRequest, resp *validator.StringResponse,
+) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+
+	if _, err := net.ParseMAC(value); err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid MAC Address",
+			fmt.Sprintf("%s", err),
+		)
+
+		return
+	}
+
+	if v.ietfFormat {
+		if value[2] != ':' {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid MAC Address",
+				"not IETF format: HH:HH:HH:HH:HH:HH",
+			)
+
+			return
+		}
+
+		if (len(value)+1)%3 != 0 {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid MAC Address",
+				"not IETF format: HH:HH:HH:HH:HH:HH",
+			)
+
+			return
+		}
+		n := (len(value) + 1) / 3
+		if n != 6 {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid MAC Address",
+				"not IETF format: HH:HH:HH:HH:HH:HH",
+			)
+
+			return
+		}
+	}
+}
