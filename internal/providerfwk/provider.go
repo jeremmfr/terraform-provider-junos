@@ -185,6 +185,7 @@ func (p *junosProvider) Schema(
 
 func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		newInterfaceLogicalDataSource,
 		newInterfaceLogicalInfoDataSource,
 		newInterfacePhysicalDataSource,
 		newInterfacesPhysicalPresentDataSource,
@@ -197,8 +198,10 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 	return []func() resource.Resource{
 		newForwardingoptionsSamplingResource,
 		newForwardingoptionsSamplingInstanceResource,
+		newInterfaceLogicalResource,
 		newInterfacePhysicalDisableResource,
 		newInterfacePhysicalResource,
+		newInterfaceSt0UnitResource,
 		newRoutingInstanceResource,
 		newSecurityAddressBookResource,
 		newSecurityGlobalPolicyResource,

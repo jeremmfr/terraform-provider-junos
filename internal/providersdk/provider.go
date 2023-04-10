@@ -165,8 +165,6 @@ func Provider() *schema.Provider {
 			"junos_generate_route":                                       resourceGenerateRoute(),
 			"junos_group_dual_system":                                    resourceGroupDualSystem(),
 			"junos_igmp_snooping_vlan":                                   resourceIgmpSnoopingVlan(),
-			"junos_interface_logical":                                    resourceInterfaceLogical(),
-			"junos_interface_st0_unit":                                   resourceInterfaceSt0Unit(),
 			"junos_layer2_control":                                       resourceLayer2Control(),
 			"junos_lldp_interface":                                       resourceLldpInterface(),
 			"junos_lldpmed_interface":                                    resourceLldpMedInterface(),
@@ -242,7 +240,6 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"junos_application_sets":   dataSourceApplicationSets(),
 			"junos_applications":       dataSourceApplications(),
-			"junos_interface_logical":  dataSourceInterfaceLogical(),
 			"junos_routes":             dataSourceRoutes(),
 			"junos_system_information": dataSourceSystemInformation(),
 		},

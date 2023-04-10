@@ -19,6 +19,7 @@ var (
 
 type StringIPAddressValidator struct {
 	v4only bool
+	v6only bool
 }
 
 func StringIPAddress() StringIPAddressValidator {
@@ -27,6 +28,12 @@ func StringIPAddress() StringIPAddressValidator {
 
 func (v StringIPAddressValidator) IPv4Only() StringIPAddressValidator {
 	v.v4only = true
+
+	return v
+}
+
+func (v StringIPAddressValidator) IPv6Only() StringIPAddressValidator {
+	v.v6only = true
 
 	return v
 }
@@ -48,8 +55,7 @@ func (v StringIPAddressValidator) ValidateString(
 
 	value := req.ConfigValue.ValueString()
 
-	ip := net.ParseIP(value)
-	if ip == nil {
+	if ip := net.ParseIP(value); ip == nil {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid IP Address",
@@ -59,7 +65,7 @@ func (v StringIPAddressValidator) ValidateString(
 		return
 	}
 	if v.v4only {
-		if ip.To4() == nil {
+		if strings.Contains(value, ":") {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid IPv4 Address",
@@ -67,12 +73,36 @@ func (v StringIPAddressValidator) ValidateString(
 			)
 		}
 	}
+	if v.v6only {
+		if !strings.Contains(value, ":") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid IPv4 Address",
+				fmt.Sprintf("string is not an IPv6 address: %q", value),
+			)
+		}
+	}
 }
 
-type StringCIDRValidator struct{}
+type StringCIDRValidator struct {
+	v4only bool
+	v6only bool
+}
 
 func StringCIDR() StringCIDRValidator {
 	return StringCIDRValidator{}
+}
+
+func (v StringCIDRValidator) IPv4Only() StringCIDRValidator {
+	v.v4only = true
+
+	return v
+}
+
+func (v StringCIDRValidator) IPv6Only() StringCIDRValidator {
+	v.v6only = true
+
+	return v
 }
 
 func (v StringCIDRValidator) Description(_ context.Context) string {
@@ -110,6 +140,25 @@ func (v StringCIDRValidator) ValidateString(
 		)
 
 		return
+	}
+
+	if v.v4only {
+		if strings.Contains(value, ":") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid IPv4 CIDR",
+				fmt.Sprintf("string is not an IPv4 CIDR: %q", value),
+			)
+		}
+	}
+	if v.v6only {
+		if !strings.Contains(value, ":") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid IPv6 CIDR",
+				fmt.Sprintf("string is not an IPv6 CIDR: %q", value),
+			)
+		}
 	}
 }
 

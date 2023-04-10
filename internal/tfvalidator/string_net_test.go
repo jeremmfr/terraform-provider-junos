@@ -17,6 +17,7 @@ func TestStringIPAddress(t *testing.T) {
 		val         types.String
 		expectError bool
 		v4only      bool
+		v6only      bool
 	}
 	tests := map[string]testCase{
 		"unknown": {
@@ -54,6 +55,21 @@ func TestStringIPAddress(t *testing.T) {
 			expectError: true,
 			v4only:      true,
 		},
+		"valid with v6only": {
+			val:         types.StringValue("2001:2::1"),
+			expectError: false,
+			v6only:      true,
+		},
+		"valid v4 but with v6only": {
+			val:         types.StringValue("192.0.2.1"),
+			expectError: true,
+			v6only:      true,
+		},
+		"invalid with v6only": {
+			val:         types.StringValue("2001:2:::1"),
+			expectError: true,
+			v6only:      true,
+		},
 	}
 
 	for name, test := range tests {
@@ -70,6 +86,8 @@ func TestStringIPAddress(t *testing.T) {
 			switch {
 			case test.v4only:
 				tfvalidator.StringIPAddress().IPv4Only().ValidateString(context.TODO(), request, &response)
+			case test.v6only:
+				tfvalidator.StringIPAddress().IPv6Only().ValidateString(context.TODO(), request, &response)
 			default:
 				tfvalidator.StringIPAddress().ValidateString(context.TODO(), request, &response)
 			}
@@ -91,6 +109,8 @@ func TestStringCIDR(t *testing.T) {
 	type testCase struct {
 		val         types.String
 		expectError bool
+		v4only      bool
+		v6only      bool
 	}
 	tests := map[string]testCase{
 		"unknown": {
@@ -117,6 +137,36 @@ func TestStringCIDR(t *testing.T) {
 			val:         types.StringValue("192.0.2."),
 			expectError: true,
 		},
+		"valid v4": {
+			val:         types.StringValue("192.0.2.1/24"),
+			expectError: false,
+			v4only:      true,
+		},
+		"invalid v4": {
+			val:         types.StringValue("192.0.2.1"),
+			expectError: true,
+			v4only:      true,
+		},
+		"valid v6 but with v4only": {
+			val:         types.StringValue("2001:2::1/64"),
+			expectError: true,
+			v4only:      true,
+		},
+		"valid v6": {
+			val:         types.StringValue("2001:2::1/64"),
+			expectError: false,
+			v6only:      true,
+		},
+		"invalid v6": {
+			val:         types.StringValue("2001:2:::1/64"),
+			expectError: true,
+			v6only:      true,
+		},
+		"valid v4 but with v6only": {
+			val:         types.StringValue("192.0.2.1/24"),
+			expectError: true,
+			v6only:      true,
+		},
 	}
 
 	for name, test := range tests {
@@ -129,7 +179,14 @@ func TestStringCIDR(t *testing.T) {
 				ConfigValue:    test.val,
 			}
 			response := validator.StringResponse{}
-			tfvalidator.StringCIDR().ValidateString(context.TODO(), request, &response)
+			switch {
+			case test.v4only:
+				tfvalidator.StringCIDR().IPv4Only().ValidateString(context.TODO(), request, &response)
+			case test.v6only:
+				tfvalidator.StringCIDR().IPv6Only().ValidateString(context.TODO(), request, &response)
+			default:
+				tfvalidator.StringCIDR().ValidateString(context.TODO(), request, &response)
+			}
 
 			if !response.Diagnostics.HasError() && test.expectError {
 				t.Fatal("expected error, got no error")

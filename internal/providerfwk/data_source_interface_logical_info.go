@@ -74,7 +74,7 @@ func (dsc *interfaceLogicalInfoDataSource) Schema(
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
-				Description: "Name of unit interface (with dot).",
+				Description: "Name of logical interface (with dot).",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),

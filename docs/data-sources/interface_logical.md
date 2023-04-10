@@ -39,7 +39,7 @@ The following attributes are exported:
 - **id** (String)  
   An identifier for the data source with format `<name>`.
 - **name** (String)  
-  Name of unit interface (with dot).
+  Name of logical interface (with dot).
 - **description** (String)  
   Description for interface.
 - **disable** (Boolean)  
@@ -47,7 +47,7 @@ The following attributes are exported:
 - **family_inet** (Block)  
   Family inet enabled and possible configuration.
   - **address** (Block List)  
-    List of address.  
+    For each IPv4 address declared.  
     See [below for nested schema](#address-attributes-for-family_inet).
   - **dhcp** (Block)  
     Enable DHCP client and configuration.  
@@ -68,7 +68,7 @@ The following attributes are exported:
 - **family_inet6** (Block)  
   Family inet6 enabled and possible configuration.
   - **address** (Block List)  
-    List of address.  
+    For each IPv6 address declared.  
     See [below for nested schema](#address-attributes-for-family_inet6).
   - **dad_disable** (Boolean)  
     Disable duplicate-address-detection.
@@ -100,7 +100,7 @@ The following attributes are exported:
   Tunnel parameters.  
   See [below for nested schema](#tunnel-arguments).
 - **vlan_id** (Number)  
-  802.1q VLAN ID for unit interface.
+  Virtual LAN identifier value for 802.1q VLAN tags.
 
 ---
 
@@ -132,7 +132,7 @@ The following attributes are exported:
 ### address attributes for family_inet
 
 - **cidr_ip** (String)  
-  Address IP/Mask v4.
+  IPv4 address in CIDR format.
 - **preferred** (Boolean)  
   Preferred address on interface.
 - **primary** (Boolean)  
@@ -231,7 +231,7 @@ The following attributes are exported:
 ### address attributes for family_inet6
 
 - **cidr_ip** (String)  
-  Address IP/Mask v6.
+  IPv6 address in CIDR format.
 - **preferred** (Boolean)  
   Preferred address on interface.
 - **primary** (Boolean)  
