@@ -597,7 +597,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				"vpn_monitor should not be specified when traffic_selector is used",
 			)
 		}
-		if !config.TrafficSelector.IsUnknown() {
+		if !config.TrafficSelector.IsNull() && !config.TrafficSelector.IsUnknown() {
 			var configTrafficSelector []securityIpsecVpnBlockTrafficSelector
 			asDiags := config.TrafficSelector.ElementsAs(ctx, &configTrafficSelector, false)
 			if asDiags.HasError() {
