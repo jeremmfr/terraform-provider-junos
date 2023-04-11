@@ -265,7 +265,7 @@ func (rsc *interfacePhysical) Schema(
 						Optional:    true,
 						Description: "Unicast Source B-MAC address per ESI for PBB-EVPN.",
 						Validators: []validator.String{
-							tfvalidator.StringMACAddress().WithIETFFormat(),
+							tfvalidator.StringMACAddress().WithMac48ColonHexa(),
 						},
 					},
 				},
@@ -350,7 +350,7 @@ func (rsc *interfacePhysical) Schema(
 						Validators: []validator.List{
 							listvalidator.SizeAtLeast(1),
 							listvalidator.ValueStringsAre(
-								tfvalidator.StringMACAddress().WithIETFFormat(),
+								tfvalidator.StringMACAddress().WithMac48ColonHexa(),
 							),
 						},
 					},
@@ -507,7 +507,7 @@ func (rsc *interfacePhysical) Schema(
 								Optional:    true,
 								Description: "Node's System ID, encoded as a MAC address.",
 								Validators: []validator.String{
-									tfvalidator.StringMACAddress().WithIETFFormat(),
+									tfvalidator.StringMACAddress().WithMac48ColonHexa(),
 								},
 							},
 							"system_priority": schema.Int64Attribute{

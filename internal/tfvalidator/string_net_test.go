@@ -316,3 +316,77 @@ func TestStringWildcardNetwork(t *testing.T) {
 		})
 	}
 }
+
+func TestStringMACAddress(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		val            types.String
+		expectError    bool
+		mac48ColonHexa bool
+	}
+	tests := map[string]testCase{
+		"unknown": {
+			val:         types.StringUnknown(),
+			expectError: false,
+		},
+		"null": {
+			val:         types.StringNull(),
+			expectError: false,
+		},
+		"valid": {
+			val:         types.StringValue("00:00:5e:00:53:01"),
+			expectError: false,
+		},
+		"valid with Colon-Hexadecimal validation": {
+			val:            types.StringValue("00:00:5e:00:53:01"),
+			expectError:    false,
+			mac48ColonHexa: true,
+		},
+		"invalid": {
+			val:         types.StringValue("00:00:5e:00:53:zz"),
+			expectError: true,
+		},
+		"valid without Colon-Hexadecimal notation": {
+			val:         types.StringValue("0000.5e00.5301"),
+			expectError: false,
+		},
+		"valid without Colon-Hexadecimal notation but need it": {
+			val:            types.StringValue("0000.5e00.5301"),
+			expectError:    true,
+			mac48ColonHexa: true,
+		},
+		"invalid with Colon-Hexadecimal validation": {
+			val:            types.StringValue("0000.5e00.53zz"),
+			expectError:    true,
+			mac48ColonHexa: true,
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			request := validator.StringRequest{
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				ConfigValue:    test.val,
+			}
+			response := validator.StringResponse{}
+			switch {
+			case test.mac48ColonHexa:
+				tfvalidator.StringMACAddress().WithMac48ColonHexa().ValidateString(context.TODO(), request, &response)
+			default:
+				tfvalidator.StringMACAddress().ValidateString(context.TODO(), request, &response)
+			}
+
+			if !response.Diagnostics.HasError() && test.expectError {
+				t.Fatal("expected error, got no error")
+			}
+
+			if response.Diagnostics.HasError() && !test.expectError {
+				t.Fatalf("got unexpected error: %s", response.Diagnostics)
+			}
+		})
+	}
+}

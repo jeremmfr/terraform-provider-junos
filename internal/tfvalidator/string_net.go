@@ -292,15 +292,15 @@ func (v StringWildcardNetworkValidator) ValidateString(
 }
 
 type StringMACAddressValidator struct {
-	ietfFormat bool
+	mac48ColonHexadecimalNotation bool
 }
 
 func StringMACAddress() StringMACAddressValidator {
 	return StringMACAddressValidator{}
 }
 
-func (v StringMACAddressValidator) WithIETFFormat() StringMACAddressValidator {
-	v.ietfFormat = true
+func (v StringMACAddressValidator) WithMac48ColonHexa() StringMACAddressValidator {
+	v.mac48ColonHexadecimalNotation = true
 
 	return v
 }
@@ -332,12 +332,12 @@ func (v StringMACAddressValidator) ValidateString(
 		return
 	}
 
-	if v.ietfFormat {
+	if v.mac48ColonHexadecimalNotation {
 		if value[2] != ':' {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid MAC Address",
-				"not IETF format: HH:HH:HH:HH:HH:HH",
+				fmt.Sprintf("not with Colon-Hexadecimal notation mm:mm:mm:ss:ss:ss : %q", value),
 			)
 
 			return
@@ -347,17 +347,16 @@ func (v StringMACAddressValidator) ValidateString(
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid MAC Address",
-				"not IETF format: HH:HH:HH:HH:HH:HH",
+				fmt.Sprintf("not a 48-bit address mm:mm:mm:ss:ss:ss : %q", value),
 			)
 
 			return
 		}
-		n := (len(value) + 1) / 3
-		if n != 6 {
+		if (len(value)+1)/3 != 6 {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid MAC Address",
-				"not IETF format: HH:HH:HH:HH:HH:HH",
+				fmt.Sprintf("not a 48-bit address mm:mm:mm:ss:ss:ss : %q", value),
 			)
 
 			return
