@@ -126,7 +126,7 @@ func (dsc *interfacePhysicalDataSource) Schema(
 			},
 			"esi": schema.ObjectAttribute{
 				Computed:    true,
-				Description: "ESI Config parameters. ",
+				Description: "ESI Config parameters.",
 				AttributeTypes: map[string]attr.Type{
 					"mode":             types.StringType,
 					"auto_derive_lacp": types.BoolType,

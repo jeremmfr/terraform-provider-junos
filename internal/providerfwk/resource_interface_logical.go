@@ -103,8 +103,8 @@ func (rsc *interfaceLogical) Schema(
 			},
 			"st0_also_on_destroy": schema.BoolAttribute{
 				Optional: true,
-				Description: "When destroy this resource, if the name has prefix `st0.`," +
-					"delete all configurations (not keep empty st0 interface).  ",
+				Description: "When destroy this resource, if the name has prefix `st0.`, " +
+					"delete all configurations (not keep empty st0 interface).",
 				Validators: []validator.Bool{
 					tfvalidator.BoolTrue(),
 				},

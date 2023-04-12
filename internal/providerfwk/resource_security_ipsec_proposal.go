@@ -132,7 +132,7 @@ func (rsc *securityIpsecProposal) Schema(
 			},
 			"protocol": schema.StringAttribute{
 				Optional:    true,
-				Description: "IPSec protocol. ",
+				Description: "IPSec protocol.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("ah", "esp"),
 				},

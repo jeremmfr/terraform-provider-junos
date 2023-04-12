@@ -101,7 +101,7 @@ func (rsc *interfacePhysical) Schema(
 			},
 			"no_disable_on_destroy": schema.BoolAttribute{
 				Optional:    true,
-				Description: " When destroy this resource, delete all configurations.",
+				Description: "When destroy this resource, delete all configurations.",
 				Validators: []validator.Bool{
 					tfvalidator.BoolTrue(),
 				},
