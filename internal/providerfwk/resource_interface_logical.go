@@ -1914,7 +1914,7 @@ func (rsc *interfaceLogical) Update(
 			return
 		}
 		if v := state.SecurityZone.ValueString(); v != "" {
-			if err := state.delZone(ctx, junSess); err != nil {
+			if err := state.delSecurityZone(ctx, junSess); err != nil {
 				resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 				return
@@ -1964,7 +1964,7 @@ func (rsc *interfaceLogical) Update(
 
 	if vSte := state.SecurityZone.ValueString(); vSte != "" {
 		if vSte != "" {
-			if err := state.delZone(ctx, junSess); err != nil {
+			if err := state.delSecurityZone(ctx, junSess); err != nil {
 				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddError("Config Del Error", err.Error())
 
@@ -3007,7 +3007,7 @@ func (rscData *interfaceLogicalData) read(
 			if intMatch {
 				itemTrimFields := strings.Split(strings.TrimPrefix(item, "set security-zone "), " ")
 				rscData.SecurityZone = types.StringValue(itemTrimFields[0])
-				if err := rscData.readSecurityInboundTraffic(name, junSess); err != nil {
+				if err := rscData.readSecurityZoneInboundTraffic(name, junSess); err != nil {
 					return err
 				}
 
@@ -3292,7 +3292,7 @@ func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client) read(itemTrim st
 	return nil
 }
 
-func (rscData *interfaceLogicalData) readSecurityInboundTraffic(
+func (rscData *interfaceLogicalData) readSecurityZoneInboundTraffic(
 	name string, junSess *junos.Session,
 ) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
@@ -3344,7 +3344,7 @@ func (rscData *interfaceLogicalData) del(ctx context.Context, junSess *junos.Ses
 		}
 	}
 	if v := rscData.SecurityZone.ValueString(); v != "" {
-		if err := rscData.delZone(ctx, junSess); err != nil {
+		if err := rscData.delSecurityZone(ctx, junSess); err != nil {
 			return err
 		}
 	}
@@ -3366,7 +3366,7 @@ func (rscData *interfaceLogicalData) delOpts(_ context.Context, junSess *junos.S
 	return junSess.ConfigSet(configSet)
 }
 
-func (rscData *interfaceLogicalData) delZone(_ context.Context, junSess *junos.Session) error {
+func (rscData *interfaceLogicalData) delSecurityZone(_ context.Context, junSess *junos.Session) error {
 	configSet := []string{
 		"delete security zones security-zone " + rscData.SecurityZone.ValueString() +
 			" interfaces " + rscData.Name.ValueString(),
