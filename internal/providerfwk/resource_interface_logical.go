@@ -1913,7 +1913,7 @@ func (rsc *interfaceLogical) Update(
 
 			return
 		}
-		if v := state.SecurityZone.ValueString(); v != "" && v != plan.SecurityZone.ValueString() {
+		if v := state.SecurityZone.ValueString(); v != "" {
 			if err := state.delZone(ctx, junSess); err != nil {
 				resp.Diagnostics.AddError("Config Del Error", err.Error())
 
@@ -1963,7 +1963,7 @@ func (rsc *interfaceLogical) Update(
 	}
 
 	if vSte := state.SecurityZone.ValueString(); vSte != "" {
-		if vSte != plan.SecurityZone.ValueString() {
+		if vSte != "" {
 			if err := state.delZone(ctx, junSess); err != nil {
 				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddError("Config Del Error", err.Error())
@@ -1971,7 +1971,8 @@ func (rsc *interfaceLogical) Update(
 				return
 			}
 		}
-	} else if vPln := plan.SecurityZone.ValueString(); vPln != "" {
+	}
+	if vPln := plan.SecurityZone.ValueString(); vPln != "" && vPln != state.SecurityZone.ValueString() {
 		if !junSess.CheckCompatibilitySecurity() {
 			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddAttributeError(
@@ -2002,8 +2003,8 @@ func (rsc *interfaceLogical) Update(
 		}
 	}
 
-	if vSte := state.RoutingInstance.ValueString(); vSte != "" {
-		if vSte != plan.RoutingInstance.ValueString() {
+	if vSte, vPln := state.RoutingInstance.ValueString(), plan.RoutingInstance.ValueString(); vSte != vPln {
+		if vSte != "" {
 			if err := state.delRoutingInstance(ctx, junSess); err != nil {
 				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddError("Config Del Error", err.Error())
@@ -2011,23 +2012,24 @@ func (rsc *interfaceLogical) Update(
 				return
 			}
 		}
-	} else if vPln := plan.RoutingInstance.ValueString(); vPln != "" {
-		instanceExists, err := checkRoutingInstanceExists(ctx, vPln, junSess)
-		if err != nil {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
-			resp.Diagnostics.AddError("Pre Check Error", err.Error())
+		if vPln != "" {
+			instanceExists, err := checkRoutingInstanceExists(ctx, vPln, junSess)
+			if err != nil {
+				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
+				resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
-			return
-		}
-		if !instanceExists {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
-			resp.Diagnostics.AddAttributeError(
-				path.Root("routing_instance"),
-				"Missing Configuration Error",
-				fmt.Sprintf("routing instance %q doesn't exist", vPln),
-			)
+				return
+			}
+			if !instanceExists {
+				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
+				resp.Diagnostics.AddAttributeError(
+					path.Root("routing_instance"),
+					"Missing Configuration Error",
+					fmt.Sprintf("routing instance %q doesn't exist", vPln),
+				)
 
-			return
+				return
+			}
 		}
 	}
 
