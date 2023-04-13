@@ -3360,6 +3360,7 @@ func (rscData *interfaceLogicalData) delOpts(_ context.Context, junSess *junos.S
 		delPrefix + "family inet",
 		delPrefix + "family inet6",
 		delPrefix + "tunnel",
+		delPrefix + "vlan-id",
 	}
 
 	return junSess.ConfigSet(configSet)
