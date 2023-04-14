@@ -2329,14 +2329,14 @@ func (rscData *interfaceLogicalData) set(
 					fmt.Errorf("multiple address blocks with the same cidr_ip %q in family_inet block", address.CidrIP.ValueString())
 			}
 			addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
-			blockSet, pathErr, err := address.set(setPrefix, path.Root("family_inet").AtName("address").AtListIndex(i))
+			blockSet, pathErr, err := address.configSet(setPrefix, path.Root("family_inet").AtName("address").AtListIndex(i))
 			if err != nil {
 				return pathErr, err
 			}
 			configSet = append(configSet, blockSet...)
 		}
 		if rscData.FamilyInet.DHCP != nil {
-			configSet = append(configSet, rscData.FamilyInet.DHCP.set(setPrefix)...)
+			configSet = append(configSet, rscData.FamilyInet.DHCP.configSet(setPrefix)...)
 		}
 		if v := rscData.FamilyInet.FilterInput.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"family inet filter input \""+v+"\"")
@@ -2374,14 +2374,14 @@ func (rscData *interfaceLogicalData) set(
 					fmt.Errorf("multiple address blocks with the same cidr_ip %q in family_inet6 block", address.CidrIP.ValueString())
 			}
 			addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
-			blockSet, pathErr, err := address.set(setPrefix, path.Root("family_inet6").AtName("address").AtListIndex(i))
+			blockSet, pathErr, err := address.configSet(setPrefix, path.Root("family_inet6").AtName("address").AtListIndex(i))
 			if err != nil {
 				return pathErr, err
 			}
 			configSet = append(configSet, blockSet...)
 		}
 		if rscData.FamilyInet6.DHCPv6Client != nil {
-			configSet = append(configSet, rscData.FamilyInet6.DHCPv6Client.set(setPrefix)...)
+			configSet = append(configSet, rscData.FamilyInet6.DHCPv6Client.configSet(setPrefix)...)
 		}
 		if rscData.FamilyInet6.DadDisable.ValueBool() {
 			configSet = append(configSet, setPrefix+"family inet6 dad-disable")
@@ -2466,7 +2466,7 @@ func (rscData *interfaceLogicalData) set(
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (block *interfaceLogicalBlockFamilyInetBlockAddress) set(
+func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 	setPrefix string, pathRoot path.Path,
 ) (
 	[]string, // configSet
@@ -2572,7 +2572,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) set(
 	return configSet, path.Empty(), nil
 }
 
-func (block *interfaceLogicalBlockFamilyInet6BlockAddress) set(
+func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 	setPrefix string, pathRoot path.Path,
 ) (
 	[]string, // configSet
@@ -2675,7 +2675,7 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) set(
 	return configSet, path.Empty(), nil
 }
 
-func (block *interfaceLogicalBlockFamilyInetBlockDhcp) set(setPrefix string) []string {
+func (block *interfaceLogicalBlockFamilyInetBlockDhcp) configSet(setPrefix string) []string {
 	setPrefix += "family inet dhcp"
 	if block.SrxOldOptionName.ValueBool() {
 		setPrefix += "-client "
@@ -2748,7 +2748,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) set(setPrefix string) []s
 	return configSet
 }
 
-func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client) set(setPrefix string) []string {
+func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client) configSet(setPrefix string) []string {
 	setPrefix += "family inet6 dhcpv6-client "
 	configSet := []string{
 		setPrefix + "client-identifier duid-type " + block.ClientIdentifierDuidType.ValueString(),
