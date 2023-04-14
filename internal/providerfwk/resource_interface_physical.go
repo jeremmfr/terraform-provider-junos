@@ -1001,6 +1001,15 @@ func (rsc *interfacePhysical) Create(
 
 		return
 	}
+	if strings.Contains(plan.Name.ValueString(), ".") {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("name"),
+			"Bad Name",
+			"could not create "+rsc.junosName()+" with a dot in the name",
+		)
+
+		return
+	}
 
 	if rsc.client.FakeCreateSetFile() {
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
