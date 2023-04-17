@@ -527,23 +527,22 @@ func (rsc *securityGlobalPolicy) Create(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+
 	var check securityGlobalPolicyData
 	err = check.read(ctx, junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if len(check.Policy) > 0 {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", rsc.junosName()+" already exists")
 
 		return
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -555,7 +554,6 @@ func (rsc *securityGlobalPolicy) Create(
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -633,15 +631,14 @@ func (rsc *securityGlobalPolicy) Update(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := plan.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -653,7 +650,6 @@ func (rsc *securityGlobalPolicy) Update(
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -691,9 +687,9 @@ func (rsc *securityGlobalPolicy) Delete(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := empty.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
@@ -701,7 +697,6 @@ func (rsc *securityGlobalPolicy) Delete(
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return

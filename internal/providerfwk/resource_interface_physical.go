@@ -1052,6 +1052,7 @@ func (rsc *interfacePhysical) Create(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(
 		ctx,
@@ -1060,13 +1061,11 @@ func (rsc *interfacePhysical) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if !ncInt && !emptyInt {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already configured", plan.Name.ValueString()),
@@ -1081,7 +1080,6 @@ func (rsc *interfacePhysical) Create(
 			rsc.client.GroupInterfaceDelete(),
 			junSess,
 		); err != nil {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddError("Config Pre Set Error", err.Error())
 
 			return
@@ -1089,7 +1087,6 @@ func (rsc *interfacePhysical) Create(
 	}
 
 	if errPath, err := plan.set(ctx, "", junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -1101,7 +1098,6 @@ func (rsc *interfacePhysical) Create(
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -1264,22 +1260,20 @@ func (rsc *interfacePhysical) Update(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := state.delOpts(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if err := state.unsetAE(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 
 	if errPath, err := plan.set(ctx, oldAE, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -1291,7 +1285,6 @@ func (rsc *interfacePhysical) Update(
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -1333,9 +1326,9 @@ func (rsc *interfacePhysical) Delete(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
@@ -1343,7 +1336,6 @@ func (rsc *interfacePhysical) Delete(
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -1360,7 +1352,6 @@ func (rsc *interfacePhysical) Delete(
 				rsc.client.GroupInterfaceDelete(),
 				junSess,
 			); err != nil {
-				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddError("Config Disable Error", err.Error())
 
 				return
@@ -1368,7 +1359,6 @@ func (rsc *interfacePhysical) Delete(
 			warns, err = junSess.CommitConf("disable(NC) resource " + rsc.typeName())
 			resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 			if err != nil {
-				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 				return

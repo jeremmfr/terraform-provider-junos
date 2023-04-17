@@ -745,15 +745,15 @@ func (rsc *securityIpsecVpn) Create(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+
 	vpnExists, err := checkSecurityIpsecVpnExists(ctx, plan.Name.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if vpnExists {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -763,7 +763,6 @@ func (rsc *securityIpsecVpn) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -775,7 +774,6 @@ func (rsc *securityIpsecVpn) Create(
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -837,7 +835,8 @@ func (rsc *securityIpsecVpn) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (rsc *securityIpsecVpn) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
+func (rsc *securityIpsecVpn) Update(
+	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
 ) {
 	var plan, state securityIpsecVpnData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -894,15 +893,14 @@ func (rsc *securityIpsecVpn) Update(ctx context.Context, req resource.UpdateRequ
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -914,7 +912,6 @@ func (rsc *securityIpsecVpn) Update(ctx context.Context, req resource.UpdateRequ
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -956,9 +953,9 @@ func (rsc *securityIpsecVpn) Delete(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
@@ -966,7 +963,6 @@ func (rsc *securityIpsecVpn) Delete(
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return

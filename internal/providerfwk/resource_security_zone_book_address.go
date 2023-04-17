@@ -337,15 +337,15 @@ func (rsc *securityZoneBookAddress) Create(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+
 	zonesExists, err := checkSecurityZonesExists(ctx, plan.Zone.ValueString(), junSess)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if !zonesExists {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddAttributeError(
 			path.Root("zone"),
 			"Missing Configuration Error",
@@ -361,13 +361,11 @@ func (rsc *securityZoneBookAddress) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if addressExists {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already exists in zone %q",
@@ -378,7 +376,6 @@ func (rsc *securityZoneBookAddress) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -390,7 +387,6 @@ func (rsc *securityZoneBookAddress) Create(
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -504,15 +500,14 @@ func (rsc *securityZoneBookAddress) Update(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -524,7 +519,6 @@ func (rsc *securityZoneBookAddress) Update(
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -566,9 +560,9 @@ func (rsc *securityZoneBookAddress) Delete(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
@@ -576,7 +570,6 @@ func (rsc *securityZoneBookAddress) Delete(
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return

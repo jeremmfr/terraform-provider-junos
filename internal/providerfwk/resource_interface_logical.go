@@ -1676,6 +1676,7 @@ func (rsc *interfaceLogical) Create(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(
 		ctx,
@@ -1684,13 +1685,11 @@ func (rsc *interfaceLogical) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if !ncInt && !emptyInt {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Duplicate Configuration Error",
 			fmt.Sprintf(rsc.junosName()+" %q already configured", plan.Name.ValueString()),
@@ -1705,7 +1704,6 @@ func (rsc *interfaceLogical) Create(
 			rsc.client.GroupInterfaceDelete(),
 			junSess,
 		); err != nil {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddError("Config Pre Set Error", err.Error())
 
 			return
@@ -1714,7 +1712,6 @@ func (rsc *interfaceLogical) Create(
 
 	if v := plan.SecurityZone.ValueString(); v != "" {
 		if !junSess.CheckCompatibilitySecurity() {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
 				"Compatibility Error",
@@ -1726,13 +1723,11 @@ func (rsc *interfaceLogical) Create(
 		}
 		zonesExists, err := checkSecurityZonesExists(ctx, v, junSess)
 		if err != nil {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 			return
 		}
 		if !zonesExists {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
 				"Missing Configuration Error",
@@ -1746,13 +1741,11 @@ func (rsc *interfaceLogical) Create(
 	if v := plan.RoutingInstance.ValueString(); v != "" {
 		instanceExists, err := checkRoutingInstanceExists(ctx, v, junSess)
 		if err != nil {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 			return
 		}
 		if !instanceExists {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddAttributeError(
 				path.Root("routing_instance"),
 				"Missing Configuration Error",
@@ -1764,7 +1757,6 @@ func (rsc *interfaceLogical) Create(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -1776,7 +1768,6 @@ func (rsc *interfaceLogical) Create(
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -1950,9 +1941,9 @@ func (rsc *interfaceLogical) Update(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := state.delOpts(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
@@ -1961,7 +1952,6 @@ func (rsc *interfaceLogical) Update(
 	if vSte := state.SecurityZone.ValueString(); vSte != "" {
 		if vSte != "" {
 			if err := state.delSecurityZone(ctx, junSess); err != nil {
-				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 				return
@@ -1970,7 +1960,6 @@ func (rsc *interfaceLogical) Update(
 	}
 	if vPln := plan.SecurityZone.ValueString(); vPln != "" && vPln != state.SecurityZone.ValueString() {
 		if !junSess.CheckCompatibilitySecurity() {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
 				"Compatibility Error",
@@ -1982,13 +1971,11 @@ func (rsc *interfaceLogical) Update(
 		}
 		zonesExists, err := checkSecurityZonesExists(ctx, vPln, junSess)
 		if err != nil {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 			return
 		}
 		if !zonesExists {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
 				"Missing Configuration Error",
@@ -2002,7 +1989,6 @@ func (rsc *interfaceLogical) Update(
 	if vSte, vPln := state.RoutingInstance.ValueString(), plan.RoutingInstance.ValueString(); vSte != vPln {
 		if vSte != "" {
 			if err := state.delRoutingInstance(ctx, junSess); err != nil {
-				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 				return
@@ -2011,13 +1997,11 @@ func (rsc *interfaceLogical) Update(
 		if vPln != "" {
 			instanceExists, err := checkRoutingInstanceExists(ctx, vPln, junSess)
 			if err != nil {
-				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 				return
 			}
 			if !instanceExists {
-				resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 				resp.Diagnostics.AddAttributeError(
 					path.Root("routing_instance"),
 					"Missing Configuration Error",
@@ -2030,7 +2014,6 @@ func (rsc *interfaceLogical) Update(
 	}
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		if !errPath.Equal(path.Empty()) {
 			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
 		} else {
@@ -2042,7 +2025,6 @@ func (rsc *interfaceLogical) Update(
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
@@ -2084,9 +2066,9 @@ func (rsc *interfaceLogical) Delete(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Del Error", err.Error())
 
 		return
@@ -2094,7 +2076,6 @@ func (rsc *interfaceLogical) Delete(
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
