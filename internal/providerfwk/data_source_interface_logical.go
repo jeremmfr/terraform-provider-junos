@@ -325,6 +325,8 @@ func (dsc *interfaceLogicalDataSource) Read(
 	defer junSess.Close()
 
 	junos.MutexLock()
+	defer junos.MutexUnlock()
+
 	nameFound, err := dsc.searchName(
 		ctx,
 		configInterface.ValueString(),
@@ -332,22 +334,18 @@ func (dsc *interfaceLogicalDataSource) Read(
 		junSess,
 	)
 	if err != nil {
-		junos.MutexUnlock()
 		resp.Diagnostics.AddError("Read Error", err.Error())
 
 		return
 	}
 	if nameFound == "" {
-		junos.MutexUnlock()
 		resp.Diagnostics.AddError("Not Found Error", "no logical interface found with arguments provided")
 
 		return
 	}
 
 	var rscData interfaceLogicalData
-	err = rscData.read(ctx, nameFound, junSess)
-	junos.MutexUnlock()
-	if err != nil {
+	if err := rscData.read(ctx, nameFound, junSess); err != nil {
 		resp.Diagnostics.AddError("Read Error", err.Error())
 
 		return

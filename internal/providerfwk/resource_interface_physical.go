@@ -1166,6 +1166,8 @@ func (rsc *interfacePhysical) Read(
 	defer junSess.Close()
 
 	junos.MutexLock()
+	defer junos.MutexUnlock()
+
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(
 		ctx,
 		state.Name.ValueString(),
@@ -1173,13 +1175,11 @@ func (rsc *interfacePhysical) Read(
 		junSess,
 	)
 	if err != nil {
-		junos.MutexUnlock()
 		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
 	}
 	if ncInt {
-		junos.MutexUnlock()
 		resp.State.RemoveResource(ctx)
 
 		return
@@ -1187,22 +1187,18 @@ func (rsc *interfacePhysical) Read(
 	if emptyInt {
 		intExists, err := junSess.CheckInterfaceExists(state.Name.ValueString())
 		if err != nil {
-			junos.MutexUnlock()
 			resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 			return
 		}
 		if !intExists {
-			junos.MutexUnlock()
 			resp.State.RemoveResource(ctx)
 
 			return
 		}
 	}
 
-	err = data.read(ctx, state.Name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
+	if err := data.read(ctx, state.Name.ValueString(), junSess); err != nil {
 		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
