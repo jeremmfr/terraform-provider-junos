@@ -1306,27 +1306,23 @@ func (rsc *forwardingoptionsSampling) Read(
 	defer junSess.Close()
 
 	junos.MutexLock()
+	defer junos.MutexUnlock()
+
 	if v := state.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		instanceExists, err := checkRoutingInstanceExists(ctx, v, junSess)
 		if err != nil {
-			junos.MutexLock()
-
 			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 			return
 		}
 		if !instanceExists {
-			junos.MutexLock()
-
 			resp.State.RemoveResource(ctx)
 
 			return
 		}
 	}
-	err = data.read(ctx, state.RoutingInstance.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
+	if err := data.read(ctx, state.RoutingInstance.ValueString(), junSess); err != nil {
 		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
 		return
