@@ -1,11 +1,11 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosInterfaceSt0Unit_basic(t *testing.T) {

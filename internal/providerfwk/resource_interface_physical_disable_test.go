@@ -1,4 +1,4 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"fmt"
@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3 or xe-0/0/3.
@@ -39,7 +40,7 @@ func TestAccJunosInterfacePhysicalDisable_basic(t *testing.T) {
 			},
 			{
 				Config:      testAccJunosInterfacePhysicalDisableConfigConflict(testaccInterface),
-				ExpectError: regexp.MustCompile("interface " + testaccInterface + " is configured"),
+				ExpectError: regexp.MustCompile("interface \"" + testaccInterface + "\" is configured"),
 			},
 		},
 	})

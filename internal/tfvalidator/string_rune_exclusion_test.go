@@ -161,3 +161,52 @@ func TestStringSpaceExclusion(t *testing.T) {
 		})
 	}
 }
+
+func TestStringDotExclusion(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		val         types.String
+		expectError bool
+	}
+	tests := map[string]testCase{
+		"unknown": {
+			val:         types.StringUnknown(),
+			expectError: false,
+		},
+		"null": {
+			val:         types.StringNull(),
+			expectError: false,
+		},
+		"valid": {
+			val:         types.StringValue("ok"),
+			expectError: false,
+		},
+		"invalid": {
+			val:         types.StringValue("k.o"),
+			expectError: true,
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			request := validator.StringRequest{
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				ConfigValue:    test.val,
+			}
+			response := validator.StringResponse{}
+			tfvalidator.StringDotExclusion().ValidateString(context.TODO(), request, &response)
+
+			if !response.Diagnostics.HasError() && test.expectError {
+				t.Fatal("expected error, got no error")
+			}
+
+			if response.Diagnostics.HasError() && !test.expectError {
+				t.Fatalf("got unexpected error: %s", response.Diagnostics)
+			}
+		})
+	}
+}

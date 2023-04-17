@@ -1,12 +1,13 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
@@ -54,10 +55,6 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
 							"description", "testacc_interfaceU"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
-							"trunk", "false"),
-						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
-							"vlan_native", "0"),
-						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
 							"vlan_members.#", "1"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
 							"vlan_members.0", "100"),
@@ -80,28 +77,22 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 						Config: testAccJunosInterfacePhysicalRouterConfigCreate(testaccInterface, testaccInterfaceAE),
 						Check: resource.ComposeTestCheckFunc(
 							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"parent_ether_opts.#", "1"),
+								"parent_ether_opts.source_address_filter.#", "1"),
 							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"parent_ether_opts.0.source_address_filter.#", "1"),
+								"parent_ether_opts.source_filtering", "true"),
 							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"parent_ether_opts.0.source_filtering", "true"),
+								"esi.identifier", "00:01:11:11:11:11:11:11:11:11"),
 							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"esi.#", "1"),
-							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"esi.0.identifier", "00:01:11:11:11:11:11:11:11:11"),
-							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"esi.0.mode", "all-active"),
+								"esi.mode", "all-active"),
 						),
 					},
 					{
 						Config: testAccJunosInterfacePhysicalRouterConfigUpdate(testaccInterface, testaccInterfaceAE),
 						Check: resource.ComposeTestCheckFunc(
 							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"esi.#", "1"),
+								"esi.identifier", "00:11:11:11:11:11:11:11:11:11"),
 							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"esi.0.identifier", "00:11:11:11:11:11:11:11:11:11"),
-							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-								"esi.0.mode", "all-active"),
+								"esi.mode", "all-active"),
 						),
 					},
 					{
@@ -121,10 +112,11 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 						Config: testAccJunosInterfacePhysicalSRXConfigCreate(testaccInterface, testaccInterface2),
 						Check: resource.ComposeTestCheckFunc(
 							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface_reth",
-								"parent_ether_opts.#", "1"),
-							resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface_reth",
-								"parent_ether_opts.0.redundancy_group", "1"),
+								"parent_ether_opts.redundancy_group", "1"),
 						),
+					},
+					{
+						Config: testAccJunosInterfacePhysicalSRXConfigUpdate(testaccInterface),
 					},
 				},
 			})
@@ -139,19 +131,13 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
 							"description", "testacc_interface"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
-							"gigether_opts.#", "1"),
-						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
-							"gigether_opts.0.ae_8023ad", testaccInterfaceAE),
+							"gigether_opts.ae_8023ad", testaccInterfaceAE),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
 							"name", testaccInterfaceAE),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-							"parent_ether_opts.#", "1"),
+							"parent_ether_opts.lacp.mode", "active"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-							"parent_ether_opts.0.lacp.#", "1"),
-						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-							"parent_ether_opts.0.lacp.0.mode", "active"),
-						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-							"parent_ether_opts.0.minimum_links", "1"),
+							"parent_ether_opts.minimum_links", "1"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
 							"vlan_tagging", "true"),
 					),
@@ -162,11 +148,9 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interface",
 							"description", "testacc_interfaceU"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-							"parent_ether_opts.#", "1"),
+							"parent_ether_opts.lacp.#", "0"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-							"parent_ether_opts.0.lacp.#", "0"),
-						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-							"parent_ether_opts.0.minimum_bandwidth", "1 gbps"),
+							"parent_ether_opts.minimum_bandwidth", "1 gbps"),
 					),
 				},
 				{
@@ -220,8 +204,10 @@ resource "junos_interface_physical" "testacc_interface" {
   }
 }
 resource "junos_interface_physical" "testacc_interface2" {
-  name        = "%s"
-  description = "testacc_interface2"
+  name           = "%s"
+  description    = "testacc_interface2"
+  hold_time_down = 6000
+  hold_time_up   = 7000
   gigether_opts {
     flow_control     = true
     loopback         = true
@@ -263,8 +249,11 @@ resource "junos_interface_physical" "testacc_interface" {
   }
 }
 resource "junos_interface_physical" "testacc_interface2" {
-  name        = "%s"
-  description = "testacc_interface2"
+  name                      = "%s"
+  description               = "testacc_interface2"
+  link_mode                 = "automatic"
+  no_gratuitous_arp_reply   = true
+  no_gratuitous_arp_request = true
   ether_opts {
     flow_control     = true
     loopback         = true
@@ -285,8 +274,9 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
     junos_interface_physical.testacc_interface,
     junos_interface_logical.testacc_interfaceLO,
   ]
-  name        = "%s"
-  description = "testacc_interfaceAE"
+  name                 = "%s"
+  description          = "testacc_interfaceAE"
+  gratuitous_arp_reply = true
   parent_ether_opts {
     bfd_liveness_detection {
       local_address                      = "192.0.2.1"
@@ -410,4 +400,16 @@ resource "junos_interface_physical" "testacc_interface_reth" {
   }
 }
 `, interFace, interFace2)
+}
+
+func testAccJunosInterfacePhysicalSRXConfigUpdate(interFace string) string {
+	return fmt.Sprintf(`
+resource "junos_interface_physical" "testacc_interface" {
+  name                  = "%s"
+  description           = "testacc_interface2"
+  encapsulation         = "vlan-vpls"
+  speed                 = "1g"
+  flexible_vlan_tagging = true
+}
+`, interFace)
 }

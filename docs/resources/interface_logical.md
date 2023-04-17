@@ -25,7 +25,7 @@ resource "junos_interface_logical" "interface_fw_demo_100" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Name of unit interface (with dot).
+  Name of logical interface (with dot).
 - **st0_also_on_destroy** (Optional, Boolean)  
   When destroy this resource, if the name has prefix `st0.`,
   delete all configurations (not keep empty st0 interface).  
@@ -38,7 +38,7 @@ The following arguments are supported:
 - **family_inet** (Optional, Block)  
   Enable family inet and add configurations if specified.
   - **address** (Optional, Block List)  
-    For each ip address to declare.  
+    For each IPv4 address to declare.  
     Conflict with `dhcp`.  
     See [below for nested schema](#address-arguments-for-family_inet).
   - **dhcp** (Optional, Block)  
@@ -61,7 +61,7 @@ The following arguments are supported:
 - **family_inet6** (Optional, Block)  
   Enable family inet6 and add configurations if specified.
   - **address** (Optional, Block List)  
-    For each ipv6 address to declare.  
+    For each IPv6 address to declare.  
     Conflict with `dhcpv6_client`.  
     See [below for nested schema](#address-arguments-for-family_inet6).
   - **dad_disable** (Optional, Boolean)  
@@ -95,13 +95,13 @@ The following arguments are supported:
   Must be a list of Junos services.  
   `security_zone` need to be set.
 - **security_zone** (Optional, String)  
-  Add this interface in security_zone.  
+  Add this interface in a security zone.  
   Need to be created before.
 - **tunnel** (Optional, Block)  
   Tunnel parameters.  
   See [below for nested schema](#tunnel-arguments).
 - **vlan_id** (Optional, Computed, Number)  
-  802.1q VLAN ID for unit interface.  
+  Virtual LAN identifier value for 802.1q VLAN tags.  
   If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
   except if name has `.0` suffix or `st0.`, `irb.`, `vlan.` prefix.
 - **vlan_no_compute** (Optional, Boolean)  
@@ -124,12 +124,12 @@ The following arguments are supported:
   Conflict with `allow_fragmentation`.
 - **flow_label** (Optional, Number)  
   Flow label field of IP6-header (0..1048575).
-- **no_path_mtu_discovery** (Optional, Boolean)  
-  Don't enable path MTU discovery for tunnels.  
-  Conflict with `path_mtu_discovery`.
 - **path_mtu_discovery** (Optional, Boolean)  
   Enable path MTU discovery for tunnels.  
   Conflict with `no_path_mtu_discovery`.
+- **no_path_mtu_discovery** (Optional, Boolean)  
+  Don't enable path MTU discovery for tunnels.  
+  Conflict with `path_mtu_discovery`.
 - **routing_instance_destination** (Optional, String)  
   Routing instance to which tunnel ends belong.
 - **traffic_class** (Optional, Number)  
@@ -142,7 +142,7 @@ The following arguments are supported:
 ### address arguments for family_inet
 
 - **cidr_ip** (Required, String)  
-  Address IP/Mask v4.
+  IPv4 address in CIDR format.
 - **preferred** (Optional, Boolean)  
   Preferred address on interface.
 - **primary** (Optional, Boolean)  
@@ -156,40 +156,40 @@ The following arguments are supported:
 ### vrrp_group arguments for address in family_inet
 
 - **identifier** (Required, Number)  
-  ID for vrrp
+  ID for vrrp.
 - **virtual_address** (Required, List of String)  
-  List of address IP v4.
+  Virtual IP addresses.
 - **accept_data** (Optional, Boolean)  
   Accept packets destined for virtual IP address.  
   Conflict with `no_accept_data` when apply.
+- **no_accept_data** (Optional, Boolean)  
+  Don't accept packets destined for virtual IP address.  
+  Conflict with `accept_data` when apply.
 - **advertise_interval** (Optional, Number)  
-  Advertisement interval (seconds)
+  Advertisement interval (seconds).
 - **advertisements_threshold** (Optional, Number)  
-   Number of vrrp advertisements missed before declaring master down.
+  Number of vrrp advertisements missed before declaring master down.
 - **authentication_key** (Optional, String, Sensitive)  
   Authentication key.
 - **authentication_type** (Optional, String)  
   Authentication type.  
   Need to be `md5` or `simple`.
-- **no_accept_data** (Optional, Boolean)  
-  Don't accept packets destined for virtual IP address.  
-  Conflict with `accept_data` when apply.
-- **no_preempt** (Optional, Boolean)  
-  Don't allow preemption.  
-  Conflict with `preempt` when apply.
 - **preempt** (Optional, Boolean)  
   Allow preemption.  
   Conflict with `no_preempt` when apply.
+- **no_preempt** (Optional, Boolean)  
+  Don't allow preemption.  
+  Conflict with `preempt` when apply.
 - **priority** (Optional, Number)  
   Virtual router election priority.
 - **track_interface** (Optional, Block List)  
-  For each interface to declare.
+  For each interface to track in VRRP group.
   - **interface** (Required, String)  
     Name of interface.
   - **priority_cost** (Required, Number)  
-    Value to subtract from priority when interface is down
+    Value to subtract from priority when interface is down.
 - **track_route** (Optional, Block List)  
-  For each route to declare.
+  For each route to track in VRRP group.
   - **route** (Required, String)  
     Route address.
   - **routing_instance** (Required, String)  
@@ -251,7 +251,7 @@ The following arguments are supported:
 ### address arguments for family_inet6
 
 - **cidr_ip** (Required, String)  
-  Address IP/Mask v6.
+  IPv6 address in CIDR format.
 - **preferred** (Optional, Boolean)  
   Preferred address on interface.
 - **primary** (Optional, Boolean)  

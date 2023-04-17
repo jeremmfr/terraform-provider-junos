@@ -19,6 +19,7 @@ var (
 
 type StringIPAddressValidator struct {
 	v4only bool
+	v6only bool
 }
 
 func StringIPAddress() StringIPAddressValidator {
@@ -27,6 +28,12 @@ func StringIPAddress() StringIPAddressValidator {
 
 func (v StringIPAddressValidator) IPv4Only() StringIPAddressValidator {
 	v.v4only = true
+
+	return v
+}
+
+func (v StringIPAddressValidator) IPv6Only() StringIPAddressValidator {
+	v.v6only = true
 
 	return v
 }
@@ -48,8 +55,7 @@ func (v StringIPAddressValidator) ValidateString(
 
 	value := req.ConfigValue.ValueString()
 
-	ip := net.ParseIP(value)
-	if ip == nil {
+	if ip := net.ParseIP(value); ip == nil {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid IP Address",
@@ -59,7 +65,7 @@ func (v StringIPAddressValidator) ValidateString(
 		return
 	}
 	if v.v4only {
-		if ip.To4() == nil {
+		if strings.Contains(value, ":") {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid IPv4 Address",
@@ -67,12 +73,36 @@ func (v StringIPAddressValidator) ValidateString(
 			)
 		}
 	}
+	if v.v6only {
+		if !strings.Contains(value, ":") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid IPv4 Address",
+				fmt.Sprintf("string is not an IPv6 address: %q", value),
+			)
+		}
+	}
 }
 
-type StringCIDRValidator struct{}
+type StringCIDRValidator struct {
+	v4only bool
+	v6only bool
+}
 
 func StringCIDR() StringCIDRValidator {
 	return StringCIDRValidator{}
+}
+
+func (v StringCIDRValidator) IPv4Only() StringCIDRValidator {
+	v.v4only = true
+
+	return v
+}
+
+func (v StringCIDRValidator) IPv6Only() StringCIDRValidator {
+	v.v6only = true
+
+	return v
 }
 
 func (v StringCIDRValidator) Description(_ context.Context) string {
@@ -110,6 +140,25 @@ func (v StringCIDRValidator) ValidateString(
 		)
 
 		return
+	}
+
+	if v.v4only {
+		if strings.Contains(value, ":") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid IPv4 CIDR",
+				fmt.Sprintf("string is not an IPv4 CIDR: %q", value),
+			)
+		}
+	}
+	if v.v6only {
+		if !strings.Contains(value, ":") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid IPv6 CIDR",
+				fmt.Sprintf("string is not an IPv6 CIDR: %q", value),
+			)
+		}
 	}
 }
 
@@ -235,6 +284,79 @@ func (v StringWildcardNetworkValidator) ValidateString(
 				req.Path,
 				"Invalid Wildcard Address",
 				fmt.Sprintf("string %q for mask must be in subnet mask format, octet %q is not", valueSplit[1], octet),
+			)
+
+			return
+		}
+	}
+}
+
+type StringMACAddressValidator struct {
+	mac48ColonHexadecimalNotation bool
+}
+
+func StringMACAddress() StringMACAddressValidator {
+	return StringMACAddressValidator{}
+}
+
+func (v StringMACAddressValidator) WithMac48ColonHexa() StringMACAddressValidator {
+	v.mac48ColonHexadecimalNotation = true
+
+	return v
+}
+
+func (v StringMACAddressValidator) Description(_ context.Context) string {
+	return "Must be a valid MAC address."
+}
+
+func (v StringMACAddressValidator) MarkdownDescription(_ context.Context) string {
+	return "Must be a valid MAC address."
+}
+
+func (v StringMACAddressValidator) ValidateString(
+	_ context.Context, req validator.StringRequest, resp *validator.StringResponse,
+) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+
+	if _, err := net.ParseMAC(value); err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid MAC Address",
+			fmt.Sprintf("%s", err),
+		)
+
+		return
+	}
+
+	if v.mac48ColonHexadecimalNotation {
+		if value[2] != ':' {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid MAC Address",
+				fmt.Sprintf("not with Colon-Hexadecimal notation mm:mm:mm:ss:ss:ss : %q", value),
+			)
+
+			return
+		}
+
+		if (len(value)+1)%3 != 0 {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid MAC Address",
+				fmt.Sprintf("not a 48-bit address mm:mm:mm:ss:ss:ss : %q", value),
+			)
+
+			return
+		}
+		if (len(value)+1)/3 != 6 {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid MAC Address",
+				fmt.Sprintf("not a 48-bit address mm:mm:mm:ss:ss:ss : %q", value),
 			)
 
 			return

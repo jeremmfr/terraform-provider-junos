@@ -4,7 +4,7 @@ page_title: "Junos: junos_interface_st0_unit"
 
 # junos_interface_st0_unit
 
-Find st0 unit available and create interface.
+Find an available st0 logical interface and create it.
 
 It's useful for bind_interface in `junos_security_ipsec_vpn` resource.  
 New st0 unit interface can be configured with `junos_interface_logical` resource.

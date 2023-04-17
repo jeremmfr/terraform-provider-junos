@@ -1,12 +1,13 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
@@ -31,11 +32,9 @@ func TestAccDataSourceInterfaceLogical_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL",
 							"name", testaccInterface+".100"),
 						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL",
-							"family_inet.#", "1"),
+							"family_inet.address.#", "1"),
 						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL",
-							"family_inet.0.address.#", "1"),
-						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL",
-							"family_inet.0.address.0.cidr_ip", "192.0.2.1/25"),
+							"family_inet.address.0.cidr_ip", "192.0.2.1/25"),
 						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL2",
 							"id", testaccInterface+".100"),
 					),

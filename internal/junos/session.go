@@ -9,8 +9,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/jeremmfr/go-netconf/netconf"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
+
+	"github.com/jeremmfr/go-netconf/netconf"
 	"golang.org/x/crypto/ssh"
 )
 
