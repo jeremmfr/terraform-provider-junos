@@ -23,7 +23,7 @@ type Session struct {
 	sleepLock         int
 	sleepSSHClosed    int
 	netconf           *netconf.Session
-	SystemInformation sysInfo `xml:"system-information"`
+	SystemInformation sysInfo
 	localAddress      string
 	remoteAddress     string
 }
