@@ -37,6 +37,10 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 		},
 	)
 	if err != nil {
+		if sess != nil && sess.netconf != nil {
+			_ = sess.closeNetconf(sess.sleepSSHClosed)
+		}
+
 		return nil, err
 	}
 	sess.logFile = func(message string) {
@@ -50,7 +54,9 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 		sess.fakeSetFile = clt.appendFakeCreateSetFile
 	}
 	if sess.SystemInformation.HardwareModel == "" {
-		return sess, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
+		_ = sess.closeNetconf(sess.sleepSSHClosed)
+
+		return nil, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
 	}
 	sess.logFile("[StartNewSession] session opened")
 
