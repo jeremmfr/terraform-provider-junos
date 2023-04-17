@@ -39,7 +39,10 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	sess.logFile = clt.logFile
+	sess.logFile = func(message string) {
+		message = "[" + sess.localAddress + "->" + sess.remoteAddress + "]" + message
+		clt.logFile(message)
+	}
 	sess.sleepLock = clt.sleepLock
 	sess.sleepShort = clt.sleepShort
 	sess.sleepSSHClosed = clt.sleepSSHClosed
@@ -49,7 +52,7 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 	if sess.SystemInformation.HardwareModel == "" {
 		return sess, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
 	}
-	clt.logFile("[StartNewSession] started")
+	sess.logFile("[StartNewSession] session opened")
 
 	return sess, nil
 }

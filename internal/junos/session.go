@@ -24,6 +24,8 @@ type Session struct {
 	sleepSSHClosed    int
 	netconf           *netconf.Session
 	SystemInformation sysInfo `xml:"system-information"`
+	localAddress      string
+	remoteAddress     string
 }
 
 type sshAuthMethod struct {
@@ -51,8 +53,13 @@ type sshOptions struct {
 // Authentication methods are defined using the netconfAuthMethod struct, and are as follows:
 // username and password, SSH private key (with or without passphrase).
 func netconfNewSession(
-	ctx context.Context, host string, auth *sshAuthMethod, openSSH *openSSHOptions,
-) (*Session, error) {
+	ctx context.Context,
+	host string,
+	auth *sshAuthMethod,
+	openSSH *openSSHOptions,
+) (
+	*Session, error,
+) {
 	clientConfig, err := genSSHClientConfig(auth)
 	if err != nil {
 		return nil, err
@@ -63,7 +70,13 @@ func netconfNewSession(
 
 // netconfNewSessionWithConfig establishes a new connection to a Junos device that we will use
 // to run our commands against.
-func netconfNewSessionWithConfig(ctx context.Context, host string, sshOpts *sshOptions) (*Session, error) {
+func netconfNewSessionWithConfig(
+	ctx context.Context,
+	host string,
+	sshOpts *sshOptions,
+) (
+	*Session, error,
+) {
 	netDialer := net.Dialer{
 		Timeout: time.Duration(sshOpts.Timeout) * time.Second,
 	}
@@ -116,16 +129,24 @@ toretry:
 			}
 		}
 
-		return newSessionFromNetconf(s)
+		return newSessionFromNetconf(s, conn.LocalAddr().String(), conn.RemoteAddr().String())
 	}
 	// this return can't happen
 	return nil, fmt.Errorf("connecting to %s: retries exceeded", host)
 }
 
 // newSessionFromNetconf uses an existing netconf.Session to run our commands against.
-func newSessionFromNetconf(netConfSess *netconf.Session) (*Session, error) {
+func newSessionFromNetconf(
+	netConfSess *netconf.Session,
+	localAddress,
+	remoteAddress string,
+) (
+	*Session, error,
+) {
 	sess := &Session{
-		netconf: netConfSess,
+		netconf:       netConfSess,
+		localAddress:  localAddress,
+		remoteAddress: remoteAddress,
 	}
 
 	return sess, sess.gatherFacts()
@@ -239,12 +260,12 @@ func (sess *Session) ConfigLock(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			sess.logFile("[ConfigLock] aborted")
+			sess.logFile("[ConfigLock] lock aborted")
 
 			return fmt.Errorf("candidate configuration lock attempt aborted")
 		default:
 			if sess.netconfConfigLock() {
-				sess.logFile("[ConfigLock] locked")
+				sess.logFile("[ConfigLock] config locked")
 				utils.SleepShort(sess.sleepShort)
 
 				return nil
@@ -258,12 +279,10 @@ func (sess *Session) ConfigLock(ctx context.Context) error {
 // ConfigClear clear potential candidate configuration and unlock it.
 func (sess *Session) ConfigClear() (errs []error) {
 	errs = append(errs, sess.netconfConfigClear()...)
-	utils.SleepShort(sess.sleepShort)
-	sess.logFile("[ConfigClear] config clear")
-
 	errs = append(errs, sess.netconfConfigUnlock()...)
+
+	sess.logFile("[ConfigClear] config cleared/unlocked")
 	utils.SleepShort(sess.sleepShort)
-	sess.logFile("[ConfigClear] config unlock")
 
 	return
 }
@@ -293,7 +312,7 @@ func (sess *Session) Close() {
 		if err != nil {
 			sess.logFile(fmt.Sprintf("[Close] err: %q", err))
 		} else {
-			sess.logFile("[Close] closed")
+			sess.logFile("[Close] session closed")
 		}
 	}
 }
