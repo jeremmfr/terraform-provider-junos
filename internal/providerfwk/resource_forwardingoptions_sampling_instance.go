@@ -1899,13 +1899,13 @@ func (rscData *forwardingoptionsSamplingInstanceData) read(
 		}
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {
-			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
 			if strings.Contains(item, junos.XMLEndTagConfigOut) {
 				break
 			}
+			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
 			case itemTrim == junos.DisableW:
 				rscData.Disable = types.BoolValue(true)
