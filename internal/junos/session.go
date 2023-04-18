@@ -17,15 +17,15 @@ import (
 
 // Session : store Junos device info and session.
 type Session struct {
+	SystemInformation sysInfo
+	netconf           *netconf.Session
+	localAddress      string
+	remoteAddress     string
 	logFile           func(string)
 	fakeSetFile       func([]string) error
 	sleepShort        int
 	sleepLock         int
 	sleepSSHClosed    int
-	netconf           *netconf.Session
-	SystemInformation sysInfo
-	localAddress      string
-	remoteAddress     string
 }
 
 type sshAuthMethod struct {
