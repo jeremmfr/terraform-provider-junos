@@ -34,6 +34,10 @@ const (
 	XMLEndTagConfigOut   = "</configuration-output>"
 )
 
+type sysInfoReply struct {
+	SystemInformation sysInfo `xml:"system-information"`
+}
+
 type sysInfo struct {
 	HardwareModel string `xml:"hardware-model"`
 	OsName        string `xml:"os-name"`
@@ -120,10 +124,11 @@ func (sess *Session) gatherFacts() error {
 
 		return fmt.Errorf(strings.Join(errorsMsg, "\n"))
 	}
-	err = xml.Unmarshal([]byte(val.RawReply), &sess)
-	if err != nil {
-		return fmt.Errorf("unmarshaling xml reply: %w", err)
+	var reply sysInfoReply
+	if err := xml.Unmarshal([]byte(val.RawReply), &reply); err != nil {
+		return fmt.Errorf("unmarshaling xml reply %q of get-system-information: %w", val.RawReply, err)
 	}
+	sess.SystemInformation = reply.SystemInformation
 
 	return nil
 }
@@ -145,7 +150,7 @@ func (sess *Session) netconfCommand(cmd string) (string, error) {
 	}
 	var output commandXMLConfig
 	if err := xml.Unmarshal([]byte(reply.Data), &output); err != nil {
-		return "", fmt.Errorf("unmarshal xml reply: %w", err)
+		return "", fmt.Errorf("unmarshaling xml reply of command: %w", err)
 	}
 
 	return output.Config, nil
@@ -255,7 +260,7 @@ func (sess *Session) netconfCommit(logMessage string) (_warn []error, _err error
 	if strings.Contains(reply.Data, "<commit-results>") {
 		err = xml.Unmarshal([]byte(reply.Data), &errs)
 		if err != nil {
-			return []error{}, fmt.Errorf("unmarshaling xml reply '%s': %w", reply.Data, err)
+			return []error{}, fmt.Errorf("unmarshaling xml reply %q of commit-configuration: %w", reply.Data, err)
 		}
 
 		if errs.Errors != nil {

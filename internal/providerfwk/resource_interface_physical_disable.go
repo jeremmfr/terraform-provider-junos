@@ -136,6 +136,7 @@ func (rsc *interfacePhysicalDisable) Create(
 
 		return
 	}
+	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
 
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(
 		ctx,
@@ -144,13 +145,11 @@ func (rsc *interfacePhysicalDisable) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 		return
 	}
 	if !ncInt && !emptyInt {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError(
 			"Conflict Error",
 			fmt.Sprintf("interface %q is configured", plan.Name.ValueString()),
@@ -159,8 +158,6 @@ func (rsc *interfacePhysicalDisable) Create(
 		return
 	}
 	if ncInt {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
-
 		plan.fillID()
 		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 
@@ -168,12 +165,10 @@ func (rsc *interfacePhysicalDisable) Create(
 	}
 	if emptyInt {
 		if containsUnit, err := checkInterfacePhysicalContainsUnit(ctx, plan.Name.ValueString(), junSess); err != nil {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
 			return
 		} else if containsUnit {
-			resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 			resp.Diagnostics.AddError(
 				"Conflict Error",
 				fmt.Sprintf("interface %q is used for a logical unit interface", plan.Name.ValueString()),
@@ -189,7 +184,6 @@ func (rsc *interfacePhysicalDisable) Create(
 		rsc.client.GroupInterfaceDelete(),
 		junSess,
 	); err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Set Error", err.Error())
 
 		return
@@ -197,7 +191,6 @@ func (rsc *interfacePhysicalDisable) Create(
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
 	if err != nil {
-		resp.Diagnostics.Append(tfdiag.Warns("Config Clear Warning", junSess.ConfigClear())...)
 		resp.Diagnostics.AddError("Config Commit Error", err.Error())
 
 		return
