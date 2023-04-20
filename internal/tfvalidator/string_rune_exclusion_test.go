@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 )
 
 func TestStringRuneExclusion(t *testing.T) {

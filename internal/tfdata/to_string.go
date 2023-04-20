@@ -3,10 +3,9 @@ package tfdata
 import (
 	"fmt"
 
-	"github.com/jeremmfr/junosdecode"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/jeremmfr/junosdecode"
 )
 
 func JunosDecode(str, errMsg string,

@@ -20,7 +20,6 @@ linters:
     - nestif
     - exhaustruct
     - paralleltest
-    - gci
     - cyclop
     - forcetypeassert
     - gomoddirectives
@@ -31,6 +30,12 @@ linters:
     - nosnakecase
     - musttag
 linters-settings:
+  gci:
+    custom-order: true
+    sections:
+      - standard
+      - prefix(github.com/jeremmfr/terraform-provider-junos/)
+      - default
   gocognit:
     # minimal code complexity to report, 30 by default
     min-complexity: 180
@@ -43,6 +48,7 @@ linters-settings:
     # minimal code complexity to report, 30 by default
     min-complexity: 100
   gofumpt:
+    module-path: github.com/jeremmfr/terraform-provider-junos
     # Choose whether to use the extra rules.
     extra-rules: true
   govet:
