@@ -10,6 +10,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -269,14 +270,23 @@ func (rsc *interfacePhysical) Schema(
 						},
 					},
 				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
 			},
 			"ether_opts": schema.SingleNestedBlock{
 				Description: "Declare `ether-options` configuration.",
 				Attributes:  rsc.schemaEtherOptsAttributes(),
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
 			},
 			"gigether_opts": schema.SingleNestedBlock{
 				Description: "Declare `gigether-options` configuration.",
 				Attributes:  rsc.schemaEtherOptsAttributes(),
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
 			},
 			"parent_ether_opts": schema.SingleNestedBlock{
 				Description: "Declare `aggregated-ether-options` or `redundant-ether-options` configuration" +
@@ -472,6 +482,9 @@ func (rsc *interfacePhysical) Schema(
 								},
 							},
 						},
+						PlanModifiers: []planmodifier.Object{
+							tfplanmodifier.BlockRemoveNull(),
+						},
 					},
 					"lacp": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -518,7 +531,13 @@ func (rsc *interfacePhysical) Schema(
 								},
 							},
 						},
+						PlanModifiers: []planmodifier.Object{
+							tfplanmodifier.BlockRemoveNull(),
+						},
 					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 		},

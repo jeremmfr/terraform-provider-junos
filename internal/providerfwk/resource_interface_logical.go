@@ -9,6 +9,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -539,6 +540,9 @@ func (rsc *interfaceLogical) Schema(
 								},
 							},
 						},
+						PlanModifiers: []planmodifier.Object{
+							tfplanmodifier.BlockRemoveNull(),
+						},
 					},
 					"rpf_check": schema.SingleNestedBlock{
 						Description: "Enable reverse-path-forwarding checks on this interface.",
@@ -559,7 +563,13 @@ func (rsc *interfaceLogical) Schema(
 								},
 							},
 						},
+						PlanModifiers: []planmodifier.Object{
+							tfplanmodifier.BlockRemoveNull(),
+						},
 					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"family_inet6": schema.SingleNestedBlock{
@@ -876,6 +886,9 @@ func (rsc *interfaceLogical) Schema(
 								},
 							},
 						},
+						PlanModifiers: []planmodifier.Object{
+							tfplanmodifier.BlockRemoveNull(),
+						},
 					},
 					"rpf_check": schema.SingleNestedBlock{
 						Description: "Enable reverse-path-forwarding checks on this interface.",
@@ -896,7 +909,13 @@ func (rsc *interfaceLogical) Schema(
 								},
 							},
 						},
+						PlanModifiers: []planmodifier.Object{
+							tfplanmodifier.BlockRemoveNull(),
+						},
 					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"tunnel": schema.SingleNestedBlock{
@@ -976,6 +995,9 @@ func (rsc *interfaceLogical) Schema(
 							int64validator.Between(1, 255),
 						},
 					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 		},
