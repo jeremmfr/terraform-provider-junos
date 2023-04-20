@@ -7,13 +7,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
-	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 )
 
 type ripNeighborOptions struct {

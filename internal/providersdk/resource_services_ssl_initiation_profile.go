@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 )
 
 type svcSSLInitiationProfileOptions struct {

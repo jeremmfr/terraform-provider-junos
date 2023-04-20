@@ -5,8 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 const testaccNullCommitFile = "/tmp/testacc/terraform-provider-junos/null-commit-file"
