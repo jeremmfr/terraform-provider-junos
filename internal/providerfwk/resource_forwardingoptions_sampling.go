@@ -816,7 +816,7 @@ type forwardingoptionsSamplingBlockOutputBlockInterface struct {
 	SourceAddress types.String `tfsdk:"source_address"`
 }
 
-func (block *forwardingoptionsSamplingBlockInput) IsEmpty() bool {
+func (block *forwardingoptionsSamplingBlockInput) isEmpty() bool {
 	switch {
 	case !block.MaxPacketsPerSecond.IsNull():
 		return false
@@ -842,7 +842,7 @@ func (rsc *forwardingoptionsSampling) ValidateConfig(
 	}
 
 	if config.Input != nil {
-		if config.Input.IsEmpty() {
+		if config.Input.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("input").AtName("*"),
 				"Missing Configuration Error",
@@ -873,7 +873,7 @@ func (rsc *forwardingoptionsSampling) ValidateConfig(
 	}
 
 	if config.FamilyInetInput != nil {
-		if config.FamilyInetInput.IsEmpty() {
+		if config.FamilyInetInput.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet_input").AtName("*"),
 				"Missing Configuration Error",
@@ -882,7 +882,7 @@ func (rsc *forwardingoptionsSampling) ValidateConfig(
 		}
 	}
 	if config.FamilyInet6Input != nil {
-		if config.FamilyInet6Input.IsEmpty() {
+		if config.FamilyInet6Input.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet6_input").AtName("*"),
 				"Missing Configuration Error",
@@ -891,7 +891,7 @@ func (rsc *forwardingoptionsSampling) ValidateConfig(
 		}
 	}
 	if config.FamilyMplsInput != nil {
-		if config.FamilyMplsInput.IsEmpty() {
+		if config.FamilyMplsInput.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_mpls_input").AtName("*"),
 				"Missing Configuration Error",

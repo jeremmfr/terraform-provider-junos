@@ -734,7 +734,7 @@ type interfacePhysicalBlockParentEtherOptsBlockLacp struct {
 	SystemPriority types.Int64  `tfsdk:"system_priority"`
 }
 
-func (block *interfacePhysicalBlockEtherOpts) IsEmpty() bool {
+func (block *interfacePhysicalBlockEtherOpts) isEmpty() bool {
 	switch {
 	case !block.AutoNegotiation.IsNull():
 		return false
@@ -757,7 +757,7 @@ func (block *interfacePhysicalBlockEtherOpts) IsEmpty() bool {
 	}
 }
 
-func (block *interfacePhysicalBlockParentEtherOptsConfig) IsEmpty() bool {
+func (block *interfacePhysicalBlockParentEtherOptsConfig) isEmpty() bool {
 	switch {
 	case !block.FlowControl.IsNull():
 		return false
@@ -850,7 +850,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 			)
 		}
 
-		if config.EtherOpts.IsEmpty() {
+		if config.EtherOpts.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ether_opts").AtName("*"),
 				"Missing Configuration Error",
@@ -895,7 +895,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 			)
 		}
 
-		if config.GigetherOpts.IsEmpty() {
+		if config.GigetherOpts.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("gigether_opts").AtName("*"),
 				"Missing Configuration Error",
@@ -961,7 +961,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 			}
 		}
 
-		if config.ParentEtherOpts.IsEmpty() {
+		if config.ParentEtherOpts.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("*"),
 				"Missing Configuration Error",

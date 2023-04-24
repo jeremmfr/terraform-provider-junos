@@ -436,7 +436,7 @@ type securityPolicyBlockPolicyBlockPermitApplicationServices struct {
 	UtmPolicy types.String `tfsdk:"utm_policy"`
 }
 
-func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) IsEmpty() bool {
+func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) isEmpty() bool {
 	switch {
 	case !block.AdvancedAntiMalwarePolicy.IsNull():
 		return false
@@ -523,7 +523,7 @@ func (rsc *securityPolicy) ValidateConfig(
 				}
 			}
 			if block.PermitApplicationServices != nil {
-				if block.PermitApplicationServices.IsEmpty() {
+				if block.PermitApplicationServices.isEmpty() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("permit_application_services"),
 						"Missing Configuration Error",
@@ -976,7 +976,7 @@ func (rscData *securityPolicyData) set(
 				block.PermitTunnelIpsecVpn.ValueString()+"\"")
 		}
 		if block.PermitApplicationServices != nil {
-			if block.PermitApplicationServices.IsEmpty() {
+			if block.PermitApplicationServices.isEmpty() {
 				return path.Root("policy").AtListIndex(i).AtName("permit_application_services"), fmt.Errorf(
 					"permit_application_services block is empty in policy %q",
 					block.Name.ValueString(),

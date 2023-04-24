@@ -451,7 +451,7 @@ func (rsc *securityGlobalPolicy) ValidateConfig(
 				policyName[block.Name.ValueString()] = struct{}{}
 			}
 			if block.PermitApplicationServices != nil {
-				if block.PermitApplicationServices.IsEmpty() {
+				if block.PermitApplicationServices.isEmpty() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("permit_application_services"),
 						"Missing Configuration Error",
@@ -789,7 +789,7 @@ func (rscData *securityGlobalPolicyData) set(
 			configSet = append(configSet, setPrefixPolicy+"match source-end-user-profile \""+v+"\"")
 		}
 		if block.PermitApplicationServices != nil {
-			if block.PermitApplicationServices.IsEmpty() {
+			if block.PermitApplicationServices.isEmpty() {
 				return path.Root("policy").AtListIndex(i).AtName("permit_application_services"), fmt.Errorf(
 					"permit_application_services block is empty in policy %q",
 					block.Name.ValueString(),
