@@ -141,12 +141,12 @@ func (rsc *securityIkeGateway) UpgradeState(_ context.Context) map[int64]resourc
 					},
 				},
 			},
-			StateUpgrader: upgradeSecurityPolicyV0toV1,
+			StateUpgrader: upgradeSecurityIkeGatewayV0toV1,
 		},
 	}
 }
 
-func upgradeSecurityPolicyV0toV1(
+func upgradeSecurityIkeGatewayV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	//nolint:lll

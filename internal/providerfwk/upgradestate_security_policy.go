@@ -138,13 +138,13 @@ func (rsc *securityPolicy) UpgradeState(_ context.Context) map[int64]resource.St
 					},
 				},
 			},
-			StateUpgrader: upgradesecurityPolicyV0toV1,
+			StateUpgrader: upgradeSecurityPolicyV0toV1,
 		},
 	}
 }
 
 //nolint:lll
-func upgradesecurityPolicyV0toV1(
+func upgradeSecurityPolicyV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
