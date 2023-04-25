@@ -508,14 +508,14 @@ func upgradeInterfaceLogicalV0toV1(
 		dataV1.VlanNoCompute = types.BoolNull()
 	}
 	if len(dataV0.FamilyInet) > 0 {
-		dataV1.FamilyInet = &interfaceLogicalBlockFamilyInet{}
-
-		dataV1.FamilyInet.FilterInput = dataV0.FamilyInet[0].FilterInput
-		dataV1.FamilyInet.FilterOutput = dataV0.FamilyInet[0].FilterOutput
-		dataV1.FamilyInet.Mtu = dataV0.FamilyInet[0].Mtu
-		dataV1.FamilyInet.SamplingInput = dataV0.FamilyInet[0].SamplingInput
-		dataV1.FamilyInet.SamplingOutput = dataV0.FamilyInet[0].SamplingOutput
-		dataV1.FamilyInet.Address = dataV0.FamilyInet[0].Address
+		dataV1.FamilyInet = &interfaceLogicalBlockFamilyInet{
+			FilterInput:    dataV0.FamilyInet[0].FilterInput,
+			FilterOutput:   dataV0.FamilyInet[0].FilterOutput,
+			Mtu:            dataV0.FamilyInet[0].Mtu,
+			SamplingInput:  dataV0.FamilyInet[0].SamplingInput,
+			SamplingOutput: dataV0.FamilyInet[0].SamplingOutput,
+			Address:        dataV0.FamilyInet[0].Address,
+		}
 		if len(dataV0.FamilyInet[0].DHCP) > 0 {
 			dataV1.FamilyInet.DHCP = &dataV0.FamilyInet[0].DHCP[0]
 		}
@@ -524,15 +524,15 @@ func upgradeInterfaceLogicalV0toV1(
 		}
 	}
 	if len(dataV0.FamilyInet6) > 0 {
-		dataV1.FamilyInet6 = &interfaceLogicalBlockFamilyInet6{}
-
-		dataV1.FamilyInet6.DadDisable = dataV0.FamilyInet6[0].DadDisable
-		dataV1.FamilyInet6.FilterInput = dataV0.FamilyInet6[0].FilterInput
-		dataV1.FamilyInet6.FilterOutput = dataV0.FamilyInet6[0].FilterOutput
-		dataV1.FamilyInet6.Mtu = dataV0.FamilyInet6[0].Mtu
-		dataV1.FamilyInet6.SamplingInput = dataV0.FamilyInet6[0].SamplingInput
-		dataV1.FamilyInet6.SamplingOutput = dataV0.FamilyInet6[0].SamplingOutput
-		dataV1.FamilyInet6.Address = dataV0.FamilyInet6[0].Address
+		dataV1.FamilyInet6 = &interfaceLogicalBlockFamilyInet6{
+			DadDisable:     dataV0.FamilyInet6[0].DadDisable,
+			FilterInput:    dataV0.FamilyInet6[0].FilterInput,
+			FilterOutput:   dataV0.FamilyInet6[0].FilterOutput,
+			Mtu:            dataV0.FamilyInet6[0].Mtu,
+			SamplingInput:  dataV0.FamilyInet6[0].SamplingInput,
+			SamplingOutput: dataV0.FamilyInet6[0].SamplingOutput,
+			Address:        dataV0.FamilyInet6[0].Address,
+		}
 		if len(dataV0.FamilyInet6[0].DHCPv6Client) > 0 {
 			dataV1.FamilyInet6.DHCPv6Client = &dataV0.FamilyInet6[0].DHCPv6Client[0]
 		}

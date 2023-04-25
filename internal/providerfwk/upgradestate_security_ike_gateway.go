@@ -193,18 +193,17 @@ func upgradeSecurityIkeGatewayV0toV1(
 	dataV1.NoNatTraversal = dataV0.NoNatTraversal
 	dataV1.Version = dataV0.Version
 	if len(dataV0.DynamicRemote) > 0 {
-		dataV1.DynamicRemote = &securityIkeGatewayBlockDynamicRemote{}
-		dataV1.DynamicRemote.ConnectionsLimit = dataV0.DynamicRemote[0].ConnectionsLimit
-		dataV1.DynamicRemote.Hostname = dataV0.DynamicRemote[0].Hostname
-		dataV1.DynamicRemote.IkeUserType = dataV0.DynamicRemote[0].IkeUserType
-		dataV1.DynamicRemote.Inet = dataV0.DynamicRemote[0].Inet
-		dataV1.DynamicRemote.Inet6 = dataV0.DynamicRemote[0].Inet6
-		dataV1.DynamicRemote.RejectDuplicateConnection = dataV0.DynamicRemote[0].RejectDuplicateConnection
-		dataV1.DynamicRemote.UserAtHostname = dataV0.DynamicRemote[0].UserAtHostname
+		dataV1.DynamicRemote = &securityIkeGatewayBlockDynamicRemote{
+			ConnectionsLimit:          dataV0.DynamicRemote[0].ConnectionsLimit,
+			Hostname:                  dataV0.DynamicRemote[0].Hostname,
+			IkeUserType:               dataV0.DynamicRemote[0].IkeUserType,
+			Inet:                      dataV0.DynamicRemote[0].Inet,
+			Inet6:                     dataV0.DynamicRemote[0].Inet6,
+			RejectDuplicateConnection: dataV0.DynamicRemote[0].RejectDuplicateConnection,
+			UserAtHostname:            dataV0.DynamicRemote[0].UserAtHostname,
+		}
 		if len(dataV0.DynamicRemote[0].DistinguishedName) > 0 {
-			dataV1.DynamicRemote.DistinguishedName = &securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName{}
-			dataV1.DynamicRemote.DistinguishedName.Container = dataV0.DynamicRemote[0].DistinguishedName[0].Container
-			dataV1.DynamicRemote.DistinguishedName.Wildcard = dataV0.DynamicRemote[0].DistinguishedName[0].Wildcard
+			dataV1.DynamicRemote.DistinguishedName = &dataV0.DynamicRemote[0].DistinguishedName[0]
 		}
 	}
 	if len(dataV0.Aaa) > 0 {

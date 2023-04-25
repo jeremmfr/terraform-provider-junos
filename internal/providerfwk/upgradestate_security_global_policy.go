@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func (rsc *securityGlobalPolicy) UpgradeState(_ context.Context) map[int64]resource.StateUpgrader {
@@ -142,7 +141,6 @@ func (rsc *securityGlobalPolicy) UpgradeState(_ context.Context) map[int64]resou
 	}
 }
 
-//nolint:lll
 func upgradeSecurityGlobalPolicyV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
@@ -194,49 +192,42 @@ func upgradeSecurityGlobalPolicyV0toV1(
 	var dataV1 securityGlobalPolicyData
 	dataV1.ID = dataV0.ID
 	for _, blockV0 := range dataV0.Policy {
-		var blockV1 securityGlobalPolicyBlockPolicy
-		blockV1.Count = blockV0.Count
-		blockV1.LogInit = blockV0.LogInit
-		blockV1.LogClose = blockV0.LogClose
-		blockV1.MatchDestinationAddressExcluded = blockV0.MatchDestinationAddressExcluded
-		blockV1.MatchSourceAddressExcluded = blockV0.MatchSourceAddressExcluded
-		blockV1.Name = blockV0.Name
-		blockV1.Then = blockV0.Then
-		blockV1.MatchSourceEndUserProfile = blockV0.MatchSourceEndUserProfile
-		blockV1.MatchSourceAddress = blockV0.MatchSourceAddress
-		blockV1.MatchDestinationAddress = blockV0.MatchDestinationAddress
-		blockV1.MatchFromZone = blockV0.MatchFromZone
-		blockV1.MatchToZone = blockV0.MatchToZone
-		blockV1.MatchApplication = blockV0.MatchApplication
-		blockV1.MatchDynamicApplication = blockV0.MatchDynamicApplication
+		blockV1 := securityGlobalPolicyBlockPolicy{
+			Count:                           blockV0.Count,
+			LogInit:                         blockV0.LogInit,
+			LogClose:                        blockV0.LogClose,
+			MatchDestinationAddressExcluded: blockV0.MatchDestinationAddressExcluded,
+			MatchSourceAddressExcluded:      blockV0.MatchSourceAddressExcluded,
+			Name:                            blockV0.Name,
+			Then:                            blockV0.Then,
+			MatchSourceEndUserProfile:       blockV0.MatchSourceEndUserProfile,
+			MatchSourceAddress:              blockV0.MatchSourceAddress,
+			MatchDestinationAddress:         blockV0.MatchDestinationAddress,
+			MatchFromZone:                   blockV0.MatchFromZone,
+			MatchToZone:                     blockV0.MatchToZone,
+			MatchApplication:                blockV0.MatchApplication,
+			MatchDynamicApplication:         blockV0.MatchDynamicApplication,
+		}
 		if len(blockV0.PermitApplicationServices) > 0 {
-			blockV1.PermitApplicationServices = &securityPolicyBlockPolicyBlockPermitApplicationServices{}
-
-			blockV1.PermitApplicationServices.Idp = blockV0.PermitApplicationServices[0].Idp
-			blockV1.PermitApplicationServices.RedirectWx = blockV0.PermitApplicationServices[0].RedirectWx
-			blockV1.PermitApplicationServices.ReverseRedirectWx = blockV0.PermitApplicationServices[0].ReverseRedirectWx
-			blockV1.PermitApplicationServices.AdvancedAntiMalwarePolicy = blockV0.PermitApplicationServices[0].AdvancedAntiMalwarePolicy
-			blockV1.PermitApplicationServices.ApplicationFirewallRuleSet = blockV0.PermitApplicationServices[0].ApplicationFirewallRuleSet
-			blockV1.PermitApplicationServices.ApplicationTrafficControlRuleSet = blockV0.PermitApplicationServices[0].ApplicationTrafficControlRuleSet
-			blockV1.PermitApplicationServices.GprsGtpProfile = blockV0.PermitApplicationServices[0].GprsGtpProfile
-			blockV1.PermitApplicationServices.GprsSctpProfile = blockV0.PermitApplicationServices[0].GprsSctpProfile
-			blockV1.PermitApplicationServices.IdpPolicy = blockV0.PermitApplicationServices[0].IdpPolicy
-			blockV1.PermitApplicationServices.SecurityIntelligencePolicy = blockV0.PermitApplicationServices[0].SecurityIntelligencePolicy
+			blockV1.PermitApplicationServices = &securityPolicyBlockPolicyBlockPermitApplicationServices{
+				Idp:                              blockV0.PermitApplicationServices[0].Idp,
+				RedirectWx:                       blockV0.PermitApplicationServices[0].RedirectWx,
+				ReverseRedirectWx:                blockV0.PermitApplicationServices[0].ReverseRedirectWx,
+				AdvancedAntiMalwarePolicy:        blockV0.PermitApplicationServices[0].AdvancedAntiMalwarePolicy,
+				ApplicationFirewallRuleSet:       blockV0.PermitApplicationServices[0].ApplicationFirewallRuleSet,
+				ApplicationTrafficControlRuleSet: blockV0.PermitApplicationServices[0].ApplicationTrafficControlRuleSet,
+				GprsGtpProfile:                   blockV0.PermitApplicationServices[0].GprsGtpProfile,
+				GprsSctpProfile:                  blockV0.PermitApplicationServices[0].GprsSctpProfile,
+				IdpPolicy:                        blockV0.PermitApplicationServices[0].IdpPolicy,
+				SecurityIntelligencePolicy:       blockV0.PermitApplicationServices[0].SecurityIntelligencePolicy,
+				UtmPolicy:                        blockV0.PermitApplicationServices[0].UtmPolicy,
+			}
 			if len(blockV0.PermitApplicationServices[0].SSLProxy) > 0 {
-				blockV1.PermitApplicationServices.SSLProxy = &struct {
-					ProfileName basetypes.StringValue `tfsdk:"profile_name"`
-				}{
-					ProfileName: blockV0.PermitApplicationServices[0].SSLProxy[0].ProfileName,
-				}
+				blockV1.PermitApplicationServices.SSLProxy = &blockV0.PermitApplicationServices[0].SSLProxy[0]
 			}
 			if len(blockV0.PermitApplicationServices[0].UacPolicy) > 0 {
-				blockV1.PermitApplicationServices.UacPolicy = &struct {
-					CaptivePortal types.String `tfsdk:"captive_portal"`
-				}{
-					CaptivePortal: blockV0.PermitApplicationServices[0].UacPolicy[0].CaptivePortal,
-				}
+				blockV1.PermitApplicationServices.UacPolicy = &blockV0.PermitApplicationServices[0].UacPolicy[0]
 			}
-			blockV1.PermitApplicationServices.UtmPolicy = blockV0.PermitApplicationServices[0].UtmPolicy
 		}
 		dataV1.Policy = append(dataV1.Policy, blockV1)
 	}

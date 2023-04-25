@@ -309,17 +309,18 @@ func upgradeInterfacePhysicalV0toV1(
 		dataV1.GigetherOpts = &dataV0.GigetherOpts[0]
 	}
 	if len(dataV0.ParentEtherOpts) > 0 {
-		dataV1.ParentEtherOpts = &interfacePhysicalBlockParentEtherOpts{}
-		dataV1.ParentEtherOpts.FlowControl = dataV0.ParentEtherOpts[0].FlowControl
-		dataV1.ParentEtherOpts.NoFlowControl = dataV0.ParentEtherOpts[0].NoFlowControl
-		dataV1.ParentEtherOpts.Loopback = dataV0.ParentEtherOpts[0].Loopback
-		dataV1.ParentEtherOpts.NoLoopback = dataV0.ParentEtherOpts[0].NoLoopback
-		dataV1.ParentEtherOpts.LinkSpeed = dataV0.ParentEtherOpts[0].LinkSpeed
-		dataV1.ParentEtherOpts.MinimumBandwidth = dataV0.ParentEtherOpts[0].MinimumBandwidth
-		dataV1.ParentEtherOpts.MinimumLinks = dataV0.ParentEtherOpts[0].MinimumLinks
-		dataV1.ParentEtherOpts.RedundancyGroup = dataV0.ParentEtherOpts[0].RedundancyGroup
-		dataV1.ParentEtherOpts.SourceAddressFilter = dataV0.ParentEtherOpts[0].SourceAddressFilter
-		dataV1.ParentEtherOpts.SourceFiltering = dataV0.ParentEtherOpts[0].SourceFiltering
+		dataV1.ParentEtherOpts = &interfacePhysicalBlockParentEtherOpts{
+			FlowControl:         dataV0.ParentEtherOpts[0].FlowControl,
+			NoFlowControl:       dataV0.ParentEtherOpts[0].NoFlowControl,
+			Loopback:            dataV0.ParentEtherOpts[0].Loopback,
+			NoLoopback:          dataV0.ParentEtherOpts[0].NoLoopback,
+			LinkSpeed:           dataV0.ParentEtherOpts[0].LinkSpeed,
+			MinimumBandwidth:    dataV0.ParentEtherOpts[0].MinimumBandwidth,
+			MinimumLinks:        dataV0.ParentEtherOpts[0].MinimumLinks,
+			RedundancyGroup:     dataV0.ParentEtherOpts[0].RedundancyGroup,
+			SourceAddressFilter: dataV0.ParentEtherOpts[0].SourceAddressFilter,
+			SourceFiltering:     dataV0.ParentEtherOpts[0].SourceFiltering,
+		}
 		if len(dataV0.ParentEtherOpts[0].BFDLivenessDetection) > 0 {
 			dataV1.ParentEtherOpts.BFDLivenessDetection = &dataV0.ParentEtherOpts[0].BFDLivenessDetection[0]
 		}
