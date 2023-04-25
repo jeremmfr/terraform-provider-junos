@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
@@ -1170,25 +1169,25 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) read(
 	case balt.CutPrefixInString(&itemTrim, "ssl-proxy"):
 		if balt.CutPrefixInString(&itemTrim, " profile-name ") {
 			block.SSLProxy = &struct {
-				ProfileName basetypes.StringValue `tfsdk:"profile_name"`
+				ProfileName types.String `tfsdk:"profile_name"`
 			}{
 				ProfileName: types.StringValue(strings.Trim(itemTrim, "\"")),
 			}
 		} else {
 			block.SSLProxy = &struct {
-				ProfileName basetypes.StringValue `tfsdk:"profile_name"`
+				ProfileName types.String `tfsdk:"profile_name"`
 			}{}
 		}
 	case balt.CutPrefixInString(&itemTrim, "uac-policy"):
 		if balt.CutPrefixInString(&itemTrim, " captive-portal ") {
 			block.UacPolicy = &struct {
-				CaptivePortal basetypes.StringValue `tfsdk:"captive_portal"`
+				CaptivePortal types.String `tfsdk:"captive_portal"`
 			}{
 				CaptivePortal: types.StringValue(strings.Trim(itemTrim, "\"")),
 			}
 		} else {
 			block.UacPolicy = &struct {
-				CaptivePortal basetypes.StringValue `tfsdk:"captive_portal"`
+				CaptivePortal types.String `tfsdk:"captive_portal"`
 			}{}
 		}
 	case balt.CutPrefixInString(&itemTrim, "utm-policy "):
