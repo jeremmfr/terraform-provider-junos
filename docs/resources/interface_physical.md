@@ -90,10 +90,10 @@ The following arguments are supported:
   Enable gratuitous ARP reply.
 - **hold_time_down** (Optional, Number)  
   Link down hold time (milliseconds).  
-  `hold_time_up` must be specified together
+  `hold_time_up` must also be specified.
 - **hold_time_up** (Optional, Number)  
   Link up hold time (milliseconds).  
-  `hold_time_down` must be specified together
+  `hold_time_down` must also be specified.
 - **link_mode** (Optional, String)  
   Link operational mode.  
   Need to be `automatic`, `full-duplex` or `half-duplex`.
