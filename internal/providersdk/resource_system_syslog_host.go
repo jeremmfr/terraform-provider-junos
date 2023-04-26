@@ -74,7 +74,7 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"facility_override": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogFacility(), false),
+				ValidateFunc: validation.StringInSlice(junos.SyslogFacilities(), false),
 			},
 			"log_prefix": {
 				Type:             schema.TypeString,
