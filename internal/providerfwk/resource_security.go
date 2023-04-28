@@ -1048,6 +1048,98 @@ func (rsc *security) Schema(
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
+			"nat_source": schema.SingleNestedBlock{
+				Description: "Declare `nat source` configuration.",
+				Attributes: map[string]schema.Attribute{
+					"address_persistent": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Allow source address to maintain same translation.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
+					"interface_port_overloading_factor": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Port overloading factor for interface NAT.",
+						Validators: []validator.Int64{
+							int64validator.Between(0, 65535),
+						},
+					},
+					"interface_port_overloading_off": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Turn off interface port over-loading.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
+					"pool_default_port_range": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Configure Source NAT default port range lower limit.",
+						Validators: []validator.Int64{
+							int64validator.Between(1024, 63487),
+						},
+					},
+					"pool_default_port_range_to": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Configure Source NAT default port range upper limit.",
+						Validators: []validator.Int64{
+							int64validator.Between(1024, 63487),
+						},
+					},
+					"pool_default_twin_port_range": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Configure Source NAT default twin port range lower limit.",
+						Validators: []validator.Int64{
+							int64validator.Between(63488, 65535),
+						},
+					},
+					"pool_default_twin_port_range_to": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Configure Source NAT default twin port range upper limit.",
+						Validators: []validator.Int64{
+							int64validator.Between(63488, 65535),
+						},
+					},
+					"pool_utilization_alarm_clear_threshold": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Clear threshold for pool utilization alarm (40..100).",
+						Validators: []validator.Int64{
+							int64validator.Between(40, 100),
+						},
+					},
+					"pool_utilization_alarm_raise_threshold": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Raise threshold for pool utilization alarm (50..100).",
+						Validators: []validator.Int64{
+							int64validator.Between(50, 100),
+						},
+					},
+					"port_randomization_disable": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Disable Source NAT port randomization.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
+					"session_drop_hold_down": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Session drop hold down time (30..28800).",
+						Validators: []validator.Int64{
+							int64validator.Between(30, 28800),
+						},
+					},
+					"session_persistence_scan": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Allow source to maintain session when session scan.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
 			"policies": schema.SingleNestedBlock{
 				Description: "Declare `policies` configuration.",
 				Attributes: map[string]schema.Attribute{
@@ -1190,6 +1282,7 @@ type securityData struct {
 	IdpSensorConfiguration       *securityBlockIdpSensorConfiguration       `tfsdk:"idp_sensor_configuration"`
 	IkeTraceoptions              *securityBlockIkeTraceoptions              `tfsdk:"ike_traceoptions"`
 	Log                          *securityBlockLog                          `tfsdk:"log"`
+	NatSource                    *securityBlockNatSource                    `tfsdk:"nat_source"`
 	Policies                     *securityBlockPolicies                     `tfsdk:"policies"`
 	UserIdentificationAuthSource *securityBlockUserIdentificationAuthSource `tfsdk:"user_identification_auth_source"`
 	Utm                          *securityBlockUtm                          `tfsdk:"utm"`
@@ -1206,6 +1299,7 @@ type securityConfig struct {
 	IdpSensorConfiguration       *securityBlockIdpSensorConfiguration       `tfsdk:"idp_sensor_configuration"`
 	IkeTraceoptions              *securityBlockIkeTraceoptionsConfig        `tfsdk:"ike_traceoptions"`
 	Log                          *securityBlockLog                          `tfsdk:"log"`
+	NatSource                    *securityBlockNatSource                    `tfsdk:"nat_source"`
 	Policies                     *securityBlockPolicies                     `tfsdk:"policies"`
 	UserIdentificationAuthSource *securityBlockUserIdentificationAuthSource `tfsdk:"user_identification_auth_source"`
 	Utm                          *securityBlockUtm                          `tfsdk:"utm"`
@@ -1714,6 +1808,52 @@ type securityBlockLogBlockTransport struct {
 	TLSProfile     types.String `tfsdk:"tls_profile"`
 }
 
+type securityBlockNatSource struct {
+	AddressPersistent                  types.Bool  `tfsdk:"address_persistent"`
+	InterfacePortOverloadingOff        types.Bool  `tfsdk:"interface_port_overloading_off"`
+	PortRandomizationDisable           types.Bool  `tfsdk:"port_randomization_disable"`
+	SessionPersistenceScan             types.Bool  `tfsdk:"session_persistence_scan"`
+	InterfacePortOverloadingFactor     types.Int64 `tfsdk:"interface_port_overloading_factor"`
+	PoolDefaultPortRange               types.Int64 `tfsdk:"pool_default_port_range"`
+	PoolDefaultPortRangeTo             types.Int64 `tfsdk:"pool_default_port_range_to"`
+	PoolDefaultTwinPortRange           types.Int64 `tfsdk:"pool_default_twin_port_range"`
+	PoolDefaultTwinPortRangeTo         types.Int64 `tfsdk:"pool_default_twin_port_range_to"`
+	PoolUtilizationAlarmClearThreshold types.Int64 `tfsdk:"pool_utilization_alarm_clear_threshold"`
+	PoolUtilizationAlarmRaiseThreshold types.Int64 `tfsdk:"pool_utilization_alarm_raise_threshold"`
+	SessionDropHoldDown                types.Int64 `tfsdk:"session_drop_hold_down"`
+}
+
+func (block *securityBlockNatSource) isEmpty() bool {
+	switch {
+	case !block.AddressPersistent.IsNull():
+		return false
+	case !block.InterfacePortOverloadingOff.IsNull():
+		return false
+	case !block.PortRandomizationDisable.IsNull():
+		return false
+	case !block.SessionPersistenceScan.IsNull():
+		return false
+	case !block.InterfacePortOverloadingFactor.IsNull():
+		return false
+	case !block.PoolDefaultPortRange.IsNull():
+		return false
+	case !block.PoolDefaultPortRangeTo.IsNull():
+		return false
+	case !block.PoolDefaultTwinPortRange.IsNull():
+		return false
+	case !block.PoolDefaultTwinPortRangeTo.IsNull():
+		return false
+	case !block.PoolUtilizationAlarmClearThreshold.IsNull():
+		return false
+	case !block.PoolUtilizationAlarmRaiseThreshold.IsNull():
+		return false
+	case !block.SessionDropHoldDown.IsNull():
+		return false
+	default:
+		return true
+	}
+}
+
 type securityBlockPolicies struct {
 	PolicyRematch          types.Bool `tfsdk:"policy_rematch"`
 	PolicyRematchExtensive types.Bool `tfsdk:"policy_rematch_extensive"`
@@ -2012,6 +2152,80 @@ func (rsc *security) ValidateConfig(
 				"Conflict Configuration Error",
 				"source_address and source_interface can't be set in same time in log block",
 			)
+		}
+	}
+
+	if config.NatSource != nil {
+		if config.NatSource.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nat_source").AtName("*"),
+				"Missing Configuration Error",
+				"nat_source block is empty",
+			)
+		}
+		if !config.NatSource.InterfacePortOverloadingFactor.IsNull() &&
+			!config.NatSource.InterfacePortOverloadingOff.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nat_source").AtName("interface_port_overloading_off"),
+				"Conflict Configuration Error",
+				"interface_port_overloading_off and interface_port_overloading_factor cannot be configured together "+
+					"in nat_source block",
+			)
+		}
+		if !config.NatSource.PoolDefaultPortRangeTo.IsNull() &&
+			config.NatSource.PoolDefaultPortRange.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nat_source").AtName("pool_default_port_range_to"),
+				"Missing Configuration Error",
+				"pool_default_port_range must be specified with pool_default_port_range_to in nat_source block",
+			)
+		}
+		if !config.NatSource.PoolDefaultPortRange.IsNull() &&
+			config.NatSource.PoolDefaultPortRangeTo.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nat_source").AtName("pool_default_port_range"),
+				"Missing Configuration Error",
+				"pool_default_port_range_to must be specified with pool_default_port_range in nat_source block",
+			)
+		}
+		if !config.NatSource.PoolDefaultTwinPortRangeTo.IsNull() &&
+			config.NatSource.PoolDefaultTwinPortRange.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nat_source").AtName("pool_default_twin_port_range_to"),
+				"Missing Configuration Error",
+				"pool_default_twin_port_range must be specified with pool_default_twin_port_range_to in nat_source block",
+			)
+		}
+		if !config.NatSource.PoolDefaultTwinPortRange.IsNull() &&
+			config.NatSource.PoolDefaultTwinPortRangeTo.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nat_source").AtName("pool_default_twin_port_range"),
+				"Missing Configuration Error",
+				"pool_default_twin_port_range_to must be specified with pool_default_twin_port_range in nat_source block",
+			)
+		}
+		if !config.NatSource.PoolUtilizationAlarmClearThreshold.IsNull() &&
+			config.NatSource.PoolUtilizationAlarmRaiseThreshold.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nat_source").AtName("pool_utilization_alarm_clear_threshold"),
+				"Missing Configuration Error",
+				"pool_utilization_alarm_raise_threshold must be specified with pool_utilization_alarm_clear_threshold "+
+					"in nat_source block",
+			)
+		}
+		if !config.NatSource.PoolUtilizationAlarmClearThreshold.IsNull() &&
+			!config.NatSource.PoolUtilizationAlarmClearThreshold.IsUnknown() &&
+			!config.NatSource.PoolUtilizationAlarmRaiseThreshold.IsNull() &&
+			!config.NatSource.PoolUtilizationAlarmRaiseThreshold.IsUnknown() {
+			if config.NatSource.PoolUtilizationAlarmClearThreshold.ValueInt64() >
+				config.NatSource.PoolUtilizationAlarmRaiseThreshold.ValueInt64() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("nat_source").AtName("pool_utilization_alarm_clear_threshold"),
+					"Conflict Configuration Error",
+					"pool_utilization_alarm_clear_threshold must be larger than "+
+						"pool_utilization_alarm_raise_threshold in nat_source block",
+				)
+			}
 		}
 	}
 
@@ -2388,6 +2602,14 @@ func (rscData *securityData) set(
 			return pathErr, err
 		}
 		configSet = append(configSet, blockSet...)
+	}
+	if rscData.NatSource != nil {
+		if rscData.NatSource.isEmpty() {
+			return path.Root("nat_source").AtName("*"),
+				fmt.Errorf("nat_source block is empty")
+		}
+
+		configSet = append(configSet, rscData.NatSource.configSet()...)
 	}
 	if rscData.Policies != nil {
 		if rscData.Policies.isEmpty() {
@@ -2902,6 +3124,58 @@ func (block *securityBlockLog) configSet() (
 	return configSet, path.Empty(), nil
 }
 
+func (block *securityBlockNatSource) configSet() []string {
+	setPrefix := "set security nat source "
+	configSet := make([]string, 0)
+
+	if block.AddressPersistent.ValueBool() {
+		configSet = append(configSet, setPrefix+"address-persistent")
+	}
+	if !block.InterfacePortOverloadingFactor.IsNull() {
+		configSet = append(configSet, setPrefix+"interface port-overloading-factor "+
+			utils.ConvI64toa(block.InterfacePortOverloadingFactor.ValueInt64()))
+	}
+	if block.InterfacePortOverloadingOff.ValueBool() {
+		configSet = append(configSet, setPrefix+"interface port-overloading off")
+	}
+	if !block.PoolDefaultPortRange.IsNull() {
+		configSet = append(configSet, setPrefix+"pool-default-port-range "+
+			utils.ConvI64toa(block.PoolDefaultPortRange.ValueInt64()))
+	}
+	if !block.PoolDefaultPortRangeTo.IsNull() {
+		configSet = append(configSet, setPrefix+"pool-default-port-range to "+
+			utils.ConvI64toa(block.PoolDefaultPortRangeTo.ValueInt64()))
+	}
+	if !block.PoolDefaultTwinPortRange.IsNull() {
+		configSet = append(configSet, setPrefix+"pool-default-twin-port-range "+
+			utils.ConvI64toa(block.PoolDefaultTwinPortRange.ValueInt64()))
+	}
+	if !block.PoolDefaultTwinPortRangeTo.IsNull() {
+		configSet = append(configSet, setPrefix+"pool-default-twin-port-range to "+
+			utils.ConvI64toa(block.PoolDefaultTwinPortRangeTo.ValueInt64()))
+	}
+	if !block.PoolUtilizationAlarmClearThreshold.IsNull() {
+		configSet = append(configSet, setPrefix+"pool-utilization-alarm clear-threshold "+
+			utils.ConvI64toa(block.PoolUtilizationAlarmClearThreshold.ValueInt64()))
+	}
+	if !block.PoolUtilizationAlarmRaiseThreshold.IsNull() {
+		configSet = append(configSet, setPrefix+"pool-utilization-alarm raise-threshold "+
+			utils.ConvI64toa(block.PoolUtilizationAlarmRaiseThreshold.ValueInt64()))
+	}
+	if block.PortRandomizationDisable.ValueBool() {
+		configSet = append(configSet, setPrefix+"port-randomization disable")
+	}
+	if !block.SessionDropHoldDown.IsNull() {
+		configSet = append(configSet, setPrefix+"session-drop-hold-down "+
+			utils.ConvI64toa(block.SessionDropHoldDown.ValueInt64()))
+	}
+	if block.SessionPersistenceScan.ValueBool() {
+		configSet = append(configSet, setPrefix+"session-persistence-scan")
+	}
+
+	return configSet
+}
+
 func (block *securityBlockUserIdentificationAuthSource) configSet() []string {
 	setPrefix := "set security user-identification authentication-source "
 	configSet := make([]string, 0)
@@ -3029,6 +3303,13 @@ func (rscData *securityData) read(
 					rscData.IkeTraceoptions = &securityBlockIkeTraceoptions{}
 				}
 				if err := rscData.IkeTraceoptions.read(itemTrim); err != nil {
+					return err
+				}
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockNatSource{}.lines()):
+				if rscData.NatSource == nil {
+					rscData.NatSource = &securityBlockNatSource{}
+				}
+				if err := rscData.NatSource.read(itemTrim); err != nil {
 					return err
 				}
 			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockPolicies{}.lines()):
@@ -3527,6 +3808,42 @@ func (block *securityBlockLog) read(itemTrim string) (err error) {
 	return nil
 }
 
+func (block *securityBlockNatSource) read(itemTrim string) (err error) {
+	balt.CutPrefixInString(&itemTrim, "nat source ")
+
+	switch {
+	case itemTrim == "address-persistent":
+		block.AddressPersistent = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "interface port-overloading-factor "):
+		block.InterfacePortOverloadingFactor, err = tfdata.ConvAtoi64Value(itemTrim)
+	case itemTrim == "interface port-overloading off":
+		block.InterfacePortOverloadingOff = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "pool-default-port-range to "):
+		block.PoolDefaultPortRangeTo, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "pool-default-port-range "):
+		block.PoolDefaultPortRange, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "pool-default-twin-port-range to "):
+		block.PoolDefaultTwinPortRangeTo, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "pool-default-twin-port-range "):
+		block.PoolDefaultTwinPortRange, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "pool-utilization-alarm clear-threshold "):
+		block.PoolUtilizationAlarmClearThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "pool-utilization-alarm raise-threshold "):
+		block.PoolUtilizationAlarmRaiseThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
+	case itemTrim == "port-randomization disable":
+		block.PortRandomizationDisable = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "session-drop-hold-down "):
+		block.SessionDropHoldDown, err = tfdata.ConvAtoi64Value(itemTrim)
+	case itemTrim == "session-persistence-scan":
+		block.SessionPersistenceScan = types.BoolValue(true)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (block *securityBlockUserIdentificationAuthSource) read(itemTrim string) (err error) {
 	balt.CutPrefixInString(&itemTrim, "user-identification authentication-source ")
 
@@ -3590,6 +3907,7 @@ func (rscData securityData) del(
 	listLinesToDelete = append(listLinesToDelete, securityBlockIdpSensorConfiguration{}.lines()...)
 	listLinesToDelete = append(listLinesToDelete, securityBlockIkeTraceoptions{}.lines()...)
 	listLinesToDelete = append(listLinesToDelete, securityBlockLog{}.lines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockNatSource{}.lines()...)
 	listLinesToDelete = append(listLinesToDelete, securityBlockPolicies{}.lines()...)
 	listLinesToDelete = append(listLinesToDelete, securityBlockUserIdentificationAuthSource{}.lines()...)
 	listLinesToDelete = append(listLinesToDelete, securityBlockUtm{}.lines()...)
@@ -3697,6 +4015,20 @@ func (block securityBlockLog) lines() []string {
 		"log source-interface",
 		"log transport",
 		"log utc-timestamp",
+	}
+}
+
+func (block securityBlockNatSource) lines() []string {
+	return []string{
+		"nat source address-persistent",
+		"nat source interface port-overloading",
+		"nat source interface port-overloading-factor",
+		"nat source pool-default-port-range",
+		"nat source pool-default-twin-port-range",
+		"nat source pool-utilization-alarm",
+		"nat source port-randomization",
+		"nat source session-drop-hold-down",
+		"nat source session-persistence-scan",
 	}
 }
 

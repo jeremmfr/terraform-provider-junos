@@ -63,6 +63,39 @@ The following arguments are supported:
 - **log** (Optional, Block)  
   Declare `log` configuration.  
   See [below for nested schema](#log-arguments).
+- **nat_source** (Optional, Block)  
+  Declare `nat source` configuration.  
+  - **address_persistent** (Optional, Boolean)  
+    Allow source address to maintain same translation.
+  - **interface_port_overloading_factor** (Optional, Number)  
+    Port overloading factor for interface NAT.  
+    Conflict with `interface_port_overloading_off`.
+  - **interface_port_overloading_off** (Optional, Boolean)  
+    Turn off interface port over-loading.  
+    Conflict with `interface_port_overloading_factor`.
+  - **pool_default_port_range** (Optional, Number)  
+    Configure Source NAT default port range lower limit.  
+    `pool_default_port_range_to` must also be specified.
+  - **pool_default_port_range_to** (Optional, Number)  
+    Configure Source NAT default port range upper limit.  
+    `pool_default_port_range` must also be specified.
+  - **pool_default_twin_port_range** (Optional, Number)  
+    Configure Source NAT default twin port range lower limit.  
+    `pool_default_twin_port_range_to` must also be specified.
+  - **pool_default_twin_port_range_to** (Optional, Number)  
+    Configure Source NAT default twin port range upper limit.  
+    `pool_default_twin_port_range` must also be specified.
+  - **pool_utilization_alarm_clear_threshold** (Optional, Number)  
+    Clear threshold for pool utilization alarm (40..100).  
+    `pool_utilization_alarm_raise_threshold` must also be specified.
+  - **pool_utilization_alarm_raise_threshold** (Optional, Number)  
+    Raise threshold for pool utilization alarm (50..100).
+  - **port_randomization_disable** (Optional, Boolean)  
+    Disable Source NAT port randomization.
+  - **session_drop_hold_down** (Optional, Number)  
+    Session drop hold down time (30..28800).
+  - **session_persistence_scan** (Optional, Boolean)  
+    Allow source to maintain session when session scan.
 - **policies** (Optional, Block)  
   Declare `policies` configuration.
   - **policy_rematch** (Optional, Boolean)  

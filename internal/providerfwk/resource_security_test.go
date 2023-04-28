@@ -361,6 +361,10 @@ resource "junos_security" "testacc_security" {
     }
     utc_timestamp = true
   }
+  nat_source {
+    interface_port_overloading_off         = true
+    pool_utilization_alarm_raise_threshold = 90
+  }
   policies {
     policy_rematch = true
   }
@@ -437,6 +441,19 @@ resource "junos_security" "testacc_security" {
     max_database_record = 1000
     rate_cap            = 100
     source_address      = "192.0.2.1"
+  }
+  nat_source {
+    address_persistent                     = true
+    interface_port_overloading_factor      = 32
+    pool_default_port_range                = 10242
+    pool_default_port_range_to             = 20242
+    pool_default_twin_port_range           = 64000
+    pool_default_twin_port_range_to        = 65001
+    pool_utilization_alarm_clear_threshold = 45
+    pool_utilization_alarm_raise_threshold = 80
+    port_randomization_disable             = true
+    session_drop_hold_down                 = 600
+    session_persistence_scan               = true
   }
   policies {
     policy_rematch_extensive = true
