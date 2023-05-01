@@ -4,6 +4,10 @@ page_title: "Junos: junos_forwardingoptions_sampling"
 
 # junos_forwardingoptions_sampling
 
+-> **Note:** This resource should only be created **once** for root level or each routing-instance.
+It's used to configure static (not object) options in `forwarding-options sampling` block in root or
+routing-instance level.
+
 Configure static configuration in `forwarding-options sampling` block for root or
 routing-instance level.
 
