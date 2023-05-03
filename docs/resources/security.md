@@ -56,11 +56,46 @@ The following arguments are supported:
     See [below for nested schema](#file-arguments-for-ike_traceoptions).
   - **flag** (Optional, Set of String)  
     Tracing parameters for IKE.
+  - **no_remote_trace** (Optional, Boolean)  
+    Disable remote tracing.
   - **rate_limit** (Optional, Number)  
-    Limit the incoming rate of trace messages (0..4294967295)
+    Limit the incoming rate of trace messages (0..4294967295).
 - **log** (Optional, Block)  
   Declare `log` configuration.  
   See [below for nested schema](#log-arguments).
+- **nat_source** (Optional, Block)  
+  Declare `nat source` configuration.  
+  - **address_persistent** (Optional, Boolean)  
+    Allow source address to maintain same translation.
+  - **interface_port_overloading_factor** (Optional, Number)  
+    Port overloading factor for interface NAT.  
+    Conflict with `interface_port_overloading_off`.
+  - **interface_port_overloading_off** (Optional, Boolean)  
+    Turn off interface port over-loading.  
+    Conflict with `interface_port_overloading_factor`.
+  - **pool_default_port_range** (Optional, Number)  
+    Configure Source NAT default port range lower limit.  
+    `pool_default_port_range_to` must also be specified.
+  - **pool_default_port_range_to** (Optional, Number)  
+    Configure Source NAT default port range upper limit.  
+    `pool_default_port_range` must also be specified.
+  - **pool_default_twin_port_range** (Optional, Number)  
+    Configure Source NAT default twin port range lower limit.  
+    `pool_default_twin_port_range_to` must also be specified.
+  - **pool_default_twin_port_range_to** (Optional, Number)  
+    Configure Source NAT default twin port range upper limit.  
+    `pool_default_twin_port_range` must also be specified.
+  - **pool_utilization_alarm_clear_threshold** (Optional, Number)  
+    Clear threshold for pool utilization alarm (40..100).  
+    `pool_utilization_alarm_raise_threshold` must also be specified.
+  - **pool_utilization_alarm_raise_threshold** (Optional, Number)  
+    Raise threshold for pool utilization alarm (50..100).
+  - **port_randomization_disable** (Optional, Boolean)  
+    Disable Source NAT port randomization.
+  - **session_drop_hold_down** (Optional, Number)  
+    Session drop hold down time (30..28800).
+  - **session_persistence_scan** (Optional, Boolean)  
+    Allow source to maintain session when session scan.
 - **policies** (Optional, Block)  
   Declare `policies` configuration.
   - **policy_rematch** (Optional, Boolean)  
@@ -94,7 +129,7 @@ The following arguments are supported:
     Configuring feature-profile web-filtering type.  
     Need to be `juniper-enhanced`, `juniper-local`, `web-filtering-none` or `websense-redirect`.
   - **feature_profile_web_filtering_juniper_enhanced_server** (Optional, Block)  
-    Declare `server` configuration.  
+    Declare `utm feature-profile web-filtering juniper-enhanced server` configuration.  
     See [below for nested schema](#feature_profile_web_filtering_juniper_enhanced_server-arguments-for-utm).
 
 ---
@@ -143,9 +178,9 @@ The following arguments are supported:
 - **no_world_readable** (Optional, Boolean)  
   Don't allow any user to read the log file.
 - **size** (Optional, Number)  
-  Maximum trace file size (10240..1073741824)
+  Maximum trace file size (10240..1073741824).
 - **world_readable** (Optional, Boolean)  
-  Allow any user to read the log file
+  Allow any user to read the log file.
 
 ---
 
@@ -153,10 +188,10 @@ The following arguments are supported:
 
 - **advanced_options** (Optional, Block)  
   Declare `flow advanced-options` configuration.
-  - **drop_matching_reserved_ip_address** (Optional, Boolean)  
-    Drop matching reserved source IP address.
   - **drop_matching_link_local_address** (Optional, Boolean)  
     Drop matching link local address.
+  - **drop_matching_reserved_ip_address** (Optional, Boolean)  
+    Drop matching reserved source IP address.
   - **reverse_route_packet_mode_vr** (Optional, Boolean)  
     Allow reverse route lookup with packet mode vr.
 - **aging** (Optional, Block)  
@@ -252,11 +287,11 @@ The following arguments are supported:
 - **inet6_mode** (Optional, String)  
   Forwarding mode for inet6 family.  
   Need to be `drop`, `flow-based` or `packet-based`.
+- **iso_mode_packet_based** (Optional, Boolean)  
+  Forwarding mode packet-based for iso family.
 - **mpls_mode** (Optional, String)  
   Forwarding mode for mpls family.  
   Need to be `flow-based` or `packet-based`.
-- **iso_mode_packet_based** (Optional, Boolean)  
-  Forwarding mode packet-based for iso family.
 
 ---
 
@@ -269,7 +304,7 @@ The following arguments are supported:
 - **automatic_start_time** (Optional, String)  
   Automatic start time `YYYY-MM-DD.HH:MM:SS`.
 - **install_ignore_version_check** (Optional, Boolean)  
-  Skip version check  when attack database gets installed.
+  Skip version check when attack database gets installed.
 - **proxy_profile** (Optional, String)  
   Proxy profile of security package download.
 - **source_address** (Optional, String)  
@@ -325,7 +360,7 @@ The following arguments are supported:
 - **facility_override** (Optional, String)  
   Alternate facility for logging to remote host.
 - **file** (Optional, Block)  
-  Declare `security log file` block.
+  Declare `security log file` configuration.
   - **files** (Optional, Number)  
     Maximum number of binary log files (2..10).
   - **name** (Optional, String)  
@@ -353,12 +388,12 @@ The following arguments are supported:
   Source interface used when exporting security logs.  
   Conflict with `source_address`.
 - **transport** (Optional, Block)  
-  Declare `security log transport` block.
+  Declare `security log transport` configuration.
   - **protocol** (Optional, String)  
     Set security log transport protocol for the device.  
     Need to be `tcp`, `tls` or `udp`.
   - **tcp_connections** (Optional, Number)  
-    Set tcp connection number per-stream (1..5)
+    Set tcp connection number per-stream (1..5).
   - **tls_profile** (Optional, String)  
     TLS profile.
 - **utc_timestamp** (Optional, Boolean)  

@@ -262,13 +262,6 @@ func listOfSyslogSeverity() []string {
 	}
 }
 
-func listOfSyslogFacility() []string {
-	return []string{
-		"authorization", "daemon", "ftp", "kernel", "user",
-		"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7",
-	}
-}
-
 func validateIsIPv6Address(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

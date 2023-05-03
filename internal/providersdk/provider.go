@@ -183,7 +183,6 @@ func Provider() *schema.Provider {
 			"junos_routing_options":                                      resourceRoutingOptions(),
 			"junos_rstp":                                                 resourceRstp(),
 			"junos_rstp_interface":                                       resourceRstpInterface(),
-			"junos_security":                                             resourceSecurity(),
 			"junos_security_dynamic_address_feed_server":                 resourceSecurityDynamicAddressFeedServer(),
 			"junos_security_dynamic_address_name":                        resourceSecurityDynamicAddressName(),
 			"junos_security_idp_custom_attack":                           resourceSecurityIdpCustomAttack(),
