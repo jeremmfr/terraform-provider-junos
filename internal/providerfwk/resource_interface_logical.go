@@ -54,6 +54,10 @@ func (rsc *interfaceLogical) junosName() string {
 	return "logical interface"
 }
 
+func (rsc *interfaceLogical) junosClient() *junos.Client {
+	return rsc.client
+}
+
 func (rsc *interfaceLogical) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
@@ -1845,6 +1849,7 @@ func (rsc *interfaceLogical) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Start Session Error", err.Error())
@@ -2064,44 +2069,12 @@ func (rsc *interfaceLogical) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *interfaceLogical) ImportState(

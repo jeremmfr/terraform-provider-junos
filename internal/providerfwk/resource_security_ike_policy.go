@@ -7,7 +7,6 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -47,6 +46,10 @@ func (rsc *securityIkePolicy) typeName() string {
 
 func (rsc *securityIkePolicy) junosName() string {
 	return "security ike policy"
+}
+
+func (rsc *securityIkePolicy) junosClient() *junos.Client {
+	return rsc.client
 }
 
 func (rsc *securityIkePolicy) Metadata(
@@ -235,98 +238,58 @@ func (rsc *securityIkePolicy) Create(
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			if !junSess.CheckCompatibilitySecurity() {
+				resp.Diagnostics.AddError(
+					"Compatibility Error",
+					fmt.Sprintf(rsc.junosName()+" not compatible "+
+						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+				)
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				return false
+			}
+			policyExists, err := checkSecurityIkePolicyExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+
+				return false
+			}
+			if policyExists {
+				resp.Diagnostics.AddError(
+					"Duplicate Configuration Error",
+					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+				)
+
+				return false
 			}
 
-			return
-		}
+			return true
+		},
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			policyExists, err := checkSecurityIkePolicyExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError("Post Check Error", err.Error())
 
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+				return false
+			}
+			if !policyExists {
+				resp.Diagnostics.AddError(
+					"Not Found Error",
+					fmt.Sprintf(rsc.junosName()+" %q not exists after commit "+
+						"=> check your config", plan.Name.ValueString()),
+				)
 
-		return
-	}
+				return false
+			}
 
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if !junSess.CheckCompatibilitySecurity() {
-		resp.Diagnostics.AddError(
-			"Compatibility Error",
-			fmt.Sprintf(rsc.junosName()+" not compatible "+
-				"with Junos device %q", junSess.SystemInformation.HardwareModel),
-		)
-
-		return
-	}
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	policyExists, err := checkSecurityIkePolicyExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if policyExists {
-		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	policyExists, err = checkSecurityIkePolicyExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
-
-		return
-	}
-	if !policyExists {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf(rsc.junosName()+" %q not exists after commit "+
-				"=> check your config", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+			return true
+		},
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *securityIkePolicy) Read(
@@ -337,29 +300,18 @@ func (rsc *securityIkePolicy) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
 
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(ctx, state.Name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-	if data.ID.IsNull() {
-		resp.State.RemoveResource(ctx)
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceRead(
+		ctx,
+		rsc,
+		[]string{
+			state.Name.ValueString(),
+		},
+		&data,
+		nil,
+		resp,
+	)
 }
 
 func (rsc *securityIkePolicy) Update(
@@ -372,66 +324,13 @@ func (rsc *securityIkePolicy) Update(
 		return
 	}
 
-	if rsc.client.FakeUpdateAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
-			}
-
-			return
-		}
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	defaultResourceUpdate(
+		ctx,
+		rsc,
+		&state,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *securityIkePolicy) Delete(
@@ -443,74 +342,29 @@ func (rsc *securityIkePolicy) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *securityIkePolicy) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
 	var data securityIkePolicyData
-	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
-	}
-
-	if data.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <name>)", req.ID),
-		)
-
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceImportState(
+		ctx,
+		rsc,
+		&data,
+		req,
+		resp,
+		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
+			"(id must be <name>)", req.ID),
+	)
 }
 
 func checkSecurityIkePolicyExists(
@@ -531,6 +385,10 @@ func checkSecurityIkePolicyExists(
 
 func (rscData *securityIkePolicyData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
+}
+
+func (rscData *securityIkePolicyData) nullID() bool {
+	return rscData.ID.IsNull()
 }
 
 func (rscData *securityIkePolicyData) set(

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -43,6 +42,10 @@ func (rsc *securityZoneBookAddressSet) typeName() string {
 
 func (rsc *securityZoneBookAddressSet) junosName() string {
 	return "security zone address-book address-set"
+}
+
+func (rsc *securityZoneBookAddressSet) junosClient() *junos.Client {
+	return rsc.client
 }
 
 func (rsc *securityZoneBookAddressSet) Metadata(
@@ -199,124 +202,84 @@ func (rsc *securityZoneBookAddressSet) Create(
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			if !junSess.CheckCompatibilitySecurity() {
+				resp.Diagnostics.AddError(
+					"Compatibility Error",
+					fmt.Sprintf(rsc.junosName()+" not compatible "+
+						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+				)
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				return false
+			}
+			zonesExists, err := checkSecurityZonesExists(fnCtx, plan.Zone.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+
+				return false
+			}
+			if !zonesExists {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("zone"),
+					"Missing Configuration Error",
+					fmt.Sprintf("security zone %q doesn't exist", plan.Zone.ValueString()),
+				)
+
+				return false
+			}
+			setExists, err := checkSecurityZoneBookAddressSetExists(
+				fnCtx,
+				plan.Zone.ValueString(),
+				plan.Name.ValueString(),
+				junSess,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+
+				return false
+			}
+			if setExists {
+				resp.Diagnostics.AddError(
+					"Duplicate Configuration Error",
+					fmt.Sprintf(rsc.junosName()+" %q already exists in zone %q",
+						plan.Name.ValueString(), plan.Zone.ValueString()),
+				)
+
+				return false
 			}
 
-			return
-		}
+			return true
+		},
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			setExists, err := checkSecurityZoneBookAddressSetExists(
+				fnCtx,
+				plan.Zone.ValueString(),
+				plan.Name.ValueString(),
+				junSess,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError("Post Check Error", err.Error())
 
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+				return false
+			}
+			if !setExists {
+				resp.Diagnostics.AddError(
+					"Not Found Error",
+					fmt.Sprintf(rsc.junosName()+" %q does not exists in zone %q after commit "+
+						"=> check your config", plan.Name.ValueString(), plan.Zone.ValueString()),
+				)
 
-		return
-	}
+				return false
+			}
 
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if !junSess.CheckCompatibilitySecurity() {
-		resp.Diagnostics.AddError(
-			"Compatibility Error",
-			fmt.Sprintf(rsc.junosName()+" not compatible "+
-				"with Junos device %q", junSess.SystemInformation.HardwareModel),
-		)
-
-		return
-	}
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	zonesExists, err := checkSecurityZonesExists(ctx, plan.Zone.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if !zonesExists {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("zone"),
-			"Missing Configuration Error",
-			fmt.Sprintf("security zone %q doesn't exist", plan.Zone.ValueString()),
-		)
-
-		return
-	}
-	setExists, err := checkSecurityZoneBookAddressSetExists(
-		ctx,
-		plan.Zone.ValueString(),
-		plan.Name.ValueString(),
-		junSess,
+			return true
+		},
+		&plan,
+		resp,
 	)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if setExists {
-		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" %q already exists in zone %q",
-				plan.Name.ValueString(), plan.Zone.ValueString()),
-		)
-
-		return
-	}
-
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	setExists, err = checkSecurityZoneBookAddressSetExists(
-		ctx,
-		plan.Zone.ValueString(),
-		plan.Name.ValueString(),
-		junSess,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
-
-		return
-	}
-	if !setExists {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf(rsc.junosName()+" %q does not exists in zone %q after commit "+
-				"=> check your config", plan.Name.ValueString(), plan.Zone.ValueString()),
-		)
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (rsc *securityZoneBookAddressSet) Read(
@@ -327,34 +290,19 @@ func (rsc *securityZoneBookAddressSet) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
 
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(
+	var _ resourceDataReadFrom2String = &data
+	defaultResourceRead(
 		ctx,
-		state.Zone.ValueString(),
-		state.Name.ValueString(),
-		junSess,
+		rsc,
+		[]string{
+			state.Zone.ValueString(),
+			state.Name.ValueString(),
+		},
+		&data,
+		nil,
+		resp,
 	)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-	if data.ID.IsNull() {
-		resp.State.RemoveResource(ctx)
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (rsc *securityZoneBookAddressSet) Update(
@@ -367,66 +315,13 @@ func (rsc *securityZoneBookAddressSet) Update(
 		return
 	}
 
-	if rsc.client.FakeUpdateAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
-			}
-
-			return
-		}
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	defaultResourceUpdate(
+		ctx,
+		rsc,
+		&state,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *securityZoneBookAddressSet) Delete(
@@ -438,84 +333,29 @@ func (rsc *securityZoneBookAddressSet) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *securityZoneBookAddressSet) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
-	idList := strings.Split(req.ID, junos.IDSeparator)
-	if len(idList) < 2 {
-		resp.Diagnostics.AddError(
-			"Bad ID Format",
-			fmt.Sprintf("missing element(s) in id with separator %q", junos.IDSeparator),
-		)
-
-		return
-	}
-
 	var data securityZoneBookAddressSetData
-	if err := data.read(ctx, idList[0], idList[1], junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
-	}
-
-	if data.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <zone>"+junos.IDSeparator+"<name>)", req.ID),
-		)
-
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ resourceDataReadFrom2String = &data
+	defaultResourceImportState(
+		ctx,
+		rsc,
+		&data,
+		req,
+		resp,
+		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
+			"(id must be <zone>"+junos.IDSeparator+"<name>)", req.ID),
+	)
 }
 
 func checkSecurityZoneBookAddressSetExists(
@@ -537,6 +377,10 @@ func checkSecurityZoneBookAddressSetExists(
 
 func (rscData *securityZoneBookAddressSetData) fillID() {
 	rscData.ID = types.StringValue(rscData.Zone.ValueString() + junos.IDSeparator + rscData.Name.ValueString())
+}
+
+func (rscData *securityZoneBookAddressSetData) nullID() bool {
+	return rscData.ID.IsNull()
 }
 
 func (rscData *securityZoneBookAddressSetData) set(

@@ -165,6 +165,7 @@ func (rsc *interfaceSt0Unit) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Start Session Error", err.Error())

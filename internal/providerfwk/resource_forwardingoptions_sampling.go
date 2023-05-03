@@ -7,7 +7,6 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
@@ -48,6 +47,10 @@ func (rsc *forwardingoptionsSampling) typeName() string {
 
 func (rsc *forwardingoptionsSampling) junosName() string {
 	return "forwarding-options sampling"
+}
+
+func (rsc *forwardingoptionsSampling) junosClient() *junos.Client {
+	return rsc.client
 }
 
 func (rsc *forwardingoptionsSampling) Metadata(
@@ -1189,99 +1192,57 @@ func (rsc *forwardingoptionsSampling) Create(
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+				instanceExists, err := checkRoutingInstanceExists(fnCtx, v, junSess)
+				if err != nil {
+					resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+					return false
+				}
+				if !instanceExists {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("routing_instance"),
+						"Missing Configuration Error",
+						fmt.Sprintf("routing instance %q doesn't exist", v),
+					)
+
+					return false
+				}
+			}
+			var check forwardingoptionsSamplingData
+			if err := check.read(fnCtx, plan.RoutingInstance.ValueString(), junSess); err != nil {
+				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+
+				return false
+			}
+			if check.FamilyInetInput != nil ||
+				check.FamilyInetOutput != nil ||
+				check.FamilyInet6Input != nil ||
+				check.FamilyInet6Output != nil ||
+				check.FamilyMplsInput != nil ||
+				check.FamilyMplsOutput != nil ||
+				check.Input != nil ||
+				!check.Disable.IsNull() ||
+				!check.PreRewriteTos.IsNull() ||
+				!check.SampleOnce.IsNull() {
+				resp.Diagnostics.AddError(
+					"Duplicate Configuration Error",
+					fmt.Sprintf(rsc.junosName()+" with routing-instance %q already configured", plan.RoutingInstance.ValueString()),
+				)
+
+				return false
 			}
 
-			return
-		}
-
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		instanceExists, err := checkRoutingInstanceExists(ctx, v, junSess)
-		if err != nil {
-			resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-			return
-		}
-		if !instanceExists {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("routing_instance"),
-				"Missing Configuration Error",
-				fmt.Sprintf("routing instance %q doesn't exist", v),
-			)
-
-			return
-		}
-	}
-	var check forwardingoptionsSamplingData
-	if err = check.read(ctx, plan.RoutingInstance.ValueString(), junSess); err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if check.FamilyInetInput != nil ||
-		check.FamilyInetOutput != nil ||
-		check.FamilyInet6Input != nil ||
-		check.FamilyInet6Output != nil ||
-		check.FamilyMplsInput != nil ||
-		check.FamilyMplsOutput != nil ||
-		check.Input != nil ||
-		!check.Disable.IsNull() ||
-		!check.PreRewriteTos.IsNull() ||
-		!check.SampleOnce.IsNull() {
-		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" with routing-instance %q already configured", plan.RoutingInstance.ValueString()),
-		)
-
-		return
-	}
-
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+			return true
+		},
+		nil,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *forwardingoptionsSampling) Read(
@@ -1292,6 +1253,7 @@ func (rsc *forwardingoptionsSampling) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Start Session Error", err.Error())
@@ -1340,66 +1302,13 @@ func (rsc *forwardingoptionsSampling) Update(
 		return
 	}
 
-	if rsc.client.FakeUpdateAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
-			}
-
-			return
-		}
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	defaultResourceUpdate(
+		ctx,
+		rsc,
+		&state,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *forwardingoptionsSampling) Delete(
@@ -1411,44 +1320,12 @@ func (rsc *forwardingoptionsSampling) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *forwardingoptionsSampling) ImportState(

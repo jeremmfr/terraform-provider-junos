@@ -7,7 +7,6 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
@@ -49,6 +48,10 @@ func (rsc *servicesFlowMonitoringV9Template) typeName() string {
 
 func (rsc *servicesFlowMonitoringV9Template) junosName() string {
 	return "services flow-monitoring version9 template"
+}
+
+func (rsc *servicesFlowMonitoringV9Template) junosClient() *junos.Client {
+	return rsc.client
 }
 
 func (rsc *servicesFlowMonitoringV9Template) Metadata(
@@ -380,89 +383,49 @@ func (rsc *servicesFlowMonitoringV9Template) Create(
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			templateExists, err := checkServicesFlowMonitoringV9TemplateExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError("Pre Check Error", err.Error())
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				return false
+			}
+			if templateExists {
+				resp.Diagnostics.AddError(
+					"Duplicate Configuration Error",
+					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+				)
+
+				return false
 			}
 
-			return
-		}
+			return true
+		},
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			templateExists, err := checkServicesFlowMonitoringV9TemplateExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError("Post Check Error", err.Error())
 
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+				return false
+			}
+			if !templateExists {
+				resp.Diagnostics.AddError(
+					"Not Found Error",
+					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
+						"=> check your config", plan.Name.ValueString()),
+				)
 
-		return
-	}
+				return false
+			}
 
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	templateExists, err := checkServicesFlowMonitoringV9TemplateExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if templateExists {
-		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	templateExists, err = checkServicesFlowMonitoringV9TemplateExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
-
-		return
-	}
-	if !templateExists {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-				"=> check your config", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+			return true
+		},
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *servicesFlowMonitoringV9Template) Read(
@@ -473,29 +436,18 @@ func (rsc *servicesFlowMonitoringV9Template) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
 
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(ctx, state.Name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-	if data.ID.IsNull() {
-		resp.State.RemoveResource(ctx)
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceRead(
+		ctx,
+		rsc,
+		[]string{
+			state.Name.ValueString(),
+		},
+		&data,
+		nil,
+		resp,
+	)
 }
 
 func (rsc *servicesFlowMonitoringV9Template) Update(
@@ -508,66 +460,13 @@ func (rsc *servicesFlowMonitoringV9Template) Update(
 		return
 	}
 
-	if rsc.client.FakeUpdateAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
-			}
-
-			return
-		}
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	defaultResourceUpdate(
+		ctx,
+		rsc,
+		&state,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *servicesFlowMonitoringV9Template) Delete(
@@ -579,74 +478,29 @@ func (rsc *servicesFlowMonitoringV9Template) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *servicesFlowMonitoringV9Template) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
 	var data servicesFlowMonitoringV9TemplateData
-	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
-	}
-
-	if data.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <name>)", req.ID),
-		)
-
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceImportState(
+		ctx,
+		rsc,
+		&data,
+		req,
+		resp,
+		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
+			"(id must be <name>)", req.ID),
+	)
 }
 
 func checkServicesFlowMonitoringV9TemplateExists(
@@ -668,6 +522,10 @@ func checkServicesFlowMonitoringV9TemplateExists(
 
 func (rscData *servicesFlowMonitoringV9TemplateData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
+}
+
+func (rscData *servicesFlowMonitoringV9TemplateData) nullID() bool {
+	return rscData.ID.IsNull()
 }
 
 func (rscData *servicesFlowMonitoringV9TemplateData) set(
