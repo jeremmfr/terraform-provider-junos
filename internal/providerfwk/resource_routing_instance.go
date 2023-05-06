@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -316,7 +317,7 @@ func (rsc *routingInstance) ValidateConfig(
 			!config.VRFTargetImport.IsNull()) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("configure_rd_vrfopts_singly"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"cannot have configure_rd_vrfopts_singly and want to configure route-distinguisher or vrf options at the same time",
 		)
 	}
@@ -324,13 +325,13 @@ func (rsc *routingInstance) ValidateConfig(
 		if config.Type.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("configure_type_singly"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"type must specified with empty string when configure_type_singly is enabled",
 			)
 		} else if !config.Type.IsUnknown() && config.Type.ValueString() != "" {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("type"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"type must specified with empty string when configure_type_singly is enabled",
 			)
 		}
@@ -357,7 +358,7 @@ func (rsc *routingInstance) Create(
 	if plan.ConfigureTypeSingly.ValueBool() && plan.Type.ValueString() != "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("type"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"type must specified with empty string when configure_type_singly is enabled",
 		)
 
@@ -370,13 +371,13 @@ func (rsc *routingInstance) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			instanceExists, err := checkRoutingInstanceExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if instanceExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -388,13 +389,13 @@ func (rsc *routingInstance) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			instanceExists, err := checkRoutingInstanceExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !instanceExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)

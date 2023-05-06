@@ -7,6 +7,7 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
@@ -326,7 +327,7 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) ValidateConfig(
 	if !config.NexthopLearningEnable.IsNull() && !config.NexthopLearningDisable.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("nexthop_learning_enable"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"cannot have nexthop_learning_enable and nexthop_learning_disable at the same time",
 		)
 	}
@@ -335,7 +336,7 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) ValidateConfig(
 		if v := config.Type.ValueString(); v != "ipv4-template" && v != "ipv6-template" {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ip_template_export_extension"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				fmt.Sprintf("ip_template_export_extension not compatible with type %q", v),
 			)
 		}
@@ -345,7 +346,7 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) ValidateConfig(
 		if v := config.Type.ValueString(); v != "mpls-template" {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("mpls_template_label_position"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				fmt.Sprintf("mpls_template_label_position not compatible with type %q", v),
 			)
 		}
@@ -371,8 +372,8 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) Create(
 	}
 	if plan.Type.ValueString() == "" {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("name"),
-			"Empty Name",
+			path.Root("type"),
+			"Empty Type",
 			"could not create "+rsc.junosName()+" with empty type",
 		)
 
@@ -385,13 +386,13 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			templateExists, err := checkServicesFlowMonitoringVIPFixTemplateExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if templateExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -403,13 +404,13 @@ func (rsc *servicesFlowMonitoringVIPFixTemplate) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			templateExists, err := checkServicesFlowMonitoringVIPFixTemplateExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !templateExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)

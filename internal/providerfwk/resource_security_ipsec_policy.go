@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -171,7 +172,7 @@ func (rsc *securityIpsecPolicy) ValidateConfig(
 	if !config.Proposals.IsNull() && !config.ProposalSet.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("proposals"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"only one of proposals or proposal_set must be specified",
 		)
 	}
@@ -201,7 +202,7 @@ func (rsc *securityIpsecPolicy) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
@@ -210,13 +211,13 @@ func (rsc *securityIpsecPolicy) Create(
 			}
 			policyExists, err := checkSecurityIpsecPolicyExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if policyExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -228,13 +229,13 @@ func (rsc *securityIpsecPolicy) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			policyExists, err := checkSecurityIpsecPolicyExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !policyExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)

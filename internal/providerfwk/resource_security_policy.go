@@ -484,7 +484,7 @@ func (rsc *securityPolicy) ValidateConfig(
 	if config.Policy.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("policy").AtName("name"),
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"at least one policy block must be specified",
 		)
 	} else if !config.Policy.IsUnknown() {
@@ -500,7 +500,7 @@ func (rsc *securityPolicy) ValidateConfig(
 			if block.MatchApplication.IsNull() && block.MatchDynamicApplication.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("policy").AtListIndex(i).AtName("name"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("at least one of match_application or match_dynamic_application "+
 						"must be specified in policy %q", block.Name.ValueString()),
 				)
@@ -509,7 +509,7 @@ func (rsc *securityPolicy) ValidateConfig(
 				if _, ok := policyName[block.Name.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("name"),
-						"Duplicate Configuration Error",
+						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple policy blocks with the same name %q", block.Name.ValueString()),
 					)
 				}
@@ -519,7 +519,7 @@ func (rsc *securityPolicy) ValidateConfig(
 				if block.Then.ValueString() != junos.PermitW {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("then"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						fmt.Sprintf("then is not %q (%q) and permit_tunnel_ipsec_vpn is set in policy %q",
 							junos.PermitW, block.Then.ValueString(), block.Name.ValueString()),
 					)
@@ -529,14 +529,14 @@ func (rsc *securityPolicy) ValidateConfig(
 				if block.PermitApplicationServices.isEmpty() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("permit_application_services"),
-						"Missing Configuration Error",
+						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("permit_application_services block is empty in policy %q", block.Name.ValueString()),
 					)
 				}
 				if block.Then.ValueString() != "" && block.Then.ValueString() != junos.PermitW {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("then"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						fmt.Sprintf("then is not %q (%q) and permit_application_services is set in policy %q",
 							junos.PermitW, block.Then.ValueString(), block.Name.ValueString()),
 					)
@@ -545,7 +545,7 @@ func (rsc *securityPolicy) ValidateConfig(
 					block.PermitApplicationServices.ReverseRedirectWx.ValueBool() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("redirect_wx"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						fmt.Sprintf("redirect_wx and reverse_redirect_wx enabled both in policy %q", block.Name.ValueString()),
 					)
 				}
@@ -577,7 +577,7 @@ func (rsc *securityPolicy) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel))
 
@@ -590,13 +590,13 @@ func (rsc *securityPolicy) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if policyExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" from %q to %q already exists",
 						plan.FromZone.ValueString(), plan.ToZone.ValueString()),
 				)
@@ -614,13 +614,13 @@ func (rsc *securityPolicy) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !policyExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" from %q to %q not exists after commit "+
 						"=> check your config", plan.FromZone.ValueString(), plan.ToZone.ValueString()),
 				)
@@ -672,15 +672,15 @@ func (rsc *securityPolicy) Update(
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
 
 		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
 		if errPath, err := plan.set(ctx, junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -693,17 +693,19 @@ func (rsc *securityPolicy) Update(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	listLinesToPairPolicy, err := readSecurityPolicyTunnelPairPolicyLines(
 		ctx,
@@ -712,33 +714,33 @@ func (rsc *securityPolicy) Update(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	if err := junSess.ConfigSet(listLinesToPairPolicy); err != nil {
-		resp.Diagnostics.AddError("Config Set Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}

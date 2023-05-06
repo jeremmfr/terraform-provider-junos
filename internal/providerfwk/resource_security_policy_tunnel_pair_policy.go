@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -163,7 +164,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible"+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel))
 
@@ -176,13 +177,13 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !policyExists {
 				resp.Diagnostics.AddError(
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("security policy from %q to %q doesn't exist",
 						plan.ZoneA.ValueString(), plan.ZoneB.ValueString()),
 				)
@@ -196,13 +197,13 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !policyExists {
 				resp.Diagnostics.AddError(
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("security policy from %q to %q doesn't exist",
 						plan.ZoneB.ValueString(), plan.ZoneA.ValueString()),
 				)
@@ -218,13 +219,13 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if pairPolicyExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q(%q) / %q(%q) already exists",
 						plan.ZoneA.ValueString(),
 						plan.PolicyAtoB.ValueString(),
@@ -247,13 +248,13 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !pairPolicyExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" does not exists after commit "+
 						"=> check your config"),
 				)

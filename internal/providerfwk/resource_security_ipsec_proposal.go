@@ -7,6 +7,7 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -179,7 +180,7 @@ func (rsc *securityIpsecProposal) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
@@ -188,13 +189,13 @@ func (rsc *securityIpsecProposal) Create(
 			}
 			proposalExists, err := checkSecurityIpsecProposalExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if proposalExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -206,13 +207,13 @@ func (rsc *securityIpsecProposal) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			proposalExists, err := checkSecurityIpsecProposalExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !proposalExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -391,7 +392,7 @@ func (rsc *securityAddressBook) ValidateConfig(
 	if (config.Name.IsNull() || config.Name.ValueString() == "global") && !config.AttachZone.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("attach_zone"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"cannot attach global address book to a zone",
 		)
 	}
@@ -412,7 +413,7 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("network_address"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -432,7 +433,7 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if block.IPv4Only.ValueBool() && block.IPv6Only.ValueBool() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dns_name"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					fmt.Sprintf("ipv4_only and ipv6_only cannot be configured together in dns_name %q", block.Name.ValueString()),
 				)
 			}
@@ -442,7 +443,7 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dns_name"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -465,7 +466,7 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("range_address"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -488,7 +489,7 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("wildcard_address"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -508,7 +509,7 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if block.Address.IsNull() && block.AddressSet.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_set"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("at least one of address or address_set must be specified in address_set %q",
 						block.Name.ValueString()),
 				)
@@ -519,7 +520,7 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_set"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses or address-sets with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -537,12 +538,12 @@ func (rsc *securityAddressBook) ValidateConfig(
 		config.AddressSet.IsNull() {
 		if config.Name.IsNull() {
 			resp.Diagnostics.AddError(
-				"Empty Resource",
+				tfdiag.MissingConfigErrSummary,
 				"resource without argument is not supported",
 			)
 		} else {
 			resp.Diagnostics.AddError(
-				"Empty Resource",
+				tfdiag.MissingConfigErrSummary,
 				"resource with only the name argument is not supported",
 			)
 		}
@@ -573,7 +574,7 @@ func (rsc *securityAddressBook) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf("security policy not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
@@ -582,13 +583,13 @@ func (rsc *securityAddressBook) Create(
 			}
 			bookExists, err := checkSecurityAddressBookExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if bookExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -600,13 +601,13 @@ func (rsc *securityAddressBook) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			bookExists, err := checkSecurityAddressBookExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !bookExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)

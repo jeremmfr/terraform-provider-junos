@@ -76,9 +76,9 @@ func defaultResourceCreate(
 
 		if errPath, err := plan.set(ctx, junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -92,17 +92,19 @@ func defaultResourceCreate(
 
 	junSess, err := rsc.junosClient().StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	if preCheck != nil && !preCheck(ctx, junSess) {
 		return
@@ -110,17 +112,17 @@ func defaultResourceCreate(
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -143,7 +145,7 @@ func defaultResourceRead(
 ) {
 	junSess, err := rsc.junosClient().StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -164,7 +166,7 @@ func defaultResourceRead(
 	}
 	junos.MutexUnlock()
 	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}
@@ -194,22 +196,22 @@ func defaultResourceUpdate(
 
 		if stateOpts, ok := state.(resourceDataDelWithOpts); ok {
 			if err := stateOpts.delOpts(ctx, junSess); err != nil {
-				resp.Diagnostics.AddError("Config Del Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 				return
 			}
 		} else {
 			if err := state.del(ctx, junSess); err != nil {
-				resp.Diagnostics.AddError("Config Del Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 				return
 			}
 		}
 		if errPath, err := plan.set(ctx, junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -222,44 +224,46 @@ func defaultResourceUpdate(
 
 	junSess, err := rsc.junosClient().StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	if stateOpts, ok := state.(resourceDataDelWithOpts); ok {
 		if err := stateOpts.delOpts(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
 	} else {
 		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -277,7 +281,7 @@ func defaultResourceDelete(
 		junSess := rsc.junosClient().NewSessionWithoutNetconf(ctx)
 
 		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
@@ -287,27 +291,29 @@ func defaultResourceDelete(
 
 	junSess, err := rsc.junosClient().StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -323,7 +329,7 @@ func defaultResourceImportState(
 ) {
 	junSess, err := rsc.junosClient().StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -362,14 +368,14 @@ func defaultResourceImportState(
 		err = data4.read(ctx, idList[0], idList[1], idList[2], idList[3], junSess)
 	}
 	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}
 
 	if data.nullID() {
 		resp.Diagnostics.AddError(
-			"Not Found Error",
+			tfdiag.NotFoundErrSummary,
 			notFoundDetailMsg,
 		)
 

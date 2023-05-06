@@ -1275,14 +1275,14 @@ func (rsc *interfaceLogical) ValidateConfig(
 		if !config.SecurityInboundProtocols.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_inbound_protocols"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"security_zone must be specified with security_inbound_protocols",
 			)
 		}
 		if !config.SecurityInboundServices.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_inbound_services"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"security_zone must be specified with security_inbound_services",
 			)
 		}
@@ -1292,7 +1292,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 			if !config.FamilyInet.Address.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet").AtName("dhcp").AtName("*"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"cannot set dhcp block if address block is used in family_inet block",
 				)
 			}
@@ -1300,7 +1300,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 				!config.FamilyInet.DHCP.ClientIdentifierHexadecimal.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet").AtName("dhcp").AtName("client_identifier_ascii"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"client_identifier_ascii and client_identifier_hexadecimal cannot be configured together "+
 						"in dhcp block in family_inet block",
 				)
@@ -1309,7 +1309,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 				!config.FamilyInet.DHCP.ClientIdentifierUseridHexadecimal.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet").AtName("dhcp").AtName("client_identifier_userid_ascii"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"client_identifier_userid_ascii and client_identifier_userid_hexadecimal cannot be configured together "+
 						"in dhcp block in family_inet block",
 				)
@@ -1318,7 +1318,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 				!config.FamilyInet.DHCP.LeaseTimeInfinite.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet").AtName("dhcp").AtName("lease_time"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"lease_time and lease_time_infinite cannot be configured together "+
 						"in dhcp block in family_inet block",
 				)
@@ -1339,7 +1339,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 					if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("family_inet").AtName("address").AtListIndex(i).AtName("cidr_ip"),
-							"Conflict Configuration Error",
+							tfdiag.ConflictConfigErrSummary,
 							fmt.Sprintf("multiple address blocks with the same cidr_ip %q in family_inet block",
 								address.CidrIP.ValueString()),
 						)
@@ -1361,7 +1361,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 								resp.Diagnostics.AddAttributeError(
 									path.Root("family_inet").AtName("address").AtListIndex(i).
 										AtName("vrrp_group").AtListIndex(ii).AtName("identifier"),
-									"Conflict Configuration Error",
+									tfdiag.ConflictConfigErrSummary,
 									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet block",
 										vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 								)
@@ -1387,7 +1387,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 										path.Root("family_inet").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_interface").AtListIndex(iii).AtName("interface"),
-										"Conflict Configuration Error",
+										tfdiag.ConflictConfigErrSummary,
 										fmt.Sprintf("multiple track_interface blocks with the same interface %q "+
 											"in vrrp_group block %d in address block %q in family_inet block",
 											trackInterface.Interface.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
@@ -1414,7 +1414,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 										path.Root("family_inet").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_route").AtListIndex(iii).AtName("route"),
-										"Conflict Configuration Error",
+										tfdiag.ConflictConfigErrSummary,
 										fmt.Sprintf("multiple track_route blocks with the same route %q "+
 											"in vrrp_group block %d in address block %q in family_inet block",
 											trackRoute.Route.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
@@ -1433,21 +1433,21 @@ func (rsc *interfaceLogical) ValidateConfig(
 			if config.FamilyInet6.DHCPv6Client.ClientIdentifierDuidType.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet6").AtName("dhcpv6_client").AtName("client_identifier_duid_type"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"client_identifier_duid_type must be specified in dhcpv6_client block in family_inet6 block",
 				)
 			}
 			if config.FamilyInet6.DHCPv6Client.ClientType.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet6").AtName("dhcpv6_client").AtName("client_type"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"client_type must be specified in dhcpv6_client block in family_inet6 block",
 				)
 			}
 			if !config.FamilyInet6.Address.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet6").AtName("dhcpv6_client").AtName("*"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"cannot set dhcpv6_client block if address block is used in family_inet6 block",
 				)
 			}
@@ -1455,7 +1455,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 				config.FamilyInet6.DHCPv6Client.ClientIATypePD.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet6").AtName("dhcpv6_client").AtName("*"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"at least one client_ia_type_na or client_ia_type_pd must be specified",
 				)
 			}
@@ -1475,7 +1475,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 					if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("family_inet6").AtName("address").AtListIndex(i).AtName("cidr_ip"),
-							"Conflict Configuration Error",
+							tfdiag.ConflictConfigErrSummary,
 							fmt.Sprintf("multiple address blocks with the same cidr_ip %q in family_inet6 block",
 								address.CidrIP.ValueString()),
 						)
@@ -1497,7 +1497,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 								resp.Diagnostics.AddAttributeError(
 									path.Root("family_inet6").AtName("address").AtListIndex(i).
 										AtName("vrrp_group").AtListIndex(ii).AtName("identifier"),
-									"Conflict Configuration Error",
+									tfdiag.ConflictConfigErrSummary,
 									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet6 block",
 										vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 								)
@@ -1523,7 +1523,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 										path.Root("family_inet6").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_interface").AtListIndex(iii).AtName("interface"),
-										"Conflict Configuration Error",
+										tfdiag.ConflictConfigErrSummary,
 										fmt.Sprintf("multiple track_interface blocks with the same interface %q "+
 											"in vrrp_group block %d in address block %q in family_inet6 block",
 											trackInterface.Interface.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
@@ -1550,7 +1550,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 										path.Root("family_inet6").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_route").AtListIndex(iii).AtName("route"),
-										"Conflict Configuration Error",
+										tfdiag.ConflictConfigErrSummary,
 										fmt.Sprintf("multiple track_route blocks with the same route %q "+
 											"in vrrp_group block %d in address block %q in family_inet6 block",
 											trackRoute.Route.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
@@ -1569,14 +1569,14 @@ func (rsc *interfaceLogical) ValidateConfig(
 		if config.Tunnel.Destination.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("tunnel").AtName("destination"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"destination must be specified in tunnel block",
 			)
 		}
 		if config.Tunnel.Source.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("tunnel").AtName("source"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"source must be specified in tunnel block",
 			)
 		}
@@ -1584,7 +1584,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 			!config.Tunnel.DoNotFragment.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("tunnel").AtName("allow_fragmentation"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"allow_fragmentation and do_not_fragment cannot be configured together "+
 					"in tunnel block",
 			)
@@ -1593,7 +1593,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 			!config.Tunnel.NoPathMtuDiscovery.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("tunnel").AtName("path_mtu_discovery"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"path_mtu_discovery and no_path_mtu_discovery cannot be configured together "+
 					"in tunnel block",
 			)
@@ -1670,15 +1670,15 @@ func (rsc *interfaceLogical) Create(
 			rsc.client.GroupInterfaceDelete(),
 			junSess,
 		); err != nil {
-			resp.Diagnostics.AddError("Config Pre Set Error", err.Error())
+			resp.Diagnostics.AddError("Pre Config Set Error", err.Error())
 
 			return
 		}
 		if errPath, err := plan.set(ctx, junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -1692,17 +1692,19 @@ func (rsc *interfaceLogical) Create(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(
 		ctx,
@@ -1711,13 +1713,13 @@ func (rsc *interfaceLogical) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 		return
 	}
 	if !ncInt && !emptyInt {
 		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
+			tfdiag.DuplicateConfigErrSummary,
 			fmt.Sprintf(rsc.junosName()+" %q already configured", plan.Name.ValueString()),
 		)
 
@@ -1730,7 +1732,7 @@ func (rsc *interfaceLogical) Create(
 			rsc.client.GroupInterfaceDelete(),
 			junSess,
 		); err != nil {
-			resp.Diagnostics.AddError("Config Pre Set Error", err.Error())
+			resp.Diagnostics.AddError("Pre Config Set Error", err.Error())
 
 			return
 		}
@@ -1740,7 +1742,7 @@ func (rsc *interfaceLogical) Create(
 		if !junSess.CheckCompatibilitySecurity() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
-				"Compatibility Error",
+				tfdiag.CompatibilityErrSummary,
 				fmt.Sprintf("security zone arguments not compatible "+
 					"with Junos device %q", junSess.SystemInformation.HardwareModel),
 			)
@@ -1749,14 +1751,14 @@ func (rsc *interfaceLogical) Create(
 		}
 		zonesExists, err := checkSecurityZonesExists(ctx, v, junSess)
 		if err != nil {
-			resp.Diagnostics.AddError("Pre Check Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 			return
 		}
 		if !zonesExists {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				fmt.Sprintf("security zone %q doesn't exist", v),
 			)
 
@@ -1767,14 +1769,14 @@ func (rsc *interfaceLogical) Create(
 	if v := plan.RoutingInstance.ValueString(); v != "" {
 		instanceExists, err := checkRoutingInstanceExists(ctx, v, junSess)
 		if err != nil {
-			resp.Diagnostics.AddError("Pre Check Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 			return
 		}
 		if !instanceExists {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("routing_instance"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				fmt.Sprintf("routing instance %q doesn't exist", v),
 			)
 
@@ -1784,17 +1786,17 @@ func (rsc *interfaceLogical) Create(
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -1806,13 +1808,13 @@ func (rsc *interfaceLogical) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 		return
 	}
 	if ncInt {
 		resp.Diagnostics.AddError(
-			"Not Found Error",
+			tfdiag.NotFoundErrSummary,
 			fmt.Sprintf(rsc.junosName()+" %q always disable (NC) after commit "+
 				"=> check your config", plan.Name.ValueString()),
 		)
@@ -1822,13 +1824,13 @@ func (rsc *interfaceLogical) Create(
 	if emptyInt && !setInt {
 		intExists, err := junSess.CheckInterfaceExists(plan.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Post Check Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 			return
 		}
 		if !intExists {
 			resp.Diagnostics.AddError(
-				"Not Found Error",
+				tfdiag.NotFoundErrSummary,
 				fmt.Sprintf(rsc.junosName()+" %q not exists and config can't found after commit"+
 					"=> check your config", plan.Name.ValueString()),
 			)
@@ -1852,7 +1854,7 @@ func (rsc *interfaceLogical) Read(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -1868,7 +1870,7 @@ func (rsc *interfaceLogical) Read(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}
@@ -1880,7 +1882,7 @@ func (rsc *interfaceLogical) Read(
 	if emptyInt && !setInt {
 		intExists, err := junSess.CheckInterfaceExists(state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Config Read Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 			return
 		}
@@ -1892,7 +1894,7 @@ func (rsc *interfaceLogical) Read(
 	}
 
 	if err := data.read(ctx, state.Name.ValueString(), junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}
@@ -1923,29 +1925,29 @@ func (rsc *interfaceLogical) Update(
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
 
 		if err := state.delOpts(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
 		if v := state.SecurityZone.ValueString(); v != "" {
 			if err := state.delSecurityZone(ctx, junSess); err != nil {
-				resp.Diagnostics.AddError("Config Del Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 				return
 			}
 		}
 		if v := state.RoutingInstance.ValueString(); v != "" && v != plan.RoutingInstance.ValueString() {
 			if err := state.delRoutingInstance(ctx, junSess); err != nil {
-				resp.Diagnostics.AddError("Config Del Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 				return
 			}
 		}
 		if errPath, err := plan.set(ctx, junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -1958,20 +1960,22 @@ func (rsc *interfaceLogical) Update(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	if err := state.delOpts(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
@@ -1979,7 +1983,7 @@ func (rsc *interfaceLogical) Update(
 	if vSte := state.SecurityZone.ValueString(); vSte != "" {
 		if vSte != "" {
 			if err := state.delSecurityZone(ctx, junSess); err != nil {
-				resp.Diagnostics.AddError("Config Del Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 				return
 			}
@@ -1989,7 +1993,7 @@ func (rsc *interfaceLogical) Update(
 		if !junSess.CheckCompatibilitySecurity() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
-				"Compatibility Error",
+				tfdiag.CompatibilityErrSummary,
 				fmt.Sprintf("security zone arguments not compatible "+
 					"with Junos device %q", junSess.SystemInformation.HardwareModel),
 			)
@@ -1998,14 +2002,14 @@ func (rsc *interfaceLogical) Update(
 		}
 		zonesExists, err := checkSecurityZonesExists(ctx, vPln, junSess)
 		if err != nil {
-			resp.Diagnostics.AddError("Pre Check Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 			return
 		}
 		if !zonesExists {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				fmt.Sprintf("security zone %q doesn't exist", vPln),
 			)
 
@@ -2016,7 +2020,7 @@ func (rsc *interfaceLogical) Update(
 	if vSte, vPln := state.RoutingInstance.ValueString(), plan.RoutingInstance.ValueString(); vSte != vPln {
 		if vSte != "" {
 			if err := state.delRoutingInstance(ctx, junSess); err != nil {
-				resp.Diagnostics.AddError("Config Del Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 				return
 			}
@@ -2024,14 +2028,14 @@ func (rsc *interfaceLogical) Update(
 		if vPln != "" {
 			instanceExists, err := checkRoutingInstanceExists(ctx, vPln, junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return
 			}
 			if !instanceExists {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("routing_instance"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("routing instance %q doesn't exist", vPln),
 				)
 
@@ -2042,17 +2046,17 @@ func (rsc *interfaceLogical) Update(
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -2082,7 +2086,7 @@ func (rsc *interfaceLogical) ImportState(
 ) {
 	if strings.Count(req.ID, ".") != 1 {
 		resp.Diagnostics.AddError(
-			"Pre Check Error",
+			tfdiag.PreCheckErrSummary,
 			fmt.Sprintf("name of interface need to have a dot, got %q", req.ID),
 		)
 
@@ -2091,7 +2095,7 @@ func (rsc *interfaceLogical) ImportState(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -2125,7 +2129,7 @@ func (rsc *interfaceLogical) ImportState(
 		}
 		if !intExists {
 			resp.Diagnostics.AddError(
-				"Not Found Error",
+				tfdiag.NotFoundErrSummary,
 				fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
 					"(id must be <name>)", req.ID),
 			)
@@ -2136,7 +2140,7 @@ func (rsc *interfaceLogical) ImportState(
 
 	var data interfaceLogicalData
 	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}

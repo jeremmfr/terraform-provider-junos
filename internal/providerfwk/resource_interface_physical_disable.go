@@ -113,7 +113,7 @@ func (rsc *interfacePhysicalDisable) Create(
 			rsc.client.GroupInterfaceDelete(),
 			junSess,
 		); err != nil {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 
 			return
 		}
@@ -126,17 +126,19 @@ func (rsc *interfacePhysicalDisable) Create(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(
 		ctx,
@@ -145,7 +147,7 @@ func (rsc *interfacePhysicalDisable) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 		return
 	}
@@ -165,7 +167,7 @@ func (rsc *interfacePhysicalDisable) Create(
 	}
 	if emptyInt {
 		if containsUnit, err := checkInterfacePhysicalContainsUnit(ctx, plan.Name.ValueString(), junSess); err != nil {
-			resp.Diagnostics.AddError("Pre Check Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 			return
 		} else if containsUnit {
@@ -184,14 +186,14 @@ func (rsc *interfacePhysicalDisable) Create(
 		rsc.client.GroupInterfaceDelete(),
 		junSess,
 	); err != nil {
-		resp.Diagnostics.AddError("Config Set Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -203,13 +205,13 @@ func (rsc *interfacePhysicalDisable) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 		return
 	}
 	if !ncInt {
 		resp.Diagnostics.AddError(
-			"Not Found Error",
+			tfdiag.NotFoundErrSummary,
 			fmt.Sprintf("interface %q not disable after commit "+
 				"=> check your config", plan.Name.ValueString()),
 		)
@@ -232,7 +234,7 @@ func (rsc *interfacePhysicalDisable) Read(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -247,7 +249,7 @@ func (rsc *interfacePhysicalDisable) Read(
 	)
 	junos.MutexUnlock()
 	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}

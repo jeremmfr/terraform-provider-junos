@@ -8,6 +8,7 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
@@ -453,14 +454,14 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 
 	if config.Ike == nil && config.Manual == nil {
 		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"one of ike or manual must be specified",
 		)
 	}
 	if config.Ike != nil && config.Manual != nil {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ike").AtName("*"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"only one of ike or manual must be specified",
 		)
 	}
@@ -468,14 +469,14 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 		if config.Ike.Gateway.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ike").AtName("gateway"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"gateway must be specified in ike block",
 			)
 		}
 		if config.Ike.Policy.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ike").AtName("policy"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"policy must be specified in ike block",
 			)
 		}
@@ -484,21 +485,21 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 		if !config.EstablishTunnels.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("establish_tunnels"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"cannot set establish_tunnels if manual is used",
 			)
 		}
 		if config.Manual.ExternalInterface.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName("external_interface"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"external_interface must be specified in manual block",
 			)
 		}
 		if config.Manual.Protocol.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName("protocol"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"protocol must be specified in manual block",
 			)
 		} else if !config.Manual.Protocol.IsUnknown() {
@@ -506,7 +507,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				if config.Manual.AuthenticationAlgorithm.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("manual").AtName("protocol"),
-						"Missing Configuration Error",
+						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("authentication_algorithm must be specified "+
 							"with protocol set to %q in manual block", v),
 					)
@@ -516,7 +517,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 					config.Manual.EncryptionAlgorithm.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("manual").AtName("protocol"),
-						"Missing Configuration Error",
+						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("at least one of authentication_algorithm or encryption_algorithm must be specified "+
 							"with protocol set to %q in manual block", v),
 					)
@@ -526,7 +527,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 		if config.Manual.Spi.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName("spi"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"spi must be specified in manual block",
 			)
 		}
@@ -535,7 +536,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				config.Manual.AuthenticationKeyText.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("manual").AtName("authentication_algorithm"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"one of authentication_key_hexa or authentication_key_text must be specified "+
 						"when authentication_algorithm is specified in manual block",
 				)
@@ -545,7 +546,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			!config.Manual.AuthenticationKeyText.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName("authentication_key_text"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of authentication_key_hexa or authentication_key_text can be specified in manual block",
 			)
 		}
@@ -554,7 +555,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				config.Manual.EncryptionKeyText.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("manual").AtName("encryption_algorithm"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"one of encryption_key_hexa or encryption_key_text must be specified "+
 						"when encryption_algorithm is specified in manual block",
 				)
@@ -564,7 +565,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			!config.Manual.EncryptionKeyText.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName("encryption_key_text"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of encryption_key_hexa or encryption_key_text can be specified in manual block",
 			)
 		}
@@ -574,21 +575,21 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			if !config.Ike.IdentityLocal.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike").AtName("identity_local"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"ike.identity_local should not be specified when traffic_selector is used",
 				)
 			}
 			if !config.Ike.IdentityRemote.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike").AtName("identity_remote"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"ike.identity_remote should not be specified when traffic_selector is used",
 				)
 			}
 			if !config.Ike.IdentityService.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike").AtName("identity_service"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"ike.identity_service should not be specified when traffic_selector is used",
 				)
 			}
@@ -596,7 +597,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 		if config.VpnMonitor != nil {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("vpn_monitor").AtName("*"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"vpn_monitor should not be specified when traffic_selector is used",
 			)
 		}
@@ -616,7 +617,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				if _, ok := names[block.Name.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("traffic_selector").AtListIndex(i).AtName("name"),
-						"Duplicate Configuration Error",
+						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple traffic_selector blocks with the same name %q", block.Name.ValueString()),
 					)
 				} else {
@@ -629,7 +630,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 		config.VpnMonitor != nil {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("vpn_monitor").AtName("*"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"vpn_monitor should not be specified when multi_sa_forwarding_class is specified",
 		)
 	}
@@ -638,7 +639,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			!config.VpnMonitor.SourceInterfaceAuto.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("vpn_monitor").AtName("source_interface_auto"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"source_interface_auto should not be specified when source_interface is specified",
 			)
 		}
@@ -714,7 +715,7 @@ func (rsc *securityIpsecVpn) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
@@ -723,13 +724,13 @@ func (rsc *securityIpsecVpn) Create(
 			}
 			vpnExists, err := checkSecurityIpsecVpnExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if vpnExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -741,13 +742,13 @@ func (rsc *securityIpsecVpn) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			vpnExists, err := checkSecurityIpsecVpnExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !vpnExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)

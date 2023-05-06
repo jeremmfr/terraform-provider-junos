@@ -7,6 +7,7 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
@@ -790,28 +791,28 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		if config.Input.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("input").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"input block is empty",
 			)
 		}
 		if config.FamilyInetInput != nil {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet_input").AtName("*"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"cannot set family_inet_input block if input block is used",
 			)
 		}
 		if config.FamilyInet6Input != nil {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet6_input").AtName("*"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"cannot set family_inet6_input block if input block is used",
 			)
 		}
 		if config.FamilyMplsInput != nil {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_mpls_input").AtName("*"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"cannot set family_mpls_input block if input block is used",
 			)
 		}
@@ -819,7 +820,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		config.FamilyInet6Input == nil &&
 		config.FamilyMplsInput == nil {
 		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"one of input, family_inet_input, family_inet6_input or family_mpls_input must be specified",
 		)
 	}
@@ -827,7 +828,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		if config.FamilyInetInput.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet_input").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"family_inet_input block is empty",
 			)
 		}
@@ -836,7 +837,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		if config.FamilyInet6Input.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet6_input").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"family_inet6_input block is empty",
 			)
 		}
@@ -845,7 +846,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		if config.FamilyMplsInput.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_mpls_input").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"family_mpls_input block is empty",
 			)
 		}
@@ -855,7 +856,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		config.FamilyInet6Output == nil &&
 		config.FamilyMplsOutput == nil {
 		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"one of family_inet_output, family_inet6_output or family_mpls_output must be specified",
 		)
 	}
@@ -871,7 +872,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 			config.FamilyInetOutput.Interface.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet_output").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"family_inet_output block is empty",
 			)
 		}
@@ -879,14 +880,14 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 			if !config.FamilyInetOutput.InlineJflowExportRate.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet_output").AtName("inline_jflow_export_rate"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"inline_jflow_source_address must be specified with inline_jflow_export_rate in family_inet_output block",
 				)
 			}
 		} else if config.FamilyInetOutput.FlowServer.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet_output").AtName("inline_jflow_source_address"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"flow_server must be specified with inline_jflow_source_address in family_inet_output block",
 			)
 		}
@@ -906,7 +907,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if _, ok := flowServerHostname[block.Hostname.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet_output").AtName("flow_server"),
-						"Duplicate Configuration Error",
+						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple flow_server blocks with the same hostname %q in family_inet_output block",
 							block.Hostname.ValueString()),
 					)
@@ -930,7 +931,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if _, ok := interfaceName[block.Name.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet_output").AtName("interface").AtListIndex(i).AtName("name"),
-						"Duplicate Configuration Error",
+						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple interface blocks with the same name %q in family_inet_output block",
 							block.Name.ValueString()),
 					)
@@ -950,7 +951,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 			config.FamilyInet6Output.Interface.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet6_output").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"family_inet6_output block is empty",
 			)
 		}
@@ -958,14 +959,14 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 			if !config.FamilyInet6Output.InlineJflowExportRate.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet6_output").AtName("inline_jflow_export_rate"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"inline_jflow_source_address must be specified with inline_jflow_export_rate in family_inet6_output block",
 				)
 			}
 		} else if config.FamilyInet6Output.FlowServer.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet6_output").AtName("inline_jflow_source_address"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"flow_server must be specified with inline_jflow_source_address in family_inet6_output block",
 			)
 		}
@@ -985,7 +986,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if _, ok := flowServerHostname[block.Hostname.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet6_output").AtName("flow_server"),
-						"Duplicate Configuration Error",
+						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple flow_server blocks with the same hostname %q in family_inet6_output block",
 							block.Hostname.ValueString()),
 					)
@@ -1009,7 +1010,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if _, ok := interfaceName[block.Name.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet6_output").AtName("interface").AtListIndex(i).AtName("name"),
-						"Duplicate Configuration Error",
+						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple interface blocks with the same name %q in family_inet6_output block",
 							block.Name.ValueString()),
 					)
@@ -1028,7 +1029,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 			config.FamilyMplsOutput.Interface.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_mpls_output").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"family_mpls_output block is empty",
 			)
 		}
@@ -1036,14 +1037,14 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 			if !config.FamilyMplsOutput.InlineJflowExportRate.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_mpls_output").AtName("inline_jflow_export_rate"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"inline_jflow_source_address must be specified with inline_jflow_export_rate in family_mpls_output block",
 				)
 			}
 		} else if config.FamilyMplsOutput.FlowServer.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_mpls_output").AtName("inline_jflow_source_address"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"flow_server must be specified with inline_jflow_source_address in family_mpls_output block",
 			)
 		}
@@ -1063,7 +1064,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if _, ok := flowServerHostname[block.Hostname.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_mpls_output").AtName("flow_server"),
-						"Duplicate Configuration Error",
+						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple flow_server blocks with the same hostname %q in family_mpls_output block",
 							block.Hostname.ValueString()),
 					)
@@ -1087,7 +1088,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if _, ok := interfaceName[block.Name.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_mpls_output").AtName("interface").AtListIndex(i).AtName("name"),
-						"Duplicate Configuration Error",
+						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple interface blocks with the same name %q in family_mpls_output block",
 							block.Name.ValueString()),
 					)
@@ -1123,14 +1124,14 @@ func (rsc *forwardingoptionsSamplingInstance) Create(
 			if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 				instanceExists, err := checkRoutingInstanceExists(fnCtx, v, junSess)
 				if err != nil {
-					resp.Diagnostics.AddError("Pre Check Error", err.Error())
+					resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 					return false
 				}
 				if !instanceExists {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("routing_instance"),
-						"Missing Configuration Error",
+						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("routing instance %q doesn't exist", v),
 					)
 
@@ -1144,13 +1145,13 @@ func (rsc *forwardingoptionsSamplingInstance) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if instanceExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -1167,13 +1168,13 @@ func (rsc *forwardingoptionsSamplingInstance) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !instanceExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)
@@ -1252,7 +1253,7 @@ func (rsc *forwardingoptionsSamplingInstance) ImportState(
 ) {
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -1262,13 +1263,13 @@ func (rsc *forwardingoptionsSamplingInstance) ImportState(
 	idSplit := strings.Split(req.ID, junos.IDSeparator)
 	if len(idSplit) > 1 {
 		if err := data.read(ctx, idSplit[0], idSplit[1], junSess); err != nil {
-			resp.Diagnostics.AddError("Config Read Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 			return
 		}
 	} else {
 		if err := data.read(ctx, idSplit[0], junos.DefaultW, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Read Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 			return
 		}
@@ -1276,7 +1277,7 @@ func (rsc *forwardingoptionsSamplingInstance) ImportState(
 
 	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
-			"Not Found Error",
+			tfdiag.NotFoundErrSummary,
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
 				"(id must be <name> or <name>"+junos.IDSeparator+"<routing_instance>)", req.ID),
 		)

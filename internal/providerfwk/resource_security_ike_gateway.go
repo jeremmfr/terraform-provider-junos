@@ -7,6 +7,7 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
@@ -457,21 +458,21 @@ func (rsc *securityIkeGateway) ValidateConfig(
 
 	if config.Address.IsNull() && config.DynamicRemote == nil {
 		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"one of address or dynamic_remote must be specified",
 		)
 	}
 	if !config.Address.IsNull() && config.DynamicRemote != nil {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("address"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"only one of address or dynamic_remote must be specified",
 		)
 	}
 	if config.DynamicRemote != nil && !config.GeneralIkeID.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("general_ike_id"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"cannot set general_ike_id if dynamic_remote is used",
 		)
 	}
@@ -484,7 +485,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.UserAtHostname.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("distinguished_name"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -496,7 +497,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.UserAtHostname.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("hostname"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -508,7 +509,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.UserAtHostname.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("inet"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -520,7 +521,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.UserAtHostname.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("inet6"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -532,7 +533,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.Inet6.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("user_at_hostname"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -543,7 +544,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		if config.Aaa.AccessProfile.IsNull() && config.Aaa.ClientUsername.IsNull() && config.Aaa.ClientPassword.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"one of access_profile or client_username/client_password must be specified in aaa block",
 			)
 		}
@@ -551,21 +552,21 @@ func (rsc *securityIkeGateway) ValidateConfig(
 			(!config.Aaa.ClientUsername.IsNull() || !config.Aaa.ClientPassword.IsNull()) {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("access_profile"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of access_profile or client_username/client_password must be specifiedin aaa block ",
 			)
 		}
 		if config.Aaa.ClientUsername.IsNull() && !config.Aaa.ClientPassword.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("client_password"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"client_username and client_password must be specified together in aaa block",
 			)
 		}
 		if !config.Aaa.ClientUsername.IsNull() && config.Aaa.ClientPassword.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("client_username"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"client_username and client_password must be specified together in aaa block",
 			)
 		}
@@ -574,7 +575,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		if config.LocalIdentity.Type.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("local_identity").AtName("type"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"type must be specified in local_identity block",
 			)
 		}
@@ -583,7 +584,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				if !config.LocalIdentity.Value.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("local_identity").AtName("value"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"value should not be specified when type is set to distinguished-name in local_identity block",
 					)
 				}
@@ -591,7 +592,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				if config.LocalIdentity.Value.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("local_identity").AtName("type"),
-						"Missing Configuration Error",
+						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("value must be specified when type is set to %q in local_identity block", v),
 					)
 				}
@@ -602,7 +603,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		if config.RemoteIdentity.Type.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("remote_identity").AtName("type"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"type must be specified in remote_identity block",
 			)
 		}
@@ -611,7 +612,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				if !config.RemoteIdentity.Value.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("remote_identity").AtName("value"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"value should not be specified when type is set to distinguished-name in remote_identity block",
 					)
 				}
@@ -619,7 +620,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				if config.RemoteIdentity.Value.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("remote_identity").AtName("type"),
-						"Missing Configuration Error",
+						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("value must be specified when type is set to %q in remote_identity block", v),
 					)
 				}
@@ -627,7 +628,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 					!config.RemoteIdentity.DistinguishedNameWildcard.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("remote_identity").AtName("type"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"type must be set to distinguished-name with "+
 							"distinguished_name_container and distinguished_name_wildcard in remote_identity block",
 					)
@@ -661,7 +662,7 @@ func (rsc *securityIkeGateway) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
@@ -670,13 +671,13 @@ func (rsc *securityIkeGateway) Create(
 			}
 			gatewayExists, err := checkSecurityIkeGatewayExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if gatewayExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -688,13 +689,13 @@ func (rsc *securityIkeGateway) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			gatewayExists, err := checkSecurityIkeGatewayExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !gatewayExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)

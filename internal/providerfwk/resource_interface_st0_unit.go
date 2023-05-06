@@ -88,17 +88,19 @@ func (rsc *interfaceSt0Unit) Create(
 ) {
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	newSt0, err := rsc.searchNewAvailable(junSess)
 	if err != nil {
@@ -109,14 +111,14 @@ func (rsc *interfaceSt0Unit) Create(
 	if err := junSess.ConfigSet([]string{
 		"set interfaces " + newSt0,
 	}); err != nil {
-		resp.Diagnostics.AddError("Config Set Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -128,13 +130,13 @@ func (rsc *interfaceSt0Unit) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 		return
 	}
 	if ncInt {
 		resp.Diagnostics.AddError(
-			"Not Found Error",
+			tfdiag.NotFoundErrSummary,
 			fmt.Sprintf(rsc.junosName()+" %q always disable (NC) after commit "+
 				"=> check your config", newSt0),
 		)
@@ -143,7 +145,7 @@ func (rsc *interfaceSt0Unit) Create(
 	}
 	if emptyInt && !setInt {
 		resp.Diagnostics.AddError(
-			"Not Found Error",
+			tfdiag.NotFoundErrSummary,
 			fmt.Sprintf("create new "+rsc.junosName()+" %q doesn't works, "+
 				"can't find the new interface after commit", newSt0),
 		)
@@ -168,7 +170,7 @@ func (rsc *interfaceSt0Unit) Read(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -183,7 +185,7 @@ func (rsc *interfaceSt0Unit) Read(
 	)
 	junos.MutexUnlock()
 	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}
@@ -215,7 +217,7 @@ func (rsc *interfaceSt0Unit) Delete(
 		if err := junSess.ConfigSet([]string{
 			"delete interfaces " + state.ID.ValueString(),
 		}); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
@@ -225,17 +227,19 @@ func (rsc *interfaceSt0Unit) Delete(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(
 		ctx,
@@ -244,13 +248,13 @@ func (rsc *interfaceSt0Unit) Delete(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 		return
 	}
 	if !ncInt && !emptyInt {
 		resp.Diagnostics.AddError(
-			"Pre Check Error",
+			tfdiag.PreCheckErrSummary,
 			fmt.Sprintf("interface %q not empty or disable", state.ID.ValueString()),
 		)
 
@@ -259,14 +263,14 @@ func (rsc *interfaceSt0Unit) Delete(
 	if err := junSess.ConfigSet([]string{
 		"delete interfaces " + state.ID.ValueString(),
 	}); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -277,7 +281,7 @@ func (rsc *interfaceSt0Unit) ImportState(
 ) {
 	if !strings.HasPrefix(req.ID, "st0.") {
 		resp.Diagnostics.AddError(
-			"Pre Check Error",
+			tfdiag.PreCheckErrSummary,
 			fmt.Sprintf("name of interface need to state with 'st0.', got %q", req.ID),
 		)
 
@@ -285,7 +289,7 @@ func (rsc *interfaceSt0Unit) ImportState(
 	}
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -312,7 +316,7 @@ func (rsc *interfaceSt0Unit) ImportState(
 	}
 	if emptyInt && !setInt {
 		resp.Diagnostics.AddError(
-			"Not Found Error",
+			tfdiag.NotFoundErrSummary,
 			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
 				"(id must be the name of st0 unit interface <st0.?>)", req.ID),
 		)

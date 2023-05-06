@@ -474,7 +474,7 @@ func (rsc *securityZone) ValidateConfig(
 			!config.AddressBookWildcard.IsNull()) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("address_book_configure_singly"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"cannot have address_book_configure_singly and want to configure address book at the same time",
 		)
 	}
@@ -495,7 +495,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -515,7 +515,7 @@ func (rsc *securityZone) ValidateConfig(
 			if block.IPv4Only.ValueBool() && block.IPv6Only.ValueBool() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_dns"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					fmt.Sprintf("ipv4_only and ipv6_only cannot be configured together in address_book_dns %q",
 						block.Name.ValueString()),
 				)
@@ -526,7 +526,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_dns"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -549,7 +549,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_range"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -569,7 +569,7 @@ func (rsc *securityZone) ValidateConfig(
 			if block.Address.IsNull() && block.AddressSet.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_set"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("at least one of address or address_set must be specified in address_book_set %q",
 						block.Name.ValueString()),
 				)
@@ -580,7 +580,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_set"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses or address-sets with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -603,7 +603,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_wildcard"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -637,7 +637,7 @@ func (rsc *securityZone) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
@@ -646,13 +646,13 @@ func (rsc *securityZone) Create(
 			}
 			zoneExists, err := checkSecurityZonesExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if zoneExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
 				)
 
@@ -664,13 +664,13 @@ func (rsc *securityZone) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			zoneExists, err := checkSecurityZonesExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !zoneExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
 						"=> check your config", plan.Name.ValueString()),
 				)
@@ -749,15 +749,15 @@ func (rsc *securityZone) Update(
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
 
 		if err := state.delOpts(ctx, addressBookConfiguredSingly, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
 		if errPath, err := plan.set(ctx, junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -770,36 +770,38 @@ func (rsc *securityZone) Update(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	if err := state.delOpts(ctx, addressBookConfiguredSingly, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}

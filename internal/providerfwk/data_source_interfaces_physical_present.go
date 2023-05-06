@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -146,7 +147,7 @@ func (dsc *interfacesPhysicalPresentDataSource) Read(
 	}
 	junSess, err := dsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -157,7 +158,7 @@ func (dsc *interfacesPhysicalPresentDataSource) Read(
 	err = data.read(ctx, config, junSess)
 	junos.MutexUnlock()
 	if err != nil {
-		resp.Diagnostics.AddError("Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
 
 		return
 	}

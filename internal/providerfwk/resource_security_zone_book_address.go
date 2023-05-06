@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -192,35 +193,35 @@ func (rsc *securityZoneBookAddress) ValidateConfig(
 	if !config.DNSIPv4Only.IsNull() && config.DNSName.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("dns_ipv4_only"),
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"cannot have dns_ipv4_only without dns_name",
 		)
 	}
 	if !config.DNSIPv6Only.IsNull() && config.DNSName.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("dns_ipv6_only"),
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"cannot have dns_ipv6_only without dns_name",
 		)
 	}
 	if !config.DNSIPv4Only.IsNull() && !config.DNSIPv6Only.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("dns_ipv4_only"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"only one of dns_ipv4_only or dns_ipv6_only can be specified",
 		)
 	}
 	if !config.RangeTo.IsNull() && config.RangeFrom.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("range_to"),
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"cannot have range_to without range_from",
 		)
 	}
 	if !config.RangeFrom.IsNull() && config.RangeTo.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("range_from"),
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"cannot have range_from without range_to",
 		)
 	}
@@ -231,7 +232,7 @@ func (rsc *securityZoneBookAddress) ValidateConfig(
 			!config.Wildcard.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("cidr"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of cidr, dns_name, range_from or wildcard must be specified",
 			)
 		}
@@ -241,7 +242,7 @@ func (rsc *securityZoneBookAddress) ValidateConfig(
 			!config.Wildcard.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("dns_name"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of cidr, dns_name, range_from or wildcard must be specified",
 			)
 		}
@@ -251,7 +252,7 @@ func (rsc *securityZoneBookAddress) ValidateConfig(
 			!config.Wildcard.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("range_from"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of cidr, dns_name, range_from or wildcard must be specified",
 			)
 		}
@@ -261,13 +262,13 @@ func (rsc *securityZoneBookAddress) ValidateConfig(
 			!config.RangeFrom.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("range_from"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of cidr, dns_name, range_from or wildcard must be specified",
 			)
 		}
 	default:
 		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"one of cidr, dns_name, range_from or wildcard must be specified",
 		)
 	}
@@ -306,7 +307,7 @@ func (rsc *securityZoneBookAddress) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
@@ -315,14 +316,14 @@ func (rsc *securityZoneBookAddress) Create(
 			}
 			zonesExists, err := checkSecurityZonesExists(fnCtx, plan.Zone.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !zonesExists {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("zone"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("security zone %q doesn't exist", plan.Zone.ValueString()),
 				)
 
@@ -335,13 +336,13 @@ func (rsc *securityZoneBookAddress) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if addressExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists in zone %q",
 						plan.Name.ValueString(), plan.Zone.ValueString()),
 				)
@@ -359,13 +360,13 @@ func (rsc *securityZoneBookAddress) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !addressExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists in zone %q after commit "+
 						"=> check your config", plan.Name.ValueString(), plan.Zone.ValueString()),
 				)

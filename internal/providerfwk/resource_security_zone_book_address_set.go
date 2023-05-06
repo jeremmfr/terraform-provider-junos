@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -169,7 +170,7 @@ func (rsc *securityZoneBookAddressSet) ValidateConfig(
 	}
 	if config.Address.IsNull() && config.AddressSet.IsNull() {
 		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"at least one of address or address_set must be specified",
 		)
 	}
@@ -208,7 +209,7 @@ func (rsc *securityZoneBookAddressSet) Create(
 		func(fnCtx context.Context, junSess *junos.Session) bool {
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
-					"Compatibility Error",
+					tfdiag.CompatibilityErrSummary,
 					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
@@ -217,14 +218,14 @@ func (rsc *securityZoneBookAddressSet) Create(
 			}
 			zonesExists, err := checkSecurityZonesExists(fnCtx, plan.Zone.ValueString(), junSess)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !zonesExists {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("zone"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("security zone %q doesn't exist", plan.Zone.ValueString()),
 				)
 
@@ -237,13 +238,13 @@ func (rsc *securityZoneBookAddressSet) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Pre Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if setExists {
 				resp.Diagnostics.AddError(
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists in zone %q",
 						plan.Name.ValueString(), plan.Zone.ValueString()),
 				)
@@ -261,13 +262,13 @@ func (rsc *securityZoneBookAddressSet) Create(
 				junSess,
 			)
 			if err != nil {
-				resp.Diagnostics.AddError("Post Check Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !setExists {
 				resp.Diagnostics.AddError(
-					"Not Found Error",
+					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists in zone %q after commit "+
 						"=> check your config", plan.Name.ValueString(), plan.Zone.ValueString()),
 				)
