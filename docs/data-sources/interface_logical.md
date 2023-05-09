@@ -4,7 +4,7 @@ page_title: "Junos: junos_interface_logical"
 
 # junos_interface_logical
 
-Get information on a logical interface  
+Get configuration from a logical interface  
 (as with a junos_interface_logical resource import).
 
 ## Example Usage

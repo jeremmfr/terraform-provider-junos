@@ -4,7 +4,7 @@ page_title: "Junos: junos_interface_physical"
 
 # junos_interface_physical
 
-Get information on a physical interface  
+Get configuration from a physical interface  
 (as with a junos_interface_physical resource import).
 
 ## Example Usage

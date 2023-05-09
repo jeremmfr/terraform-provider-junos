@@ -4,7 +4,7 @@ page_title: "Junos: junos_routing_instance"
 
 # junos_routing_instance
 
-Get information on a routing instance.
+Get configuration from a routing instance.
 
 ## Example Usage
 
