@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -291,7 +292,7 @@ func (dsc *interfaceLogicalDataSource) ValidateConfig(
 
 	if configInterface.IsNull() && match.IsNull() {
 		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"one of config_interface or match must be specified",
 		)
 	}
@@ -318,7 +319,7 @@ func (dsc *interfaceLogicalDataSource) Read(
 
 	junSess, err := dsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -334,19 +335,19 @@ func (dsc *interfaceLogicalDataSource) Read(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
 
 		return
 	}
 	if nameFound == "" {
-		resp.Diagnostics.AddError("Not Found Error", "no logical interface found with arguments provided")
+		resp.Diagnostics.AddError(tfdiag.NotFoundErrSummary, "no logical interface found with arguments provided")
 
 		return
 	}
 
 	var rscData interfaceLogicalData
 	if err := rscData.read(ctx, nameFound, junSess); err != nil {
-		resp.Diagnostics.AddError("Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
 
 		return
 	}

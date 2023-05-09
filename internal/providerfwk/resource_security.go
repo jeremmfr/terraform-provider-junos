@@ -52,6 +52,10 @@ func (rsc *security) junosName() string {
 	return "security"
 }
 
+func (rsc *security) junosClient() *junos.Client {
+	return rsc.client
+}
+
 func (rsc *security) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
@@ -1932,7 +1936,7 @@ func (rsc *security) ValidateConfig(
 		if config.Alg.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("alg").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"alg block is empty",
 			)
 		}
@@ -1942,7 +1946,7 @@ func (rsc *security) ValidateConfig(
 		if config.Flow.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("flow").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"flow block is empty",
 			)
 		}
@@ -1950,7 +1954,7 @@ func (rsc *security) ValidateConfig(
 			if config.Flow.AdvancedOptions.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("flow").AtName("advanced_options").AtName("*"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"advanced_options block is empty in flow block",
 				)
 			}
@@ -1959,7 +1963,7 @@ func (rsc *security) ValidateConfig(
 			if config.Flow.Aging.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("flow").AtName("aging").AtName("*"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"aging block is empty in flow block",
 				)
 			}
@@ -1968,7 +1972,7 @@ func (rsc *security) ValidateConfig(
 			if config.Flow.EthernetSwitching.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("flow").AtName("ethernet_switching").AtName("*"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"ethernet_switching block is empty in flow block",
 				)
 			}
@@ -1976,7 +1980,7 @@ func (rsc *security) ValidateConfig(
 				!config.Flow.EthernetSwitching.BypassNonIPUnicast.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("flow").AtName("ethernet_switching").AtName("block_non_ip_all"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"block_non_ip_all and bypass_non_ip_unicast can't be true in same time "+
 						"in ethernet_switching block in flow block",
 				)
@@ -1986,7 +1990,7 @@ func (rsc *security) ValidateConfig(
 			if config.Flow.TCPMss.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("flow").AtName("tcp_mss").AtName("*"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"tcp_mss block is empty in flow block",
 				)
 			}
@@ -1995,7 +1999,7 @@ func (rsc *security) ValidateConfig(
 			if config.Flow.TCPSession.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("flow").AtName("tcp_session").AtName("*"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"tcp_session block is empty in flow block",
 				)
 			}
@@ -2003,7 +2007,7 @@ func (rsc *security) ValidateConfig(
 				if !config.Flow.TCPSession.NoSynCheck.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("flow").AtName("tcp_session").AtName("no_syn_check"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"no_syn_check and strict_syn_check can't be true in same time "+
 							"in tcp_session block in flow block",
 					)
@@ -2011,7 +2015,7 @@ func (rsc *security) ValidateConfig(
 				if !config.Flow.TCPSession.NoSynCheckInTunnel.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("flow").AtName("tcp_session").AtName("no_syn_check_in_tunnel"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"no_syn_check_in_tunnel and strict_syn_check can't be true in same time "+
 							"in tcp_session block in flow block",
 					)
@@ -2022,7 +2026,7 @@ func (rsc *security) ValidateConfig(
 					!config.Flow.TCPSession.TimeWaitState.SessionTimeout.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("flow").AtName("tcp_session").AtName("time_wait_state").AtName("session_ageout"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"session_ageout and session_timeout can't be set in same time "+
 							"in time_wait_state block in tcp_session block in flow block",
 					)
@@ -2035,7 +2039,7 @@ func (rsc *security) ValidateConfig(
 		if config.ForwardingOptions.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("forwarding_options").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"forwarding_options block is empty",
 			)
 		}
@@ -2045,7 +2049,7 @@ func (rsc *security) ValidateConfig(
 		if config.ForwardingProcess.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("forwarding_process").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"forwarding_process block is empty",
 			)
 		}
@@ -2055,7 +2059,7 @@ func (rsc *security) ValidateConfig(
 		if config.IdpSecurityPackage.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("idp_security_package").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"idp_security_package block is empty",
 			)
 		}
@@ -2065,7 +2069,7 @@ func (rsc *security) ValidateConfig(
 		if config.IdpSensorConfiguration.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("idp_sensor_configuration").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"idp_sensor_configuration block is empty",
 			)
 		}
@@ -2074,7 +2078,7 @@ func (rsc *security) ValidateConfig(
 				!config.IdpSensorConfiguration.LogSuppression.NoIncludeDestinationAddress.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("idp_sensor_configuration").AtName("log_suppression").AtName("include_destination_address"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"include_destination_address and no_include_destination_address can't be true in same time "+
 						"in idp_sensor_configuration block in log_suppression block",
 				)
@@ -2084,7 +2088,7 @@ func (rsc *security) ValidateConfig(
 			if config.IdpSensorConfiguration.PacketLog.SourceAddress.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("idp_sensor_configuration").AtName("packet_log").AtName("source_address"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"source_address must be specified in packet_log block in idp_sensor_configuration block",
 				)
 			}
@@ -2092,7 +2096,7 @@ func (rsc *security) ValidateConfig(
 				config.IdpSensorConfiguration.PacketLog.HostAddress.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("idp_sensor_configuration").AtName("packet_log").AtName("host_port"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"host_address must be specified with host_port in packet_log block in idp_sensor_configuration block",
 				)
 			}
@@ -2103,7 +2107,7 @@ func (rsc *security) ValidateConfig(
 		if config.IkeTraceoptions.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ike_traceoptions").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"ike_traceoptions block is empty",
 			)
 		}
@@ -2112,7 +2116,7 @@ func (rsc *security) ValidateConfig(
 			if config.IkeTraceoptions.File.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike_traceoptions").AtName("file").AtName("*"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"file block is empty in ike_traceoptions block",
 				)
 			}
@@ -2120,7 +2124,7 @@ func (rsc *security) ValidateConfig(
 				!config.IkeTraceoptions.File.NoWorldReadable.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike_traceoptions").AtName("file").AtName("world_readable"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"world_readable and no_world_readable can't be true in same time "+
 						"in file block in ike_traceoptions block",
 				)
@@ -2132,7 +2136,7 @@ func (rsc *security) ValidateConfig(
 		if config.Log.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("log").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"log block is empty",
 			)
 		}
@@ -2140,7 +2144,7 @@ func (rsc *security) ValidateConfig(
 			if config.Log.File.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("log").AtName("file").AtName("*"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"file block is empty in log block",
 				)
 			}
@@ -2149,7 +2153,7 @@ func (rsc *security) ValidateConfig(
 			!config.Log.SourceInterface.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("log").AtName("source_address"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"source_address and source_interface can't be set in same time in log block",
 			)
 		}
@@ -2159,7 +2163,7 @@ func (rsc *security) ValidateConfig(
 		if config.NatSource.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("nat_source").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"nat_source block is empty",
 			)
 		}
@@ -2167,7 +2171,7 @@ func (rsc *security) ValidateConfig(
 			!config.NatSource.InterfacePortOverloadingOff.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("nat_source").AtName("interface_port_overloading_off"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"interface_port_overloading_off and interface_port_overloading_factor cannot be configured together "+
 					"in nat_source block",
 			)
@@ -2176,7 +2180,7 @@ func (rsc *security) ValidateConfig(
 			config.NatSource.PoolDefaultPortRange.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("nat_source").AtName("pool_default_port_range_to"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"pool_default_port_range must be specified with pool_default_port_range_to in nat_source block",
 			)
 		}
@@ -2184,7 +2188,7 @@ func (rsc *security) ValidateConfig(
 			config.NatSource.PoolDefaultPortRangeTo.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("nat_source").AtName("pool_default_port_range"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"pool_default_port_range_to must be specified with pool_default_port_range in nat_source block",
 			)
 		}
@@ -2192,7 +2196,7 @@ func (rsc *security) ValidateConfig(
 			config.NatSource.PoolDefaultTwinPortRange.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("nat_source").AtName("pool_default_twin_port_range_to"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"pool_default_twin_port_range must be specified with pool_default_twin_port_range_to in nat_source block",
 			)
 		}
@@ -2200,7 +2204,7 @@ func (rsc *security) ValidateConfig(
 			config.NatSource.PoolDefaultTwinPortRangeTo.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("nat_source").AtName("pool_default_twin_port_range"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"pool_default_twin_port_range_to must be specified with pool_default_twin_port_range in nat_source block",
 			)
 		}
@@ -2208,7 +2212,7 @@ func (rsc *security) ValidateConfig(
 			config.NatSource.PoolUtilizationAlarmRaiseThreshold.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("nat_source").AtName("pool_utilization_alarm_clear_threshold"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"pool_utilization_alarm_raise_threshold must be specified with pool_utilization_alarm_clear_threshold "+
 					"in nat_source block",
 			)
@@ -2221,7 +2225,7 @@ func (rsc *security) ValidateConfig(
 				config.NatSource.PoolUtilizationAlarmRaiseThreshold.ValueInt64() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("nat_source").AtName("pool_utilization_alarm_clear_threshold"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"pool_utilization_alarm_clear_threshold must be larger than "+
 						"pool_utilization_alarm_raise_threshold in nat_source block",
 				)
@@ -2233,7 +2237,7 @@ func (rsc *security) ValidateConfig(
 		if config.Policies.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("policies").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"policies block is empty",
 			)
 		}
@@ -2241,7 +2245,7 @@ func (rsc *security) ValidateConfig(
 			!config.Policies.PolicyRematchExtensive.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("policies").AtName("policy_rematch"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"policy_rematch and policy_rematch_extensive can't be true in same time in policies block",
 			)
 		}
@@ -2251,7 +2255,7 @@ func (rsc *security) ValidateConfig(
 		if config.UserIdentificationAuthSource.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("user_identification_auth_source").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"user_identification_auth_source block is empty",
 			)
 		}
@@ -2261,7 +2265,7 @@ func (rsc *security) ValidateConfig(
 		if config.Utm.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("utm").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"utm block is empty",
 			)
 		}
@@ -2277,67 +2281,26 @@ func (rsc *security) Create(
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(_ context.Context, junSess *junos.Session) bool {
+			if !junSess.CheckCompatibilitySecurity() {
+				resp.Diagnostics.AddError(
+					tfdiag.CompatibilityErrSummary,
+					fmt.Sprintf(rsc.junosName()+" not compatible "+
+						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+				)
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				return false
 			}
 
-			return
-		}
-
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if !junSess.CheckCompatibilitySecurity() {
-		resp.Diagnostics.AddError(
-			"Compatibility Error",
-			fmt.Sprintf(rsc.junosName()+" not compatible "+
-				"with Junos device %q", junSess.SystemInformation.HardwareModel),
-		)
-
-		return
-	}
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+			return true
+		},
+		nil,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *security) Read(
@@ -2348,25 +2311,18 @@ func (rsc *security) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
 
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(ctx, junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-
-	data.CleanOnDestroy = state.CleanOnDestroy
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	var _ resourceDataReadFrom0String = &data
+	defaultResourceRead(
+		ctx,
+		rsc,
+		nil,
+		&data,
+		func() {
+			data.CleanOnDestroy = state.CleanOnDestroy
+		},
+		resp,
+	)
 }
 
 func (rsc *security) Update(
@@ -2379,66 +2335,13 @@ func (rsc *security) Update(
 		return
 	}
 
-	if rsc.client.FakeUpdateAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
-			}
-
-			return
-		}
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	defaultResourceUpdate(
+		ctx,
+		rsc,
+		&state,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *security) Delete(
@@ -2451,70 +2354,37 @@ func (rsc *security) Delete(
 	}
 
 	if state.CleanOnDestroy.ValueBool() {
-		if rsc.client.FakeDeleteAlso() {
-			junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-			if err := state.del(ctx, junSess); err != nil {
-				resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-				return
-			}
-
-			return
-		}
-
-		junSess, err := rsc.client.StartNewSession(ctx)
-		if err != nil {
-			resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-			return
-		}
-		defer junSess.Close()
-		if err := junSess.ConfigLock(ctx); err != nil {
-			resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-			return
-		}
-		defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-		warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-		resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-		if err != nil {
-			resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-			return
-		}
+		defaultResourceDelete(
+			ctx,
+			rsc,
+			&state,
+			resp,
+		)
 	}
 }
 
 func (rsc *security) ImportState(
-	ctx context.Context, _ resource.ImportStateRequest, resp *resource.ImportStateResponse,
+	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
 	var data securityData
-	if err := data.read(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ resourceDataReadFrom0String = &data
+	defaultResourceImportState(
+		ctx,
+		rsc,
+		&data,
+		req,
+		resp,
+		"",
+	)
 }
 
 func (rscData *securityData) fillID() {
 	rscData.ID = types.StringValue("security")
+}
+
+func (rscData *securityData) nullID() bool {
+	return rscData.ID.IsNull()
 }
 
 func (rscData *securityData) set(
@@ -3894,7 +3764,7 @@ func (block *securityBlockUtm) read(itemTrim string) (err error) {
 	return nil
 }
 
-func (rscData securityData) del(
+func (rscData *securityData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	listLinesToDelete := make([]string, 0, 50)

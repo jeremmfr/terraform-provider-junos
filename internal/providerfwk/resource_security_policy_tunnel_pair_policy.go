@@ -42,6 +42,10 @@ func (rsc *securityPolicyTunnelPairPolicy) junosName() string {
 	return "security policy tunnel pair policy"
 }
 
+func (rsc *securityPolicyTunnelPairPolicy) junosClient() *junos.Client {
+	return rsc.client
+}
+
 func (rsc *securityPolicyTunnelPairPolicy) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
@@ -154,152 +158,115 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			if !junSess.CheckCompatibilitySecurity() {
+				resp.Diagnostics.AddError(
+					tfdiag.CompatibilityErrSummary,
+					fmt.Sprintf(rsc.junosName()+" not compatible"+
+						"with Junos device %q", junSess.SystemInformation.HardwareModel))
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				return false
+			}
+			policyExists, err := checkSecurityPolicyExists(
+				fnCtx,
+				plan.ZoneA.ValueString(),
+				plan.ZoneB.ValueString(),
+				junSess,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
+
+				return false
+			}
+			if !policyExists {
+				resp.Diagnostics.AddError(
+					tfdiag.MissingConfigErrSummary,
+					fmt.Sprintf("security policy from %q to %q doesn't exist",
+						plan.ZoneA.ValueString(), plan.ZoneB.ValueString()),
+				)
+
+				return false
+			}
+			policyExists, err = checkSecurityPolicyExists(
+				fnCtx,
+				plan.ZoneB.ValueString(),
+				plan.ZoneA.ValueString(),
+				junSess,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
+
+				return false
+			}
+			if !policyExists {
+				resp.Diagnostics.AddError(
+					tfdiag.MissingConfigErrSummary,
+					fmt.Sprintf("security policy from %q to %q doesn't exist",
+						plan.ZoneB.ValueString(), plan.ZoneA.ValueString()),
+				)
+
+				return false
+			}
+			pairPolicyExists, err := checkSecurityPolicyTunnelPairPolicyExists(
+				fnCtx,
+				plan.ZoneA.ValueString(),
+				plan.PolicyAtoB.ValueString(),
+				plan.ZoneB.ValueString(),
+				plan.PolicyBtoA.ValueString(),
+				junSess,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
+
+				return false
+			}
+			if pairPolicyExists {
+				resp.Diagnostics.AddError(
+					tfdiag.DuplicateConfigErrSummary,
+					fmt.Sprintf(rsc.junosName()+" %q(%q) / %q(%q) already exists",
+						plan.ZoneA.ValueString(),
+						plan.PolicyAtoB.ValueString(),
+						plan.ZoneB.ValueString(),
+						plan.PolicyBtoA.ValueString()),
+				)
+
+				return false
 			}
 
-			return
-		}
+			return true
+		},
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			pairPolicyExists, err := checkSecurityPolicyTunnelPairPolicyExists(
+				fnCtx,
+				plan.ZoneA.ValueString(),
+				plan.PolicyAtoB.ValueString(),
+				plan.ZoneB.ValueString(),
+				plan.PolicyBtoA.ValueString(),
+				junSess,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+				return false
+			}
+			if !pairPolicyExists {
+				resp.Diagnostics.AddError(
+					tfdiag.NotFoundErrSummary,
+					fmt.Sprintf(rsc.junosName()+" does not exists after commit "+
+						"=> check your config"),
+				)
 
-		return
-	}
+				return false
+			}
 
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if !junSess.CheckCompatibilitySecurity() {
-		resp.Diagnostics.AddError(
-			"Compatibility Error",
-			fmt.Sprintf(rsc.junosName()+" not compatible"+
-				"with Junos device %q", junSess.SystemInformation.HardwareModel))
-
-		return
-	}
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	policyExists, err := checkSecurityPolicyExists(
-		ctx,
-		plan.ZoneA.ValueString(),
-		plan.ZoneB.ValueString(),
-		junSess,
+			return true
+		},
+		&plan,
+		resp,
 	)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if !policyExists {
-		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
-			fmt.Sprintf("security policy from %q to %q doesn't exist",
-				plan.ZoneA.ValueString(), plan.ZoneB.ValueString()),
-		)
-
-		return
-	}
-	policyExists, err = checkSecurityPolicyExists(
-		ctx,
-		plan.ZoneB.ValueString(),
-		plan.ZoneA.ValueString(),
-		junSess,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if !policyExists {
-		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
-			fmt.Sprintf("security policy from %q to %q doesn't exist",
-				plan.ZoneB.ValueString(), plan.ZoneA.ValueString()),
-		)
-
-		return
-	}
-	pairPolicyExists, err := checkSecurityPolicyTunnelPairPolicyExists(
-		ctx,
-		plan.ZoneA.ValueString(),
-		plan.PolicyAtoB.ValueString(),
-		plan.ZoneB.ValueString(),
-		plan.PolicyBtoA.ValueString(),
-		junSess,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if pairPolicyExists {
-		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" %q(%q) / %q(%q) already exists",
-				plan.ZoneA.ValueString(), plan.PolicyAtoB.ValueString(),
-				plan.ZoneB.ValueString(), plan.PolicyBtoA.ValueString()),
-		)
-
-		return
-	}
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	pairPolicyExists, err = checkSecurityPolicyTunnelPairPolicyExists(
-		ctx,
-		plan.ZoneA.ValueString(),
-		plan.PolicyAtoB.ValueString(),
-		plan.ZoneB.ValueString(),
-		plan.PolicyBtoA.ValueString(),
-		junSess,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
-
-		return
-	}
-	if !pairPolicyExists {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf(rsc.junosName()+" does not exists after commit "+
-				"=> check your config"),
-		)
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (rsc *securityPolicyTunnelPairPolicy) Read(
@@ -310,36 +277,21 @@ func (rsc *securityPolicyTunnelPairPolicy) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
 
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(
+	var _ resourceDataReadFrom4String = &data
+	defaultResourceRead(
 		ctx,
-		state.ZoneA.ValueString(),
-		state.PolicyAtoB.ValueString(),
-		state.ZoneB.ValueString(),
-		state.PolicyBtoA.ValueString(),
-		junSess,
+		rsc,
+		[]string{
+			state.ZoneA.ValueString(),
+			state.PolicyAtoB.ValueString(),
+			state.ZoneB.ValueString(),
+			state.PolicyBtoA.ValueString(),
+		},
+		&data,
+		nil,
+		resp,
 	)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-	if data.ID.IsNull() {
-		resp.State.RemoveResource(ctx)
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (rsc *securityPolicyTunnelPairPolicy) Update(
@@ -356,85 +308,35 @@ func (rsc *securityPolicyTunnelPairPolicy) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *securityPolicyTunnelPairPolicy) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
-	idList := strings.Split(req.ID, junos.IDSeparator)
-	if len(idList) < 4 {
-		resp.Diagnostics.AddError(
-			"Bad ID Format",
-			fmt.Sprintf("missing element(s) in id with separator %q", junos.IDSeparator),
-		)
-
-		return
-	}
-
 	var data securityPolicyTunnelPairPolicyData
-	if err := data.read(ctx, idList[0], idList[1], idList[2], idList[3], junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
-	}
-
-	if data.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <zone_a>"+junos.IDSeparator+"<policy_a_to_b>"+junos.IDSeparator+
-				"<zone_b>"+junos.IDSeparator+"<policy_b_to_a>)", req.ID),
-		)
-
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ resourceDataReadFrom4String = &data
+	defaultResourceImportState(
+		ctx,
+		rsc,
+		&data,
+		req,
+		resp,
+		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
+			"(id must be "+
+			"<zone_a>"+junos.IDSeparator+
+			"<policy_a_to_b>"+junos.IDSeparator+
+			"<zone_b>"+junos.IDSeparator+
+			"<policy_b_to_a>)",
+			req.ID,
+		),
+	)
 }
 
 func checkSecurityPolicyTunnelPairPolicyExists(
@@ -463,9 +365,15 @@ func checkSecurityPolicyTunnelPairPolicyExists(
 
 func (rscData *securityPolicyTunnelPairPolicyData) fillID() {
 	rscData.ID = types.StringValue(
-		rscData.ZoneA.ValueString() + junos.IDSeparator + rscData.PolicyAtoB.ValueString() + junos.IDSeparator +
-			rscData.ZoneB.ValueString() + junos.IDSeparator + rscData.PolicyBtoA.ValueString(),
+		rscData.ZoneA.ValueString() + junos.IDSeparator +
+			rscData.PolicyAtoB.ValueString() + junos.IDSeparator +
+			rscData.ZoneB.ValueString() + junos.IDSeparator +
+			rscData.PolicyBtoA.ValueString(),
 	)
+}
+
+func (rscData *securityPolicyTunnelPairPolicyData) nullID() bool {
+	return rscData.ID.IsNull()
 }
 
 func (rscData *securityPolicyTunnelPairPolicyData) set(

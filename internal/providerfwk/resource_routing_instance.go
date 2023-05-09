@@ -48,6 +48,10 @@ func (rsc *routingInstance) junosName() string {
 	return "routing instance"
 }
 
+func (rsc *routingInstance) junosClient() *junos.Client {
+	return rsc.client
+}
+
 func (rsc *routingInstance) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
@@ -313,7 +317,7 @@ func (rsc *routingInstance) ValidateConfig(
 			!config.VRFTargetImport.IsNull()) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("configure_rd_vrfopts_singly"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"cannot have configure_rd_vrfopts_singly and want to configure route-distinguisher or vrf options at the same time",
 		)
 	}
@@ -321,13 +325,13 @@ func (rsc *routingInstance) ValidateConfig(
 		if config.Type.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("configure_type_singly"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"type must specified with empty string when configure_type_singly is enabled",
 			)
 		} else if !config.Type.IsUnknown() && config.Type.ValueString() != "" {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("type"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"type must specified with empty string when configure_type_singly is enabled",
 			)
 		}
@@ -354,96 +358,56 @@ func (rsc *routingInstance) Create(
 	if plan.ConfigureTypeSingly.ValueBool() && plan.Type.ValueString() != "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("type"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"type must specified with empty string when configure_type_singly is enabled",
 		)
 
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			instanceExists, err := checkRoutingInstanceExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				return false
+			}
+			if instanceExists {
+				resp.Diagnostics.AddError(
+					tfdiag.DuplicateConfigErrSummary,
+					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+				)
+
+				return false
 			}
 
-			return
-		}
+			return true
+		},
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			instanceExists, err := checkRoutingInstanceExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+				return false
+			}
+			if !instanceExists {
+				resp.Diagnostics.AddError(
+					tfdiag.NotFoundErrSummary,
+					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
+						"=> check your config", plan.Name.ValueString()),
+				)
 
-		return
-	}
+				return false
+			}
 
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	instanceExists, err := checkRoutingInstanceExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if instanceExists {
-		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	instanceExists, err = checkRoutingInstanceExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
-
-		return
-	}
-	if !instanceExists {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-				"=> check your config", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+			return true
+		},
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *routingInstance) Read(
@@ -454,43 +418,33 @@ func (rsc *routingInstance) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
 
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(ctx, state.Name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-	if data.ID.IsNull() {
-		resp.State.RemoveResource(ctx)
-
-		return
-	}
-
-	data.ConfigureRDVrfOptSingly = state.ConfigureRDVrfOptSingly
-	if data.ConfigureRDVrfOptSingly.ValueBool() {
-		data.RouteDistinguisher = types.StringNull()
-		data.VRFExport = nil
-		data.VRFImport = nil
-		data.VRFTarget = types.StringNull()
-		data.VRFTargetAuto = types.BoolNull()
-		data.VRFTargetExport = types.StringNull()
-		data.VRFTargetImport = types.StringNull()
-	}
-	data.ConfigureTypeSingly = state.ConfigureTypeSingly
-	if data.ConfigureTypeSingly.ValueBool() {
-		data.Type = types.StringValue("")
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceRead(
+		ctx,
+		rsc,
+		[]string{
+			state.Name.ValueString(),
+		},
+		&data,
+		func() {
+			data.ConfigureRDVrfOptSingly = state.ConfigureRDVrfOptSingly
+			if data.ConfigureRDVrfOptSingly.ValueBool() {
+				data.RouteDistinguisher = types.StringNull()
+				data.VRFExport = nil
+				data.VRFImport = nil
+				data.VRFTarget = types.StringNull()
+				data.VRFTargetAuto = types.BoolNull()
+				data.VRFTargetExport = types.StringNull()
+				data.VRFTargetImport = types.StringNull()
+			}
+			data.ConfigureTypeSingly = state.ConfigureTypeSingly
+			if data.ConfigureTypeSingly.ValueBool() {
+				data.Type = types.StringValue("")
+			}
+		},
+		resp,
+	)
 }
 
 func (rsc *routingInstance) Update(
@@ -503,66 +457,14 @@ func (rsc *routingInstance) Update(
 		return
 	}
 
-	if rsc.client.FakeUpdateAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.delOpts(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
-			}
-
-			return
-		}
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.delOpts(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	var _ resourceDataDelWithOpts = &state
+	defaultResourceUpdate(
+		ctx,
+		rsc,
+		&state,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *routingInstance) Delete(
@@ -574,74 +476,29 @@ func (rsc *routingInstance) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *routingInstance) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
 	var data routingInstanceData
-	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
-	}
-
-	if data.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <name>)", req.ID),
-		)
-
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceImportState(
+		ctx,
+		rsc,
+		&data,
+		req,
+		resp,
+		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
+			"(id must be <name>)", req.ID),
+	)
 }
 
 func checkRoutingInstanceExists(
@@ -662,6 +519,10 @@ func checkRoutingInstanceExists(
 
 func (rscData *routingInstanceData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
+}
+
+func (rscData *routingInstanceData) nullID() bool {
+	return rscData.ID.IsNull()
 }
 
 func (rscData *routingInstanceData) set(

@@ -801,14 +801,14 @@ func (rsc *interfacePhysical) ValidateConfig(
 		if config.ESI.Mode.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("esi").AtName("mode"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"mode must be specified in esi block",
 			)
 		}
 		if !config.ESI.AutoDeriveLacp.IsNull() && !config.ESI.Identifier.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("esi").AtName("auto_derive_lacp"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of auto_derive_lacp or identifier can be specified in esi block",
 			)
 		}
@@ -817,35 +817,35 @@ func (rsc *interfacePhysical) ValidateConfig(
 		if config.GigetherOpts != nil || config.ParentEtherOpts != nil {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ether_opts").AtName("*"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of ether_opts, gigether_opts or parent_ether_opts block can be specified",
 			)
 		}
 		if !config.EtherOpts.Ae8023ad.IsNull() && !config.EtherOpts.RedundantParent.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ether_opts").AtName("ae_8023ad"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"ae_8023ad and redundant_parent cannot be configured together in ether_opts block",
 			)
 		}
 		if !config.EtherOpts.AutoNegotiation.IsNull() && !config.EtherOpts.NoAutoNegotiation.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ether_opts").AtName("auto_negotiation"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"auto_negotiation and no_auto_negotiation cannot be configured together in ether_opts block",
 			)
 		}
 		if !config.EtherOpts.FlowControl.IsNull() && !config.EtherOpts.NoFlowControl.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ether_opts").AtName("flow_control"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"flow_control and no_flow_control cannot be configured together in ether_opts block",
 			)
 		}
 		if !config.EtherOpts.Loopback.IsNull() && !config.EtherOpts.NoLoopback.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ether_opts").AtName("loopback"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"loopback and no_loopback cannot be configured together in ether_opts block",
 			)
 		}
@@ -853,7 +853,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 		if config.EtherOpts.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ether_opts").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"ether_opts block is empty",
 			)
 		}
@@ -862,35 +862,35 @@ func (rsc *interfacePhysical) ValidateConfig(
 		if config.EtherOpts != nil || config.ParentEtherOpts != nil {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("gigether_opts").AtName("*"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of ether_opts, gigether_opts or parent_ether_opts block can be specified",
 			)
 		}
 		if !config.GigetherOpts.Ae8023ad.IsNull() && !config.GigetherOpts.RedundantParent.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("gigether_opts").AtName("ae_8023ad"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"ae_8023ad and redundant_parent cannot be configured together in gigether_opts block",
 			)
 		}
 		if !config.GigetherOpts.AutoNegotiation.IsNull() && !config.GigetherOpts.NoAutoNegotiation.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("gigether_opts").AtName("auto_negotiation"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"auto_negotiation and no_auto_negotiation cannot be configured together in gigether_opts block",
 			)
 		}
 		if !config.GigetherOpts.FlowControl.IsNull() && !config.GigetherOpts.NoFlowControl.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("gigether_opts").AtName("flow_control"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"flow_control and no_flow_control cannot be configured together in gigether_opts block",
 			)
 		}
 		if !config.GigetherOpts.Loopback.IsNull() && !config.GigetherOpts.NoLoopback.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("gigether_opts").AtName("loopback"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"loopback and no_loopback cannot be configured together in gigether_opts block",
 			)
 		}
@@ -898,7 +898,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 		if config.GigetherOpts.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("gigether_opts").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"gigether_opts block is empty",
 			)
 		}
@@ -908,7 +908,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 			if v := config.Name.ValueString(); !strings.HasPrefix(v, "ae") && !strings.HasPrefix(v, "reth") {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("parent_ether_opts").AtName("*"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					fmt.Sprintf("parent_ether_opts not compatible with this interface %q "+
 						"(need to be ae* or reth* interface)", v),
 				)
@@ -917,28 +917,28 @@ func (rsc *interfacePhysical) ValidateConfig(
 		if config.EtherOpts != nil || config.GigetherOpts != nil {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("*"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of ether_opts, gigether_opts or parent_ether_opts block can be specified",
 			)
 		}
 		if !config.ParentEtherOpts.FlowControl.IsNull() && !config.ParentEtherOpts.NoFlowControl.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("flow_control"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"flow_control and no_flow_control cannot be configured together in parent_ether_opts block",
 			)
 		}
 		if !config.ParentEtherOpts.Loopback.IsNull() && !config.ParentEtherOpts.NoLoopback.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("loopback"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"loopback and no_loopback cannot be configured together in parent_ether_opts block",
 			)
 		}
 		if !config.ParentEtherOpts.MinimumBandwidth.IsNull() && !config.ParentEtherOpts.MinimumLinks.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("minimum_bandwidth"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"minimum_bandwidth and minimum_links cannot be configured together in parent_ether_opts block",
 			)
 		}
@@ -946,7 +946,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 			if config.ParentEtherOpts.BFDLivenessDetection.LocalAddress.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("parent_ether_opts").AtName("bfd_liveness_detection").AtName("local_address"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"local_address must be specified in bfd_liveness_detection block in parent_ether_opts block",
 				)
 			}
@@ -955,7 +955,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 			if config.ParentEtherOpts.Lacp.Mode.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("parent_ether_opts").AtName("lacp").AtName("mode"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					"mode must be specified in lacp block in parent_ether_opts block",
 				)
 			}
@@ -964,7 +964,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 		if config.ParentEtherOpts.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"parent_ether_opts block is empty",
 			)
 		}
@@ -973,7 +973,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 	if config.Disable.ValueBool() && config.Description.ValueString() == "NC" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("disable"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"disable=true and description=NC is not allowed "+
 				"because the provider might consider the resource deleted",
 		)
@@ -982,7 +982,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 	if !config.GratuitousArpReply.IsNull() && !config.NoGratuitousArpReply.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("gratuitous_arp_reply"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"gratuitous_arp_reply and no_gratuitous_arp_reply cannot be configured together",
 		)
 	}
@@ -990,14 +990,14 @@ func (rsc *interfacePhysical) ValidateConfig(
 	if !config.HoldTimeDown.IsNull() && config.HoldTimeUp.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("hold_time_down"),
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"hold_time_down and hold_time_up must be specified together",
 		)
 	}
 	if config.HoldTimeDown.IsNull() && !config.HoldTimeUp.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("hold_time_up"),
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"hold_time_down and hold_time_up must be specified together",
 		)
 	}
@@ -1039,15 +1039,15 @@ func (rsc *interfacePhysical) Create(
 			rsc.client.GroupInterfaceDelete(),
 			junSess,
 		); err != nil {
-			resp.Diagnostics.AddError("Config Pre Set Error", err.Error())
+			resp.Diagnostics.AddError("Pre Config Set Error", err.Error())
 
 			return
 		}
 		if errPath, err := plan.set(ctx, "", junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -1061,17 +1061,19 @@ func (rsc *interfacePhysical) Create(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(
 		ctx,
@@ -1080,13 +1082,13 @@ func (rsc *interfacePhysical) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 		return
 	}
 	if !ncInt && !emptyInt {
 		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
+			tfdiag.DuplicateConfigErrSummary,
 			fmt.Sprintf(rsc.junosName()+" %q already configured", plan.Name.ValueString()),
 		)
 
@@ -1099,7 +1101,7 @@ func (rsc *interfacePhysical) Create(
 			rsc.client.GroupInterfaceDelete(),
 			junSess,
 		); err != nil {
-			resp.Diagnostics.AddError("Config Pre Set Error", err.Error())
+			resp.Diagnostics.AddError("Pre Config Set Error", err.Error())
 
 			return
 		}
@@ -1107,17 +1109,17 @@ func (rsc *interfacePhysical) Create(
 
 	if errPath, err := plan.set(ctx, "", junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -1129,13 +1131,13 @@ func (rsc *interfacePhysical) Create(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 		return
 	}
 	if ncInt {
 		resp.Diagnostics.AddError(
-			"Not Found Error",
+			tfdiag.NotFoundErrSummary,
 			fmt.Sprintf(rsc.junosName()+" %q always disable (NC) after commit "+
 				"=> check your config", plan.Name.ValueString()),
 		)
@@ -1145,13 +1147,13 @@ func (rsc *interfacePhysical) Create(
 	if emptyInt {
 		intExists, err := junSess.CheckInterfaceExists(plan.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Post Check Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 			return
 		}
 		if !intExists {
 			resp.Diagnostics.AddError(
-				"Not Found Error",
+				tfdiag.NotFoundErrSummary,
 				fmt.Sprintf(rsc.junosName()+" %q not exists and config can't found after commit"+
 					"=> check your config", plan.Name.ValueString()),
 			)
@@ -1174,7 +1176,7 @@ func (rsc *interfacePhysical) Read(
 	}
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -1190,7 +1192,7 @@ func (rsc *interfacePhysical) Read(
 		junSess,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}
@@ -1202,7 +1204,7 @@ func (rsc *interfacePhysical) Read(
 	if emptyInt {
 		intExists, err := junSess.CheckInterfaceExists(state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Config Read Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 			return
 		}
@@ -1214,7 +1216,7 @@ func (rsc *interfacePhysical) Read(
 	}
 
 	if err := data.read(ctx, state.Name.ValueString(), junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}
@@ -1248,15 +1250,15 @@ func (rsc *interfacePhysical) Update(
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
 
 		if err := state.delOpts(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
 		if errPath, err := plan.set(ctx, oldAE, junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -1269,42 +1271,44 @@ func (rsc *interfacePhysical) Update(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	if err := state.delOpts(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
 	if err := state.unsetAE(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
 
 	if errPath, err := plan.set(ctx, oldAE, junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -1325,7 +1329,7 @@ func (rsc *interfacePhysical) Delete(
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
 
 		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
@@ -1335,27 +1339,29 @@ func (rsc *interfacePhysical) Delete(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
 	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -1363,7 +1369,7 @@ func (rsc *interfacePhysical) Delete(
 	if !state.NoDisableOnDestroy.ValueBool() {
 		intExists, err := junSess.CheckInterfaceExists(state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Pre Disable Error", err.Error())
+			resp.Diagnostics.AddError("Pre Disable Config Set Error", err.Error())
 		} else if intExists {
 			if err := addInterfaceNC(
 				ctx,
@@ -1371,14 +1377,14 @@ func (rsc *interfacePhysical) Delete(
 				rsc.client.GroupInterfaceDelete(),
 				junSess,
 			); err != nil {
-				resp.Diagnostics.AddError("Config Disable Error", err.Error())
+				resp.Diagnostics.AddError("Disable Config Set Error", err.Error())
 
 				return
 			}
 			warns, err = junSess.CommitConf("disable(NC) resource " + rsc.typeName())
-			resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+			resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 			if err != nil {
-				resp.Diagnostics.AddError("Config Commit Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 				return
 			}
@@ -1391,7 +1397,7 @@ func (rsc *interfacePhysical) ImportState(
 ) {
 	if strings.Count(req.ID, ".") != 0 {
 		resp.Diagnostics.AddError(
-			"Pre Check Error",
+			tfdiag.PreCheckErrSummary,
 			fmt.Sprintf("name of interface need to doesn't have a dot, got %q", req.ID),
 		)
 
@@ -1400,7 +1406,7 @@ func (rsc *interfacePhysical) ImportState(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
@@ -1434,7 +1440,7 @@ func (rsc *interfacePhysical) ImportState(
 		}
 		if !intExists {
 			resp.Diagnostics.AddError(
-				"Not Found Error",
+				tfdiag.NotFoundErrSummary,
 				fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
 					"(id must be <name>)", req.ID),
 			)
@@ -1445,7 +1451,7 @@ func (rsc *interfacePhysical) ImportState(
 
 	var data interfacePhysicalData
 	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
 		return
 	}

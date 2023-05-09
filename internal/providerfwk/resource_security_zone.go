@@ -46,6 +46,10 @@ func (rsc *securityZone) junosName() string {
 	return "security zone"
 }
 
+func (rsc *securityZone) junosClient() *junos.Client {
+	return rsc.client
+}
+
 func (rsc *securityZone) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
@@ -470,7 +474,7 @@ func (rsc *securityZone) ValidateConfig(
 			!config.AddressBookWildcard.IsNull()) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("address_book_configure_singly"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"cannot have address_book_configure_singly and want to configure address book at the same time",
 		)
 	}
@@ -491,7 +495,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -511,7 +515,7 @@ func (rsc *securityZone) ValidateConfig(
 			if block.IPv4Only.ValueBool() && block.IPv6Only.ValueBool() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_dns"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					fmt.Sprintf("ipv4_only and ipv6_only cannot be configured together in address_book_dns %q",
 						block.Name.ValueString()),
 				)
@@ -522,7 +526,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_dns"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -545,7 +549,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_range"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -565,7 +569,7 @@ func (rsc *securityZone) ValidateConfig(
 			if block.Address.IsNull() && block.AddressSet.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_set"),
-					"Missing Configuration Error",
+					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("at least one of address or address_set must be specified in address_book_set %q",
 						block.Name.ValueString()),
 				)
@@ -576,7 +580,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_set"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses or address-sets with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -599,7 +603,7 @@ func (rsc *securityZone) ValidateConfig(
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_wildcard"),
-					"Duplicate Configuration Error",
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
 				)
 			} else {
@@ -627,98 +631,58 @@ func (rsc *securityZone) Create(
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			if !junSess.CheckCompatibilitySecurity() {
+				resp.Diagnostics.AddError(
+					tfdiag.CompatibilityErrSummary,
+					fmt.Sprintf(rsc.junosName()+" not compatible "+
+						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+				)
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				return false
+			}
+			zoneExists, err := checkSecurityZonesExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
+
+				return false
+			}
+			if zoneExists {
+				resp.Diagnostics.AddError(
+					tfdiag.DuplicateConfigErrSummary,
+					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+				)
+
+				return false
 			}
 
-			return
-		}
+			return true
+		},
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			zoneExists, err := checkSecurityZonesExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+				return false
+			}
+			if !zoneExists {
+				resp.Diagnostics.AddError(
+					tfdiag.NotFoundErrSummary,
+					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
+						"=> check your config", plan.Name.ValueString()),
+				)
 
-		return
-	}
+				return false
+			}
 
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if !junSess.CheckCompatibilitySecurity() {
-		resp.Diagnostics.AddError(
-			"Compatibility Error",
-			fmt.Sprintf(rsc.junosName()+" not compatible "+
-				"with Junos device %q", junSess.SystemInformation.HardwareModel),
-		)
-
-		return
-	}
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	zoneExists, err := checkSecurityZonesExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if zoneExists {
-		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	zoneExists, err = checkSecurityZonesExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
-
-		return
-	}
-	if !zoneExists {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-				"=> check your config", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+			return true
+		},
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *securityZone) Read(
@@ -729,37 +693,27 @@ func (rsc *securityZone) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
 
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(ctx, state.Name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-	if data.ID.IsNull() {
-		resp.State.RemoveResource(ctx)
-
-		return
-	}
-
-	data.AddressBookConfigureSingly = state.AddressBookConfigureSingly
-	if data.AddressBookConfigureSingly.ValueBool() {
-		data.AddressBook = nil
-		data.AddressBookDNS = nil
-		data.AddressBookRange = nil
-		data.AddressBookSet = nil
-		data.AddressBookWildcard = nil
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceRead(
+		ctx,
+		rsc,
+		[]string{
+			state.Name.ValueString(),
+		},
+		&data,
+		func() {
+			data.AddressBookConfigureSingly = state.AddressBookConfigureSingly
+			if data.AddressBookConfigureSingly.ValueBool() {
+				data.AddressBook = nil
+				data.AddressBookDNS = nil
+				data.AddressBookRange = nil
+				data.AddressBookSet = nil
+				data.AddressBookWildcard = nil
+			}
+		},
+		resp,
+	)
 }
 
 func (rsc *securityZone) Update(
@@ -795,15 +749,15 @@ func (rsc *securityZone) Update(
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
 
 		if err := state.delOpts(ctx, addressBookConfiguredSingly, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 			return
 		}
 		if errPath, err := plan.set(ctx, junSess); err != nil {
 			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 			}
 
 			return
@@ -816,36 +770,38 @@ func (rsc *securityZone) Update(
 
 	junSess, err := rsc.client.StartNewSession(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
 		return
 	}
 	defer junSess.Close()
 	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
 
 		return
 	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+	}()
 
 	if err := state.delOpts(ctx, addressBookConfiguredSingly, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
 
 		return
 	}
 	if errPath, err := plan.set(ctx, junSess); err != nil {
 		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
 		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 		}
 
 		return
 	}
 	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
 
 		return
 	}
@@ -862,74 +818,29 @@ func (rsc *securityZone) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *securityZone) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
 	var data securityZoneData
-	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
-	}
-
-	if data.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <name>)", req.ID),
-		)
-
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceImportState(
+		ctx,
+		rsc,
+		&data,
+		req,
+		resp,
+		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
+			"(id must be <name>)", req.ID),
+	)
 }
 
 func checkSecurityZonesExists(
@@ -950,6 +861,10 @@ func checkSecurityZonesExists(
 
 func (rscData *securityZoneData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
+}
+
+func (rscData *securityZoneData) nullID() bool {
+	return rscData.ID.IsNull()
 }
 
 func (rscData *securityZoneData) set(

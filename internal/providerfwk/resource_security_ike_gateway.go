@@ -50,6 +50,10 @@ func (rsc *securityIkeGateway) junosName() string {
 	return "security ike gateway"
 }
 
+func (rsc *securityIkeGateway) junosClient() *junos.Client {
+	return rsc.client
+}
+
 func (rsc *securityIkeGateway) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
@@ -454,21 +458,21 @@ func (rsc *securityIkeGateway) ValidateConfig(
 
 	if config.Address.IsNull() && config.DynamicRemote == nil {
 		resp.Diagnostics.AddError(
-			"Missing Configuration Error",
+			tfdiag.MissingConfigErrSummary,
 			"one of address or dynamic_remote must be specified",
 		)
 	}
 	if !config.Address.IsNull() && config.DynamicRemote != nil {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("address"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"only one of address or dynamic_remote must be specified",
 		)
 	}
 	if config.DynamicRemote != nil && !config.GeneralIkeID.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("general_ike_id"),
-			"Conflict Configuration Error",
+			tfdiag.ConflictConfigErrSummary,
 			"cannot set general_ike_id if dynamic_remote is used",
 		)
 	}
@@ -481,7 +485,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.UserAtHostname.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("distinguished_name"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -493,7 +497,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.UserAtHostname.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("hostname"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -505,7 +509,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.UserAtHostname.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("inet"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -517,7 +521,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.UserAtHostname.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("inet6"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -529,7 +533,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				!config.DynamicRemote.Inet6.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("user_at_hostname"),
-					"Conflict Configuration Error",
+					tfdiag.ConflictConfigErrSummary,
 					"only one of distinguished_name, hostname, inet, inet6 or user_at_hostname "+
 						"can be specified in dynamic_remote block",
 				)
@@ -540,7 +544,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		if config.Aaa.AccessProfile.IsNull() && config.Aaa.ClientUsername.IsNull() && config.Aaa.ClientPassword.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("*"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"one of access_profile or client_username/client_password must be specified in aaa block",
 			)
 		}
@@ -548,21 +552,21 @@ func (rsc *securityIkeGateway) ValidateConfig(
 			(!config.Aaa.ClientUsername.IsNull() || !config.Aaa.ClientPassword.IsNull()) {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("access_profile"),
-				"Conflict Configuration Error",
+				tfdiag.ConflictConfigErrSummary,
 				"only one of access_profile or client_username/client_password must be specifiedin aaa block ",
 			)
 		}
 		if config.Aaa.ClientUsername.IsNull() && !config.Aaa.ClientPassword.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("client_password"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"client_username and client_password must be specified together in aaa block",
 			)
 		}
 		if !config.Aaa.ClientUsername.IsNull() && config.Aaa.ClientPassword.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("client_username"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"client_username and client_password must be specified together in aaa block",
 			)
 		}
@@ -571,7 +575,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		if config.LocalIdentity.Type.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("local_identity").AtName("type"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"type must be specified in local_identity block",
 			)
 		}
@@ -580,7 +584,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				if !config.LocalIdentity.Value.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("local_identity").AtName("value"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"value should not be specified when type is set to distinguished-name in local_identity block",
 					)
 				}
@@ -588,7 +592,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				if config.LocalIdentity.Value.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("local_identity").AtName("type"),
-						"Missing Configuration Error",
+						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("value must be specified when type is set to %q in local_identity block", v),
 					)
 				}
@@ -599,7 +603,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		if config.RemoteIdentity.Type.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("remote_identity").AtName("type"),
-				"Missing Configuration Error",
+				tfdiag.MissingConfigErrSummary,
 				"type must be specified in remote_identity block",
 			)
 		}
@@ -608,7 +612,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				if !config.RemoteIdentity.Value.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("remote_identity").AtName("value"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"value should not be specified when type is set to distinguished-name in remote_identity block",
 					)
 				}
@@ -616,7 +620,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				if config.RemoteIdentity.Value.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("remote_identity").AtName("type"),
-						"Missing Configuration Error",
+						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("value must be specified when type is set to %q in remote_identity block", v),
 					)
 				}
@@ -624,7 +628,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 					!config.RemoteIdentity.DistinguishedNameWildcard.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("remote_identity").AtName("type"),
-						"Conflict Configuration Error",
+						tfdiag.ConflictConfigErrSummary,
 						"type must be set to distinguished-name with "+
 							"distinguished_name_container and distinguished_name_wildcard in remote_identity block",
 					)
@@ -652,98 +656,58 @@ func (rsc *securityIkeGateway) Create(
 		return
 	}
 
-	if rsc.client.FakeCreateSetFile() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+	defaultResourceCreate(
+		ctx,
+		rsc,
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			if !junSess.CheckCompatibilitySecurity() {
+				resp.Diagnostics.AddError(
+					tfdiag.CompatibilityErrSummary,
+					fmt.Sprintf(rsc.junosName()+" not compatible "+
+						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+				)
 
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
+				return false
+			}
+			gatewayExists, err := checkSecurityIkeGatewayExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
+
+				return false
+			}
+			if gatewayExists {
+				resp.Diagnostics.AddError(
+					tfdiag.DuplicateConfigErrSummary,
+					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+				)
+
+				return false
 			}
 
-			return
-		}
+			return true
+		},
+		func(fnCtx context.Context, junSess *junos.Session) bool {
+			gatewayExists, err := checkSecurityIkeGatewayExists(fnCtx, plan.Name.ValueString(), junSess)
+			if err != nil {
+				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
-		plan.fillID()
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+				return false
+			}
+			if !gatewayExists {
+				resp.Diagnostics.AddError(
+					tfdiag.NotFoundErrSummary,
+					fmt.Sprintf(rsc.junosName()+" %q not exists after commit "+
+						"=> check your config", plan.Name.ValueString()),
+				)
 
-		return
-	}
+				return false
+			}
 
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if !junSess.CheckCompatibilitySecurity() {
-		resp.Diagnostics.AddError(
-			"Compatibility Error",
-			fmt.Sprintf(rsc.junosName()+" not compatible "+
-				"with Junos device %q", junSess.SystemInformation.HardwareModel),
-		)
-
-		return
-	}
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	gatewayExists, err := checkSecurityIkeGatewayExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Pre Check Error", err.Error())
-
-		return
-	}
-	if gatewayExists {
-		resp.Diagnostics.AddError(
-			"Duplicate Configuration Error",
-			fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	gatewayExists, err = checkSecurityIkeGatewayExists(ctx, plan.Name.ValueString(), junSess)
-	if err != nil {
-		resp.Diagnostics.AddError("Post Check Error", err.Error())
-
-		return
-	}
-	if !gatewayExists {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf(rsc.junosName()+" %q not exists after commit "+
-				"=> check your config", plan.Name.ValueString()),
-		)
-
-		return
-	}
-
-	plan.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+			return true
+		},
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *securityIkeGateway) Read(
@@ -754,29 +718,18 @@ func (rsc *securityIkeGateway) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
 
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(ctx, state.Name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
-
-		return
-	}
-	if data.ID.IsNull() {
-		resp.State.RemoveResource(ctx)
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceRead(
+		ctx,
+		rsc,
+		[]string{
+			state.Name.ValueString(),
+		},
+		&data,
+		nil,
+		resp,
+	)
 }
 
 func (rsc *securityIkeGateway) Update(
@@ -789,66 +742,13 @@ func (rsc *securityIkeGateway) Update(
 		return
 	}
 
-	if rsc.client.FakeUpdateAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-		if errPath, err := plan.set(ctx, junSess); err != nil {
-			if !errPath.Equal(path.Empty()) {
-				resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-			} else {
-				resp.Diagnostics.AddError("Config Set Error", err.Error())
-			}
-
-			return
-		}
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	if errPath, err := plan.set(ctx, junSess); err != nil {
-		if !errPath.Equal(path.Empty()) {
-			resp.Diagnostics.AddAttributeError(errPath, "Config Set Error", err.Error())
-		} else {
-			resp.Diagnostics.AddError("Config Set Error", err.Error())
-		}
-
-		return
-	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	defaultResourceUpdate(
+		ctx,
+		rsc,
+		&state,
+		&plan,
+		resp,
+	)
 }
 
 func (rsc *securityIkeGateway) Delete(
@@ -860,74 +760,29 @@ func (rsc *securityIkeGateway) Delete(
 		return
 	}
 
-	if rsc.client.FakeDeleteAlso() {
-		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
-
-		if err := state.del(ctx, junSess); err != nil {
-			resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-			return
-		}
-
-		return
-	}
-
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-	if err := junSess.ConfigLock(ctx); err != nil {
-		resp.Diagnostics.AddError("Config Lock Error", err.Error())
-
-		return
-	}
-	defer func() { resp.Diagnostics.Append(tfdiag.Warns("Config Clear/Unlock Warning", junSess.ConfigClear())...) }()
-
-	if err := state.del(ctx, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Del Error", err.Error())
-
-		return
-	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
-	resp.Diagnostics.Append(tfdiag.Warns("Config Commit Warning", warns)...)
-	if err != nil {
-		resp.Diagnostics.AddError("Config Commit Error", err.Error())
-
-		return
-	}
+	defaultResourceDelete(
+		ctx,
+		rsc,
+		&state,
+		resp,
+	)
 }
 
 func (rsc *securityIkeGateway) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	junSess, err := rsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Start Session Error", err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
 	var data securityIkeGatewayData
-	if err := data.read(ctx, req.ID, junSess); err != nil {
-		resp.Diagnostics.AddError("Config Read Error", err.Error())
 
-		return
-	}
-
-	if data.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			"Not Found Error",
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <name>)", req.ID),
-		)
-
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ resourceDataReadFrom1String = &data
+	defaultResourceImportState(
+		ctx,
+		rsc,
+		&data,
+		req,
+		resp,
+		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
+			"(id must be <name>)", req.ID),
+	)
 }
 
 func checkSecurityIkeGatewayExists(
@@ -949,6 +804,10 @@ func checkSecurityIkeGatewayExists(
 
 func (rscData *securityIkeGatewayData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
+}
+
+func (rscData *securityIkeGatewayData) nullID() bool {
+	return rscData.ID.IsNull()
 }
 
 func (rscData *securityIkeGatewayData) set(
