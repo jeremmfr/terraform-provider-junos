@@ -3299,7 +3299,9 @@ func (rscData *interfaceLogicalData) readSecurityZoneInboundTraffic(
 	return nil
 }
 
-func (rscData *interfaceLogicalData) del(ctx context.Context, junSess *junos.Session) error {
+func (rscData *interfaceLogicalData) del(
+	ctx context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete interfaces " + rscData.Name.ValueString(),
 	}
@@ -3328,7 +3330,9 @@ func (rscData *interfaceLogicalData) del(ctx context.Context, junSess *junos.Ses
 	return nil
 }
 
-func (rscData *interfaceLogicalData) delOpts(_ context.Context, junSess *junos.Session) error {
+func (rscData *interfaceLogicalData) delOpts(
+	_ context.Context, junSess *junos.Session,
+) error {
 	delPrefix := "delete interfaces " + rscData.Name.ValueString() + " "
 	configSet := []string{
 		delPrefix + "description",
@@ -3342,7 +3346,9 @@ func (rscData *interfaceLogicalData) delOpts(_ context.Context, junSess *junos.S
 	return junSess.ConfigSet(configSet)
 }
 
-func (rscData *interfaceLogicalData) delSecurityZone(_ context.Context, junSess *junos.Session) error {
+func (rscData *interfaceLogicalData) delSecurityZone(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		"delete security zones security-zone " + rscData.SecurityZone.ValueString() +
 			" interfaces " + rscData.Name.ValueString(),
@@ -3351,7 +3357,9 @@ func (rscData *interfaceLogicalData) delSecurityZone(_ context.Context, junSess 
 	return junSess.ConfigSet(configSet)
 }
 
-func (rscData *interfaceLogicalData) delRoutingInstance(_ context.Context, junSess *junos.Session) error {
+func (rscData *interfaceLogicalData) delRoutingInstance(
+	_ context.Context, junSess *junos.Session,
+) error {
 	configSet := []string{
 		junos.DelRoutingInstances + rscData.RoutingInstance.ValueString() +
 			" interface " + rscData.Name.ValueString(),
