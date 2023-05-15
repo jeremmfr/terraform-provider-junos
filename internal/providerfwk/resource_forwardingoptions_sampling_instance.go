@@ -2144,7 +2144,7 @@ func (rscData *forwardingoptionsSamplingInstanceData) del(
 		configSet[0] = junos.DelRoutingInstances + v +
 			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\""
 	} else {
-		configSet[0] = "delete " +
+		configSet[0] = junos.DeleteW +
 			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\""
 	}
 
