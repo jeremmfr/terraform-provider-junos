@@ -59,6 +59,12 @@ func (block *bgpBlockBfdLivenessDetection) isEmpty() bool {
 	}
 }
 
+type bgpBlockBgpErrorTolerance struct {
+	NoMalformedRouteLimit      types.Bool  `tfsdk:"no_malformed_route_limit"`
+	MalformedRouteLimit        types.Int64 `tfsdk:"malformed_route_limit"`
+	MalformedUpdateLogInterval types.Int64 `tfsdk:"malformed_update_log_interval"`
+}
+
 type bgpBlockBgpMultipath struct {
 	AllowProtection types.Bool `tfsdk:"allow_protection"`
 	Disable         types.Bool `tfsdk:"disable"`
@@ -130,6 +136,27 @@ func (block *bgpBlockBfdLivenessDetection) configSet(setPrefix string) []string 
 	}
 	if v := block.Version.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"version "+v)
+	}
+
+	return configSet
+}
+
+func (block *bgpBlockBgpErrorTolerance) configSet(setPrefix string) []string {
+	setPrefix += "bgp-error-tolerance"
+	configSet := []string{
+		setPrefix,
+	}
+
+	if !block.MalformedRouteLimit.IsNull() {
+		configSet = append(configSet, setPrefix+" malformed-route-limit "+
+			utils.ConvI64toa(block.MalformedRouteLimit.ValueInt64()))
+	}
+	if !block.MalformedUpdateLogInterval.IsNull() {
+		configSet = append(configSet, setPrefix+" malformed-update-log-interval "+
+			utils.ConvI64toa(block.MalformedUpdateLogInterval.ValueInt64()))
+	}
+	if block.NoMalformedRouteLimit.ValueBool() {
+		configSet = append(configSet, setPrefix+" no-malformed-route-limit")
 	}
 
 	return configSet
@@ -339,6 +366,25 @@ func (block *bgpBlockFamily) read(itemTrim string) (err error) {
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func (block *bgpBlockBgpErrorTolerance) read(itemTrim string) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, " malformed-route-limit "):
+		block.MalformedRouteLimit, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, " malformed-update-log-interval "):
+		block.MalformedUpdateLogInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case itemTrim == " no-malformed-route-limit":
+		block.NoMalformedRouteLimit = types.BoolValue(true)
 	}
 
 	return nil

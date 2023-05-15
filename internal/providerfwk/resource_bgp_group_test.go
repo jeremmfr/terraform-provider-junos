@@ -302,6 +302,7 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
     junos_routing_options.testacc_bgpgroup
   ]
   name                            = "testacc_bgpgroup"
+  description                     = "testacc bgpgroup"
   routing_instance                = junos_routing_instance.testacc_bgpgroup.name
   advertise_external_conditional  = true
   keep_all                        = true
@@ -316,6 +317,8 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
     restart_time     = 10
     stale_route_time = 10
   }
+  tcp_aggressive_transmission = true
+  bgp_error_tolerance {}
 }
 `
 }
@@ -353,6 +356,10 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
       teardown_idle_timeout = 30
     }
   }
+  bgp_error_tolerance {
+    malformed_route_limit         = 234
+    malformed_update_log_interval = 567
+  }
 }
 `
 }
@@ -375,6 +382,9 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
   local_as_alias         = true
   metric_out_minimum_igp = true
   family_evpn {}
+  bgp_error_tolerance {
+    no_malformed_route_limit = true
+  }
 }
 `
 }

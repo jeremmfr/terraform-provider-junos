@@ -218,6 +218,14 @@ func (rsc *bgpGroup) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"description": schema.StringAttribute{
+				Optional:    true,
+				Description: "Text description.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 900),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
 			"export": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
@@ -387,6 +395,13 @@ func (rsc *bgpGroup) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"no_client_reflect": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Disable intracluster route redistribution.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"out_delay": schema.Int64Attribute{
 				Optional:    true,
 				Description: "How long before exporting routes from routing table.",
@@ -419,6 +434,13 @@ func (rsc *bgpGroup) Schema(
 			"remove_private": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Remove well-known private AS numbers.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"tcp_aggressive_transmission": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Enable aggressive transmission of pure TCP ACKs and retransmissions.",
 				Validators: []validator.Bool{
 					tfvalidator.BoolTrue(),
 				},
@@ -512,6 +534,35 @@ func (rsc *bgpGroup) Schema(
 						Description: "BFD protocol version number.",
 						Validators: []validator.String{
 							stringvalidator.OneOf("0", "1", "automatic"),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
+			"bgp_error_tolerance": schema.SingleNestedBlock{
+				Description: "Handle BGP malformed updates softly.",
+				Attributes: map[string]schema.Attribute{
+					"malformed_route_limit": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Maximum number of malformed routes from a peer (0..4294967295).",
+						Validators: []validator.Int64{
+							int64validator.Between(0, 4294967295),
+						},
+					},
+					"malformed_update_log_interval": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Time used when logging malformed update (10..65535 seconds).",
+						Validators: []validator.Int64{
+							int64validator.Between(10, 65535),
+						},
+					},
+					"no_malformed_route_limit": schema.BoolAttribute{
+						Optional:    true,
+						Description: "No malformed route limit.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
 						},
 					},
 				},
@@ -727,12 +778,15 @@ type bgpGroupData struct {
 	MetricOutMinimumIgp          types.Bool                    `tfsdk:"metric_out_minimum_igp"`
 	MtuDiscovery                 types.Bool                    `tfsdk:"mtu_discovery"`
 	Multihop                     types.Bool                    `tfsdk:"multihop"`
+	NoClientReflect              types.Bool                    `tfsdk:"no_client_reflect"`
 	Passive                      types.Bool                    `tfsdk:"passive"`
 	RemovePrivate                types.Bool                    `tfsdk:"remove_private"`
+	TCPAggressiveTransmission    types.Bool                    `tfsdk:"tcp_aggressive_transmission"`
 	AuthenticationAlgorithm      types.String                  `tfsdk:"authentication_algorithm"`
 	AuthenticationKey            types.String                  `tfsdk:"authentication_key"`
 	AuthenticationKeyChain       types.String                  `tfsdk:"authentication_key_chain"`
 	Cluster                      types.String                  `tfsdk:"cluster"`
+	Description                  types.String                  `tfsdk:"description"`
 	Export                       []types.String                `tfsdk:"export"`
 	HoldTime                     types.Int64                   `tfsdk:"hold_time"`
 	ID                           types.String                  `tfsdk:"id"`
@@ -752,6 +806,7 @@ type bgpGroupData struct {
 	RoutingInstance              types.String                  `tfsdk:"routing_instance"`
 	Type                         types.String                  `tfsdk:"type"`
 	BfdLivenessDetection         *bgpBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
+	BgpErrorTolerance            *bgpBlockBgpErrorTolerance    `tfsdk:"bgp_error_tolerance"`
 	BgpMultipath                 *bgpBlockBgpMultipath         `tfsdk:"bgp_multipath"`
 	FamilyEvpn                   []bgpBlockFamily              `tfsdk:"family_evpn"`
 	FamilyInet                   []bgpBlockFamily              `tfsdk:"family_inet"`
@@ -779,12 +834,15 @@ type bgpGroupConfig struct {
 	MetricOutMinimumIgp          types.Bool                    `tfsdk:"metric_out_minimum_igp"`
 	MtuDiscovery                 types.Bool                    `tfsdk:"mtu_discovery"`
 	Multihop                     types.Bool                    `tfsdk:"multihop"`
+	NoClientReflect              types.Bool                    `tfsdk:"no_client_reflect"`
 	Passive                      types.Bool                    `tfsdk:"passive"`
 	RemotePrivate                types.Bool                    `tfsdk:"remove_private"`
+	TCPAggressiveTransmission    types.Bool                    `tfsdk:"tcp_aggressive_transmission"`
 	AuthenticationAlgorithm      types.String                  `tfsdk:"authentication_algorithm"`
 	AuthenticationKey            types.String                  `tfsdk:"authentication_key"`
 	AuthenticationKeyChain       types.String                  `tfsdk:"authentication_key_chain"`
 	Cluster                      types.String                  `tfsdk:"cluster"`
+	Description                  types.String                  `tfsdk:"description"`
 	Export                       types.List                    `tfsdk:"export"`
 	HoldTime                     types.Int64                   `tfsdk:"hold_time"`
 	ID                           types.String                  `tfsdk:"id"`
@@ -804,6 +862,7 @@ type bgpGroupConfig struct {
 	RoutingInstance              types.String                  `tfsdk:"routing_instance"`
 	Type                         types.String                  `tfsdk:"type"`
 	BfdLivenessDetection         *bgpBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
+	BgpErrorTolerance            *bgpBlockBgpErrorTolerance    `tfsdk:"bgp_error_tolerance"`
 	BgpMultipah                  *bgpBlockBgpMultipath         `tfsdk:"bgp_multipath"`
 	FamilyEvpn                   types.List                    `tfsdk:"family_evpn"`
 	FamilyInet                   types.List                    `tfsdk:"family_inet"`
@@ -959,6 +1018,17 @@ func (rsc *bgpGroup) ValidateConfig(
 				path.Root("metric_out_minimum_igp_offset"),
 				tfdiag.ConflictConfigErrSummary,
 				"metric_out_igp_offset and metric_out_minimum_igp_offset cannot be configured together",
+			)
+		}
+	}
+	if config.BgpErrorTolerance != nil {
+		if !config.BgpErrorTolerance.MalformedRouteLimit.IsNull() &&
+			!config.BgpErrorTolerance.NoMalformedRouteLimit.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("bgp_error_tolerance").AtName("no_malformed_route_limit"),
+				tfdiag.ConflictConfigErrSummary,
+				"malformed_route_limit and no_malformed_route_limit cannot be configured together"+
+					" in bgp_error_tolerance block",
 			)
 		}
 	}
@@ -1531,6 +1601,9 @@ func (rscData *bgpGroupData) set(
 	if rscData.Damping.ValueBool() {
 		configSet = append(configSet, setPrefix+"damping")
 	}
+	if v := rscData.Description.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"description \""+v+"\"")
+	}
 	for _, v := range rscData.Export {
 		configSet = append(configSet, setPrefix+"export "+v.ValueString())
 	}
@@ -1603,6 +1676,9 @@ func (rscData *bgpGroupData) set(
 	if rscData.Multihop.ValueBool() {
 		configSet = append(configSet, setPrefix+"multihop")
 	}
+	if rscData.NoClientReflect.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-client-reflect")
+	}
 	if !rscData.OutDelay.IsNull() {
 		configSet = append(configSet, setPrefix+"out-delay "+
 			utils.ConvI64toa(rscData.OutDelay.ValueInt64()))
@@ -1620,6 +1696,9 @@ func (rscData *bgpGroupData) set(
 	if rscData.RemovePrivate.ValueBool() {
 		configSet = append(configSet, setPrefix+"remove-private")
 	}
+	if rscData.TCPAggressiveTransmission.ValueBool() {
+		configSet = append(configSet, setPrefix+"tcp-aggressive-transmission")
+	}
 	if rscData.BfdLivenessDetection != nil {
 		if rscData.BfdLivenessDetection.isEmpty() {
 			return path.Root("bfd_liveness_detection").AtName("*"),
@@ -1627,6 +1706,9 @@ func (rscData *bgpGroupData) set(
 		}
 
 		configSet = append(configSet, rscData.BfdLivenessDetection.configSet(setPrefix)...)
+	}
+	if rscData.BgpErrorTolerance != nil {
+		configSet = append(configSet, rscData.BgpErrorTolerance.configSet(setPrefix)...)
 	}
 	if rscData.BgpMultipath != nil {
 		configSet = append(configSet, rscData.BgpMultipath.configSet(setPrefix)...)
@@ -1750,6 +1832,8 @@ func (rscData *bgpGroupData) read(
 				rscData.Cluster = types.StringValue(itemTrim)
 			case itemTrim == "damping":
 				rscData.Damping = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "export "):
 				rscData.Export = append(rscData.Export, types.StringValue(itemTrim))
 			case balt.CutPrefixInString(&itemTrim, "hold-time "):
@@ -1821,6 +1905,8 @@ func (rscData *bgpGroupData) read(
 				rscData.MtuDiscovery = types.BoolValue(true)
 			case itemTrim == "multihop":
 				rscData.Multihop = types.BoolValue(true)
+			case itemTrim == "no-client-reflect":
+				rscData.NoClientReflect = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "out-delay "):
 				rscData.OutDelay, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
@@ -1837,11 +1923,20 @@ func (rscData *bgpGroupData) read(
 				}
 			case itemTrim == "remove-private":
 				rscData.RemovePrivate = types.BoolValue(true)
+			case itemTrim == "tcp-aggressive-transmission":
+				rscData.TCPAggressiveTransmission = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
 				if rscData.BfdLivenessDetection == nil {
 					rscData.BfdLivenessDetection = &bgpBlockBfdLivenessDetection{}
 				}
 				if err := rscData.BfdLivenessDetection.read(itemTrim); err != nil {
+					return err
+				}
+			case balt.CutPrefixInString(&itemTrim, "bgp-error-tolerance"):
+				if rscData.BgpErrorTolerance == nil {
+					rscData.BgpErrorTolerance = &bgpBlockBgpErrorTolerance{}
+				}
+				if err := rscData.BgpErrorTolerance.read(itemTrim); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "family evpn "):
@@ -1921,6 +2016,7 @@ func (rscData *bgpGroupData) delOpts(
 		delPrefix+"authentication-key-chain",
 		delPrefix+"cluster",
 		delPrefix+"damping",
+		delPrefix+"description",
 		delPrefix+"export",
 		delPrefix+"hold-time",
 		delPrefix+"import",
@@ -1934,12 +2030,15 @@ func (rscData *bgpGroupData) delOpts(
 		delPrefix+"mtu-discovery",
 		delPrefix+"multihop",
 		delPrefix+"multipath",
+		delPrefix+"no-client-reflect",
 		delPrefix+"out-delay",
 		delPrefix+"passive",
 		delPrefix+"peer-as",
 		delPrefix+"preference",
 		delPrefix+"remove-private",
+		delPrefix+"tcp-aggressive-transmission",
 		delPrefix+"bfd-liveness-detection",
+		delPrefix+"bgp-error-tolerance",
 		delPrefix+"family evpn",
 		delPrefix+"family inet",
 		delPrefix+"family inet6",

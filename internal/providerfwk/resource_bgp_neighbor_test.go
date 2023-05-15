@@ -310,6 +310,7 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor" {
   ip                              = "192.0.2.4"
   routing_instance                = junos_routing_instance.testacc_bgpneighbor.name
   group                           = junos_bgp_group.testacc_bgpneighbor.name
+  description                     = "peer 2.4"
   advertise_external_conditional  = true
   keep_none                       = true
   no_advertise_peer_as            = true
@@ -323,8 +324,9 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor" {
     restart_time     = 10
     stale_route_time = 10
   }
+  tcp_aggressive_transmission = true
+  bgp_error_tolerance {}
 }
-
 `
 }
 
@@ -382,6 +384,10 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor2b" {
       teardown_idle_timeout = 30
     }
   }
+  bgp_error_tolerance {
+    malformed_route_limit         = 234
+    malformed_update_log_interval = 567
+  }
 }
 `
 }
@@ -426,6 +432,9 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor2b" {
   ip    = "192.0.2.5"
   group = junos_bgp_group.testacc_bgpneighbor2b.name
   family_evpn {}
+  bgp_error_tolerance {
+    no_malformed_route_limit = true
+  }
 }
 `
 }

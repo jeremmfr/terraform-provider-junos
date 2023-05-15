@@ -60,6 +60,16 @@ The following arguments are supported:
 - **bfd_liveness_detection** (Optional, Block)  
   Define Bidirectional Forwarding Detection (BFD) options.  
   See [below for nested schema](#bfd_liveness_detection-arguments).
+- **bgp_error_tolerance** (Optional, Block)  
+  Handle BGP malformed updates softly.
+  - **malformed_route_limit** (Optional, Number)  
+    Maximum number of malformed routes from a peer (0..4294967295).  
+    Conflict with `no_malformed_route_limit`.
+  - **malformed_update_log_interval** (Optional, Number)  
+    Time used when logging malformed update (10..65535 seconds).
+  - **no_malformed_route_limit** (Optional, Boolean)  
+    No malformed route limit.  
+    Conflict with `malformed_route_limit`.
 - **bgp_multipath** (Optional, Block)  
   Allow load sharing among multiple BGP paths.
   - **allow_protection** (Optional, Boolean)  
@@ -73,6 +83,8 @@ The following arguments are supported:
   Must be a valid IP address.
 - **damping** (Optional, Boolean)  
   Enable route flap damping.
+- **description** (Optional, String)  
+  Text description.
 - **export** (Optional, List of String)  
   Export policy list.
 - **family_evpn** (Optional, Block List)  
@@ -90,7 +102,12 @@ The following arguments are supported:
   Same options as [`family_inet` arguments](#family_inet-arguments) but for inet6 family.
 - **graceful_restart** (Optional, Block)  
   Define BGP graceful restart options.  
-  See [below for nested schema](#graceful_restart-arguments).
+  - **disable** (Optional, Boolean)  
+    Disable graceful restart.
+  - **restart_time** (Optional, Number)  
+    Restart time used when negotiating with a peer (1..600).
+  - **stale_route_time** (Optional, Number)  
+    Maximum time for which stale routes are kept (1..600).
 - **hold_time** (Optional, Number)  
   Hold time used when negotiating with a peer.
 - **import** (Optional, List of String)  
@@ -146,6 +163,8 @@ The following arguments are supported:
   Enable TCP path MTU discovery.
 - **multihop** (Optional, Boolean)  
   Configure an EBGP multihop session.
+- **no_client_reflect** (Optional, Boolean)  
+  Disable intracluster route redistribution.
 - **out_delay** (Optional, Number)  
   How long before exporting routes from routing table.
 - **passive** (Optional, Boolean)  
@@ -156,6 +175,8 @@ The following arguments are supported:
   Preference value.
 - **remove_private** (Optional, Boolean)  
   Remove well-known private AS numbers.
+- **tcp_aggressive_transmission** (Optional, Boolean)  
+  Enable aggressive transmission of pure TCP ACKs and retransmissions
 
 ---
 
@@ -211,17 +232,6 @@ Also for `family_inet6` and `family_evpn` (except `nlri_type`)
     Conflict with `teardown_idle_timeout`.
 - **prefix_limit** (Optional, Block)  
   Same options as `accepted_prefix_limit` but for limit maximum number of prefixes from a peer.
-
----
-
-### graceful_restart arguments
-
-- **disable** (Optional, Boolean)  
- Disable graceful restart.
-- **restart_time** (Optional, Number)  
-  Restart time used when negotiating with a peer (1..600).
-- **stale_route_time** (Optional, Number)  
-  Maximum time for which stale routes are kept (1..600).
 
 ## Attributes Reference
 
