@@ -287,7 +287,7 @@ func (rsc *oamGretunnelInterface) ImportState(
 func checkOamGretunnelInterfaceExists(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySet)
