@@ -25,7 +25,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   Name of group.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Routing instance for bgp protocol.  
+  Routing instance for bgp protocol if not root level.  
   Need to be `default` or name of routing instance.  
   Defaults to `default`.
 - **type** (Optional, String, Forces new resource)  
@@ -34,12 +34,11 @@ The following arguments are supported:
   Defaults to `external`.
 - **accept_remote_nexthop** (Optional, Boolean)  
   Allow import policy to specify a non-directly connected next-hop.
-- **advertise_external** (Optional, Boolean)  
+- **advertise_external** (Optional, Computed, Boolean)  
   Advertise best external routes.  
-  Conflict with `advertise_external_conditional`.
+  Computed to set to `true` when `advertise_external_conditional` is true.
 - **advertise_external_conditional** (Optional, Boolean)  
-  Route matches active route upto med-comparison rule.  
-  Conflict with `advertise_external`.
+  Route matches active route upto med-comparison rule.
 - **advertise_inactive** (Optional, Boolean)  
   Advertise inactive routes.
 - **advertise_peer_as** (Optional, Boolean)  
@@ -71,7 +70,8 @@ The following arguments are supported:
   - **multiple_as** (Optional, Boolean)  
     Use paths received from different ASs.
 - **cluster** (Optional, String)  
-  Cluster identifier. Must be a valid IP address.
+  Cluster identifier.  
+  Must be a valid IP address.
 - **damping** (Optional, Boolean)  
   Enable route flap damping.
 - **export** (Optional, List of String)  
@@ -186,7 +186,8 @@ The following arguments are supported:
 - **transmit_interval_threshold** (Optional, Number)  
   High transmit interval triggering a trap (milliseconds).
 - **version** (Optional, String)  
-  BFD protocol version number.
+  BFD protocol version number.  
+  Need to be `0`, `1` or `automatic`.
 
 ---
 
@@ -198,7 +199,7 @@ Also for `family_inet6` and `family_evpn` (except `nlri_type`)
   NLRI type.  
   Need to be `any`, `flow`, `labeled-unicast`, `unicast` or `multicast`.
 - **accepted_prefix_limit** (Optional, Block)  
-  Define maximum number of prefixes accepted from a peer and options.
+  Define maximum number of prefixes accepted from a peer.
   - **maximum** (Required, Number)  
     Maximum number of prefixes accepted from a peer (1..4294967295).
   - **teardown** (Optional, Number)  
