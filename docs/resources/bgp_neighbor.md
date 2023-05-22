@@ -26,19 +26,18 @@ The following arguments are supported:
 - **ip** (Required, String, Forces new resource)  
   IP of neighbor.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Routing instance for bgp protocol.  
+  Routing instance for bgp protocol if not root level.  
   Need to be `default` or name of routing instance.  
   Defaults to `default`.
 - **group** (Required, String, Forces new resource)  
-  Name of BGP group for this neighbor
+  Name of BGP group for this neighbor.
 - **accept_remote_nexthop** (Optional, Boolean)  
   Allow import policy to specify a non-directly connected next-hop.
-- **advertise_external** (Optional, Boolean)  
+- **advertise_external** (Optional, Computed, Boolean)  
   Advertise best external routes.  
-  Conflict with `advertise_external_conditional`.
+  Computed to set to `true` when `advertise_external_conditional` is true.
 - **advertise_external_conditional** (Optional, Boolean)  
-  Route matches active route upto med-comparison rule.  
-  Conflict with `advertise_external`.
+  Route matches active route upto med-comparison rule.
 - **advertise_inactive** (Optional, Boolean)  
   Advertise inactive routes.
 - **advertise_peer_as** (Optional, Boolean)  
@@ -61,6 +60,16 @@ The following arguments are supported:
 - **bfd_liveness_detection** (Optional, Block)  
   Define Bidirectional Forwarding Detection (BFD) options.  
   See [below for nested schema](#bfd_liveness_detection-arguments).
+- **bgp_error_tolerance** (Optional, Block)  
+  Handle BGP malformed updates softly.
+  - **malformed_route_limit** (Optional, Number)  
+    Maximum number of malformed routes from a peer (0..4294967295).  
+    Conflict with `no_malformed_route_limit`.
+  - **malformed_update_log_interval** (Optional, Number)  
+    Time used when logging malformed update (10..65535 seconds).
+  - **no_malformed_route_limit** (Optional, Boolean)  
+    No malformed route limit.  
+    Conflict with `malformed_route_limit`.
 - **bgp_multipath** (Optional, Block)  
   Allow load sharing among multiple BGP paths.
   - **allow_protection** (Optional, Boolean)  
@@ -70,9 +79,12 @@ The following arguments are supported:
   - **multiple_as** (Optional, Boolean)  
     Use paths received from different ASs.
 - **cluster** (Optional, String)  
-  Cluster identifier. Must be a valid IP address.
+  Cluster identifier.  
+  Must be a valid IP address.
 - **damping** (Optional, Boolean)  
   Enable route flap damping.
+- **description** (Optional, String)  
+  Text description.
 - **export** (Optional, List of String)  
   Export policy list.
 - **family_evpn** (Optional, Block List)  
@@ -90,7 +102,12 @@ The following arguments are supported:
   Same options as [`family_inet` arguments](#family_inet-arguments) but for inet6 family.
 - **graceful_restart** (Optional, Block)  
   Define BGP graceful restart options.  
-  See [below for nested schema](#graceful_restart-arguments).
+  - **disable** (Optional, Boolean)  
+    Disable graceful restart.
+  - **restart_time** (Optional, Number)  
+    Restart time used when negotiating with a peer (1..600).
+  - **stale_route_time** (Optional, Number)  
+    Maximum time for which stale routes are kept (1..600).
 - **hold_time** (Optional, Number)  
   Hold time used when negotiating with a peer.
 - **import** (Optional, List of String)  
@@ -146,6 +163,8 @@ The following arguments are supported:
   Enable TCP path MTU discovery.
 - **multihop** (Optional, Boolean)  
   Configure an EBGP multihop session.
+- **no_client_reflect** (Optional, Boolean)  
+  Disable intracluster route redistribution.
 - **out_delay** (Optional, Number)  
   How long before exporting routes from routing table.
 - **passive** (Optional, Boolean)  
@@ -156,6 +175,8 @@ The following arguments are supported:
   Preference value.
 - **remove_private** (Optional, Boolean)  
   Remove well-known private AS numbers.
+- **tcp_aggressive_transmission** (Optional, Boolean)  
+  Enable aggressive transmission of pure TCP ACKs and retransmissions
 
 ---
 
@@ -185,7 +206,8 @@ The following arguments are supported:
 - **transmit_interval_threshold** (Optional, Number)  
   High transmit interval triggering a trap (milliseconds).
 - **version** (Optional, String)  
-  BFD protocol version number.
+  BFD protocol version number.  
+  Need to be `0`, `1` or `automatic`.
 
 ---
 
@@ -197,7 +219,7 @@ Also for `family_inet6` and `family_evpn` (except `nlri_type`)
   NLRI type.  
   Need to be `any`, `flow`, `labeled-unicast`, `unicast` or `multicast`.
 - **accepted_prefix_limit** (Optional, Block)  
-  Define maximum number of prefixes accepted from a peer and options.
+  Define maximum number of prefixes accepted from a peer.
   - **maximum** (Required, Number)  
     Maximum number of prefixes accepted from a peer (1..4294967295).
   - **teardown** (Optional, Number)  
@@ -210,17 +232,6 @@ Also for `family_inet6` and `family_evpn` (except `nlri_type`)
     Conflict with `teardown_idle_timeout`.
 - **prefix_limit** (Optional, Block)  
   Same options as `accepted_prefix_limit` but for limit maximum number of prefixes from a peer.
-
----
-
-### graceful_restart arguments
-
-- **disable** (Optional, Boolean)  
- Disable graceful restart.
-- **restart_time** (Optional, Number)  
-  Restart time used when negotiating with a peer (1..600).
-- **stale_route_time** (Optional, Number)  
-  Maximum time for which stale routes are kept (1..600).
 
 ## Attributes Reference
 

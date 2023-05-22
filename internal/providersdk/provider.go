@@ -149,8 +149,6 @@ func Provider() *schema.Provider {
 			"junos_aggregate_route":                                      resourceAggregateRoute(),
 			"junos_application":                                          resourceApplication(),
 			"junos_application_set":                                      resourceApplicationSet(),
-			"junos_bgp_group":                                            resourceBgpGroup(),
-			"junos_bgp_neighbor":                                         resourceBgpNeighbor(),
 			"junos_bridge_domain":                                        resourceBridgeDomain(),
 			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_chassis_redundancy":                                   resourceChassisRedundancy(),

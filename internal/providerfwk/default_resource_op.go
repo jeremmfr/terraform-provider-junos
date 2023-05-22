@@ -31,6 +31,11 @@ type resourceDataReadFrom2String interface {
 	read(context.Context, string, string, *junos.Session) error
 }
 
+type resourceDataReadFrom3String interface {
+	resourceDataNullID
+	read(context.Context, string, string, string, *junos.Session) error
+}
+
 type resourceDataReadFrom4String interface {
 	resourceDataNullID
 	read(context.Context, string, string, string, string, *junos.Session) error
@@ -160,6 +165,9 @@ func defaultResourceRead(
 	}
 	if data2, ok := data.(resourceDataReadFrom2String); ok {
 		err = data2.read(ctx, mainAttrValues[0], mainAttrValues[1], junSess)
+	}
+	if data3, ok := data.(resourceDataReadFrom3String); ok {
+		err = data3.read(ctx, mainAttrValues[0], mainAttrValues[1], mainAttrValues[2], junSess)
 	}
 	if data4, ok := data.(resourceDataReadFrom4String); ok {
 		err = data4.read(ctx, mainAttrValues[0], mainAttrValues[1], mainAttrValues[2], mainAttrValues[3], junSess)
@@ -353,6 +361,19 @@ func defaultResourceImportState(
 		}
 
 		err = data2.read(ctx, idList[0], idList[1], junSess)
+	}
+	if data3, ok := data.(resourceDataReadFrom3String); ok {
+		idList := strings.Split(req.ID, junos.IDSeparator)
+		if len(idList) < 3 {
+			resp.Diagnostics.AddError(
+				"Bad ID Format",
+				fmt.Sprintf("missing element(s) in id with separator %q", junos.IDSeparator),
+			)
+
+			return
+		}
+
+		err = data3.read(ctx, idList[0], idList[1], idList[2], junSess)
 	}
 	if data4, ok := data.(resourceDataReadFrom4String); ok {
 		idList := strings.Split(req.ID, junos.IDSeparator)
