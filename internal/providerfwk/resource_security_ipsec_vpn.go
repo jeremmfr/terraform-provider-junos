@@ -296,9 +296,8 @@ func (rsc *securityIpsecVpn) Schema(
 							Required:    true,
 							Description: "Name of traffic-selector.",
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 32),
+								stringvalidator.LengthBetween(1, 31),
 								tfvalidator.StringDoubleQuoteExclusion(),
-								tfvalidator.StringSpaceExclusion(),
 							},
 						},
 						"local_ip": schema.StringAttribute{
@@ -1099,12 +1098,12 @@ func (rscData *securityIpsecVpnData) read(
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "traffic-selector "):
-				itemTrimFields := strings.Split(itemTrim, " ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var trafficSelector securityIpsecVpnBlockTrafficSelector
 				rscData.TrafficSelector, trafficSelector = tfdata.ExtractBlockWithTFTypesString(
-					rscData.TrafficSelector, "Name", strings.Trim(itemTrimFields[0], "\""))
-				trafficSelector.Name = types.StringValue(strings.Trim(itemTrimFields[0], "\""))
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+					rscData.TrafficSelector, "Name", strings.Trim(name, "\""))
+				trafficSelector.Name = types.StringValue(strings.Trim(name, "\""))
+				balt.CutPrefixInString(&itemTrim, name+" ")
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "local-ip "):
 					trafficSelector.LocalIP = types.StringValue(itemTrim)
