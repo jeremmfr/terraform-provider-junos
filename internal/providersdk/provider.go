@@ -171,7 +171,6 @@ func Provider() *schema.Provider {
 			"junos_ospf":                                                 resourceOspf(),
 			"junos_ospf_area":                                            resourceOspfArea(),
 			"junos_policyoptions_as_path":                                resourcePolicyoptionsAsPath(),
-			"junos_policyoptions_as_path_group":                          resourcePolicyoptionsAsPathGroup(),
 			"junos_policyoptions_community":                              resourcePolicyoptionsCommunity(),
 			"junos_policyoptions_policy_statement":                       resourcePolicyoptionsPolicyStatement(),
 			"junos_policyoptions_prefix_list":                            resourcePolicyoptionsPrefixList(),

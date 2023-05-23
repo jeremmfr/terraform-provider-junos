@@ -18,6 +18,7 @@ const (
 	DNSNameFormat
 	InterfaceFormat
 	HexadecimalFormat
+	ASPathRegularExpression
 )
 
 func (f stringFormat) invalidRune() func(rune) bool {
@@ -45,6 +46,12 @@ func (f stringFormat) invalidRune() func(rune) bool {
 		return func(r rune) bool {
 			return (r < 'a' || r > 'f') && (r < 'A' || r > 'F') && (r < '0' || r > '9')
 		}
+	case ASPathRegularExpression:
+		return func(r rune) bool {
+			return r != '^' && r != '$' && r != '-' && r != ',' && r != '|' && r != '*' && r != '!' &&
+				r != '+' && r != '?' && r != '{' && r != '}' && r != '.' && r != '[' && r != ']' &&
+				r != '(' && r != ')' && (r < '0' || r > '9') && r != ' '
+		}
 	default:
 		return func(r rune) bool {
 			return true
@@ -64,6 +71,8 @@ func (f stringFormat) String() string {
 		return "letters, numbers, dashes, slashes, dots and colons"
 	case HexadecimalFormat:
 		return "A-F or a-f letters and numbers"
+	case ASPathRegularExpression:
+		return "regular expression characters, numbers and spaces"
 	default:
 		return ""
 	}
