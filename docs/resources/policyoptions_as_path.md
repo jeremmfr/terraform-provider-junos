@@ -4,12 +4,12 @@ page_title: "Junos: junos_policyoptions_as_path"
 
 # junos_policyoptions_as_path
 
-Provides an as-path resource.
+Provides a policy-options as-path resource.
 
 ## Example Usage
 
 ```hcl
-# Add an as-path
+# Add a policy-options as-path
 resource "junos_policyoptions_as_path" "github" {
   name = "github"
   path = ".* 36459"
@@ -18,14 +18,16 @@ resource "junos_policyoptions_as_path" "github" {
 
 ## Argument Reference
 
+-> **Note:** One of `dynamic_db` or `path` arguments is required.
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of as-path.
+  Name to identify AS path regular expression.
 - **dynamic_db** (Optional, Boolean)  
-  Add `dynamic-db` parameter.
+  Object may exist in dynamic database.
 - **path** (Optional, String)  
-  As-path.
+  AS path regular expression.
 
 ## Attributes Reference
 
