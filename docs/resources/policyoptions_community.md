@@ -4,12 +4,12 @@ page_title: "Junos: junos_policyoptions_community"
 
 # junos_policyoptions_community
 
-Provides a community BGP resource.
+Provides a policy-options community resource.
 
 ## Example Usage
 
 ```hcl
-# Add a community
+# Add a policy-options community
 resource "junos_policyoptions_community" "community_demo" {
   name    = "communityDemo"
   members = ["65000:100"]
@@ -21,11 +21,11 @@ resource "junos_policyoptions_community" "community_demo" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of community.
+  Name to identify BGP community.
 - **members** (Required, List of String)  
-  List of community.
+  Community members.
 - **invert_match** (Optional, Boolean)  
-  Add `invert-match` parameter.
+  Invert the result of the community expression matching.
 
 ## Attributes Reference
 

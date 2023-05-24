@@ -208,6 +208,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newOamGretunnelInterfaceResource,
 		newPolicyoptionsASPathResource,
 		newPolicyoptionsASPathGroupResource,
+		newPolicyoptionsCommunityResource,
 		newRoutingInstanceResource,
 		newSecurityResource,
 		newSecurityAddressBookResource,
