@@ -18,14 +18,18 @@ resource "junos_policyoptions_community" "community_demo" {
 
 ## Argument Reference
 
+-> **Note:** One of `dynamic_db` or `members` arguments is required.
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   Name to identify BGP community.
-- **members** (Required, List of String)  
-  Community members.
+- **dynamic_db** (Optional, Boolean)  
+  Object may exist in dynamic database.
 - **invert_match** (Optional, Boolean)  
   Invert the result of the community expression matching.
+- **members** (Optional, List of String)  
+  Community members.
 
 ## Attributes Reference
 

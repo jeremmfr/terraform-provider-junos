@@ -763,8 +763,13 @@ resource "junos_policyoptions_as_path_group" "testacc_policyOptions" {
   }
 }
 resource "junos_policyoptions_community" "testacc_policyOptions" {
-  name    = "testacc_policyOptions"
-  members = ["65000:200"]
+  name         = "testacc_policyOptions"
+  members      = ["65000:200"]
+  invert_match = true
+}
+resource "junos_policyoptions_community" "testacc_policyOptions2" {
+  name       = "testacc policyOptions2"
+  dynamic_db = true
 }
 resource "junos_policyoptions_prefix_list" "testacc_policyOptions" {
   name   = "testacc_policyOptions"

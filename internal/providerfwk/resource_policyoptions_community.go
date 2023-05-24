@@ -23,9 +23,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &policyoptionsCommunity{}
-	_ resource.ResourceWithConfigure   = &policyoptionsCommunity{}
-	_ resource.ResourceWithImportState = &policyoptionsCommunity{}
+	_ resource.Resource                   = &policyoptionsCommunity{}
+	_ resource.ResourceWithConfigure      = &policyoptionsCommunity{}
+	_ resource.ResourceWithValidateConfig = &policyoptionsCommunity{}
+	_ resource.ResourceWithImportState    = &policyoptionsCommunity{}
 )
 
 type policyoptionsCommunity struct {
@@ -94,16 +95,11 @@ func (rsc *policyoptionsCommunity) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
-			"members": schema.ListAttribute{
-				ElementType: types.StringType,
-				Required:    true,
-				Description: "Community members.",
-				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
-					listvalidator.ValueStringsAre(
-						stringvalidator.LengthBetween(1, 250),
-						tfvalidator.StringDoubleQuoteExclusion(),
-					),
+			"dynamic_db": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Object may exist in dynamic database.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
 				},
 			},
 			"invert_match": schema.BoolAttribute{
@@ -113,15 +109,63 @@ func (rsc *policyoptionsCommunity) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"members": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Community members.",
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
+					listvalidator.ValueStringsAre(
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					),
+				},
+			},
 		},
 	}
 }
 
 type policyoptionsCommunityData struct {
+	DynamicDB   types.Bool     `tfsdk:"dynamic_db"`
 	InvertMatch types.Bool     `tfsdk:"invert_match"`
 	ID          types.String   `tfsdk:"id"`
 	Name        types.String   `tfsdk:"name"`
 	Members     []types.String `tfsdk:"members"`
+}
+
+type policyoptionsCommunityConfig struct {
+	DynamicDB   types.Bool   `tfsdk:"dynamic_db"`
+	InvertMatch types.Bool   `tfsdk:"invert_match"`
+	ID          types.String `tfsdk:"id"`
+	Name        types.String `tfsdk:"name"`
+	Members     types.List   `tfsdk:"members"`
+}
+
+func (rsc *policyoptionsCommunity) ValidateConfig(
+	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
+) {
+	var config policyoptionsCommunityConfig
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.Members.IsNull() &&
+		config.DynamicDB.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("name"),
+			tfdiag.MissingConfigErrSummary,
+			"one of members or dynamic_db must be specified",
+		)
+	}
+	if !config.Members.IsNull() &&
+		!config.DynamicDB.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("name"),
+			tfdiag.MissingConfigErrSummary,
+			"only one of members or dynamic_db must be specified",
+		)
+	}
 }
 
 func (rsc *policyoptionsCommunity) Create(
@@ -295,6 +339,9 @@ func (rscData *policyoptionsCommunityData) set(
 	configSet := make([]string, 0)
 	setPrefix := "set policy-options community \"" + rscData.Name.ValueString() + "\" "
 
+	if rscData.DynamicDB.ValueBool() {
+		configSet = append(configSet, setPrefix+"dynamic-db")
+	}
 	for _, v := range rscData.Members {
 		configSet = append(configSet, setPrefix+"members \""+v.ValueString()+"\"")
 	}
@@ -327,6 +374,8 @@ func (rscData *policyoptionsCommunityData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
+			case itemTrim == "dynamic-db":
+				rscData.DynamicDB = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "members "):
 				rscData.Members = append(rscData.Members,
 					types.StringValue(strings.Trim(itemTrim, "\"")))
