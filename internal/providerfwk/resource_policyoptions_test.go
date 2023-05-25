@@ -521,6 +521,10 @@ resource "junos_policyoptions_prefix_list" "testacc_policyOptions" {
   name   = "testacc_policyOptions"
   prefix = ["192.0.2.0/25"]
 }
+resource "junos_policyoptions_prefix_list" "testacc_policyOptions2" {
+  name   = "testacc policyOptions2"
+  prefix = ["192.0.2.0/25", "fe80::/64"]
+}
 resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {

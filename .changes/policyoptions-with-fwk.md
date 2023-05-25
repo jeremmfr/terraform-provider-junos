@@ -11,6 +11,9 @@ ENHANCEMENTS:
   * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   optional boolean attributes doesn't accept value *false*  
   * add `dynamic_db` argument (`members` is now optional but one of `dynamic_db` or `members` must be specified)
+* **resource/junos_policyoptions_prefix_list**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
 
 BUG FIXES:
 
