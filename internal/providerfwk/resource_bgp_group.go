@@ -1021,6 +1021,15 @@ func (rsc *bgpGroup) ValidateConfig(
 			)
 		}
 	}
+	if config.BfdLivenessDetection != nil {
+		if config.BfdLivenessDetection.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("bfd_liveness_detection").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"bfd_liveness_detection block is empty",
+			)
+		}
+	}
 	if config.BgpErrorTolerance != nil {
 		if !config.BgpErrorTolerance.MalformedRouteLimit.IsNull() &&
 			!config.BgpErrorTolerance.NoMalformedRouteLimit.IsNull() {
