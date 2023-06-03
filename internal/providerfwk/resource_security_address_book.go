@@ -367,14 +367,14 @@ type securityAddressBookBlockWildcardAddress struct {
 }
 
 type securityAddressBookBlockAddressSet struct {
-	Name        types.String   `tfsdk:"name" mapstructure:"name"`
+	Name        types.String   `tfsdk:"name"`
 	Address     []types.String `tfsdk:"address"`
 	AddressSet  []types.String `tfsdk:"address_set"`
 	Description types.String   `tfsdk:"description"`
 }
 
 type securityAddressBookBlockAddressSetConfig struct {
-	Name        types.String `tfsdk:"name" mapstructure:"name"`
+	Name        types.String `tfsdk:"name"`
 	Address     types.Set    `tfsdk:"address"`
 	AddressSet  types.Set    `tfsdk:"address_set"`
 	Description types.String `tfsdk:"description"`

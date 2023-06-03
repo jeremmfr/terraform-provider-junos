@@ -29,6 +29,7 @@ linters:
     - execinquery
     - nosnakecase
     - musttag
+    - depguard
 linters-settings:
   gci:
     custom-order: true
