@@ -44,6 +44,8 @@ The following arguments are supported:
   Name to identify the policy.
 - **add_it_to_forwarding_table_export** (Optional, Boolean)  
   Add this policy in `routing-options forwarding-table export` list.
+- **dynamic_db** (Optional, Boolean)  
+  Object may exist in dynamic database.
 - **from** (Optional, Block)  
   Conditions to match the source of a route.  
   See [below for nested schema](#from-arguments).

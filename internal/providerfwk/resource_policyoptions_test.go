@@ -896,5 +896,9 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions2" {
     }
   }
 }
+resource "junos_policyoptions_policy_statement" "testacc_policyOptions3" {
+  name       = "testacc policyOptions3"
+  dynamic_db = true
+}
 `
 }

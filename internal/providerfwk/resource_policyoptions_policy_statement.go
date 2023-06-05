@@ -110,6 +110,13 @@ func (rsc *policyoptionsPolicyStatement) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"dynamic_db": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Object may exist in dynamic database.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"from": schema.SingleNestedBlock{
@@ -887,6 +894,7 @@ func (rsc *policyoptionsPolicyStatement) schemaThenBlocks() map[string]schema.Bl
 
 type policyoptionsPolicyStatementData struct {
 	AddItToForwardingTableExport types.Bool                              `tfsdk:"add_it_to_forwarding_table_export"`
+	DynamicDB                    types.Bool                              `tfsdk:"dynamic_db"`
 	ID                           types.String                            `tfsdk:"id"`
 	Name                         types.String                            `tfsdk:"name"`
 	From                         *policyoptionsPolicyStatementBlockFrom  `tfsdk:"from"`
@@ -897,6 +905,7 @@ type policyoptionsPolicyStatementData struct {
 
 type policyoptionsPolicyStatementConfig struct {
 	AddItToForwardingTableExport types.Bool                                   `tfsdk:"add_it_to_forwarding_table_export"`
+	DynamicDB                    types.Bool                                   `tfsdk:"dynamic_db"`
 	ID                           types.String                                 `tfsdk:"id"`
 	Name                         types.String                                 `tfsdk:"name"`
 	From                         *policyoptionsPolicyStatementBlockFromConfig `tfsdk:"from"`
@@ -1400,14 +1409,15 @@ func (rsc *policyoptionsPolicyStatement) ValidateConfig( //nolint:gocognit,gocyc
 		return
 	}
 
-	if config.From == nil &&
+	if config.DynamicDB.IsNull() &&
+		config.From == nil &&
 		config.To == nil &&
 		config.Then == nil &&
 		config.Term.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			tfdiag.MissingConfigErrSummary,
-			"at least one of from, to, then or term block must be specified",
+			"at least one of dynamic_db, from, to, then or term block must be specified",
 		)
 	}
 
@@ -2097,8 +2107,11 @@ func (rscData *policyoptionsPolicyStatementData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := "set policy-options policy-statement \"" + rscData.Name.ValueString() + "\" "
+
+	if rscData.DynamicDB.ValueBool() {
+		configSet = append(configSet, setPrefix+"dynamic-db")
+	}
 	if rscData.From != nil {
 		if rscData.From.isEmpty() {
 			return path.Root("from").AtName("*"),
@@ -2511,6 +2524,8 @@ func (rscData *policyoptionsPolicyStatementData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
+			case itemTrim == "dynamic-db":
+				rscData.DynamicDB = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "term "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var term policyoptionsPolicyStatementBlockTerm
