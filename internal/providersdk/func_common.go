@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -196,16 +195,6 @@ func sortSetOfString(list []interface{}) []string {
 	s := make([]string, len(list))
 	for k, e := range list {
 		s[k] = e.(string)
-	}
-	sort.Strings(s)
-
-	return s
-}
-
-func sortSetOfNumberToString(list []interface{}) []string {
-	s := make([]string, len(list))
-	for k, e := range list {
-		s[k] = strconv.Itoa(e.(int))
 	}
 	sort.Strings(s)
 
