@@ -108,14 +108,51 @@ func (rsc *firewallPolicer) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"logical_bandwidth_policer": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Policer uses logical interface bandwidth.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"logical_interface_policer": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Policer is logical interface policer.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"physical_interface_policer": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Policer is physical interface policer.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"shared_bandwidth_policer": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Share policer bandwidth among bundle links.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"if_exceeding": schema.SingleNestedBlock{
 				Description: "Define rate limits options.",
 				Attributes: map[string]schema.Attribute{
 					"burst_size_limit": schema.StringAttribute{
-						Required:    true,
+						Required:    false, // true when SingleNestedBlock is specified
+						Optional:    true,
 						Description: "Burst size limit in bytes.",
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(regexp.MustCompile(`^(\d)+(m|k|g)?$`),
+								`must be a bandwidth ^(\d)+(m|k|g)?$`),
+						},
+					},
+					"bandwidth_limit": schema.StringAttribute{
+						Optional:    true,
+						Description: "Bandwidth limit in bits/second.",
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(regexp.MustCompile(`^(\d)+(m|k|g)?$`),
 								`must be a bandwidth ^(\d)+(m|k|g)?$`),
@@ -128,12 +165,30 @@ func (rsc *firewallPolicer) Schema(
 							int64validator.Between(1, 100),
 						},
 					},
-					"bandwidth_limit": schema.StringAttribute{
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
+			"if_exceeding_pps": schema.SingleNestedBlock{
+				Description: "Define pps limits options.",
+				Attributes: map[string]schema.Attribute{
+					"packet_burst": schema.StringAttribute{
+						Required:    false, // true when SingleNestedBlock is specified
 						Optional:    true,
-						Description: "Bandwidth limit in bits/second.",
+						Description: "PPS burst size limit.",
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(regexp.MustCompile(`^(\d)+(m|k|g)?$`),
-								`must be a bandwidth ^(\d)+(m|k|g)?$`),
+								`must be a pps ^(\d)+(m|k|g)?$`),
+						},
+					},
+					"pps_limit": schema.StringAttribute{
+						Required:    false, // true when SingleNestedBlock is specified
+						Optional:    true,
+						Description: "PPS limit.",
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(regexp.MustCompile(`^(\d)+(m|k|g)?$`),
+								`must be a pps ^(\d)+(m|k|g)?$`),
 						},
 					},
 				},
@@ -182,17 +237,27 @@ func (rsc *firewallPolicer) Schema(
 }
 
 type firewallPolicerData struct {
-	FilterSpecific types.Bool                       `tfsdk:"filter_specific"`
-	ID             types.String                     `tfsdk:"id"`
-	Name           types.String                     `tfsdk:"name"`
-	IfExceeding    *firewallPolicerBlockIfExceeding `tfsdk:"if_exceeding"`
-	Then           *firewallPolicerBlockThen        `tfsdk:"then"`
+	FilterSpecific           types.Bool                          `tfsdk:"filter_specific"`
+	LogicalBandwidthPolicer  types.Bool                          `tfsdk:"logical_bandwidth_policer"`
+	LogicalInterfacePolicer  types.Bool                          `tfsdk:"logical_interface_policer"`
+	PhysicalInterfacePolicer types.Bool                          `tfsdk:"physical_interface_policer"`
+	SharedBandwidthPolicer   types.Bool                          `tfsdk:"shared_bandwidth_policer"`
+	ID                       types.String                        `tfsdk:"id"`
+	Name                     types.String                        `tfsdk:"name"`
+	IfExceeding              *firewallPolicerBlockIfExceeding    `tfsdk:"if_exceeding"`
+	IfExceedingPPS           *firewallPolicerBlockIfExceedingPPS `tfsdk:"if_exceeding_pps"`
+	Then                     *firewallPolicerBlockThen           `tfsdk:"then"`
 }
 
 type firewallPolicerBlockIfExceeding struct {
 	BurstSizeLimit   types.String `tfsdk:"burst_size_limit"`
 	BandwidthPercent types.Int64  `tfsdk:"bandwidth_percent"`
 	BandwidthLimit   types.String `tfsdk:"bandwidth_limit"`
+}
+
+type firewallPolicerBlockIfExceedingPPS struct {
+	PacketBurst types.String `tfsdk:"packet_burst"`
+	PPSLimit    types.String `tfsdk:"pps_limit"`
 }
 
 type firewallPolicerBlockThen struct {
@@ -226,7 +291,54 @@ func (rsc *firewallPolicer) ValidateConfig(
 		return
 	}
 
+	if !config.PhysicalInterfacePolicer.IsNull() {
+		if !config.FilterSpecific.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("logical_bandwidth_policer"),
+				tfdiag.ConflictConfigErrSummary,
+				"filter_specific and physical_interface_policer cannot be configured together",
+			)
+		}
+		if !config.LogicalBandwidthPolicer.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("logical_bandwidth_policer"),
+				tfdiag.ConflictConfigErrSummary,
+				"logical_bandwidth_policer and physical_interface_policer cannot be configured together",
+			)
+		}
+		if !config.LogicalInterfacePolicer.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("logical_interface_policer"),
+				tfdiag.ConflictConfigErrSummary,
+				"logical_interface_policer and physical_interface_policer cannot be configured together",
+			)
+		}
+	}
+
+	if config.IfExceeding == nil &&
+		config.IfExceedingPPS == nil {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("name"),
+			tfdiag.MissingConfigErrSummary,
+			"one of if_exceeding or if_exceeding_pps block must be specified",
+		)
+	}
+	if config.IfExceeding != nil &&
+		config.IfExceedingPPS != nil {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("if_exceeding").AtName("*"),
+			tfdiag.ConflictConfigErrSummary,
+			"only one of if_exceeding or if_exceeding_pps block can be specified",
+		)
+	}
 	if config.IfExceeding != nil {
+		if config.IfExceeding.BurstSizeLimit.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("if_exceeding").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"burst_size_limit must be specified in if_exceeding block",
+			)
+		}
 		if !config.IfExceeding.BandwidthLimit.IsNull() &&
 			!config.IfExceeding.BandwidthPercent.IsNull() {
 			resp.Diagnostics.AddAttributeError(
@@ -234,6 +346,22 @@ func (rsc *firewallPolicer) ValidateConfig(
 				tfdiag.ConflictConfigErrSummary,
 				"bandwidth_percent and bandwidth_limit cannot be configured together "+
 					"in if_exceeding block",
+			)
+		}
+	}
+	if config.IfExceedingPPS != nil {
+		if config.IfExceedingPPS.PacketBurst.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("if_exceeding_pps").AtName("packet_burst"),
+				tfdiag.MissingConfigErrSummary,
+				"packet_burst must be specified in if_exceeding_pps block",
+			)
+		}
+		if config.IfExceedingPPS.PPSLimit.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("if_exceeding_pps").AtName("pps_limit"),
+				tfdiag.MissingConfigErrSummary,
+				"pps_limit must be specified in if_exceeding_pps block",
 			)
 		}
 	}
@@ -454,6 +582,18 @@ func (rscData *firewallPolicerData) set(
 	if rscData.FilterSpecific.ValueBool() {
 		configSet = append(configSet, setPrefix+"filter-specific")
 	}
+	if rscData.LogicalBandwidthPolicer.ValueBool() {
+		configSet = append(configSet, setPrefix+"logical-bandwidth-policer")
+	}
+	if rscData.LogicalInterfacePolicer.ValueBool() {
+		configSet = append(configSet, setPrefix+"logical-interface-policer")
+	}
+	if rscData.PhysicalInterfacePolicer.ValueBool() {
+		configSet = append(configSet, setPrefix+"physical-interface-policer")
+	}
+	if rscData.SharedBandwidthPolicer.ValueBool() {
+		configSet = append(configSet, setPrefix+"shared-bandwidth-policer")
+	}
 	if rscData.IfExceeding != nil {
 		configSet = append(configSet, setPrefix+"if-exceeding burst-size-limit "+
 			rscData.IfExceeding.BurstSizeLimit.ValueString())
@@ -464,6 +604,12 @@ func (rscData *firewallPolicerData) set(
 		if v := rscData.IfExceeding.BandwidthLimit.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"if-exceeding bandwidth-limit "+v)
 		}
+	}
+	if rscData.IfExceedingPPS != nil {
+		configSet = append(configSet, setPrefix+"if-exceeding-pps packet-burst "+
+			rscData.IfExceedingPPS.PacketBurst.ValueString())
+		configSet = append(configSet, setPrefix+"if-exceeding-pps pps-limit "+
+			rscData.IfExceedingPPS.PPSLimit.ValueString())
 	}
 	if rscData.Then != nil {
 		if rscData.Then.Discard.ValueBool() {
@@ -507,6 +653,14 @@ func (rscData *firewallPolicerData) read(
 			switch {
 			case itemTrim == "filter-specific":
 				rscData.FilterSpecific = types.BoolValue(true)
+			case itemTrim == "logical-bandwidth-policer":
+				rscData.LogicalBandwidthPolicer = types.BoolValue(true)
+			case itemTrim == "logical-interface-policer":
+				rscData.LogicalInterfacePolicer = types.BoolValue(true)
+			case itemTrim == "physical-interface-policer":
+				rscData.PhysicalInterfacePolicer = types.BoolValue(true)
+			case itemTrim == "shared-bandwidth-policer":
+				rscData.SharedBandwidthPolicer = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "if-exceeding "):
 				if rscData.IfExceeding == nil {
 					rscData.IfExceeding = &firewallPolicerBlockIfExceeding{}
@@ -521,6 +675,16 @@ func (rscData *firewallPolicerData) read(
 					}
 				case balt.CutPrefixInString(&itemTrim, "bandwidth-limit "):
 					rscData.IfExceeding.BandwidthLimit = types.StringValue(itemTrim)
+				}
+			case balt.CutPrefixInString(&itemTrim, "if-exceeding-pps "):
+				if rscData.IfExceedingPPS == nil {
+					rscData.IfExceedingPPS = &firewallPolicerBlockIfExceedingPPS{}
+				}
+				switch {
+				case balt.CutPrefixInString(&itemTrim, "packet-burst "):
+					rscData.IfExceedingPPS.PacketBurst = types.StringValue(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "pps-limit "):
+					rscData.IfExceedingPPS.PPSLimit = types.StringValue(itemTrim)
 				}
 			case balt.CutPrefixInString(&itemTrim, "then "):
 				if rscData.Then == nil {
