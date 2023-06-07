@@ -157,7 +157,6 @@ func Provider() *schema.Provider {
 			"junos_eventoptions_policy":                                  resourceEventoptionsPolicy(),
 			"junos_evpn":                                                 resourceEvpn(),
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
-			"junos_firewall_policer":                                     resourceFirewallPolicer(),
 			"junos_forwardingoptions_dhcprelay":                          resourceForwardingOptionsDhcpRelay(),
 			"junos_forwardingoptions_dhcprelay_group":                    resourceForwardingOptionsDhcpRelayGroup(),
 			"junos_forwardingoptions_dhcprelay_servergroup":              resourceForwardingOptionsDhcpRelayServerGroup(),

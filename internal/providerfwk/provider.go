@@ -199,6 +199,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 	return []func() resource.Resource{
 		newBgpGroupResource,
 		newBgpNeighborResource,
+		newFirewallPolicerResource,
 		newForwardingoptionsSamplingResource,
 		newForwardingoptionsSamplingInstanceResource,
 		newInterfaceLogicalResource,

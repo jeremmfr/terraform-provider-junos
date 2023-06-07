@@ -28,17 +28,19 @@ resource "junos_firewall_policer" "policer_demo" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Name of policer.
+  Policer name.
 - **filter_specific** (Optional, Boolean)  
   Policer is filter-specific.
 - **if_exceeding** (Required, Block)  
   Define rate limits options.
   - **burst_size_limit** (Required, String)  
-    Burst size limit in bytes.
+    Burst size limit in bytes.  
+    Format need to be `(\d)+(m|k|g)?`
   - **bandwidth_percent** (Optional, Number)  
     Bandwidth limit in percentage.
   - **bandwidth_limit** (Optional, String)  
-    Bandwidth limit in bits/second.
+    Bandwidth limit in bits/second.  
+    Format need to be `(\d)+(m|k|g)?`
 - **then** (Required, Block)  
   Define action to take if the rate limits are exceeded.
   - **discard** (Optional, Boolean)  
@@ -46,7 +48,8 @@ The following arguments are supported:
   - **forwarding_class** (Optional, String)  
     Classify packet to forwarding class.
   - **loss_priority** (Optional, String)  
-    Packet's loss priority.
+    Packet's loss priority.  
+    Need to be `high`, `low`, `medium-high` or `medium-low`.
   - **out_of_profile** (Optional, Boolean)  
      Discard packets only if both congested and over threshold.
 

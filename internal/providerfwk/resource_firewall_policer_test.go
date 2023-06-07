@@ -1,10 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosFirewallPolicer_basic(t *testing.T) {
@@ -19,32 +19,24 @@ func TestAccJunosFirewallPolicer_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
 							"filter_specific", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"if_exceeding.#", "1"),
+							"if_exceeding.bandwidth_percent", "80"),
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"if_exceeding.0.bandwidth_percent", "80"),
+							"if_exceeding.burst_size_limit", "50k"),
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"if_exceeding.0.burst_size_limit", "50k"),
-						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"then.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"then.0.discard", "true"),
+							"then.discard", "true"),
 					),
 				},
 				{
 					Config: testAccJunosFirewallPolicerConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"if_exceeding.#", "1"),
+							"if_exceeding.bandwidth_limit", "32k"),
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"if_exceeding.0.bandwidth_limit", "32k"),
+							"then.forwarding_class", "best-effort"),
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"then.#", "1"),
+							"then.loss_priority", "high"),
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"then.0.forwarding_class", "best-effort"),
-						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"then.0.loss_priority", "high"),
-						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"then.0.out_of_profile", "true"),
+							"then.out_of_profile", "true"),
 					),
 				},
 				{
