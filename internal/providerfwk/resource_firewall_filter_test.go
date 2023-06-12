@@ -1,10 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosFirewallFilter_basic(t *testing.T) {
@@ -25,57 +25,51 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.name", "testacc_fwFilter_term1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.address.#", "1"),
+							"term.0.from.address.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.address.*", "192.0.2.0/25"),
+							"term.0.from.address.*", "192.0.2.0/25"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.address_except.#", "1"),
+							"term.0.from.address_except.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.address_except.*", "192.0.2.128/25"),
+							"term.0.from.address_except.*", "192.0.2.128/25"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.port.#", "1"),
+							"term.0.from.port.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.port.*", "22-23"),
+							"term.0.from.port.*", "22-23"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.prefix_list.#", "1"),
+							"term.0.from.prefix_list.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.prefix_list.*", "testacc_fwFilter"),
+							"term.0.from.prefix_list.*", "testacc_fwFilter#1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.prefix_list_except.#", "1"),
+							"term.0.from.prefix_list_except.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.prefix_list_except.*", "testacc_fwFilter2"),
+							"term.0.from.prefix_list_except.*", "testacc_fwFilter#2"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.protocol.#", "1"),
+							"term.0.from.protocol.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.protocol.*", "tcp"),
+							"term.0.from.protocol.*", "tcp"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.tcp_flags", "!0x3"),
+							"term.0.from.tcp_flags", "!0x3"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.from.0.is_fragment", "true"),
+							"term.0.from.is_fragment", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.then.#", "1"),
+							"term.0.then.action", "next term"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.then.0.action", "next term"),
+							"term.0.then.syslog", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.then.0.syslog", "true"),
+							"term.0.then.log", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.then.0.log", "true"),
+							"term.0.then.port_mirror", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.then.0.port_mirror", "true"),
+							"term.0.then.service_accounting", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.then.0.service_accounting", "true"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.icmp_code.#", "1"),
+							"term.1.from.icmp_code.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.icmp_code.*", "network-unreachable"),
+							"term.1.from.icmp_code.*", "network-unreachable"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.icmp_type.#", "1"),
+							"term.1.from.icmp_type.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.icmp_type.*", "router-advertisement"),
+							"term.1.from.icmp_type.*", "router-advertisement"),
 					),
 				},
 				{
@@ -84,77 +78,59 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.#", "5"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.#", "1"),
+							"term.1.from.source_address.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.source_address.#", "1"),
+							"term.1.from.source_address_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.source_address_except.#", "1"),
+							"term.1.from.port_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.port_except.#", "1"),
+							"term.1.from.source_prefix_list.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.source_prefix_list.#", "1"),
+							"term.1.from.source_prefix_list_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.source_prefix_list_except.#", "1"),
+							"term.1.from.tcp_established", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.tcp_established", "true"),
+							"term.1.from.protocol_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.from.0.protocol_except.#", "1"),
+							"term.1.then.policer", "testacc_fwfilter#1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.then.#", "1"),
+							"term.1.then.action", "accept"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.then.0.policer", "testacc_fwfilter"),
+							"term.2.from.destination_address.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.1.then.0.action", "accept"),
+							"term.2.from.destination_address_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.from.#", "1"),
+							"term.2.from.destination_port.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.from.0.destination_address.#", "1"),
+							"term.2.from.source_port_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.from.0.destination_address_except.#", "1"),
+							"term.2.from.destination_prefix_list.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.from.0.destination_port.#", "1"),
+							"term.2.from.destination_prefix_list_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.from.0.source_port_except.#", "1"),
+							"term.2.from.tcp_initial", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.from.0.destination_prefix_list.#", "1"),
+							"term.2.then.action", "discard"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.from.0.destination_prefix_list_except.#", "1"),
+							"term.3.from.source_port.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.from.0.tcp_initial", "true"),
+							"term.3.from.destination_port_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.then.#", "1"),
+							"term.3.then.action", "reject"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.2.then.0.action", "discard"),
+							"term.4.from.icmp_code_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.3.from.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.3.from.0.source_port.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.3.from.0.destination_port_except.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.3.then.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.3.then.0.action", "reject"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.4.from.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.4.from.0.icmp_code_except.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.4.from.0.icmp_type_except.#", "1"),
+							"term.4.from.icmp_type_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
 							"family", "inet6"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
 							"term.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
-							"term.0.from.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
-							"term.0.from.0.next_header.#", "1"),
+							"term.0.from.next_header.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter6",
-							"term.0.from.0.next_header.*", "icmp6"),
+							"term.0.from.next_header.*", "icmp6"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
-							"term.0.then.#", "1"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
-							"term.0.then.0.action", "discard"),
+							"term.0.then.action", "discard"),
 					),
 				},
 				{
@@ -206,11 +182,11 @@ resource "junos_firewall_filter" "testacc_fwFilter" {
   }
 }
 resource "junos_policyoptions_prefix_list" "testacc_fwFilter" {
-  name   = "testacc_fwFilter"
+  name   = "testacc_fwFilter#1"
   prefix = ["192.0.2.0/25"]
 }
 resource "junos_policyoptions_prefix_list" "testacc_fwFilter2" {
-  name   = "testacc_fwFilter2"
+  name   = "testacc_fwFilter#2"
   prefix = ["192.0.2.128/25"]
 }
 `
@@ -294,10 +270,10 @@ resource "junos_firewall_filter" "testacc_fwFilter" {
   }
 }
 resource "junos_firewall_filter" "testacc_fwFilter6" {
-  name   = "testacc_fwFilter6"
+  name   = "testacc_fwFilter#6"
   family = "inet6"
   term {
-    name = "testacc_fwFilter6_term1"
+    name = "testacc_fwFilter#6 term1"
     from {
       next_header = ["icmp6"]
     }
@@ -306,16 +282,24 @@ resource "junos_firewall_filter" "testacc_fwFilter6" {
     }
   }
 }
+resource "junos_firewall_filter" "testacc_fwFilter62" {
+  name   = "testacc_fwFilte #62"
+  family = "inet6"
+  term {
+    name   = "testacc_fwFilter#62 term1"
+    filter = junos_firewall_filter.testacc_fwFilter6.name
+  }
+}
 resource "junos_policyoptions_prefix_list" "testacc_fwFilter" {
-  name   = "testacc_fwFilter"
+  name   = "testacc_fwFilter#1"
   prefix = ["192.0.2.0/25"]
 }
 resource "junos_policyoptions_prefix_list" "testacc_fwFilter2" {
-  name   = "testacc_fwFilter2"
+  name   = "testacc_fwFilter#2"
   prefix = ["192.0.2.128/25"]
 }
 resource "junos_firewall_policer" "testacc_fwfilter" {
-  name = "testacc_fwfilter"
+  name = "testacc_fwfilter#1"
   if_exceeding {
     bandwidth_percent = 80
     burst_size_limit  = "50k"

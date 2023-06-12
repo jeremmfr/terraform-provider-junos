@@ -32,16 +32,16 @@ resource "junos_firewall_filter" "filterdemo" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Name of filter.
+  Filter name.
 - **family** (Required, String, Forces new resource)  
   Family where create this filter.  
   Need to be `inet`, `inet6`, `any`, `ccc`, `mpls`, `vpls` or `ethernet-switching`.
 - **interface_specific** (Optional, Boolean)  
-  Defined counters are interface specific
+  Defined counters are interface specific.
 - **term** (Required, Block List)  
   For each name of term.
   - **name** (Required, String)  
-    Name of term.
+    Term name.
   - **filter** (Optional, String)  
     Filter to include.
   - **from** (Required, Block)  
@@ -58,11 +58,11 @@ The following arguments are supported:
 - **address** (Optional, Set of String)  
   Match IP source or destination address.
 - **address_except** (Optional, Set of String)  
-  Match address not in this list of prefix.
+  Match IP source or destination address not in this list of prefix.
 - **destination_address** (Optional, Set of String)  
   Match IP destination address.
 - **destination_address_except** (Optional, Set of String)  
-  Match address not in this prefix.
+  Match IP destination address not in this prefix.
 - **destination_port** (Optional, Set of String)  
   Match TCP/UDP destination port.  
   Conflict with `destination_port_except`.
@@ -112,7 +112,7 @@ The following arguments are supported:
 - **source_address** (Optional, Set of String)  
   Match IP source address.
 - **source_address_except** (Optional, Set of String)  
-  Match address not in this prefix.
+  Match IP source address not in this prefix.
 - **source_port** (Optional, Set of String)  
   Match TCP/UDP source port.  
   Conflict with `source_port_except`.
@@ -122,7 +122,7 @@ The following arguments are supported:
 - **source_prefix_list** (Optional, Set of String)  
   Match IP source prefixes in named list.
 - **source_prefix_list_except** (Optional, Set of String)  
-  Match addresses not in this prefix list.
+  Match IP source prefixes not in this prefix list.
 - **tcp_established** (Optional, Boolean)  
   Match packet of an established TCP connection.  
   Conflict with `tcp_flags`.
@@ -151,7 +151,7 @@ The following arguments are supported:
 - **port_mirror** (Optional, Boolean)  
   Port-mirror the packet.
 - **routing_instance** (Optional, String)  
-  Packets are directed to specified routing stance.
+  Packets are directed to specified routing instance.
 - **sample** (Optional, Boolean)  
   Sample the packet.
 - **service_accounting** (Optional, Boolean)  
