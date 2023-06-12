@@ -3,6 +3,7 @@ package providerfwk
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -190,6 +191,34 @@ func (rsc *firewallFilter) Schema(
 										),
 									},
 								},
+								"destination_mac_address": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Destination MAC address.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
+												"must be an MAC address with mask",
+											),
+										),
+									},
+								},
+								"destination_mac_address_except": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Destination MAC address not in this range.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
+												"must be an MAC address with mask",
+											),
+										),
+									},
+								},
 								"destination_port": schema.SetAttribute{
 									ElementType: types.StringType,
 									Optional:    true,
@@ -234,6 +263,30 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.SizeAtLeast(1),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 250),
+											tfvalidator.StringDoubleQuoteExclusion(),
+										),
+									},
+								},
+								"forwarding_class": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Match forwarding class.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.LengthBetween(1, 64),
+											tfvalidator.StringDoubleQuoteExclusion(),
+										),
+									},
+								},
+								"forwarding_class_except": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Do not match forwarding class.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.LengthBetween(1, 64),
 											tfvalidator.StringDoubleQuoteExclusion(),
 										),
 									},
@@ -286,11 +339,45 @@ func (rsc *firewallFilter) Schema(
 										),
 									},
 								},
+								"interface": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Match interface name.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.LengthAtLeast(1),
+											tfvalidator.StringFormat(tfvalidator.InterfaceWithWildcardFormat),
+										),
+									},
+								},
 								"is_fragment": schema.BoolAttribute{
 									Optional:    true,
 									Description: "Match if packet is a fragment.",
 									Validators: []validator.Bool{
 										tfvalidator.BoolTrue(),
+									},
+								},
+								"loss_priority": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Match Loss Priority.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.OneOf("high", "low", "medium-high", "medium-low"),
+										),
+									},
+								},
+								"loss_priority_except": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Do not match Loss Priority.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.OneOf("high", "low", "medium-high", "medium-low"),
+										),
 									},
 								},
 								"next_header": schema.SetAttribute{
@@ -314,6 +401,58 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+										),
+									},
+								},
+								"packet_length": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Match packet length.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^\d+(-\d+)?$`),
+												"must be an integer or a range of integers",
+											),
+										),
+									},
+								},
+								"packet_length_except": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Do not match packet length.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^\d+(-\d+)?$`),
+												"must be an integer or a range of integers",
+											),
+										),
+									},
+								},
+								"policy_map": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Match policy map.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.LengthBetween(1, 64),
+											tfvalidator.StringDoubleQuoteExclusion(),
+										),
+									},
+								},
+								"policy_map_except": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Do not match policy map.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.LengthBetween(1, 64),
+											tfvalidator.StringDoubleQuoteExclusion(),
 										),
 									},
 								},
@@ -408,6 +547,34 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.SizeAtLeast(1),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
+										),
+									},
+								},
+								"source_mac_address": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Source MAC address.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
+												"must be an MAC address with mask",
+											),
+										),
+									},
+								},
+								"source_mac_address_except": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Source MAC address not in this range.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
+												"must be an MAC address with mask",
+											),
 										),
 									},
 								},
@@ -628,16 +795,27 @@ type firewallFilterBlockTermBlockFrom struct {
 	AddressExcept               []types.String `tfsdk:"address_except"`
 	DestinationAddress          []types.String `tfsdk:"destination_address"`
 	DestinationAddressExcept    []types.String `tfsdk:"destination_address_except"`
+	DestinationMacAddress       []types.String `tfsdk:"destination_mac_address"`
+	DestinationMacAddressExcept []types.String `tfsdk:"destination_mac_address_except"`
 	DestinationPort             []types.String `tfsdk:"destination_port"`
 	DestinationPortExcept       []types.String `tfsdk:"destination_port_except"`
 	DestinationPrefixList       []types.String `tfsdk:"destination_prefix_list"`
 	DestinationPrefixListExcept []types.String `tfsdk:"destination_prefix_list_except"`
+	ForwardingClass             []types.String `tfsdk:"forwarding_class"`
+	ForwardingClassExcept       []types.String `tfsdk:"forwarding_class_except"`
 	IcmpCode                    []types.String `tfsdk:"icmp_code"`
 	IcmpCodeExcept              []types.String `tfsdk:"icmp_code_except"`
 	IcmpType                    []types.String `tfsdk:"icmp_type"`
 	IcmpTypeExcept              []types.String `tfsdk:"icmp_type_except"`
+	Interface                   []types.String `tfsdk:"interface"`
+	LossPriority                []types.String `tfsdk:"loss_priority"`
+	LossPriorityExcept          []types.String `tfsdk:"loss_priority_except"`
 	NextHeader                  []types.String `tfsdk:"next_header"`
 	NextHeaderExcept            []types.String `tfsdk:"next_header_except"`
+	PacketLength                []types.String `tfsdk:"packet_length"`
+	PacketLengthExcept          []types.String `tfsdk:"packet_length_except"`
+	PolicyMap                   []types.String `tfsdk:"policy_map"`
+	PolicyMapExcept             []types.String `tfsdk:"policy_map_except"`
 	Port                        []types.String `tfsdk:"port"`
 	PortExcept                  []types.String `tfsdk:"port_except"`
 	PrefixList                  []types.String `tfsdk:"prefix_list"`
@@ -646,6 +824,8 @@ type firewallFilterBlockTermBlockFrom struct {
 	ProtocolExcept              []types.String `tfsdk:"protocol_except"`
 	SourceAddress               []types.String `tfsdk:"source_address"`
 	SourceAddressExcept         []types.String `tfsdk:"source_address_except"`
+	SourceMacAddress            []types.String `tfsdk:"source_mac_address"`
+	SourceMacAddressExcept      []types.String `tfsdk:"source_mac_address_except"`
 	SourcePort                  []types.String `tfsdk:"source_port"`
 	SourcePortExcept            []types.String `tfsdk:"source_port_except"`
 	SourcePrefixList            []types.String `tfsdk:"source_prefix_list"`
@@ -661,16 +841,27 @@ type firewallFilterBlockTermBlockFromConfig struct {
 	AddressExcept               types.Set    `tfsdk:"address_except"`
 	DestinationAddress          types.Set    `tfsdk:"destination_address"`
 	DestinationAddressExcept    types.Set    `tfsdk:"destination_address_except"`
+	DestinationMacAddress       types.Set    `tfsdk:"destination_mac_address"`
+	DestinationMacAddressExcept types.Set    `tfsdk:"destination_mac_address_except"`
 	DestinationPort             types.Set    `tfsdk:"destination_port"`
 	DestinationPortExcept       types.Set    `tfsdk:"destination_port_except"`
 	DestinationPrefixList       types.Set    `tfsdk:"destination_prefix_list"`
 	DestinationPrefixListExcept types.Set    `tfsdk:"destination_prefix_list_except"`
+	ForwardingClass             types.Set    `tfsdk:"forwarding_class"`
+	ForwardingClassExcept       types.Set    `tfsdk:"forwarding_class_except"`
 	IcmpCode                    types.Set    `tfsdk:"icmp_code"`
 	IcmpCodeExcept              types.Set    `tfsdk:"icmp_code_except"`
 	IcmpType                    types.Set    `tfsdk:"icmp_type"`
 	IcmpTypeExcept              types.Set    `tfsdk:"icmp_type_except"`
+	Interface                   types.Set    `tfsdk:"interface"`
+	LossPriority                types.Set    `tfsdk:"loss_priority"`
+	LossPriorityExcept          types.Set    `tfsdk:"loss_priority_except"`
 	NextHeader                  types.Set    `tfsdk:"next_header"`
 	NextHeaderExcept            types.Set    `tfsdk:"next_header_except"`
+	PacketLength                types.Set    `tfsdk:"packet_length"`
+	PacketLengthExcept          types.Set    `tfsdk:"packet_length_except"`
+	PolicyMap                   types.Set    `tfsdk:"policy_map"`
+	PolicyMapExcept             types.Set    `tfsdk:"policy_map_except"`
 	Port                        types.Set    `tfsdk:"port"`
 	PortExcept                  types.Set    `tfsdk:"port_except"`
 	PrefixList                  types.Set    `tfsdk:"prefix_list"`
@@ -679,6 +870,8 @@ type firewallFilterBlockTermBlockFromConfig struct {
 	ProtocolExcept              types.Set    `tfsdk:"protocol_except"`
 	SourceAddress               types.Set    `tfsdk:"source_address"`
 	SourceAddressExcept         types.Set    `tfsdk:"source_address_except"`
+	SourceMacAddress            types.Set    `tfsdk:"source_mac_address"`
+	SourceMacAddressExcept      types.Set    `tfsdk:"source_mac_address_except"`
 	SourcePort                  types.Set    `tfsdk:"source_port"`
 	SourcePortExcept            types.Set    `tfsdk:"source_port_except"`
 	SourcePrefixList            types.Set    `tfsdk:"source_prefix_list"`
@@ -702,6 +895,10 @@ func (block *firewallFilterBlockTermBlockFromConfig) isEmpty() bool {
 		return false
 	case !block.DestinationAddressExcept.IsNull():
 		return false
+	case !block.DestinationMacAddress.IsNull():
+		return false
+	case !block.DestinationMacAddressExcept.IsNull():
+		return false
 	case !block.DestinationPort.IsNull():
 		return false
 	case !block.DestinationPortExcept.IsNull():
@@ -709,6 +906,10 @@ func (block *firewallFilterBlockTermBlockFromConfig) isEmpty() bool {
 	case !block.DestinationPrefixList.IsNull():
 		return false
 	case !block.DestinationPrefixListExcept.IsNull():
+		return false
+	case !block.ForwardingClass.IsNull():
+		return false
+	case !block.ForwardingClassExcept.IsNull():
 		return false
 	case !block.IcmpCode.IsNull():
 		return false
@@ -718,9 +919,23 @@ func (block *firewallFilterBlockTermBlockFromConfig) isEmpty() bool {
 		return false
 	case !block.IcmpTypeExcept.IsNull():
 		return false
+	case !block.Interface.IsNull():
+		return false
+	case !block.LossPriority.IsNull():
+		return false
+	case !block.LossPriorityExcept.IsNull():
+		return false
 	case !block.NextHeader.IsNull():
 		return false
 	case !block.NextHeaderExcept.IsNull():
+		return false
+	case !block.PacketLength.IsNull():
+		return false
+	case !block.PacketLengthExcept.IsNull():
+		return false
+	case !block.PolicyMap.IsNull():
+		return false
+	case !block.PolicyMapExcept.IsNull():
 		return false
 	case !block.Port.IsNull():
 		return false
@@ -737,6 +952,10 @@ func (block *firewallFilterBlockTermBlockFromConfig) isEmpty() bool {
 	case !block.SourceAddress.IsNull():
 		return false
 	case !block.SourceAddressExcept.IsNull():
+		return false
+	case !block.SourceMacAddress.IsNull():
+		return false
+	case !block.SourceMacAddressExcept.IsNull():
 		return false
 	case !block.SourcePort.IsNull():
 		return false
@@ -880,12 +1099,48 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
+				if !block.From.ForwardingClass.IsNull() &&
+					!block.From.ForwardingClassExcept.IsNull() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("term").AtListIndex(i).AtName("from").AtName("forwarding_class"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("forwarding_class and forwarding_class_except cannot be configured together"+
+							" in from block in term block %q", block.Name.ValueString()),
+					)
+				}
+				if !block.From.LossPriority.IsNull() &&
+					!block.From.LossPriorityExcept.IsNull() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("term").AtListIndex(i).AtName("from").AtName("loss_priority"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("loss_priority and loss_priority_except cannot be configured together"+
+							" in from block in term block %q", block.Name.ValueString()),
+					)
+				}
 				if !block.From.NextHeader.IsNull() &&
 					!block.From.NextHeaderExcept.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("next_header"),
 						tfdiag.ConflictConfigErrSummary,
 						fmt.Sprintf("next_header and next_header_except cannot be configured together"+
+							" in from block in term block %q", block.Name.ValueString()),
+					)
+				}
+				if !block.From.PacketLength.IsNull() &&
+					!block.From.PacketLengthExcept.IsNull() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("term").AtListIndex(i).AtName("from").AtName("packet_length"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("packet_length and packet_length_except cannot be configured together"+
+							" in from block in term block %q", block.Name.ValueString()),
+					)
+				}
+				if !block.From.PolicyMap.IsNull() &&
+					!block.From.PolicyMapExcept.IsNull() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("term").AtListIndex(i).AtName("from").AtName("policy_map"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("policy_map and policy_map_except cannot be configured together"+
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
@@ -973,6 +1228,26 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 				" family %q", family),
 		)
 	}
+	if !block.DestinationMacAddress.IsNull() && !bchk.InSlice(family, []string{
+		"vpls", "ethernet-switching",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("destination_mac_address"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("destination_mac_address in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.DestinationMacAddressExcept.IsNull() && !bchk.InSlice(family, []string{
+		"vpls", "ethernet-switching",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("destination_mac_address_except"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("destination_mac_address_except in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
 	if !block.DestinationPort.IsNull() && !bchk.InSlice(family, []string{
 		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
 	}) {
@@ -1010,6 +1285,26 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 			pathRoot.AtName("destination_prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
 			fmt.Sprintf("destination_prefix_list_except in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.ForwardingClass.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("forwarding_class"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("forwarding_class in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.ForwardingClassExcept.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("forwarding_class_except"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("forwarding_class_except in from block cannot be configured with"+
 				" family %q", family),
 		)
 	}
@@ -1053,6 +1348,16 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 				" family %q", family),
 		)
 	}
+	if !block.Interface.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any", "mpls", "vpls", "ethernet-switching",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("interface"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("interface in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
 	if !block.IsFragment.IsNull() && !bchk.InSlice(family, []string{
 		junos.InetW, junos.Inet6W, "ethernet-switching",
 	}) {
@@ -1060,6 +1365,26 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 			pathRoot.AtName("is_fragment"),
 			tfdiag.ConflictConfigErrSummary,
 			fmt.Sprintf("is_fragment in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.LossPriority.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("loss_priority"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("loss_priority in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.LossPriorityExcept.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("loss_priority_except"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("loss_priority_except in from block cannot be configured with"+
 				" family %q", family),
 		)
 	}
@@ -1080,6 +1405,46 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 			pathRoot.AtName("next_header_except"),
 			tfdiag.ConflictConfigErrSummary,
 			fmt.Sprintf("next_header_except in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.PacketLength.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("packet_length"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("packet_length in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.PacketLengthExcept.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("packet_length_except"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("packet_length_except in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.PolicyMap.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("policy_map"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("policy_map in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.PolicyMapExcept.IsNull() && !bchk.InSlice(family, []string{
+		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("policy_map_except"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("policy_map_except in from block cannot be configured with"+
 				" family %q", family),
 		)
 	}
@@ -1160,6 +1525,26 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 			pathRoot.AtName("source_address_except"),
 			tfdiag.ConflictConfigErrSummary,
 			fmt.Sprintf("source_address_except in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.SourceMacAddress.IsNull() && !bchk.InSlice(family, []string{
+		"vpls", "ethernet-switching",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("source_mac_address"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("source_mac_address in from block cannot be configured with"+
+				" family %q", family),
+		)
+	}
+	if !block.SourceMacAddressExcept.IsNull() && !bchk.InSlice(family, []string{
+		"vpls", "ethernet-switching",
+	}) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("source_mac_address_except"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("source_mac_address_except in from block cannot be configured with"+
 				" family %q", family),
 		)
 	}
@@ -1461,6 +1846,12 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	for _, v := range block.DestinationAddressExcept {
 		configSet = append(configSet, setPrefix+"destination-address "+v.ValueString()+" except")
 	}
+	for _, v := range block.DestinationMacAddress {
+		configSet = append(configSet, setPrefix+"destination-mac-address "+v.ValueString())
+	}
+	for _, v := range block.DestinationMacAddressExcept {
+		configSet = append(configSet, setPrefix+"destination-mac-address "+v.ValueString()+" except")
+	}
 	if len(block.DestinationPort) > 0 && len(block.DestinationPortExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("destination_port"),
@@ -1478,6 +1869,18 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	}
 	for _, v := range block.DestinationPrefixListExcept {
 		configSet = append(configSet, setPrefix+"destination-prefix-list \""+v.ValueString()+"\" except")
+	}
+	if len(block.ForwardingClass) > 0 && len(block.ForwardingClassExcept) > 0 {
+		return configSet,
+			pathRoot.AtName("forwarding_class"),
+			fmt.Errorf("forwarding_class and forwarding_class_except cannot be configured together" +
+				" in from block")
+	}
+	for _, v := range block.ForwardingClass {
+		configSet = append(configSet, setPrefix+"forwarding-class "+v.ValueString())
+	}
+	for _, v := range block.ForwardingClassExcept {
+		configSet = append(configSet, setPrefix+"forwarding-class-except "+v.ValueString())
 	}
 	if len(block.IcmpCode) > 0 && len(block.IcmpCodeExcept) > 0 {
 		return configSet,
@@ -1503,8 +1906,23 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	for _, v := range block.IcmpTypeExcept {
 		configSet = append(configSet, setPrefix+"icmp-type-except "+v.ValueString())
 	}
+	for _, v := range block.Interface {
+		configSet = append(configSet, setPrefix+"interface "+v.ValueString())
+	}
 	if block.IsFragment.ValueBool() {
 		configSet = append(configSet, setPrefix+"is-fragment")
+	}
+	if len(block.LossPriority) > 0 && len(block.LossPriorityExcept) > 0 {
+		return configSet,
+			pathRoot.AtName("loss_priority"),
+			fmt.Errorf("loss_priority and loss_priority_except cannot be configured together" +
+				" in from block")
+	}
+	for _, v := range block.LossPriority {
+		configSet = append(configSet, setPrefix+"loss-priority "+v.ValueString())
+	}
+	for _, v := range block.LossPriorityExcept {
+		configSet = append(configSet, setPrefix+"loss-priority-except "+v.ValueString())
 	}
 	if len(block.NextHeader) > 0 && len(block.NextHeaderExcept) > 0 {
 		return configSet,
@@ -1517,6 +1935,30 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	}
 	for _, v := range block.NextHeaderExcept {
 		configSet = append(configSet, setPrefix+"next-header-except "+v.ValueString())
+	}
+	if len(block.PacketLength) > 0 && len(block.PacketLengthExcept) > 0 {
+		return configSet,
+			pathRoot.AtName("packet_length"),
+			fmt.Errorf("packet_length and packet_length_except cannot be configured together" +
+				" in from block")
+	}
+	for _, v := range block.PacketLength {
+		configSet = append(configSet, setPrefix+"packet-length "+v.ValueString())
+	}
+	for _, v := range block.PacketLengthExcept {
+		configSet = append(configSet, setPrefix+"packet-length-except "+v.ValueString())
+	}
+	if len(block.PolicyMap) > 0 && len(block.PolicyMapExcept) > 0 {
+		return configSet,
+			pathRoot.AtName("policy_map"),
+			fmt.Errorf("policy_map and policy_map_except cannot be configured together" +
+				" in from block")
+	}
+	for _, v := range block.PolicyMap {
+		configSet = append(configSet, setPrefix+"policy-map "+v.ValueString())
+	}
+	for _, v := range block.PolicyMapExcept {
+		configSet = append(configSet, setPrefix+"policy-map-except "+v.ValueString())
 	}
 	if len(block.Port) > 0 && len(block.PortExcept) > 0 {
 		return configSet,
@@ -1553,6 +1995,12 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	}
 	for _, v := range block.SourceAddressExcept {
 		configSet = append(configSet, setPrefix+"source-address "+v.ValueString()+" except")
+	}
+	for _, v := range block.SourceMacAddress {
+		configSet = append(configSet, setPrefix+"source-mac-address "+v.ValueString())
+	}
+	for _, v := range block.SourceMacAddressExcept {
+		configSet = append(configSet, setPrefix+"source-mac-address "+v.ValueString()+" except")
 	}
 	if len(block.SourcePort) > 0 && len(block.SourcePortExcept) > 0 {
 		return configSet,
@@ -1703,6 +2151,12 @@ func (block *firewallFilterBlockTermBlockFrom) read(itemTrim string) {
 		} else {
 			block.DestinationAddress = append(block.DestinationAddress, types.StringValue(itemTrim))
 		}
+	case balt.CutPrefixInString(&itemTrim, "destination-mac-address "):
+		if balt.CutSuffixInString(&itemTrim, " except") {
+			block.DestinationMacAddressExcept = append(block.DestinationMacAddressExcept, types.StringValue(itemTrim))
+		} else {
+			block.DestinationMacAddress = append(block.DestinationMacAddress, types.StringValue(itemTrim))
+		}
 	case balt.CutPrefixInString(&itemTrim, "destination-port "):
 		block.DestinationPort = append(block.DestinationPort, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "destination-port-except "):
@@ -1714,6 +2168,10 @@ func (block *firewallFilterBlockTermBlockFrom) read(itemTrim string) {
 		} else {
 			block.DestinationPrefixList = append(block.DestinationPrefixList, types.StringValue(strings.Trim(itemTrim, "\"")))
 		}
+	case balt.CutPrefixInString(&itemTrim, "forwarding-class "):
+		block.ForwardingClass = append(block.ForwardingClass, types.StringValue(strings.Trim(itemTrim, "\"")))
+	case balt.CutPrefixInString(&itemTrim, "forwarding-class-except "):
+		block.ForwardingClassExcept = append(block.ForwardingClassExcept, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "icmp-code "):
 		block.IcmpCode = append(block.IcmpCode, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "icmp-code-except "):
@@ -1722,8 +2180,14 @@ func (block *firewallFilterBlockTermBlockFrom) read(itemTrim string) {
 		block.IcmpType = append(block.IcmpType, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "icmp-type-except "):
 		block.IcmpTypeExcept = append(block.IcmpTypeExcept, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "interface "):
+		block.Interface = append(block.Interface, types.StringValue(itemTrim))
 	case itemTrim == "is-fragment":
 		block.IsFragment = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "loss-priority "):
+		block.LossPriority = append(block.LossPriority, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "loss-priority-except "):
+		block.LossPriorityExcept = append(block.LossPriorityExcept, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "next-header "):
 		block.NextHeader = append(block.NextHeader, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "next-header-except "):
@@ -1732,6 +2196,14 @@ func (block *firewallFilterBlockTermBlockFrom) read(itemTrim string) {
 		block.Port = append(block.Port, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "port-except "):
 		block.PortExcept = append(block.PortExcept, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "packet-length "):
+		block.PacketLength = append(block.PacketLength, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "packet-length-except "):
+		block.PacketLengthExcept = append(block.PacketLengthExcept, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "policy-map "):
+		block.PolicyMap = append(block.PolicyMap, types.StringValue(strings.Trim(itemTrim, "\"")))
+	case balt.CutPrefixInString(&itemTrim, "policy-map-except "):
+		block.PolicyMapExcept = append(block.PolicyMapExcept, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "protocol "):
 		block.Protocol = append(block.Protocol, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "protocol-except "):
@@ -1747,6 +2219,12 @@ func (block *firewallFilterBlockTermBlockFrom) read(itemTrim string) {
 			block.SourceAddressExcept = append(block.SourceAddressExcept, types.StringValue(itemTrim))
 		} else {
 			block.SourceAddress = append(block.SourceAddress, types.StringValue(itemTrim))
+		}
+	case balt.CutPrefixInString(&itemTrim, "source-mac-address "):
+		if balt.CutSuffixInString(&itemTrim, " except") {
+			block.SourceMacAddressExcept = append(block.SourceMacAddressExcept, types.StringValue(itemTrim))
+		} else {
+			block.SourceMacAddress = append(block.SourceMacAddress, types.StringValue(itemTrim))
 		}
 	case balt.CutPrefixInString(&itemTrim, "source-port "):
 		block.SourcePort = append(block.SourcePort, types.StringValue(itemTrim))

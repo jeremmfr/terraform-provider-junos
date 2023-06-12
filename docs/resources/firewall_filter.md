@@ -63,6 +63,10 @@ The following arguments are supported:
   Match IP destination address.
 - **destination_address_except** (Optional, Set of String)  
   Match IP destination address not in this prefix.
+- **destination_mac_address** (Optional, Set of String)  
+  Destination MAC address.
+- **destination_mac_address_except** (Optional, Set of String)  
+  Destination MAC address not in this range.
 - **destination_port** (Optional, Set of String)  
   Match TCP/UDP destination port.  
   Conflict with `destination_port_except`.
@@ -73,6 +77,12 @@ The following arguments are supported:
   Match IP destination prefixes in named list.
 - **destination_prefix_list_except** (Optional, Set of String)  
   Match addresses not in this prefix list.
+- **forwarding_class** (Optional, Set of String)  
+  Match forwarding class.  
+  Conflict with `forwarding_class_except`.
+- **forwarding_class_except** (Optional, Set of String)  
+  Do not match forwarding class.  
+  Conflict with `forwarding_class`.
 - **icmp_code** (Optional, Set of String)  
   Match ICMP message code.  
   Conflict with `icmp_code_except`.
@@ -85,14 +95,34 @@ The following arguments are supported:
 - **icmp_type_except** (Optional, Set of String)  
   Do not match ICMP message type.  
   Conflict with `icmp_type`.
+- **interface** (Optional, Set of String)  
+  Match interface name.
 - **is_fragment** (Optional, Boolean)  
   Match if packet is a fragment.
+- **loss_priority** (Optional, Set of String)  
+  Match Loss Priority.  
+  Conflict with `loss_priority_except`.
+- **loss_priority_except** (Optional, Set of String)  
+  Do not match Loss Priority.  
+  Conflict with `loss_priority`.
 - **next_header** (Optional, Set of String)  
   Match next header protocol type.  
   Conflict with `next_header_except`.
 - **next_header_except** (Optional, Set of String)  
   Do not match next header protocol type.  
   Conflict with `next_header`.
+- **packet_length** (Optional, Set of String)  
+  Match packet length.  
+  Conflict with `packet_length_except`.
+- **packet_length_except** (Optional, Set of String)  
+  Do not match packet length.  
+  Conflict with `packet_length`.
+- **policy_map** (Optional, Set of String)  
+  Match policy map.  
+  Conflict with `policy_map_except`.
+- **policy_map_except** (Optional, Set of String)  
+  Do not match policy map.  
+  Conflict with `policy_map`.
 - **port** (Optional, Set of String)  
   Match TCP/UDP source or destination port.  
   Conflict with `port_except`.
@@ -113,6 +143,10 @@ The following arguments are supported:
   Match IP source address.
 - **source_address_except** (Optional, Set of String)  
   Match IP source address not in this prefix.
+- **source_mac_address** (Optional, Set of String)  
+  Source MAC address.
+- **source_mac_address_except** (Optional, Set of String)  
+  Source MAC address not in this range.
 - **source_port** (Optional, Set of String)  
   Match TCP/UDP source port.  
   Conflict with `source_port_except`.
