@@ -671,11 +671,26 @@ func (rsc *firewallFilter) Schema(
 										tfvalidator.StringDoubleQuoteExclusion(),
 									},
 								},
+								"forwarding_class": schema.StringAttribute{
+									Optional:    true,
+									Description: "Classify packet to forwarding class.",
+									Validators: []validator.String{
+										stringvalidator.LengthBetween(1, 64),
+										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
 								"log": schema.BoolAttribute{
 									Optional:    true,
 									Description: "Log the packet.",
 									Validators: []validator.Bool{
 										tfvalidator.BoolTrue(),
+									},
+								},
+								"loss_priority": schema.StringAttribute{
+									Optional:    true,
+									Description: "Packet's loss priority.",
+									Validators: []validator.String{
+										stringvalidator.OneOf("high", "low", "medium-high", "medium-low"),
 									},
 								},
 								"packet_mode": schema.BoolAttribute{
@@ -981,6 +996,8 @@ type firewallFilterBlockTermBlockThen struct {
 	Syslog            types.Bool   `tfsdk:"syslog"`
 	Action            types.String `tfsdk:"action"`
 	Count             types.String `tfsdk:"count"`
+	ForwardingClass   types.String `tfsdk:"forwarding_class"`
+	LossPriority      types.String `tfsdk:"loss_priority"`
 	Policer           types.String `tfsdk:"policer"`
 	RoutingInstance   types.String `tfsdk:"routing_instance"`
 }
@@ -1002,6 +1019,10 @@ func (block *firewallFilterBlockTermBlockThen) isEmpty() bool {
 	case !block.Action.IsNull():
 		return false
 	case !block.Count.IsNull():
+		return false
+	case !block.ForwardingClass.IsNull():
+		return false
+	case !block.LossPriority.IsNull():
 		return false
 	case !block.Policer.IsNull():
 		return false
@@ -2055,8 +2076,14 @@ func (block *firewallFilterBlockTermBlockThen) configSet(setPrefix string) []str
 	if v := block.Count.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"count \""+v+"\"")
 	}
+	if v := block.ForwardingClass.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"forwarding-class \""+v+"\"")
+	}
 	if block.Log.ValueBool() {
 		configSet = append(configSet, setPrefix+"log")
+	}
+	if v := block.LossPriority.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"loss-priority "+v)
 	}
 	if block.PacketMode.ValueBool() {
 		configSet = append(configSet, setPrefix+"packet-mode")
@@ -2254,8 +2281,12 @@ func (block *firewallFilterBlockTermBlockThen) read(itemTrim string) {
 		block.Action = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "count "):
 		block.Count = types.StringValue(strings.Trim(itemTrim, "\""))
+	case balt.CutPrefixInString(&itemTrim, "forwarding-class "):
+		block.ForwardingClass = types.StringValue(strings.Trim(itemTrim, "\""))
 	case itemTrim == "log":
 		block.Log = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "loss-priority "):
+		block.LossPriority = types.StringValue(itemTrim)
 	case itemTrim == "packet-mode":
 		block.PacketMode = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "policer "):

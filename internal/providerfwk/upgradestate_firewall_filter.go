@@ -249,7 +249,18 @@ func upgradeFirewallFilterStateV0toV1(
 				SourcePrefixListExcept      []types.String `tfsdk:"source_prefix_list_except"`
 				TCPFlags                    types.String   `tfsdk:"tcp_flags"`
 			} `tfsdk:"from"`
-			Then []firewallFilterBlockTermBlockThen `tfsdk:"then"`
+			Then []struct {
+				Log               types.Bool   `tfsdk:"log"`
+				PacketMode        types.Bool   `tfsdk:"packet_mode"`
+				PortMirror        types.Bool   `tfsdk:"port_mirror"`
+				Sample            types.Bool   `tfsdk:"sample"`
+				ServiceAccounting types.Bool   `tfsdk:"service_accounting"`
+				Syslog            types.Bool   `tfsdk:"syslog"`
+				Action            types.String `tfsdk:"action"`
+				Count             types.String `tfsdk:"count"`
+				Policer           types.String `tfsdk:"policer"`
+				RoutingInstance   types.String `tfsdk:"routing_instance"`
+			} `tfsdk:"then"`
 		} `tfsdk:"term"`
 	}
 
@@ -304,7 +315,18 @@ func upgradeFirewallFilterStateV0toV1(
 			}
 		}
 		if len(blockV0.Then) > 0 {
-			blockV1.Then = &blockV0.Then[0]
+			blockV1.Then = &firewallFilterBlockTermBlockThen{
+				Log:               blockV0.Then[0].Log,
+				PacketMode:        blockV0.Then[0].PacketMode,
+				PortMirror:        blockV0.Then[0].PortMirror,
+				Sample:            blockV0.Then[0].Sample,
+				ServiceAccounting: blockV0.Then[0].ServiceAccounting,
+				Syslog:            blockV0.Then[0].Syslog,
+				Action:            blockV0.Then[0].Action,
+				Count:             blockV0.Then[0].Count,
+				Policer:           blockV0.Then[0].Policer,
+				RoutingInstance:   blockV0.Then[0].RoutingInstance,
+			}
 		}
 		dataV1.Term = append(dataV1.Term, blockV1)
 	}

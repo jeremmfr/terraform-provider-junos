@@ -176,8 +176,12 @@ The following arguments are supported:
   Need to be `accept`, `reject`, `discard` or `next term`.
 - **count** (Optional, String)  
   Count the packet in the named counter.
+- **forwarding_class** (Optional, String)  
+  Classify packet to forwarding class.
 - **log** (Optional, Boolean)  
   Log the packet.
+- **loss_priority** (Optional, String)  
+  Packet's loss priority.
 - **packet_mode** (Optional, Boolean)  
   Bypass flow mode for the packet.
 - **policer** (Optional, String)  

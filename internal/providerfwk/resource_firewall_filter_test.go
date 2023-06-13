@@ -356,6 +356,9 @@ resource "junos_firewall_filter" "testacc_fwFilter_vpls" {
         "network-control",
       ]
     }
+    then {
+      loss_priority = "high"
+    }
   }
 }
 resource "junos_firewall_filter" "testacc_fwFilter_any" {
@@ -365,6 +368,9 @@ resource "junos_firewall_filter" "testacc_fwFilter_any" {
     name = "testacc_fwFilter any term1"
     from {
       packet_length_except = ["1-500"]
+    }
+    then {
+      forwarding_class = "best-effort"
     }
   }
 }

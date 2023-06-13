@@ -14,6 +14,7 @@ ENHANCEMENTS:
   `packet_length`, `packet_length_except`,
   `policy_map`, `policy_map_except`,
   `source_mac_address` and `source_mac_address_except` arguments in from block in term block
+  * add `forwarding_class` and `loss_priority` arguments in then block in term block
 * **resource/junos_firewall_policer**:
   * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
     some of config errors are now sent during Plan instead of during Apply  
