@@ -631,7 +631,7 @@ resource "junos_security_ipsec_vpn" "testacc_ipsecvpn" {
     remote_ip = "192.0.3.64/26"
   }
   traffic_selector {
-    name      = "ts-2"
+    name      = "ts 2"
     local_ip  = "192.0.2.128/26"
     remote_ip = "192.0.3.192/26"
   }

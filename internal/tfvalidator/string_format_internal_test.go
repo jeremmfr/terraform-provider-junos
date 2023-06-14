@@ -91,6 +91,16 @@ func TestStringFormat(t *testing.T) {
 			expectError: true,
 			sensitive:   true,
 		},
+		"ASPathRegularExpression_valid": {
+			val:         types.StringValue(".* 209 .*"),
+			format:      ASPathRegularExpression,
+			expectError: false,
+		},
+		"ASPathRegularExpression_invalid": {
+			val:         types.StringValue(".* AS209 .*"),
+			format:      ASPathRegularExpression,
+			expectError: true,
+		},
 	}
 
 	for name, test := range tests {
