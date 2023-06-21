@@ -24,7 +24,11 @@ func TestAccDataSourceApplicationSets_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("data.junos_application_sets.testacc_ssh_with_telnet",
 							"application_sets.#", "1"),
 						resource.TestCheckResourceAttr("data.junos_application_sets.testacc_name",
+							"application_sets.#", "2"),
+						resource.TestCheckResourceAttr("data.junos_application_sets.testacc_appsets",
 							"application_sets.#", "1"),
+						resource.TestCheckResourceAttr("data.junos_application_sets.testacc_appsets",
+							"application_sets.0.description", "test-data-source-appSet"),
 					),
 				},
 			},
@@ -37,6 +41,11 @@ func testAccDataSourceApplicationSetsPre() string {
 resource "junos_application_set" "testacc_app_set" {
   name         = "testacc_app_set"
   applications = ["junos-ssh", "junos-telnet"]
+}
+resource "junos_application_set" "testacc_app_set2" {
+  name            = "testacc_app_set2"
+  application_set = [junos_application_set.testacc_app_set.name]
+  description     = "test-data-source-appSet"
 }
 `
 }
@@ -59,6 +68,9 @@ data "junos_application_sets" "testacc_default_cifs" {
 }
 data "junos_application_sets" "testacc_name" {
   match_name = "testacc_.*"
+}
+data "junos_application_sets" "testacc_appsets" {
+  match_application_sets = ["testacc_app_set"]
 }
 `
 }

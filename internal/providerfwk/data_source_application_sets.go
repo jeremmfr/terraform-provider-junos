@@ -85,12 +85,19 @@ func (dsc *applicationSetsDataSource) Schema(
 				Optional:    true,
 				Description: "List of applications to apply a filter on application-sets.",
 			},
+			"match_application_sets": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "List of application-sets to apply a filter on application-sets.",
+			},
 			"application_sets": schema.ListAttribute{
 				Computed:    true,
 				Description: "For each application-set found.",
 				ElementType: types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
-					"name":         types.StringType,
-					"applications": types.ListType{}.WithElementType(types.StringType),
+					"name":            types.StringType,
+					"applications":    types.ListType{}.WithElementType(types.StringType),
+					"application_set": types.ListType{}.WithElementType(types.StringType),
+					"description":     types.StringType,
 				}),
 			},
 		},
@@ -98,15 +105,18 @@ func (dsc *applicationSetsDataSource) Schema(
 }
 
 type applicationSetsDataSourceData struct {
-	ID                types.String                                    `tfsdk:"id"`
-	MatchName         types.String                                    `tfsdk:"match_name"`
-	MatchApplications []types.String                                  `tfsdk:"match_applications"`
-	ApplicationSets   []applicationSetsDataSourceBlockApplicationSets `tfsdk:"application_sets"`
+	ID                   types.String                                    `tfsdk:"id"`
+	MatchName            types.String                                    `tfsdk:"match_name"`
+	MatchApplications    []types.String                                  `tfsdk:"match_applications"`
+	MatchApplicationSets []types.String                                  `tfsdk:"match_application_sets"`
+	ApplicationSets      []applicationSetsDataSourceBlockApplicationSets `tfsdk:"application_sets"`
 }
 
 type applicationSetsDataSourceBlockApplicationSets struct {
-	Name         types.String   `tfsdk:"name"`
-	Applications []types.String `tfsdk:"applications"`
+	Name           types.String   `tfsdk:"name"`
+	Applications   []types.String `tfsdk:"applications"`
+	ApplicationSet []types.String `tfsdk:"application_set"`
+	Description    types.String   `tfsdk:"description"`
 }
 
 func (dsc *applicationSetsDataSource) Read(
@@ -115,13 +125,15 @@ func (dsc *applicationSetsDataSource) Read(
 	var data applicationSetsDataSourceData
 	var matchName types.String
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("match_name"), &matchName)...)
-	var matchApplications []types.String
+	var matchApplications, matchApplicationSets []types.String
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("match_applications"), &matchApplications)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("match_application_sets"), &matchApplicationSets)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	data.MatchName = matchName
 	data.MatchApplications = matchApplications
+	data.MatchApplicationSets = matchApplicationSets
 
 	junSess, err := dsc.client.StartNewSession(ctx)
 	if err != nil {
@@ -185,12 +197,17 @@ func (dsc *applicationSetsDataSource) Search(
 					Name: types.StringValue(itemTrimFields[0]),
 				}
 			}
-			appSetOpts := results[itemTrimFields[0]]
+			appSet := results[itemTrimFields[0]]
 			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-			if balt.CutPrefixInString(&itemTrim, "application ") {
-				appSetOpts.Applications = append(appSetOpts.Applications, types.StringValue(itemTrim))
+			switch {
+			case balt.CutPrefixInString(&itemTrim, "application "):
+				appSet.Applications = append(appSet.Applications, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "application-set "):
+				appSet.ApplicationSet = append(appSet.ApplicationSet, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				appSet.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			}
-			results[itemTrimFields[0]] = appSetOpts
+			results[itemTrimFields[0]] = appSet
 		}
 	}
 
@@ -231,6 +248,30 @@ func (dscData *applicationSetsDataSourceData) Filter(
 				}
 			}
 			if len(dscData.MatchApplications) != matchAppsOk {
+				delete(results, appSetKey)
+			}
+		}
+	}
+	if len(dscData.MatchApplicationSets) > 0 {
+		// for each app-set, check if all application-sets is matched
+		for appSetKey, appSet := range results {
+			if len(appSet.ApplicationSet) != len(dscData.MatchApplicationSets) {
+				delete(results, appSetKey)
+
+				continue
+			}
+			matchAppSetsOk := 0
+		each_match_sets:
+			for _, v := range dscData.MatchApplicationSets {
+				for _, appSet := range appSet.ApplicationSet {
+					if v.ValueString() == appSet.ValueString() {
+						matchAppSetsOk++
+
+						continue each_match_sets
+					}
+				}
+			}
+			if len(dscData.MatchApplicationSets) != matchAppSetsOk {
 				delete(results, appSetKey)
 			}
 		}

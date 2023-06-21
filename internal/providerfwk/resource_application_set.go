@@ -23,9 +23,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &applicationSet{}
-	_ resource.ResourceWithConfigure   = &applicationSet{}
-	_ resource.ResourceWithImportState = &applicationSet{}
+	_ resource.Resource                   = &applicationSet{}
+	_ resource.ResourceWithConfigure      = &applicationSet{}
+	_ resource.ResourceWithValidateConfig = &applicationSet{}
+	_ resource.ResourceWithImportState    = &applicationSet{}
 )
 
 type applicationSet struct {
@@ -96,7 +97,7 @@ func (rsc *applicationSet) Schema(
 			},
 			"applications": schema.ListAttribute{
 				ElementType: types.StringType,
-				Required:    true,
+				Optional:    true,
 				Description: "Application to be included in the set.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
@@ -106,14 +107,64 @@ func (rsc *applicationSet) Schema(
 					),
 				},
 			},
+			"application_set": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Application-set to be included in the set.",
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
+					listvalidator.ValueStringsAre(
+						stringvalidator.LengthBetween(1, 63),
+						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+					),
+				},
+			},
+			"description": schema.StringAttribute{
+				Optional:    true,
+				Description: "Description for application-set.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 900),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
 		},
 	}
 }
 
 type applicationSetData struct {
-	ID           types.String   `tfsdk:"id"`
-	Name         types.String   `tfsdk:"name"`
-	Applications []types.String `tfsdk:"applications"`
+	ID             types.String   `tfsdk:"id"`
+	Name           types.String   `tfsdk:"name"`
+	Applications   []types.String `tfsdk:"applications"`
+	ApplicationSet []types.String `tfsdk:"application_set"`
+	Description    types.String   `tfsdk:"description"`
+}
+
+type applicationSetConfig struct {
+	ID             types.String `tfsdk:"id"`
+	Name           types.String `tfsdk:"name"`
+	Applications   types.List   `tfsdk:"applications"`
+	ApplicationSet types.List   `tfsdk:"application_set"`
+	Description    types.String `tfsdk:"description"`
+}
+
+func (rsc *applicationSet) ValidateConfig(
+	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
+) {
+	var config applicationSetConfig
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.Applications.IsNull() &&
+		config.ApplicationSet.IsNull() &&
+		config.Description.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("name"),
+			tfdiag.MissingConfigErrSummary,
+			"at least one of applications, application_set or description must be specified",
+		)
+	}
 }
 
 func (rsc *applicationSet) Create(
@@ -298,6 +349,12 @@ func (rscData *applicationSetData) set(
 	for _, v := range rscData.Applications {
 		configSet = append(configSet, setPrefix+"application "+v.ValueString())
 	}
+	for _, v := range rscData.ApplicationSet {
+		configSet = append(configSet, setPrefix+"application-set "+v.ValueString())
+	}
+	if v := rscData.Description.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"description \""+v+"\"")
+	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
@@ -323,8 +380,13 @@ func (rscData *applicationSetData) read(
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
-			if balt.CutPrefixInString(&itemTrim, "application ") {
+			switch {
+			case balt.CutPrefixInString(&itemTrim, "application "):
 				rscData.Applications = append(rscData.Applications, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "application-set "):
+				rscData.ApplicationSet = append(rscData.ApplicationSet, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			}
 		}
 	}

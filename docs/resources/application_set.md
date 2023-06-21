@@ -24,6 +24,10 @@ The following arguments are supported:
   Application set name.
 - **applications** (Optional, List of String)  
   Application to be included in the set.
+- **application_set** (Optional, List of String)  
+  Application-set to be included in the set.
+- **description** (Optional, String)  
+  Description for application-set.
 
 ## Attributes Reference
 
