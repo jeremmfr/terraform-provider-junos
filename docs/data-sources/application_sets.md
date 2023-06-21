@@ -36,6 +36,6 @@ The following attributes are exported:
 - **application_sets** (Block List)  
   For each application-set found.
   - **name** (String)  
-    Name of application set.
+    Application set name.
   - **applications** (List of String)  
-    List of application names.
+    List of included application names.
