@@ -147,7 +147,6 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"junos_access_address_assignment_pool":                       resourceAccessAddressAssignPool(),
 			"junos_aggregate_route":                                      resourceAggregateRoute(),
-			"junos_application":                                          resourceApplication(),
 			"junos_bridge_domain":                                        resourceBridgeDomain(),
 			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_chassis_redundancy":                                   resourceChassisRedundancy(),
@@ -230,7 +229,6 @@ func Provider() *schema.Provider {
 			"junos_vstp_vlan_group":                                      resourceVstpVlanGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"junos_applications":       dataSourceApplications(),
 			"junos_routes":             dataSourceRoutes(),
 			"junos_system_information": dataSourceSystemInformation(),
 		},
