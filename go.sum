@@ -86,8 +86,8 @@ github.com/jeremmfr/go-utils v0.9.0 h1:EMweJK12FKqRzYtISkwClVm1pnX/W7FDTqKnAm3f5
 github.com/jeremmfr/go-utils v0.9.0/go.mod h1:Lkn95iSzCRviFhn2/0XmqzWGmxI+kkoqKAZqip7VUmM=
 github.com/jeremmfr/junosdecode v1.1.1 h1:wOFfJIwLXP9s0eQzzAhuX7a7N1mc+AWgDLYAmR7VoWg=
 github.com/jeremmfr/junosdecode v1.1.1/go.mod h1:nTY0XbZC2ePbZdV0wuUboSMtGrJxtpwWVYfHjrS2Oqw=
-github.com/jeremmfr/terraform-plugin-sdk/v2 v2.26.2-0.20230323075736-fa464c32fe03 h1:w/dNAqGhPIPNh8TxNCUyAyzqq7b/oqVVd+Qs0vZzKgA=
-github.com/jeremmfr/terraform-plugin-sdk/v2 v2.26.2-0.20230323075736-fa464c32fe03/go.mod h1:xcOSYlRVdPLmDUoqPhO9fiO/YCN/l6MGYeTzGt5jgkQ=
+github.com/jeremmfr/terraform-plugin-sdk/v2 v2.27.1-0.20230630070723-25fea73ff21e h1:2pfGmLXTGkrY71GfmbHomxgoR5/TKDEAU0iaW+x3anc=
+github.com/jeremmfr/terraform-plugin-sdk/v2 v2.27.1-0.20230630070723-25fea73ff21e/go.mod h1:cUEP4ly/nxlHy5HzD6YRrHydtlheGvGRJDhiWqqVik4=
 github.com/jhump/protoreflect v1.6.0 h1:h5jfMVslIg6l29nsMs0D8Wj17RDVdNYti0vDN/PZZoE=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
