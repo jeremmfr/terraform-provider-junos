@@ -17,6 +17,7 @@ const (
 	AddressNameFormat
 	DNSNameFormat
 	InterfaceFormat
+	InterfaceWithWildcardFormat
 	HexadecimalFormat
 	ASPathRegularExpression
 )
@@ -41,6 +42,11 @@ func (f stringFormat) invalidRune() func(rune) bool {
 		return func(r rune) bool {
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
 				r != '-' && r != '/' && r != '.' && r != ':'
+		}
+	case InterfaceWithWildcardFormat:
+		return func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
+				r != '-' && r != '/' && r != '.' && r != ':' && r != '*'
 		}
 	case HexadecimalFormat:
 		return func(r rune) bool {
@@ -69,6 +75,8 @@ func (f stringFormat) String() string {
 		return "letters, numbers, dashes, dots and underscores"
 	case InterfaceFormat:
 		return "letters, numbers, dashes, slashes, dots and colons"
+	case InterfaceWithWildcardFormat:
+		return "letters, numbers, dashes, slashes, dots, colons and asterisk"
 	case HexadecimalFormat:
 		return "A-F or a-f letters and numbers"
 	case ASPathRegularExpression:
