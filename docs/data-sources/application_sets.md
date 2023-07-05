@@ -26,6 +26,9 @@ The following arguments are supported:
 - **match_applications** (Optional, Set of String)  
   List of applications to apply a filter on application-sets.  
   The list needs to be exact to match.
+- **match_application_sets** (Optional, Set of String)  
+  List of application-sets to apply a filter on application-sets.  
+  The list needs to be exact to match.
 
 ## Attributes Reference
 
@@ -36,6 +39,10 @@ The following attributes are exported:
 - **application_sets** (Block List)  
   For each application-set found.
   - **name** (String)  
-    Name of application set.
+    Application set name.
   - **applications** (List of String)  
-    List of application names.
+    List of included application names.
+  - **application_set** (List of String)  
+    List of included application-set names.
+  - **description** (String)  
+    Description for application-set.

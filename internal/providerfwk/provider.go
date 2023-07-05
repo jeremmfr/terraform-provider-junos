@@ -186,6 +186,8 @@ func (p *junosProvider) Schema(
 
 func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		newApplicationSetsDataSource,
+		newApplicationsDataSource,
 		newInterfaceLogicalDataSource,
 		newInterfaceLogicalInfoDataSource,
 		newInterfacePhysicalDataSource,
@@ -197,6 +199,8 @@ func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataS
 
 func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		newApplicationSetResource,
+		newApplicationResource,
 		newBgpGroupResource,
 		newBgpNeighborResource,
 		newFirewallFilterResource,

@@ -47,7 +47,7 @@ The following arguments are supported:
   - **icmp6_type** (Optional, String)  
     Match ICMP6 message type.
   - **inactivity_timeout** (Optional, Number)  
-    Application-specific inactivity timeout (4..86400 seconds).
+    Application-specific inactivity timeout.
   - **inactivity_timeout_never** (Optional, Boolean)  
     Disables inactivity timeout.
   - **protocol** (Optional, String)  

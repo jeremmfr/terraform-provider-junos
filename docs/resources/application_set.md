@@ -21,9 +21,13 @@ resource "junos_application_set" "ssh_telnet" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Name of application set.
+  Application set name.
 - **applications** (Optional, List of String)  
-  List of application names.
+  Application to be included in the set.
+- **application_set** (Optional, List of String)  
+  Application-set to be included in the set.
+- **description** (Optional, String)  
+  Description for application-set.
 
 ## Attributes Reference
 
