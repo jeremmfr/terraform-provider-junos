@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 func TestAccJunosBgpGroup_basic(t *testing.T) {
@@ -119,6 +121,12 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 				},
 				{
 					Config: testAccJunosBgpGroupConfigUpdate(),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectSensitiveValue("junos_bgp_group.testacc_bgpgroup",
+								tfjsonpath.New("authentication_key")),
+						},
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"routing_instance", "testacc_bgpgroup"),
