@@ -9,6 +9,8 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
@@ -24,6 +26,12 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 			Steps: []resource.TestStep{
 				{
 					Config: testAccJunosSecurityIkeIpsecConfigCreate(testaccIkeIpsec),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectSensitiveValue("junos_security_ike_policy.testacc_ikepol",
+								tfjsonpath.New("pre_shared_key_text")),
+						},
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_proposal.testacc_ikeprop",
 							"authentication_algorithm", "sha1"),
@@ -172,6 +180,12 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 				},
 				{
 					Config: testAccJunosSecurityIkeIpsecConfigUpdate2(testaccIkeIpsec),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectSensitiveValue("junos_security_ike_gateway.testacc_ikegateway",
+								tfjsonpath.New("aaa").AtMapKey("client_password")),
+						},
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"dead_peer_detection.send_mode", "probe-idle-tunnel"),
@@ -202,6 +216,14 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 				},
 				{
 					Config: testAccJunosSecurityIkeIpsecConfigUpdate4(testaccIkeIpsec),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectSensitiveValue("junos_security_ipsec_vpn.testacc_ipsecvpn",
+								tfjsonpath.New("manual").AtMapKey("authentication_key_text")),
+							plancheck.ExpectSensitiveValue("junos_security_ipsec_vpn.testacc_ipsecvpn",
+								tfjsonpath.New("manual").AtMapKey("encryption_key_text")),
+						},
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"dynamic_remote.inet", "192.168.0.4"),
@@ -209,6 +231,14 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 				},
 				{
 					Config: testAccJunosSecurityIkeIpsecConfigUpdate5(testaccIkeIpsec),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectSensitiveValue("junos_security_ipsec_vpn.testacc_ipsecvpn2",
+								tfjsonpath.New("manual").AtMapKey("authentication_key_hexa")),
+							plancheck.ExpectSensitiveValue("junos_security_ipsec_vpn.testacc_ipsecvpn2",
+								tfjsonpath.New("manual").AtMapKey("encryption_key_hexa")),
+						},
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"dynamic_remote.inet6", "2001:db8::1"),
