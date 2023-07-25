@@ -1,6 +1,87 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.1.0 (July 25, 2023)
+
+ENHANCEMENTS:
+
+* **resource/junos_application**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value
+* **data-source/junos_applications**: data-source now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+* **resource/junos_application_set**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  * add `application_set`, `description` arguments
+* **data-source/junos_application_sets**:
+  * data-source now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+  * add `match_application_sets` argument
+  * add `application_set` and `description` attribute in `application_sets` block attribute
+* **resource/junos_bgp_group**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * `advertise_external` is now computed to `true` when `advertise_external_conditional` is `true` (instead of the 2 attributes conflicting)
+  * `bfd_liveness_detection.version` now generate an error if the value is not in one of strings `0`, `1` or `automatic`
+  * add `bgp_error_tolerance`, `description`, `no_client_reflect`, `tcp_aggressive_transmission` arguments
+* **resource/junos_bgp_neighbor**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * `advertise_external` is now computed to `true` when `advertise_external_conditional` is `true` (instead of the 2 attributes conflicting)
+  * `bfd_liveness_detection.version` now generate an error if the value is not in one of strings `0`, `1` or `automatic`
+  * add `bgp_error_tolerance`, `description`, `no_client_reflect`, `tcp_aggressive_transmission` arguments
+* **resource/junos_firewall_filter**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+    some of config errors are now sent during Plan instead of during Apply  
+    optional boolean attributes doesn't accept value *false*  
+    optional string attributes doesn't accept *empty* value  
+    the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `destination_mac_address`, `destination_mac_address_except`,
+  `forwarding_class`, `forwarding_class_except`,
+  `interface`,
+  `loss_priority`, `loss_priority_except`,
+  `packet_length`, `packet_length_except`,
+  `policy_map`, `policy_map_except`,
+  `source_mac_address` and `source_mac_address_except` arguments in from block in term block
+  * add `forwarding_class` and `loss_priority` arguments in then block in term block
+* **resource/junos_firewall_policer**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+    some of config errors are now sent during Plan instead of during Apply  
+    optional boolean attributes doesn't accept value *false*  
+    optional string attributes doesn't accept *empty* value  
+    the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `logical_bandwidth_policer`, `logical_interface_policer`, `physical_interface_policer`, `shared_bandwidth_policer` and `if_exceeding_pps` arguments
+* **resource/junos_policyoptions_as_path**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+* **resource/junos_policyoptions_as_path_group**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+* **resource/junos_policyoptions_community**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+    optional boolean attributes doesn't accept value *false*  
+  * add `dynamic_db` argument (`members` is now optional but one of `dynamic_db` or `members` must be specified)
+* **resource/junos_policyoptions_policy_statement**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+    some of config errors are now sent during Plan instead of during Apply  
+    optional boolean attributes doesn't accept value *false*  
+    optional string attributes doesn't accept *empty* value  
+    the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `dynamic_db` argument
+* **resource/junos_policyoptions_prefix_list**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+
+BUG FIXES:
+
+* reduce plan time for resources that have migrated to the new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and have block set attributes (multiple unordered blocks) (Partial fix [#498](https://github.com/jeremmfr/terraform-provider-junos/issues/498))
+* **resource/junos_security_ipsec_vpn**: fix length validator (max 31 instead of 32) and remove space exclusion validator of `name` for `traffic_selector` block
+
 ## v2.0.0 (May 10, 2023)
 
 BREAKING CHANGES with new `v2`:
