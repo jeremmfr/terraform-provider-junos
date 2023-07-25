@@ -3,16 +3,13 @@ package providerfwk
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
-	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -26,39 +23,39 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                   = &oamGretunnelInterface{}
-	_ resource.ResourceWithConfigure      = &oamGretunnelInterface{}
-	_ resource.ResourceWithValidateConfig = &oamGretunnelInterface{}
-	_ resource.ResourceWithImportState    = &oamGretunnelInterface{}
+	_ resource.Resource                   = &policyoptionsASPathGroup{}
+	_ resource.ResourceWithConfigure      = &policyoptionsASPathGroup{}
+	_ resource.ResourceWithValidateConfig = &policyoptionsASPathGroup{}
+	_ resource.ResourceWithImportState    = &policyoptionsASPathGroup{}
 )
 
-type oamGretunnelInterface struct {
+type policyoptionsASPathGroup struct {
 	client *junos.Client
 }
 
-func newOamGretunnelInterfaceResource() resource.Resource {
-	return &oamGretunnelInterface{}
+func newPolicyoptionsASPathGroupResource() resource.Resource {
+	return &policyoptionsASPathGroup{}
 }
 
-func (rsc *oamGretunnelInterface) typeName() string {
-	return providerName + "_oam_gretunnel_interface"
+func (rsc *policyoptionsASPathGroup) typeName() string {
+	return providerName + "_policyoptions_as_path_group"
 }
 
-func (rsc *oamGretunnelInterface) junosName() string {
-	return "protocol oam gre-tunnel interface"
+func (rsc *policyoptionsASPathGroup) junosName() string {
+	return "policy-options as-path-group"
 }
 
-func (rsc *oamGretunnelInterface) junosClient() *junos.Client {
+func (rsc *policyoptionsASPathGroup) junosClient() *junos.Client {
 	return rsc.client
 }
 
-func (rsc *oamGretunnelInterface) Metadata(
+func (rsc *policyoptionsASPathGroup) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
 
-func (rsc *oamGretunnelInterface) Configure(
+func (rsc *policyoptionsASPathGroup) Configure(
 	ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
 ) {
 	// Prevent panic if the provider has not been configured.
@@ -74,7 +71,7 @@ func (rsc *oamGretunnelInterface) Configure(
 	rsc.client = client
 }
 
-func (rsc *oamGretunnelInterface) Schema(
+func (rsc *policyoptionsASPathGroup) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
@@ -89,67 +86,118 @@ func (rsc *oamGretunnelInterface) Schema(
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
-				Description: "Name of interface.",
+				Description: "Name to identify AS path group.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(`^gr-`),
-						"must be a gr interface"),
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
-			"hold_time": schema.Int64Attribute{
+			"dynamic_db": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Hold time (5..250 seconds).",
-				Validators: []validator.Int64{
-					int64validator.Between(5, 250),
+				Description: "Object may exist in dynamic database.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
 				},
 			},
-			"keepalive_time": schema.Int64Attribute{
-				Optional:    true,
-				Description: "Keepalive time (1..50 seconds).",
-				Validators: []validator.Int64{
-					int64validator.Between(1, 50),
+		},
+		Blocks: map[string]schema.Block{
+			"as_path": schema.ListNestedBlock{
+				Description: "For each name of as-path to declare.",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Required:    true,
+							Description: "Name to identify AS path regular expression.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 250),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
+						"path": schema.StringAttribute{
+							Required:    true,
+							Description: "AS path regular expression.",
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringFormat(tfvalidator.ASPathRegularExpression),
+							},
+						},
+					},
 				},
 			},
 		},
 	}
 }
 
-type oamGretunnelInterfaceData struct {
-	ID            types.String `tfsdk:"id"`
-	Name          types.String `tfsdk:"name"`
-	HoldTime      types.Int64  `tfsdk:"hold_time"`
-	KeepaliveTime types.Int64  `tfsdk:"keepalive_time"`
+type policyoptionsASPathGroupData struct {
+	DynamicDB types.Bool                            `tfsdk:"dynamic_db"`
+	ID        types.String                          `tfsdk:"id"`
+	Name      types.String                          `tfsdk:"name"`
+	ASPath    []policyoptionsASPathGroupBlockASPAth `tfsdk:"as_path"`
 }
 
-func (rsc *oamGretunnelInterface) ValidateConfig(
+type policyoptionsASPathGroupConfig struct {
+	DynamicDB types.Bool   `tfsdk:"dynamic_db"`
+	ID        types.String `tfsdk:"id"`
+	Name      types.String `tfsdk:"name"`
+	ASPath    types.List   `tfsdk:"as_path"`
+}
+
+type policyoptionsASPathGroupBlockASPAth struct {
+	Name types.String `tfsdk:"name"`
+	Path types.String `tfsdk:"path"`
+}
+
+func (rsc *policyoptionsASPathGroup) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
-	var config oamGretunnelInterfaceData
+	var config policyoptionsASPathGroupConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if !config.HoldTime.IsNull() && !config.HoldTime.IsUnknown() &&
-		!config.KeepaliveTime.IsNull() && !config.KeepaliveTime.IsUnknown() {
-		if config.KeepaliveTime.ValueInt64()*2 > config.HoldTime.ValueInt64() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("hold_time"),
-				"Bad Value Error",
-				"hold_time has to be at least twice the keepalive_time",
-			)
+	if config.ASPath.IsNull() &&
+		config.DynamicDB.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("name"),
+			tfdiag.MissingConfigErrSummary,
+			"at least one of as_path or dynamic_db must be specified",
+		)
+	}
+	if !config.ASPath.IsNull() && !config.ASPath.IsUnknown() {
+		var configASPath []policyoptionsASPathGroupBlockASPAth
+		asDiags := config.ASPath.ElementsAs(ctx, &configASPath, false)
+		if asDiags.HasError() {
+			resp.Diagnostics.Append(asDiags...)
+
+			return
+		}
+
+		asPathName := make(map[string]struct{})
+		for i, asPath := range configASPath {
+			if asPath.Name.IsUnknown() {
+				continue
+			}
+			if _, ok := asPathName[asPath.Name.ValueString()]; ok {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("as_path").AtListIndex(i).AtName("name"),
+					tfdiag.ConflictConfigErrSummary,
+					fmt.Sprintf("multiple as_path blocks with the same name %q",
+						asPath.Name.ValueString()),
+				)
+			}
+			asPathName[asPath.Name.ValueString()] = struct{}{}
 		}
 	}
 }
 
-func (rsc *oamGretunnelInterface) Create(
+func (rsc *policyoptionsASPathGroup) Create(
 	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse,
 ) {
-	var plan oamGretunnelInterfaceData
+	var plan policyoptionsASPathGroupData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -168,13 +216,13 @@ func (rsc *oamGretunnelInterface) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			interfaceExists, err := checkOamGretunnelInterfaceExists(fnCtx, plan.Name.ValueString(), junSess)
+			groupExists, err := checkPolicyoptionsAsPathGroupExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
-			if interfaceExists {
+			if groupExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -186,13 +234,13 @@ func (rsc *oamGretunnelInterface) Create(
 			return true
 		},
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			interfaceExists, err := checkOamGretunnelInterfaceExists(fnCtx, plan.Name.ValueString(), junSess)
+			groupExists, err := checkPolicyoptionsAsPathGroupExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
-			if !interfaceExists {
+			if !groupExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
@@ -209,10 +257,10 @@ func (rsc *oamGretunnelInterface) Create(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Read(
+func (rsc *policyoptionsASPathGroup) Read(
 	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse,
 ) {
-	var state, data oamGretunnelInterfaceData
+	var state, data policyoptionsASPathGroupData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -231,10 +279,10 @@ func (rsc *oamGretunnelInterface) Read(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Update(
+func (rsc *policyoptionsASPathGroup) Update(
 	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
 ) {
-	var plan, state oamGretunnelInterfaceData
+	var plan, state policyoptionsASPathGroupData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -250,10 +298,10 @@ func (rsc *oamGretunnelInterface) Update(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Delete(
+func (rsc *policyoptionsASPathGroup) Delete(
 	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse,
 ) {
-	var state oamGretunnelInterfaceData
+	var state policyoptionsASPathGroupData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,10 +315,10 @@ func (rsc *oamGretunnelInterface) Delete(
 	)
 }
 
-func (rsc *oamGretunnelInterface) ImportState(
+func (rsc *policyoptionsASPathGroup) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	var data oamGretunnelInterfaceData
+	var data policyoptionsASPathGroupData
 
 	var _ resourceDataReadFrom1String = &data
 	defaultResourceImportState(
@@ -284,13 +332,13 @@ func (rsc *oamGretunnelInterface) ImportState(
 	)
 }
 
-func checkOamGretunnelInterfaceExists(
+func checkPolicyoptionsAsPathGroupExists(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySet)
+		"policy-options as-path-group \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -301,43 +349,47 @@ func checkOamGretunnelInterfaceExists(
 	return true, nil
 }
 
-func (rscData *oamGretunnelInterfaceData) fillID() {
+func (rscData *policyoptionsASPathGroupData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *oamGretunnelInterfaceData) nullID() bool {
+func (rscData *policyoptionsASPathGroupData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
-func (rscData *oamGretunnelInterfaceData) set(
+func (rscData *policyoptionsASPathGroupData) set(
 	_ context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set protocols oam gre-tunnel interface " + rscData.Name.ValueString() + " "
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 0)
+	setPrefix := "set policy-options as-path-group \"" + rscData.Name.ValueString() + "\" "
 
-	if !rscData.HoldTime.IsNull() {
-		configSet = append(configSet, setPrefix+"hold-time "+
-			utils.ConvI64toa(rscData.HoldTime.ValueInt64()))
+	asPathName := make(map[string]struct{})
+	for i, block := range rscData.ASPath {
+		if _, ok := asPathName[block.Name.ValueString()]; ok {
+			return path.Root("as_path").AtListIndex(i).AtName("name"),
+				fmt.Errorf("multiple as_path blocks with the same name %q", block.Name.ValueString())
+		}
+		asPathName[block.Name.ValueString()] = struct{}{}
+		configSet = append(configSet, setPrefix+
+			"as-path \""+block.Name.ValueString()+"\""+
+			" \""+block.Path.ValueString()+"\"")
 	}
-	if !rscData.KeepaliveTime.IsNull() {
-		configSet = append(configSet, setPrefix+"keepalive-time "+
-			utils.ConvI64toa(rscData.KeepaliveTime.ValueInt64()))
+	if rscData.DynamicDB.ValueBool() {
+		configSet = append(configSet, setPrefix+"dynamic-db")
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *oamGretunnelInterfaceData) read(
+func (rscData *policyoptionsASPathGroupData) read(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
 	err error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySetRelative)
+		"policy-options as-path-group \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -353,16 +405,14 @@ func (rscData *oamGretunnelInterfaceData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
-			case balt.CutPrefixInString(&itemTrim, "hold-time "):
-				rscData.HoldTime, err = tfdata.ConvAtoi64Value(itemTrim)
-				if err != nil {
-					return err
-				}
-			case balt.CutPrefixInString(&itemTrim, "keepalive-time "):
-				rscData.KeepaliveTime, err = tfdata.ConvAtoi64Value(itemTrim)
-				if err != nil {
-					return err
-				}
+			case itemTrim == "dynamic-db":
+				rscData.DynamicDB = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "as-path "):
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.ASPath = append(rscData.ASPath, policyoptionsASPathGroupBlockASPAth{
+					Name: types.StringValue(strings.Trim(name, "\"")),
+					Path: types.StringValue(strings.Trim(strings.TrimPrefix(itemTrim, name+" "), "\"")),
+				})
 			}
 		}
 	}
@@ -370,11 +420,11 @@ func (rscData *oamGretunnelInterfaceData) read(
 	return nil
 }
 
-func (rscData *oamGretunnelInterfaceData) del(
+func (rscData *policyoptionsASPathGroupData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
-		"delete protocols oam gre-tunnel interface " + rscData.Name.ValueString(),
+		"delete policy-options as-path-group \"" + rscData.Name.ValueString() + "\"",
 	}
 
 	return junSess.ConfigSet(configSet)

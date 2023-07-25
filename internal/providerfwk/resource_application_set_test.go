@@ -1,10 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosApplicationSet_basic(t *testing.T) {
@@ -52,6 +52,14 @@ func testAccJunosApplicationSetConfigUpdate() string {
 resource "junos_application_set" "testacc_app_set" {
   name         = "testacc_app_set"
   applications = ["junos-ssh", "junos-telnet"]
+  application_set = [
+    junos_application_set.testacc_app_set2.name
+  ]
+}
+resource "junos_application_set" "testacc_app_set2" {
+  name         = "testacc_app_set2"
+  applications = ["junos-ftp"]
+  description  = "testacc appset2"
 }
 `
 }

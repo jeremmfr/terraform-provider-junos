@@ -8,6 +8,8 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
@@ -23,6 +25,16 @@ func TestAccJunosInterfaceLogical_basic(t *testing.T) {
 			Steps: []resource.TestStep{
 				{
 					Config: testAccJunosInterfaceLogicalConfigCreate(testaccInterface),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectSensitiveValue("junos_interface_logical.testacc_interface_logical",
+								tfjsonpath.New("family_inet").
+									AtMapKey("address").AtSliceIndex(0).
+									AtMapKey("vrrp_group").AtSliceIndex(0).
+									AtMapKey("authentication_key"),
+							),
+						},
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
 							"description", "testacc_interface_"+testaccInterface+".100"),

@@ -4,12 +4,12 @@ page_title: "Junos: junos_policyoptions_as_path_group"
 
 # junos_policyoptions_as_path_group
 
-Provides an as-path group resource.
+Provides a policy-options as-path-group resource.
 
 ## Example Usage
 
 ```hcl
-# Add an as-path group
+# Add a policy-options as-path-group
 resource "junos_policyoptions_as_path_group" "via_century_link" {
   name = "viaCenturyLink"
   as_path {
@@ -33,18 +33,20 @@ resource "junos_policyoptions_as_path_group" "via_century_link" {
 
 ## Argument Reference
 
+-> **Note:** One of `dynamic_db` or `as_path` arguments is required.
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of as-path group.
+  Name to identify AS path group.
 - **as_path** (Optional, Block List)  
   For each name of as-path to declare.
   - **name** (Required, String)  
-    Name of as-path
+    Name to identify AS path regular expression.
   - **path** (Required, String)  
-    As-path
+    AS path regular expression.
 - **dynamic_db** (Optional, Boolean)  
-  Add `dynamic-db` parameter.
+  Object may exist in dynamic database.
 
 ## Attributes Reference
 

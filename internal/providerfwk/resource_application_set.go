@@ -3,16 +3,13 @@ package providerfwk
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
-	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -26,39 +23,39 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                   = &oamGretunnelInterface{}
-	_ resource.ResourceWithConfigure      = &oamGretunnelInterface{}
-	_ resource.ResourceWithValidateConfig = &oamGretunnelInterface{}
-	_ resource.ResourceWithImportState    = &oamGretunnelInterface{}
+	_ resource.Resource                   = &applicationSet{}
+	_ resource.ResourceWithConfigure      = &applicationSet{}
+	_ resource.ResourceWithValidateConfig = &applicationSet{}
+	_ resource.ResourceWithImportState    = &applicationSet{}
 )
 
-type oamGretunnelInterface struct {
+type applicationSet struct {
 	client *junos.Client
 }
 
-func newOamGretunnelInterfaceResource() resource.Resource {
-	return &oamGretunnelInterface{}
+func newApplicationSetResource() resource.Resource {
+	return &applicationSet{}
 }
 
-func (rsc *oamGretunnelInterface) typeName() string {
-	return providerName + "_oam_gretunnel_interface"
+func (rsc *applicationSet) typeName() string {
+	return providerName + "_application_set"
 }
 
-func (rsc *oamGretunnelInterface) junosName() string {
-	return "protocol oam gre-tunnel interface"
+func (rsc *applicationSet) junosName() string {
+	return "applications application-set"
 }
 
-func (rsc *oamGretunnelInterface) junosClient() *junos.Client {
+func (rsc *applicationSet) junosClient() *junos.Client {
 	return rsc.client
 }
 
-func (rsc *oamGretunnelInterface) Metadata(
+func (rsc *applicationSet) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
 
-func (rsc *oamGretunnelInterface) Configure(
+func (rsc *applicationSet) Configure(
 	ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
 ) {
 	// Prevent panic if the provider has not been configured.
@@ -74,7 +71,7 @@ func (rsc *oamGretunnelInterface) Configure(
 	rsc.client = client
 }
 
-func (rsc *oamGretunnelInterface) Schema(
+func (rsc *applicationSet) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
@@ -89,67 +86,91 @@ func (rsc *oamGretunnelInterface) Schema(
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
-				Description: "Name of interface.",
+				Description: "Application set name.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(`^gr-`),
-						"must be a gr interface"),
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
-			"hold_time": schema.Int64Attribute{
+			"applications": schema.ListAttribute{
+				ElementType: types.StringType,
 				Optional:    true,
-				Description: "Hold time (5..250 seconds).",
-				Validators: []validator.Int64{
-					int64validator.Between(5, 250),
+				Description: "Application to be included in the set.",
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
+					listvalidator.ValueStringsAre(
+						stringvalidator.LengthBetween(1, 63),
+						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+					),
 				},
 			},
-			"keepalive_time": schema.Int64Attribute{
+			"application_set": schema.ListAttribute{
+				ElementType: types.StringType,
 				Optional:    true,
-				Description: "Keepalive time (1..50 seconds).",
-				Validators: []validator.Int64{
-					int64validator.Between(1, 50),
+				Description: "Application-set to be included in the set.",
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
+					listvalidator.ValueStringsAre(
+						stringvalidator.LengthBetween(1, 63),
+						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+					),
+				},
+			},
+			"description": schema.StringAttribute{
+				Optional:    true,
+				Description: "Description for application-set.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 900),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
 		},
 	}
 }
 
-type oamGretunnelInterfaceData struct {
-	ID            types.String `tfsdk:"id"`
-	Name          types.String `tfsdk:"name"`
-	HoldTime      types.Int64  `tfsdk:"hold_time"`
-	KeepaliveTime types.Int64  `tfsdk:"keepalive_time"`
+type applicationSetData struct {
+	ID             types.String   `tfsdk:"id"`
+	Name           types.String   `tfsdk:"name"`
+	Applications   []types.String `tfsdk:"applications"`
+	ApplicationSet []types.String `tfsdk:"application_set"`
+	Description    types.String   `tfsdk:"description"`
 }
 
-func (rsc *oamGretunnelInterface) ValidateConfig(
+type applicationSetConfig struct {
+	ID             types.String `tfsdk:"id"`
+	Name           types.String `tfsdk:"name"`
+	Applications   types.List   `tfsdk:"applications"`
+	ApplicationSet types.List   `tfsdk:"application_set"`
+	Description    types.String `tfsdk:"description"`
+}
+
+func (rsc *applicationSet) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
-	var config oamGretunnelInterfaceData
+	var config applicationSetConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if !config.HoldTime.IsNull() && !config.HoldTime.IsUnknown() &&
-		!config.KeepaliveTime.IsNull() && !config.KeepaliveTime.IsUnknown() {
-		if config.KeepaliveTime.ValueInt64()*2 > config.HoldTime.ValueInt64() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("hold_time"),
-				"Bad Value Error",
-				"hold_time has to be at least twice the keepalive_time",
-			)
-		}
+	if config.Applications.IsNull() &&
+		config.ApplicationSet.IsNull() &&
+		config.Description.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("name"),
+			tfdiag.MissingConfigErrSummary,
+			"at least one of applications, application_set or description must be specified",
+		)
 	}
 }
 
-func (rsc *oamGretunnelInterface) Create(
+func (rsc *applicationSet) Create(
 	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse,
 ) {
-	var plan oamGretunnelInterfaceData
+	var plan applicationSetData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -168,13 +189,17 @@ func (rsc *oamGretunnelInterface) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			interfaceExists, err := checkOamGretunnelInterfaceExists(fnCtx, plan.Name.ValueString(), junSess)
+			applicationSetExists, err := checkApplicationSetExists(
+				fnCtx,
+				plan.Name.ValueString(),
+				junSess,
+			)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
-			if interfaceExists {
+			if applicationSetExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -186,13 +211,17 @@ func (rsc *oamGretunnelInterface) Create(
 			return true
 		},
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			interfaceExists, err := checkOamGretunnelInterfaceExists(fnCtx, plan.Name.ValueString(), junSess)
+			applicationSetExists, err := checkApplicationSetExists(
+				fnCtx,
+				plan.Name.ValueString(),
+				junSess,
+			)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
-			if !interfaceExists {
+			if !applicationSetExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
@@ -209,10 +238,10 @@ func (rsc *oamGretunnelInterface) Create(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Read(
+func (rsc *applicationSet) Read(
 	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse,
 ) {
-	var state, data oamGretunnelInterfaceData
+	var state, data applicationSetData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -231,10 +260,10 @@ func (rsc *oamGretunnelInterface) Read(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Update(
+func (rsc *applicationSet) Update(
 	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
 ) {
-	var plan, state oamGretunnelInterfaceData
+	var plan, state applicationSetData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -250,10 +279,10 @@ func (rsc *oamGretunnelInterface) Update(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Delete(
+func (rsc *applicationSet) Delete(
 	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse,
 ) {
-	var state oamGretunnelInterfaceData
+	var state applicationSetData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,10 +296,10 @@ func (rsc *oamGretunnelInterface) Delete(
 	)
 }
 
-func (rsc *oamGretunnelInterface) ImportState(
+func (rsc *applicationSet) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	var data oamGretunnelInterfaceData
+	var data applicationSetData
 
 	var _ resourceDataReadFrom1String = &data
 	defaultResourceImportState(
@@ -284,13 +313,13 @@ func (rsc *oamGretunnelInterface) ImportState(
 	)
 }
 
-func checkOamGretunnelInterfaceExists(
+func checkApplicationSetExists(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySet)
+		"applications application-set " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -301,43 +330,42 @@ func checkOamGretunnelInterfaceExists(
 	return true, nil
 }
 
-func (rscData *oamGretunnelInterfaceData) fillID() {
+func (rscData *applicationSetData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *oamGretunnelInterfaceData) nullID() bool {
+func (rscData *applicationSetData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
-func (rscData *oamGretunnelInterfaceData) set(
+func (rscData *applicationSetData) set(
 	_ context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set protocols oam gre-tunnel interface " + rscData.Name.ValueString() + " "
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 0, len(rscData.Applications))
+	setPrefix := "set applications application-set " + rscData.Name.ValueString() + " "
 
-	if !rscData.HoldTime.IsNull() {
-		configSet = append(configSet, setPrefix+"hold-time "+
-			utils.ConvI64toa(rscData.HoldTime.ValueInt64()))
+	for _, v := range rscData.Applications {
+		configSet = append(configSet, setPrefix+"application "+v.ValueString())
 	}
-	if !rscData.KeepaliveTime.IsNull() {
-		configSet = append(configSet, setPrefix+"keepalive-time "+
-			utils.ConvI64toa(rscData.KeepaliveTime.ValueInt64()))
+	for _, v := range rscData.ApplicationSet {
+		configSet = append(configSet, setPrefix+"application-set "+v.ValueString())
+	}
+	if v := rscData.Description.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *oamGretunnelInterfaceData) read(
+func (rscData *applicationSetData) read(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
 	err error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySetRelative)
+		"applications application-set " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -353,16 +381,12 @@ func (rscData *oamGretunnelInterfaceData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
-			case balt.CutPrefixInString(&itemTrim, "hold-time "):
-				rscData.HoldTime, err = tfdata.ConvAtoi64Value(itemTrim)
-				if err != nil {
-					return err
-				}
-			case balt.CutPrefixInString(&itemTrim, "keepalive-time "):
-				rscData.KeepaliveTime, err = tfdata.ConvAtoi64Value(itemTrim)
-				if err != nil {
-					return err
-				}
+			case balt.CutPrefixInString(&itemTrim, "application "):
+				rscData.Applications = append(rscData.Applications, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "application-set "):
+				rscData.ApplicationSet = append(rscData.ApplicationSet, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			}
 		}
 	}
@@ -370,11 +394,11 @@ func (rscData *oamGretunnelInterfaceData) read(
 	return nil
 }
 
-func (rscData *oamGretunnelInterfaceData) del(
+func (rscData *applicationSetData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
-		"delete protocols oam gre-tunnel interface " + rscData.Name.ValueString(),
+		"delete applications application-set " + rscData.Name.ValueString(),
 	}
 
 	return junSess.ConfigSet(configSet)

@@ -3,16 +3,14 @@ package providerfwk
 import (
 	"context"
 	"fmt"
-	"regexp"
+	"html"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
-	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -26,39 +24,38 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                   = &oamGretunnelInterface{}
-	_ resource.ResourceWithConfigure      = &oamGretunnelInterface{}
-	_ resource.ResourceWithValidateConfig = &oamGretunnelInterface{}
-	_ resource.ResourceWithImportState    = &oamGretunnelInterface{}
+	_ resource.Resource                = &policyoptionsPrefixList{}
+	_ resource.ResourceWithConfigure   = &policyoptionsPrefixList{}
+	_ resource.ResourceWithImportState = &policyoptionsPrefixList{}
 )
 
-type oamGretunnelInterface struct {
+type policyoptionsPrefixList struct {
 	client *junos.Client
 }
 
-func newOamGretunnelInterfaceResource() resource.Resource {
-	return &oamGretunnelInterface{}
+func newPolicyoptionsPrefixListResource() resource.Resource {
+	return &policyoptionsPrefixList{}
 }
 
-func (rsc *oamGretunnelInterface) typeName() string {
-	return providerName + "_oam_gretunnel_interface"
+func (rsc *policyoptionsPrefixList) typeName() string {
+	return providerName + "_policyoptions_prefix_list"
 }
 
-func (rsc *oamGretunnelInterface) junosName() string {
-	return "protocol oam gre-tunnel interface"
+func (rsc *policyoptionsPrefixList) junosName() string {
+	return "policy-options prefix-list"
 }
 
-func (rsc *oamGretunnelInterface) junosClient() *junos.Client {
+func (rsc *policyoptionsPrefixList) junosClient() *junos.Client {
 	return rsc.client
 }
 
-func (rsc *oamGretunnelInterface) Metadata(
+func (rsc *policyoptionsPrefixList) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
 
-func (rsc *oamGretunnelInterface) Configure(
+func (rsc *policyoptionsPrefixList) Configure(
 	ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
 ) {
 	// Prevent panic if the provider has not been configured.
@@ -74,7 +71,7 @@ func (rsc *oamGretunnelInterface) Configure(
 	rsc.client = client
 }
 
-func (rsc *oamGretunnelInterface) Schema(
+func (rsc *policyoptionsPrefixList) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
@@ -89,67 +86,57 @@ func (rsc *oamGretunnelInterface) Schema(
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
-				Description: "Name of interface.",
+				Description: "Prefix list name.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"apply_path": schema.StringAttribute{
+				Optional:    true,
+				Description: "Apply IP prefixes from a configuration statement.",
+				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(`^gr-`),
-						"must be a gr interface"),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
-			"hold_time": schema.Int64Attribute{
+			"dynamic_db": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Hold time (5..250 seconds).",
-				Validators: []validator.Int64{
-					int64validator.Between(5, 250),
+				Description: "Object may exist in dynamic database.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
 				},
 			},
-			"keepalive_time": schema.Int64Attribute{
+			"prefix": schema.SetAttribute{
+				ElementType: types.StringType,
 				Optional:    true,
-				Description: "Keepalive time (1..50 seconds).",
-				Validators: []validator.Int64{
-					int64validator.Between(1, 50),
+				Description: "Address prefixes.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.ValueStringsAre(
+						tfvalidator.StringCIDRNetwork(),
+					),
 				},
 			},
 		},
 	}
 }
 
-type oamGretunnelInterfaceData struct {
-	ID            types.String `tfsdk:"id"`
-	Name          types.String `tfsdk:"name"`
-	HoldTime      types.Int64  `tfsdk:"hold_time"`
-	KeepaliveTime types.Int64  `tfsdk:"keepalive_time"`
+type policyoptionsPrefixListData struct {
+	DynamicDB types.Bool     `tfsdk:"dynamic_db"`
+	ID        types.String   `tfsdk:"id"`
+	Name      types.String   `tfsdk:"name"`
+	ApplyPath types.String   `tfsdk:"apply_path"`
+	Prefix    []types.String `tfsdk:"prefix"`
 }
 
-func (rsc *oamGretunnelInterface) ValidateConfig(
-	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
-) {
-	var config oamGretunnelInterfaceData
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if !config.HoldTime.IsNull() && !config.HoldTime.IsUnknown() &&
-		!config.KeepaliveTime.IsNull() && !config.KeepaliveTime.IsUnknown() {
-		if config.KeepaliveTime.ValueInt64()*2 > config.HoldTime.ValueInt64() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("hold_time"),
-				"Bad Value Error",
-				"hold_time has to be at least twice the keepalive_time",
-			)
-		}
-	}
-}
-
-func (rsc *oamGretunnelInterface) Create(
+func (rsc *policyoptionsPrefixList) Create(
 	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse,
 ) {
-	var plan oamGretunnelInterfaceData
+	var plan policyoptionsPrefixListData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -168,13 +155,13 @@ func (rsc *oamGretunnelInterface) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			interfaceExists, err := checkOamGretunnelInterfaceExists(fnCtx, plan.Name.ValueString(), junSess)
+			listExists, err := checkPolicyoptionsPrefixListExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
-			if interfaceExists {
+			if listExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
@@ -186,13 +173,13 @@ func (rsc *oamGretunnelInterface) Create(
 			return true
 		},
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			interfaceExists, err := checkOamGretunnelInterfaceExists(fnCtx, plan.Name.ValueString(), junSess)
+			listExists, err := checkPolicyoptionsPrefixListExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
-			if !interfaceExists {
+			if !listExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
 					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
@@ -209,10 +196,10 @@ func (rsc *oamGretunnelInterface) Create(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Read(
+func (rsc *policyoptionsPrefixList) Read(
 	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse,
 ) {
-	var state, data oamGretunnelInterfaceData
+	var state, data policyoptionsPrefixListData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -231,10 +218,10 @@ func (rsc *oamGretunnelInterface) Read(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Update(
+func (rsc *policyoptionsPrefixList) Update(
 	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
 ) {
-	var plan, state oamGretunnelInterfaceData
+	var plan, state policyoptionsPrefixListData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -250,10 +237,10 @@ func (rsc *oamGretunnelInterface) Update(
 	)
 }
 
-func (rsc *oamGretunnelInterface) Delete(
+func (rsc *policyoptionsPrefixList) Delete(
 	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse,
 ) {
-	var state oamGretunnelInterfaceData
+	var state policyoptionsPrefixListData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,10 +254,10 @@ func (rsc *oamGretunnelInterface) Delete(
 	)
 }
 
-func (rsc *oamGretunnelInterface) ImportState(
+func (rsc *policyoptionsPrefixList) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	var data oamGretunnelInterfaceData
+	var data policyoptionsPrefixListData
 
 	var _ resourceDataReadFrom1String = &data
 	defaultResourceImportState(
@@ -284,13 +271,13 @@ func (rsc *oamGretunnelInterface) ImportState(
 	)
 }
 
-func checkOamGretunnelInterfaceExists(
+func checkPolicyoptionsPrefixListExists(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySet)
+		"policy-options prefix-list \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -301,43 +288,43 @@ func checkOamGretunnelInterfaceExists(
 	return true, nil
 }
 
-func (rscData *oamGretunnelInterfaceData) fillID() {
+func (rscData *policyoptionsPrefixListData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *oamGretunnelInterfaceData) nullID() bool {
+func (rscData *policyoptionsPrefixListData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
-func (rscData *oamGretunnelInterfaceData) set(
+func (rscData *policyoptionsPrefixListData) set(
 	_ context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set protocols oam gre-tunnel interface " + rscData.Name.ValueString() + " "
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 0)
+	setPrefix := "set policy-options prefix-list \"" + rscData.Name.ValueString() + "\" "
 
-	if !rscData.HoldTime.IsNull() {
-		configSet = append(configSet, setPrefix+"hold-time "+
-			utils.ConvI64toa(rscData.HoldTime.ValueInt64()))
+	if v := rscData.ApplyPath.ValueString(); v != "" {
+		replaceSign := strings.ReplaceAll(strings.ReplaceAll(v, "<", "&lt;"), ">", "&gt;")
+		configSet = append(configSet, setPrefix+" apply-path \""+replaceSign+"\"")
 	}
-	if !rscData.KeepaliveTime.IsNull() {
-		configSet = append(configSet, setPrefix+"keepalive-time "+
-			utils.ConvI64toa(rscData.KeepaliveTime.ValueInt64()))
+	if rscData.DynamicDB.ValueBool() {
+		configSet = append(configSet, setPrefix+"dynamic-db")
+	}
+	for _, v := range rscData.Prefix {
+		configSet = append(configSet, setPrefix+v.ValueString())
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *oamGretunnelInterfaceData) read(
+func (rscData *policyoptionsPrefixListData) read(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
 	err error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySetRelative)
+		"policy-options prefix-list \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -353,16 +340,12 @@ func (rscData *oamGretunnelInterfaceData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
-			case balt.CutPrefixInString(&itemTrim, "hold-time "):
-				rscData.HoldTime, err = tfdata.ConvAtoi64Value(itemTrim)
-				if err != nil {
-					return err
-				}
-			case balt.CutPrefixInString(&itemTrim, "keepalive-time "):
-				rscData.KeepaliveTime, err = tfdata.ConvAtoi64Value(itemTrim)
-				if err != nil {
-					return err
-				}
+			case balt.CutPrefixInString(&itemTrim, "apply-path "):
+				rscData.ApplyPath = types.StringValue(html.UnescapeString(strings.Trim(itemTrim, "\"")))
+			case itemTrim == "dynamic-db":
+				rscData.DynamicDB = types.BoolValue(true)
+			case strings.Contains(itemTrim, "/"):
+				rscData.Prefix = append(rscData.Prefix, types.StringValue(itemTrim))
 			}
 		}
 	}
@@ -370,11 +353,11 @@ func (rscData *oamGretunnelInterfaceData) read(
 	return nil
 }
 
-func (rscData *oamGretunnelInterfaceData) del(
+func (rscData *policyoptionsPrefixListData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
-		"delete protocols oam gre-tunnel interface " + rscData.Name.ValueString(),
+		"delete policy-options prefix-list \"" + rscData.Name.ValueString() + "\"",
 	}
 
 	return junSess.ConfigSet(configSet)

@@ -41,30 +41,32 @@ resource "junos_policyoptions_policy_statement" "demo_policy" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of routing policy.
+  Name to identify the policy.
 - **add_it_to_forwarding_table_export** (Optional, Boolean)  
   Add this policy in `routing-options forwarding-table export` list.
+- **dynamic_db** (Optional, Boolean)  
+  Object may exist in dynamic database.
 - **from** (Optional, Block)  
-  Declare from filter.  
+  Conditions to match the source of a route.  
   See [below for nested schema](#from-arguments).
 - **to** (Optional, Block)  
-  Declare to filter.  
+  Conditions to match the destination of a route.  
   See [below for nested schema](#to-arguments).
 - **then** (Optional, Block)  
-  Declare then actions.  
+  Actions to take if 'from' and 'to' conditions match.  
   See [below for nested schema](#then-arguments).
 - **term** (Optional, Block List)  
-  For each name of term.
+  For each policy term.
   - **name** (Required, String)  
-    Name of policy
+    Name of term.
   - **from** (Optional, Block)  
-    Declare from filter.  
+    Conditions to match the source of a route.  
     See [below for nested schema](#from-arguments).
   - **to** (Optional, Block)  
-    Declare to filter.  
+    Conditions to match the destination of a route.  
     See [below for nested schema](#to-arguments).
   - **then** (Optional, Block)  
-    Declare then actions.  
+    Actions to take if 'from' and 'to' conditions match.  
     See [below for nested schema](#then-arguments).
 
 ---
@@ -118,19 +120,17 @@ The following arguments are supported:
 - **evpn_tag** (Optional, Set of Number)  
   Tag in EVPN Route (0..4294967295).
 - **family** (Optional, String)  
-  IP family.
+  Family.
 - **local_preference** (Optional, Number)  
   Local preference associated with a route.
-- **routing_instance** (Optional, String)  
-  Routing protocol instance.
 - **interface** (Optional, Set of String)  
-  List of interface name
+  Interface name or address.
 - **metric** (Optional, Number)  
-  Metric value
+  Metric value.
 - **neighbor** (Optional, Set of String)  
-  Neighboring router
+  Neighboring router.
 - **next_hop** (Optional, Set of String)  
-  Next-hop router
+  Next-hop router.
 - **next_hop_type_merged** (Optional, Boolean)  
   Merged next hop.
 - **next_hop_weight** (Optional, Block Set)  
@@ -141,28 +141,30 @@ The following arguments are supported:
   - **weight** (Required, Weight)  
     Weight of the gateway (1..65535).
 - **ospf_area** (Optional, String)  
-  OSPF area identifier
+  OSPF area identifier.
 - **policy** (Optional, List of String)  
-  Name of policy to evaluate
+  Name of policy to evaluate.
 - **preference** (Optional, Number)  
-  Preference value
+  Preference value.
 - **prefix_list** (Optional, Set of String)  
-  List of prefix-lists of routes to match.  
+  Prefix-lists of routes to match.  
   See resource `junos_policyoptions_prefix_list`.
 - **protocol** (Optional, Set of String)  
-  Protocol from which route was learned
+  Protocol from which route was learned.
 - **route_filter** (Optional, Block List)  
-  For each filter to declare.
+  For each routes to match.
   - **route** (Required, String)  
-    IP address
+    IP address.
   - **option** (Required, String)  
     Mask option.  
     Need to be `address-mask`, `exact`, `longer`, `orlonger`, `prefix-length-range`, `through` or `upto`.
   - **option_value** (Optional, String)  
-    For options that need an argument
+    For options that need an argument.
 - **route_type** (Optional, String)  
   Route type.  
   Need to be `external` or `internal`.
+- **routing_instance** (Optional, String)  
+  Routing protocol instance.
 - **srte_color** (Optional, Number)  
   Srte color.
 - **state** (Optional, String)  
@@ -192,27 +194,27 @@ The following arguments are supported:
   BGP origin attribute.  
   Need to be `egp`, `igp` or `incomplete`.
 - **family** (Optional, String)  
-  IP family.
+  Family.
 - **local_preference** (Optional, Number)  
   Local preference associated with a route.
+- **interface** (Optional, Set of String)  
+  Interface name or address.
+- **metric** (Optional, Number)  
+  Metric value.
+- **neighbor** (Optional, Set of String)  
+  Neighboring router.
+- **next_hop** (Optional, Set of String)  
+  Next-hop router.
+- **ospf_area** (Optional, String)  
+  OSPF area identifier.
+- **policy** (Optional, List of String)  
+  Name of policy to evaluate.
+- **preference** (Optional, Number)  
+  Preference value.
+- **protocol** (Optional, Set of String)  
+  Protocol from which route was learned.
 - **routing_instance** (Optional, String)  
   Routing protocol instance.
-- **interface** (Optional, Set of String)  
-  List of interface name
-- **metric** (Optional, Number)  
-  Metric value
-- **neighbor** (Optional, Set of String)  
-  Neighboring router
-- **next_hop** (Optional, Set of String)  
-  Next-hop router
-- **ospf_area** (Optional, String)  
-  OSPF area identifier
-- **policy** (Optional, List of String)  
-  Name of policy to evaluate
-- **preference** (Optional, Number)  
-  Preference value
-- **protocol** (Optional, Set of String)  
-  Protocol from which route was learned
 
 ---
 
@@ -230,7 +232,7 @@ The following arguments are supported:
     Action on BGP community.  
     Need to be `add`, `delete` or `set`.
   - **value** (Required, String)  
-    Value for action
+    Name to identify a BGP community.
 - **default_action** (Optional, String)  
   Set default policy action.  
   Need to be `accept` or `reject`.
@@ -243,27 +245,28 @@ The following arguments are supported:
     Action on local-preference.  
     Need to be `add`, `subtract` or `none`.
   - **value** (Required, String)  
-    Value for action
-- **next** (Optional, String)  
-  Skip to next `policy` or `term`.
-- **next_hop** (Optional, String)  
-  Set the address of the next-hop router
+    Value for action (local-preference, constant).
 - **metric** (Optional, Block)  
   Declare metric action.
   - **action** (Required, String)  
     Action on metric.  
     Need to be `add`, `subtract` or `none`.
   - **value** (Required, String)  
-    Value for action
+    Value for action (metric, constant).
+- **next** (Optional, String)  
+  Skip to next `policy` or `term`.
+- **next_hop** (Optional, String)  
+  Set the address of the next-hop router.  
+  Need to be a valid IP or one of `discard`, `next-table`, `peer-address`, `reject`, `self`.
 - **origin** (Optional, String)  
-  BGP path origin
+  BGP path origin.
 - **preference** (Optional, Block)  
   Declare preference action.
   - **action** (Required, String)  
     Action on preference.  
     Need to be `add`, `subtract` or `none`.
   - **value** (Required, String)  
-    Value for action
+    Value for action (preference, constant).
 
 ## Attributes Reference
 

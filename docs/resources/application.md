@@ -22,13 +22,13 @@ resource "junos_application" "mysql" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Name of application.
+  Application name.
 - **application_protocol** (Optional, String)  
   Application protocol type.
 - **description** (Optional, String)  
   Text description of application.
 - **destination_port** (Optional, String)  
-  Port(s) destination used by application.
+  Match TCP/UDP destination port.
 - **ether_type** (Optional, String)  
   Match ether type.  
   Must be in hex (example: 0x8906).
@@ -39,12 +39,12 @@ The following arguments are supported:
   Disables inactivity timeout.  
   Conflict with `inactivity_timeout`.
 - **protocol** (Optional, String)  
-  Protocol used by application.
+  Match IP protocol type.
 - **rpc_program_number** (Optional, String)  
   Match range of RPC program numbers.  
   Must be an integer or a range of integers.
 - **source_port** (Optional, String)  
-  Port(s) source used by application.
+  Match TCP/UDP source port.
 - **term** (Optional, Block List)  
   For each name of term to declare.  
   Conflict with `application_protocol`, `destination_port`, `inactivity_timeout`, `protocol`,

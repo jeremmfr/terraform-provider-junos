@@ -1,10 +1,12 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 func TestAccJunosBgpNeighbor_basic(t *testing.T) {
@@ -34,8 +36,6 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 							"log_updown", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"mtu_discovery", "true"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bgp_multipath.#", "1"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"remove_private", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
@@ -71,63 +71,47 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"import.0", "testacc_bgpneighbor"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.#", "1"),
+							"bfd_liveness_detection.detection_time_threshold", "60"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.0.detection_time_threshold", "60"),
+							"bfd_liveness_detection.transmit_interval_threshold", "30"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.0.transmit_interval_threshold", "30"),
+							"bfd_liveness_detection.transmit_interval_minimum_interval", "10"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.0.transmit_interval_minimum_interval", "10"),
+							"bfd_liveness_detection.holddown_interval", "10"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.0.holddown_interval", "10"),
+							"bfd_liveness_detection.minimum_interval", "10"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.0.minimum_interval", "10"),
+							"bfd_liveness_detection.minimum_receive_interval", "10"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.0.minimum_receive_interval", "10"),
+							"bfd_liveness_detection.multiplier", "2"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.0.multiplier", "2"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bfd_liveness_detection.0.session_mode", "automatic"),
+							"bfd_liveness_detection.session_mode", "automatic"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"family_inet.#", "2"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"family_inet.0.nlri_type", "unicast"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.0.accepted_prefix_limit.#", "1"),
+							"family_inet.0.accepted_prefix_limit.maximum", "2"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.0.accepted_prefix_limit.0.maximum", "2"),
+							"family_inet.0.accepted_prefix_limit.teardown", "50"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.0.accepted_prefix_limit.0.teardown", "50"),
+							"family_inet.0.accepted_prefix_limit.teardown_idle_timeout", "30"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.0.accepted_prefix_limit.0.teardown_idle_timeout", "30"),
+							"family_inet.0.prefix_limit.maximum", "2"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.0.prefix_limit.#", "1"),
+							"family_inet.0.prefix_limit.teardown", "50"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.0.prefix_limit.0.maximum", "2"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.0.prefix_limit.0.teardown", "50"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.0.prefix_limit.0.teardown_idle_timeout", "30"),
+							"family_inet.0.prefix_limit.teardown_idle_timeout", "30"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"family_inet.1.nlri_type", "multicast"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.1.accepted_prefix_limit.#", "1"),
+							"family_inet.1.accepted_prefix_limit.teardown_idle_timeout_forever", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.1.accepted_prefix_limit.0.teardown_idle_timeout_forever", "true"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.1.prefix_limit.#", "1"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet.1.prefix_limit.0.teardown_idle_timeout_forever", "true"),
+							"family_inet.1.prefix_limit.teardown_idle_timeout_forever", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"family_inet6.#", "2"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet6.0.accepted_prefix_limit.#", "1"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"family_inet6.0.prefix_limit.#", "1"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"graceful_restart.#", "1"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"graceful_restart.0.disable", "true"),
+							"graceful_restart.disable", "true"),
 					),
 				},
 				{
@@ -137,6 +121,12 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 				},
 				{
 					Config: testAccJunosBgpNeighborConfigUpdate(),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectSensitiveValue("junos_bgp_neighbor.testacc_bgpneighbor",
+								tfjsonpath.New("authentication_key")),
+						},
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"routing_instance", "testacc_bgpneighbor"),
@@ -145,9 +135,7 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"advertise_external_conditional", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bgp_multipath.#", "1"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"bgp_multipath.0.multiple_as", "true"),
+							"bgp_multipath.multiple_as", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"no_advertise_peer_as", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
@@ -157,11 +145,9 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"authentication_key", "password"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"graceful_restart.#", "1"),
+							"graceful_restart.restart_time", "10"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"graceful_restart.0.restart_time", "10"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"graceful_restart.0.stale_route_time", "10"),
+							"graceful_restart.stale_route_time", "10"),
 					),
 				},
 				{
@@ -332,6 +318,7 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor" {
   ip                              = "192.0.2.4"
   routing_instance                = junos_routing_instance.testacc_bgpneighbor.name
   group                           = junos_bgp_group.testacc_bgpneighbor.name
+  description                     = "peer 2.4"
   advertise_external_conditional  = true
   keep_none                       = true
   no_advertise_peer_as            = true
@@ -345,8 +332,9 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor" {
     restart_time     = 10
     stale_route_time = 10
   }
+  tcp_aggressive_transmission = true
+  bgp_error_tolerance {}
 }
-
 `
 }
 
@@ -404,6 +392,10 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor2b" {
       teardown_idle_timeout = 30
     }
   }
+  bgp_error_tolerance {
+    malformed_route_limit         = 234
+    malformed_update_log_interval = 567
+  }
 }
 `
 }
@@ -448,6 +440,9 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor2b" {
   ip    = "192.0.2.5"
   group = junos_bgp_group.testacc_bgpneighbor2b.name
   family_evpn {}
+  bgp_error_tolerance {
+    no_malformed_route_limit = true
+  }
 }
 `
 }
