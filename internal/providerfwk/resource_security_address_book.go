@@ -575,7 +575,7 @@ func (rsc *securityAddressBook) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf("security policy not compatible "+
+					fmt.Sprintf(rsc.junosName()+" not compatible "+
 						"with Junos device %q", junSess.SystemInformation.HardwareModel),
 				)
 
