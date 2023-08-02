@@ -227,6 +227,8 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSecurityIpsecPolicyResource,
 		newSecurityIpsecProposalResource,
 		newSecurityIpsecVpnResource,
+		newSecurityNatDestinationResource,
+		newSecurityNatDestinationPoolResource,
 		newSecurityPolicyResource,
 		newSecurityPolicyTunnelPairPolicyResource,
 		newSecurityZoneResource,

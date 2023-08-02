@@ -1,10 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosSecurityNatDestination_basic(t *testing.T) {
@@ -17,11 +17,9 @@ func TestAccJunosSecurityNatDestination_basic(t *testing.T) {
 					Config: testAccJunosSecurityNatDestinationConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"from.#", "1"),
+							"from.type", "zone"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"from.0.type", "zone"),
-						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"from.0.value.0", "testacc_securityDNAT"),
+							"from.value.0", "testacc_securityDNAT"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
 							"rule.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
@@ -29,13 +27,9 @@ func TestAccJunosSecurityNatDestination_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
 							"rule.0.destination_address", "192.0.2.1/32"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"rule.0.then.#", "1"),
+							"rule.0.then.type", "pool"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"rule.0.then.0.type", "pool"),
-						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"rule.0.then.0.pool", "testacc_securityDNATPool"),
-						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"rule.0.then.0.pool", "testacc_securityDNATPool"),
+							"rule.0.then.pool", "testacc_securityDNATPool"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination_pool.testacc_securityDNATPool",
 							"address", "192.0.2.1/32"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination_pool.testacc_securityDNATPool",
@@ -54,9 +48,7 @@ func TestAccJunosSecurityNatDestination_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
 							"rule.1.destination_address_name", "testacc_securityDNAT"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"rule.1.then.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
-							"rule.1.then.0.type", "pool"),
+							"rule.1.then.type", "pool"),
 					),
 				},
 				{

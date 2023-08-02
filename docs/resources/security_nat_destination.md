@@ -32,19 +32,19 @@ resource "junos_security_nat_destination" "demo_dnat" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of destination nat.
+  Destination nat rule-set name.
 - **from** (Required, Block)  
-  Declare `from` configuration.
+  Declare where is the traffic from.
   - **type** (Required, String)  
-    Type of from options.  
+    Type of traffic source.  
     Need to be `interface`, `routing-instance` or `zone`
   - **value** (Required, Set of String)  
-    Name of interface, routing-instance or zone for from options
+    Name of interface, routing-instance or zone for traffic source.
 - **rule** (Required, Block List)  
-  For each name of rule to declare.  
+  For each name of destination nat rule to declare.  
   See [below for nested schema](#rule-arguments).
 - **description** (Optional, String)  
-  Text description of rule set
+  Text description of destination nat rule-set.
 
 ---
 
@@ -53,29 +53,29 @@ The following arguments are supported:
 -> **Note:** One of `destination_address` or `destination_address_name` arguments is required.
 
 - **name** (Required, String)  
-  Name of rule
+  Rule name.
 - **destination_address** (Optional, String)  
-  CIDR for match destination address
+  CIDR destination address to match.
 - **destination_address_name** (Optional, String)  
-  Destination address from address book for rule match.
+  Destination address from address book to match.
 - **application** (Optional, Set of String)  
-  Specify application or application-set name for rule match.
+  Application or application-set name to match.
 - **destination_port** (Optional, Set of String)  
-  List of destination port for rule match.  
+  Destination port to match.  
   Format need to be `x` or `x to y`.
 - **protocol** (Optional, Set of String)  
-  IP Protocol for rule match.
+  IP Protocol to match.
 - **source_address** (Optional, Set of String)  
-  List of CIDR source address for rule match.
+  CIDR source address to match.
 - **source_address_name** (Optional, Set of String)  
-  List of source address from address book for rule match.
+  Source address from address book to match.
 - **then** (Required, Block)  
   Declare `then` action.
   - **type** (Required, String)  
     Type of destination nat.  
     Need to be `pool` or `off`
   - **pool** (Optional, String)  
-    Name of nat destination pool when type pool
+    Name of destination nat pool when type is pool.
 
 ## Attributes Reference
 

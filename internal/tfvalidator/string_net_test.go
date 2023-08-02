@@ -37,6 +37,10 @@ func TestStringIPAddress(t *testing.T) {
 			val:         types.StringValue("2001:2::1"),
 			expectError: false,
 		},
+		"empty": {
+			val:         types.StringValue(""),
+			expectError: true,
+		},
 		"invalid": {
 			val:         types.StringValue("292.0.2.1"),
 			expectError: true,
@@ -219,6 +223,10 @@ func TestStringCIDRNetwork(t *testing.T) {
 		"valid": {
 			val:         types.StringValue("192.0.2.0/24"),
 			expectError: false,
+		},
+		"empty": {
+			val:         types.StringValue(""),
+			expectError: true,
 		},
 		"invalid": {
 			val:         types.StringValue("192.0.2.1/24"),
