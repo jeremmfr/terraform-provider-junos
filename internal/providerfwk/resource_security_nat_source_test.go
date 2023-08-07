@@ -1,10 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosSecurityNatSource_basic(t *testing.T) {
@@ -17,41 +17,33 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 					Config: testAccJunosSecurityNatSourceConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"from.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"from.0.type", "zone"),
+							"from.type", "zone"),
 						resource.TestCheckTypeSetElemAttr("junos_security_nat_source.testacc_securitySNAT",
-							"from.0.value.*", "testacc_securitySNAT"),
+							"from.value.*", "testacc_securitySNAT"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"to.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"to.0.type", "zone"),
+							"to.type", "zone"),
 						resource.TestCheckTypeSetElemAttr("junos_security_nat_source.testacc_securitySNAT",
-							"to.0.value.*", "testacc_securitySNAT"),
+							"to.value.*", "testacc_securitySNAT"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
 							"rule.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
 							"rule.0.name", "testacc_securitySNATRule"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.match.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.match.0.source_address.#", "1"),
+							"rule.0.match.source_address.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.match.0.source_address.*", "192.0.2.0/25"),
+							"rule.0.match.source_address.*", "192.0.2.0/25"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.match.0.destination_address.#", "1"),
+							"rule.0.match.destination_address.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.match.0.destination_address.*", "192.0.2.128/25"),
+							"rule.0.match.destination_address.*", "192.0.2.128/25"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.match.0.protocol.#", "1"),
+							"rule.0.match.protocol.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.match.0.protocol.*", "tcp"),
+							"rule.0.match.protocol.*", "tcp"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.then.#", "1"),
+							"rule.0.then.type", "pool"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.then.0.type", "pool"),
-						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.0.then.0.pool", "testacc_securitySNATPool"),
+							"rule.0.then.pool", "testacc_securitySNATPool"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"address.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
@@ -76,15 +68,9 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
 							"rule.#", "3"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.1.match.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.1.then.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.1.then.0.type", "off"),
+							"rule.1.then.type", "off"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"address_pooling", "no-paired"),
-						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
-							"port_no_translation", "false"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"port_overloading_factor", "3"),
 					),
