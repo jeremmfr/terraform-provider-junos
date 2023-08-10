@@ -402,7 +402,7 @@ func (block *applicationsDataSourceBlockApplicationsBlockTerm) read(itemTrim str
 	return nil
 }
 
-func (dscData *applicationsDataSourceData) Filter( //nolint:gocognit
+func (dscData *applicationsDataSourceData) Filter(
 	results map[string]applicationsDataSourceBlockApplications,
 ) error {
 	if v := dscData.MatchName.ValueString(); v != "" {
