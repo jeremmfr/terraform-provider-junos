@@ -835,7 +835,6 @@ func (block *forwardingoptionsSamplingBlockInput) isEmpty() bool {
 	}
 }
 
-//nolint:gocognit
 func (rsc *forwardingoptionsSampling) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
