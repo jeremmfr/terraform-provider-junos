@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -214,6 +215,30 @@ func (v StringCIDRNetworkValidator) ValidateString(
 
 		return
 	}
+}
+
+func StringCIDRNetworkValidateAttribute(
+	_ context.Context, strAttr types.String,
+) error {
+	if strAttr.IsNull() || strAttr.IsUnknown() {
+		return nil
+	}
+
+	value := strAttr.ValueString()
+
+	_, ipnet, err := net.ParseCIDR(value)
+	if err != nil {
+		return err //nolint:wrapcheck
+	}
+	if ipnet == nil {
+		return fmt.Errorf("invalid CIDR: %q", value)
+	}
+
+	if value != ipnet.String() {
+		return fmt.Errorf("string is not a CIDR network: %q != %q", value, ipnet)
+	}
+
+	return nil
 }
 
 type StringWildcardNetworkValidator struct{}
