@@ -112,10 +112,17 @@ The following arguments are supported:
   Must be a valid speed (10m | 100m | 1g ...)
 - **trunk** (Optional, Boolean)  
   Interface mode is trunk.
+- **trunk_non_els** (Optional, Boolean)  
+  Port mode is trunk.  
+  To use `port-mode` instead of `interface-mode` on non-ELS devices.
 - **vlan_members** (Optional, List of String)  
   List of vlan for membership for this interface.
 - **vlan_native** (Optional, Number)  
   Vlan for untagged frames.
+- **vlan_native_non_els** (Optional, String)  
+  Vlan for untagged frames.  
+  To use `native-vlan-id` in `unit 0 family ethernet-switching`
+  instead of interface root level on non-ELS devices.
 - **vlan_tagging** (Optional, Boolean)  
   Add 802.1q VLAN tagging support.
 

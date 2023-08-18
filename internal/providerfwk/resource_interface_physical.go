@@ -201,6 +201,13 @@ func (rsc *interfacePhysical) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"trunk_non_els": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Port mode is trunk.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"vlan_members": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
@@ -218,6 +225,14 @@ func (rsc *interfacePhysical) Schema(
 				Description: "Vlan for untagged frames.",
 				Validators: []validator.Int64{
 					int64validator.Between(1, 4094),
+				},
+			},
+			"vlan_native_non_els": schema.StringAttribute{
+				Optional:    true,
+				Description: "Vlan for untagged frames (non-ELS).",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(2, 64),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
 			"vlan_tagging": schema.BoolAttribute{
@@ -615,6 +630,7 @@ type interfacePhysicalData struct {
 	NoGratuitousArpReply   types.Bool                             `tfsdk:"no_gratuitous_arp_reply"`
 	NoGratuitousArpRequest types.Bool                             `tfsdk:"no_gratuitous_arp_request"`
 	Trunk                  types.Bool                             `tfsdk:"trunk"`
+	TrunkNonELS            types.Bool                             `tfsdk:"trunk_non_els"`
 	VlanTagging            types.Bool                             `tfsdk:"vlan_tagging"`
 	ID                     types.String                           `tfsdk:"id"`
 	Name                   types.String                           `tfsdk:"name"`
@@ -627,6 +643,7 @@ type interfacePhysicalData struct {
 	Speed                  types.String                           `tfsdk:"speed"`
 	VlanMembers            []types.String                         `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                            `tfsdk:"vlan_native"`
+	VlanNativeNonELS       types.String                           `tfsdk:"vlan_native_non_els"`
 	ESI                    *interfacePhysicalBlockESI             `tfsdk:"esi"`
 	EtherOpts              *interfacePhysicalBlockEtherOpts       `tfsdk:"ether_opts"`
 	GigetherOpts           *interfacePhysicalBlockEtherOpts       `tfsdk:"gigether_opts"`
@@ -641,6 +658,7 @@ type interfacePhysicalConfig struct {
 	NoGratuitousArpReply   types.Bool                                   `tfsdk:"no_gratuitous_arp_reply"`
 	NoGratuitousArpRequest types.Bool                                   `tfsdk:"no_gratuitous_arp_request"`
 	Trunk                  types.Bool                                   `tfsdk:"trunk"`
+	TrunkNonELS            types.Bool                                   `tfsdk:"trunk_non_els"`
 	VlanTagging            types.Bool                                   `tfsdk:"vlan_tagging"`
 	ID                     types.String                                 `tfsdk:"id"`
 	Name                   types.String                                 `tfsdk:"name"`
@@ -653,6 +671,7 @@ type interfacePhysicalConfig struct {
 	Speed                  types.String                                 `tfsdk:"speed"`
 	VlanMembers            types.List                                   `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                                  `tfsdk:"vlan_native"`
+	VlanNativeNonELS       types.String                                 `tfsdk:"vlan_native_non_els"`
 	ESI                    *interfacePhysicalBlockESI                   `tfsdk:"esi"`
 	EtherOpts              *interfacePhysicalBlockEtherOpts             `tfsdk:"ether_opts"`
 	GigetherOpts           *interfacePhysicalBlockEtherOpts             `tfsdk:"gigether_opts"`
@@ -1722,6 +1741,9 @@ func (rscData *interfacePhysicalData) set(
 	if rscData.Trunk.ValueBool() {
 		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk")
 	}
+	if rscData.TrunkNonELS.ValueBool() {
+		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching port-mode trunk")
+	}
 	for _, v := range rscData.VlanMembers {
 		configSet = append(configSet, setPrefix+
 			"unit 0 family ethernet-switching vlan members "+v.ValueString())
@@ -1729,6 +1751,9 @@ func (rscData *interfacePhysicalData) set(
 	if !rscData.VlanNative.IsNull() {
 		configSet = append(configSet, setPrefix+"native-vlan-id "+
 			utils.ConvI64toa(rscData.VlanNative.ValueInt64()))
+	}
+	if v := rscData.VlanNativeNonELS.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching native-vlan-id "+v)
 	}
 	if rscData.VlanTagging.ValueBool() {
 		configSet = append(configSet, setPrefix+"vlan-tagging")
@@ -1996,6 +2021,8 @@ func (rscData *interfacePhysicalData) read(
 				if err != nil {
 					return err
 				}
+			case balt.CutPrefixInString(&itemTrim, "unit 0 family ethernet-switching native-vlan-id "):
+				rscData.VlanNativeNonELS = types.StringValue(itemTrim)
 			case itemTrim == "no-gratuitous-arp-reply":
 				rscData.NoGratuitousArpReply = types.BoolValue(true)
 			case itemTrim == "no-gratuitous-arp-request":
@@ -2004,6 +2031,8 @@ func (rscData *interfacePhysicalData) read(
 				rscData.Speed = types.StringValue(itemTrim)
 			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
 				rscData.Trunk = types.BoolValue(true)
+			case itemTrim == "unit 0 family ethernet-switching port-mode trunk":
+				rscData.TrunkNonELS = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "unit 0 family ethernet-switching vlan members "):
 				rscData.VlanMembers = append(rscData.VlanMembers, types.StringValue(itemTrim))
 			case itemTrim == "vlan-tagging":
@@ -2198,6 +2227,8 @@ func (rscData *interfacePhysicalData) delOpts(
 		delPrefix + "redundant-ether-options",
 		delPrefix + "speed",
 		delPrefix + "unit 0 family ethernet-switching interface-mode",
+		delPrefix + "unit 0 family ethernet-switching port-mode",
+		delPrefix + "unit 0 family ethernet-switching native-vlan-id",
 		delPrefix + "unit 0 family ethernet-switching vlan members",
 		delPrefix + "vlan-tagging",
 	}
