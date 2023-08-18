@@ -105,10 +105,17 @@ The following attributes are exported:
   Link speed.
 - **trunk** (Boolean)  
   Interface mode is trunk.
+- **trunk_non_els** (Boolean)  
+  Port mode is trunk.  
+  When use `port-mode` instead of `interface-mode` on non-ELS devices.
 - **vlan_members** (List of String)  
   List of vlan membership for this interface.
 - **vlan_native** (Number)  
   Vlan for untagged frames.
+- **vlan_native_non_els** (String)  
+  Vlan for untagged frames.  
+  When use `native-vlan-id` in `unit 0 family ethernet-switching`
+  instead of interface root level on non-ELS devices.
 - **vlan_tagging** (Boolean)  
   802.1q VLAN tagging support.
 

@@ -2227,8 +2227,8 @@ func (rscData *interfacePhysicalData) delOpts(
 		delPrefix + "redundant-ether-options",
 		delPrefix + "speed",
 		delPrefix + "unit 0 family ethernet-switching interface-mode",
-		delPrefix + "unit 0 family ethernet-switching port-mode",
 		delPrefix + "unit 0 family ethernet-switching native-vlan-id",
+		delPrefix + "unit 0 family ethernet-switching port-mode",
 		delPrefix + "unit 0 family ethernet-switching vlan members",
 		delPrefix + "vlan-tagging",
 	}
