@@ -1,6 +1,12 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.1.1 (August 21, 2023)
+
+BUG FIXES:
+
+* **resource/junos_policyoptions_policy_statement**: fix potential crash when applying (create/update) resource (Fix [#528](https://github.com/jeremmfr/terraform-provider-junos/issues/528))
+
 ## v2.1.0 (July 25, 2023)
 
 ENHANCEMENTS:
