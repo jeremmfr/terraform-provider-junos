@@ -39,7 +39,7 @@ const (
 	EnvPassword              = "JUNOS_PASSWORD"
 	EnvKeyPem                = "JUNOS_KEYPEM"
 	EnvKeyFile               = "JUNOS_KEYFILE"
-	EnvKeyPass               = "JUNOS_KEYPASS" //nolint:gosec
+	EnvKeyPass               = "JUNOS_KEYPASS"
 	EnvGroupInterfaceDelete  = "JUNOS_GROUP_INTERFACE_DELETE"
 	EnvSleepShort            = "JUNOS_SLEEP_SHORT"
 	EnvSleepLock             = "JUNOS_SLEEP_LOCK"
