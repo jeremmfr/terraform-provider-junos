@@ -30,6 +30,7 @@ linters:
     - nosnakecase
     - musttag
     - depguard
+    - gosec
 linters-settings:
   gci:
     custom-order: true
@@ -59,9 +60,6 @@ linters-settings:
       - shadow
 issues:
   exclude-rules:
-    - text: "Use of ssh InsecureIgnoreHostKey"
-      linters:
-        - gosec
     - text: "github.com/jeremmfr/terraform-provider-junos/internal"
       linters:
         - wrapcheck
