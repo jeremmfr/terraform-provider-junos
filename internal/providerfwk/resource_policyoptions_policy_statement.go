@@ -2155,7 +2155,7 @@ func (rscData *policyoptionsPolicyStatementData) set(
 		}
 		setPrefixTerm := setPrefix + "term \"" + name + "\" "
 		if block.From != nil {
-			if rscData.From.isEmpty() {
+			if block.From.isEmpty() {
 				return path.Root("term").AtListIndex(i).AtName("from").AtName("*"),
 					fmt.Errorf("from block is empty in term block %q", name)
 			}
@@ -2166,14 +2166,14 @@ func (rscData *policyoptionsPolicyStatementData) set(
 			configSet = append(configSet, blockSet...)
 		}
 		if block.To != nil {
-			if rscData.To.isEmpty() {
+			if block.To.isEmpty() {
 				return path.Root("term").AtListIndex(i).AtName("to").AtName("*"),
 					fmt.Errorf("to block is empty in term block %q", name)
 			}
 			configSet = append(configSet, block.To.configSet(setPrefixTerm)...)
 		}
 		if block.Then != nil {
-			if rscData.Then.isEmpty() {
+			if block.Then.isEmpty() {
 				return path.Root("term").AtListIndex(i).AtName("then").AtName("*"),
 					fmt.Errorf("then block is empty in term block %q", name)
 			}
