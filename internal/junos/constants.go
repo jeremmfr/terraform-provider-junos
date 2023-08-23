@@ -24,10 +24,9 @@ const (
 
 	St0Word = "st0"
 
-	EvpnW  = "evpn"
 	InetW  = "inet"
 	Inet6W = "inet6"
-	MplsW  = "mpls"
+
 	OspfV2 = "ospf"
 	OspfV3 = "ospf3"
 
