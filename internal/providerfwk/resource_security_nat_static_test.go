@@ -1,10 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
@@ -17,13 +17,11 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 					Config: testAccJunosSecurityNatStaticConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"from.#", "1"),
+							"from.type", "zone"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"from.0.type", "zone"),
+							"from.value.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"from.0.value.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"from.0.value.0", "testacc_securityNATStt"),
+							"from.value.0", "testacc_securityNATStt"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"rule.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
@@ -31,13 +29,11 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"rule.0.destination_address", "192.0.2.0/25"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"rule.0.then.#", "1"),
+							"rule.0.then.type", "prefix"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"rule.0.then.0.type", "prefix"),
+							"rule.0.then.routing_instance", "testacc_securityNATStt"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"rule.0.then.0.routing_instance", "testacc_securityNATStt"),
-						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"rule.0.then.0.prefix", "192.0.2.128/25"),
+							"rule.0.then.prefix", "192.0.2.128/25"),
 					),
 				},
 				{
@@ -48,7 +44,7 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"rule.0.destination_address", "192.0.2.0/26"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"rule.0.then.0.prefix", "192.0.2.64/26"),
+							"rule.0.then.prefix", "192.0.2.64/26"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"rule.1.destination_address_name", "testacc_securityNATSttRule2"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",

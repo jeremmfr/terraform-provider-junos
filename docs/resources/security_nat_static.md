@@ -34,22 +34,22 @@ The following arguments are supported:
 -> **Note:** One of `rule` or `configure_rules_singly` arguments is required.
 
 - **name** (Required, String, Forces new resource)  
-  The name of static nat.
+  Static nat rule-set name.
 - **from** (Required, Block)  
-  Declare `from` configuration.
+  Declare where is the traffic from.
   - **type** (Required, String)  
-    Type of from options.  
+    Type of traffice source.  
     Need to be `interface`, `routing-instance` or `zone`.
   - **value** (Required, Set of String)  
-    Name of interface, routing-instance or zone for from options.
+    Name of interface, routing-instance or zone for traffic source.
 - **rule** (Optional, Block List)  
-  For each name of rule to declare.  
+  For each name of static nat rule to declare.  
   See [below for nested schema](#rule-arguments).
 - **configure_rules_singly** (Optional, Boolean)
   Disable management of rules in this resource to be able to manage them with specific
   resources.
 - **description** (Optional, String)  
-  Text description of rule set
+  Text description of static nat rule-set.
 
 ---
 
@@ -58,21 +58,21 @@ The following arguments are supported:
 -> **Note:** One of `destination_address` or `destination_address_name` arguments is required.
 
 - **name** (Required, String)  
-  Name of rule.
+  Rule name.
 - **destination_address** (Optional, String)  
-  CIDR of destination address for rule match.
+  CIDR destination address to match.
 - **destination_address_name** (Optional, String)  
-  Destination address from address book for rule match.
+  Destination address from address book to match.
 - **destination_port** (Optional, Number)  
-  Destination port or lower limit of port range for rule match.
+  Destination port or lower limit of port range to match.
 - **destination_port_to** (Optional, Number)  
-  Port range upper limit for rule match.
+  Port range upper limit to match.
 - **source_address** (Optional, Set of String)  
-  List of CIDR source address for rule match.
+  CIDR source address to match.
 - **source_address_name** (Optional, Set of String)  
-  List of source address from address book for rule match.
+  Source address from address book to match.
 - **source_port** (Optional, Set of String)  
-  List of source port for rule match.  
+  Source port to match.  
   Format need to be `x` or `x to y`.
 - **then** (Required, Block)  
   Declare `then` configuration.
@@ -90,7 +90,7 @@ The following arguments are supported:
     `type` need to be `prefix` or `prefix-name`.  
     CIDR is required if `type` = `prefix`.
   - **routing_instance** (Optional, String)  
-    Change routing_instance with nat.
+    Name of routing instance to switch instance with nat.
 
 ## Attributes Reference
 

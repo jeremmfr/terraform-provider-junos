@@ -38,52 +38,52 @@ resource "junos_security_nat_source" "demo_snat" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of source nat.
+  Source nat rule-set name.
 - **from** (Required, Block)  
-  Declare `from` configuration.
+  Declare where is the traffic from.
   - **type** (Required, String)  
-    Type of from options.  
+    Type of traffic source.  
     Need to be `interface`, `routing-instance` or `zone`.
   - **value** (Required, Set of String)  
-    Name of interface, routing-instance or zone for from options.
+    Name of interface, routing-instance or zone for traffic source.
 - **to** (Required, Block)  
-  Declare `to` configuration.
+  Declare where is the traffic to.
   - **type** (Required, String)  
-    Type of to options.  
+    Type of traffic destination.
     Need to be `interface`, `routing-instance` or `zone`.
   - **value** (Required, Set of String)  
-    Name of interface, routing-instance or zone for to options.
+    Name of interface, routing-instance or zone for traffic destination.
 - **rule** (Required, Block List)  
-  For each name of rule to declare.  
+  For each name of source nat rule to declare.  
   See [below for nested schema](#rule-arguments).
 - **description** (Optional, String)  
-  Text description of rule set
+  Text description of rule set.
 
 ---
 
 ### rule arguments
 
 - **name** (Required, String)  
-  Name of rule.
+  Rule name.
 - **match** (Required, Block)  
-  Declare `match` configuration.
+  Specify source nat rule match criteria.
   - **application** (Optional, Set of String)  
-    Specify application or application-set name to match.
+    Application or application-set name to match.
   - **destination_address** (Optional, Set of String)  
-    List of CIDR destination address to match.
+    CIDR destination address to match.
   - **destination_address_name** (Optional, Set of String)  
-    List of destination address from address book to match.
+    Destination address from address book to match.
   - **destination_port** (Optional, Set of String)  
-    List of destination port to match.  
+    Destination port to match.  
     Format need to be `x` or `x to y`.
   - **protocol** (Optional, Set of String)  
-    List of protocol to match.
+    IP Protocol to match.
   - **source_address** (Optional, Set of String)  
-    List of CIDR source address to match.
+    CIDR source address to match.
   - **source_address_name** (Optional, Set of String)  
-    List of source address from address book to match.
+    Source address from address book to match.
   - **source_port** (Optional, Set of String)  
-    List of source port to match.  
+    Source port to match.  
     Format need to be `x` or `x to y`.
 - **then** (Required, Block)  
   Declare `then` configuration.

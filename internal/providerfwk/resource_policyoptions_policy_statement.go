@@ -2446,7 +2446,7 @@ func (block *policyoptionsPolicyStatementBlockThen) configSet(
 		values := v.Action.ValueString() + " " + v.Value.ValueString()
 		if _, ok := communityBlock[values]; ok {
 			return configSet,
-				pathRoot.AtName("community").AtListIndex(i),
+				pathRoot.AtName("community").AtListIndex(i).AtName("action"),
 				fmt.Errorf("multiple community blocks with the same argument values %q in then block", values)
 		}
 		communityBlock[values] = struct{}{}

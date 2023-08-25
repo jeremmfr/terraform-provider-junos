@@ -90,31 +90,6 @@ func validateCIDRNetwork(network string) error {
 	return nil
 }
 
-func validateCIDRFunc() schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-		v := i.(string)
-		if !strings.Contains(v, "/") {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       fmt.Sprintf("%v missing mask", v),
-				AttributePath: path,
-			})
-
-			return diags
-		}
-		if _, _, err := net.ParseCIDR(v); err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       fmt.Sprintf("%v is not a valid CIDR", v),
-				AttributePath: path,
-			})
-		}
-
-		return diags
-	}
-}
-
 func validateNameObjectJunos(exclude []string, length int, format formatName) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics

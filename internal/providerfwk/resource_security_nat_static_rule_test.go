@@ -1,10 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosSecurityNatStaticRule_basic(t *testing.T) {
@@ -19,24 +19,22 @@ func TestAccJunosSecurityNatStaticRule_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
 							"name", "testacc_securityNATSttRule"),
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
-							"destination_address", "192.0.2.0/25"),
+							"destination_address", "192.0.2.0/28"),
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
-							"then.#", "1"),
+							"then.type", "prefix"),
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
-							"then.0.type", "prefix"),
+							"then.routing_instance", "testacc_securityNATSttRule"),
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
-							"then.0.routing_instance", "testacc_securityNATSttRule"),
-						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
-							"then.0.prefix", "192.0.2.128/25"),
+							"then.prefix", "192.0.2.128/28"),
 					),
 				},
 				{
 					Config: testAccJunosSecurityNatStaticRuleConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
-							"destination_address", "192.0.2.0/26"),
+							"destination_address", "192.0.2.0/27"),
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
-							"then.0.prefix", "192.0.2.64/26"),
+							"then.prefix", "192.0.2.64/27"),
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule2",
 							"destination_address_name", "testacc_securityNATSttRule2"),
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule2",
@@ -81,11 +79,11 @@ resource "junos_security_nat_static" "testacc_securityNATSttRule" {
 resource "junos_security_nat_static_rule" "testacc_securityNATSttRule" {
   name                = "testacc_securityNATSttRule"
   rule_set            = junos_security_nat_static.testacc_securityNATSttRule.name
-  destination_address = "192.0.2.0/25"
+  destination_address = "192.0.2.0/28"
   then {
     type             = "prefix"
     routing_instance = junos_routing_instance.testacc_securityNATSttRule.name
-    prefix           = "192.0.2.128/25"
+    prefix           = "192.0.2.128/28"
   }
 }
 resource "junos_security_nat_static_rule" "testacc_securityNATSttRuleInet" {
@@ -119,11 +117,11 @@ resource "junos_security_nat_static" "testacc_securityNATSttRule" {
 resource "junos_security_nat_static_rule" "testacc_securityNATSttRule" {
   name                = "testacc_securityNATSttRule"
   rule_set            = junos_security_nat_static.testacc_securityNATSttRule.name
-  destination_address = "192.0.2.0/26"
+  destination_address = "192.0.2.0/27"
   then {
     type             = "prefix"
     routing_instance = junos_routing_instance.testacc_securityNATSttRule.name
-    prefix           = "192.0.2.64/26"
+    prefix           = "192.0.2.64/27"
   }
 }
 resource "junos_security_nat_static_rule" "testacc_securityNATSttRule2" {
@@ -134,7 +132,7 @@ resource "junos_security_nat_static_rule" "testacc_securityNATSttRule2" {
   rule_set                 = junos_security_nat_static.testacc_securityNATSttRule.name
   destination_address_name = "testacc_securityNATSttRule2"
   source_address = [
-    "192.0.2.128/26"
+    "192.0.2.144/28"
   ]
   source_port = [
     "1024",
@@ -176,11 +174,11 @@ resource "junos_routing_instance" "testacc_securityNATSttRule" {
 resource "junos_security_address_book" "testacc_securityNATSttRule" {
   network_address {
     name  = "testacc_securityNATSttRule2"
-    value = "192.0.2.128/27"
+    value = "192.0.2.160/28"
   }
   network_address {
     name  = "testacc_securityNATSttRule-prefix"
-    value = "192.0.2.160/27"
+    value = "192.0.2.176/28"
   }
   network_address {
     name  = "testacc_securityNATSttRule-src"
