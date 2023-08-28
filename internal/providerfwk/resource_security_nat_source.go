@@ -357,7 +357,7 @@ type securityNatSourceBlockRule struct {
 type securityNatSourceBlockRuleConfig struct {
 	Name  types.String                                `tfsdk:"name"`
 	Match *securityNatSourceBlockRuleBlockMatchConfig `tfsdk:"match"`
-	Then  *securityNatDestinationBlockRuleBlockThen   `tfsdk:"then"`
+	Then  *securityNatSourceBlockRuleBlockThen        `tfsdk:"then"`
 }
 
 type securityNatSourceBlockRuleBlockMatch struct {
