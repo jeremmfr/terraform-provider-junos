@@ -96,14 +96,29 @@ func upgradeSecurityIpsecVpnV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		ID               types.String                           `tfsdk:"id"`
-		Name             types.String                           `tfsdk:"name"`
-		BindInterface    types.String                           `tfsdk:"bind_interface"`
-		DfBit            types.String                           `tfsdk:"df_bit"`
-		EstablishTunnels types.String                           `tfsdk:"establish_tunnels"`
-		Ike              []securityIpsecVpnBlockIke             `tfsdk:"ike"`
-		TrafficSelector  []securityIpsecVpnBlockTrafficSelector `tfsdk:"traffic_selector"`
-		VpnMonitor       []securityIpsecVpnBlockVpnMonitor      `tfsdk:"vpn_monitor"`
+		ID               types.String `tfsdk:"id"`
+		Name             types.String `tfsdk:"name"`
+		BindInterface    types.String `tfsdk:"bind_interface"`
+		DfBit            types.String `tfsdk:"df_bit"`
+		EstablishTunnels types.String `tfsdk:"establish_tunnels"`
+		Ike              []struct {
+			Gateway         types.String `tfsdk:"gateway"`
+			Policy          types.String `tfsdk:"policy"`
+			IdentityLocal   types.String `tfsdk:"identity_local"`
+			IdentityRemote  types.String `tfsdk:"identity_remote"`
+			IdentityService types.String `tfsdk:"identity_service"`
+		} `tfsdk:"ike"`
+		TrafficSelector []struct {
+			Name     types.String `tfsdk:"name"`
+			LocalIP  types.String `tfsdk:"local_ip"`
+			RemoteIP types.String `tfsdk:"remote_ip"`
+		} `tfsdk:"traffic_selector"`
+		VpnMonitor []struct {
+			Optimized           types.Bool   `tfsdk:"optimized"`
+			SourceInterfaceAuto types.Bool   `tfsdk:"source_interface_auto"`
+			DestinationIP       types.String `tfsdk:"destination_ip"`
+			SourceInterface     types.String `tfsdk:"source_interface"`
+		} `tfsdk:"vpn_monitor"`
 	}
 
 	var dataV0 modelV0
@@ -119,11 +134,30 @@ func upgradeSecurityIpsecVpnV0toV1(
 	dataV1.DfBit = dataV0.DfBit
 	dataV1.EstablishTunnels = dataV0.EstablishTunnels
 	if len(dataV0.Ike) > 0 {
-		dataV1.Ike = &dataV0.Ike[0]
+		dataV1.Ike = &securityIpsecVpnBlockIke{
+			Gateway:         dataV0.Ike[0].Gateway,
+			Policy:          dataV0.Ike[0].Policy,
+			IdentityLocal:   dataV0.Ike[0].IdentityLocal,
+			IdentityRemote:  dataV0.Ike[0].IdentityRemote,
+			IdentityService: dataV0.Ike[0].IdentityService,
+		}
 	}
-	dataV1.TrafficSelector = dataV0.TrafficSelector
+	for _, blockV0 := range dataV0.TrafficSelector {
+		dataV1.TrafficSelector = append(dataV1.TrafficSelector,
+			securityIpsecVpnBlockTrafficSelector{
+				Name:     blockV0.Name,
+				LocalIP:  blockV0.LocalIP,
+				RemoteIP: blockV0.RemoteIP,
+			},
+		)
+	}
 	if len(dataV0.VpnMonitor) > 0 {
-		dataV1.VpnMonitor = &dataV0.VpnMonitor[0]
+		dataV1.VpnMonitor = &securityIpsecVpnBlockVpnMonitor{
+			Optimized:           dataV0.VpnMonitor[0].Optimized,
+			SourceInterfaceAuto: dataV0.VpnMonitor[0].SourceInterfaceAuto,
+			DestinationIP:       dataV0.VpnMonitor[0].DestinationIP,
+			SourceInterface:     dataV0.VpnMonitor[0].SourceInterface,
+		}
 		if !dataV1.VpnMonitor.SourceInterfaceAuto.IsNull() && !dataV1.VpnMonitor.SourceInterfaceAuto.ValueBool() {
 			dataV1.VpnMonitor.SourceInterfaceAuto = types.BoolNull()
 		}
