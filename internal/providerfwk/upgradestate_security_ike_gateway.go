@@ -172,8 +172,11 @@ func upgradeSecurityIkeGatewayV0toV1(
 			UserAtHostname            types.String                                                 `tfsdk:"user_at_hostname"`
 			DistinguishedName         []securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName `tfsdk:"distinguished_name"`
 		} `tfsdk:"dynamic_remote"`
-		LocalIdentity  []securityIkeGatewayBlockLocalIdentity  `tfsdk:"local_identity"`
-		RemoteIdentity []securityIkeGatewayBlockRemoteIdentity `tfsdk:"remote_identity"`
+		LocalIdentity  []securityIkeGatewayBlockLocalIdentity `tfsdk:"local_identity"`
+		RemoteIdentity []struct {
+			Type  types.String `tfsdk:"type"`
+			Value types.String `tfsdk:"value"`
+		} `tfsdk:"remote_identity"`
 	}
 
 	var dataV0 modelV0
@@ -216,7 +219,10 @@ func upgradeSecurityIkeGatewayV0toV1(
 		dataV1.LocalIdentity = &dataV0.LocalIdentity[0]
 	}
 	if len(dataV0.RemoteIdentity) > 0 {
-		dataV1.RemoteIdentity = &dataV0.RemoteIdentity[0]
+		dataV1.RemoteIdentity = &securityIkeGatewayBlockRemoteIdentity{
+			Type:  dataV0.RemoteIdentity[0].Type,
+			Value: dataV0.RemoteIdentity[0].Value,
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, dataV1)...)
