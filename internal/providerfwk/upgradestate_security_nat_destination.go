@@ -97,20 +97,26 @@ func upgradeSecurityNatDestinationV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		ID          types.String                      `tfsdk:"id"`
-		Name        types.String                      `tfsdk:"name"`
-		Description types.String                      `tfsdk:"description"`
-		From        []securityNatDestinationBlockFrom `tfsdk:"from"`
-		Rule        []struct {
-			Name                   types.String                               `tfsdk:"name"`
-			DestinationAddress     types.String                               `tfsdk:"destination_address"`
-			DestinationAddressName types.String                               `tfsdk:"destination_address_name"`
-			Application            []types.String                             `tfsdk:"application"`
-			DestinationPort        []types.String                             `tfsdk:"destination_port"`
-			Protocol               []types.String                             `tfsdk:"protocol"`
-			SourceAddress          []types.String                             `tfsdk:"source_address"`
-			SourceAddressName      []types.String                             `tfsdk:"source_address_name"`
-			Then                   []securityNatDestinationBlockRuleBlockThen `tfsdk:"then"`
+		ID          types.String `tfsdk:"id"`
+		Name        types.String `tfsdk:"name"`
+		Description types.String `tfsdk:"description"`
+		From        []struct {
+			Type  types.String   `tfsdk:"type"`
+			Value []types.String `tfsdk:"value"`
+		} `tfsdk:"from"`
+		Rule []struct {
+			Name                   types.String   `tfsdk:"name"`
+			DestinationAddress     types.String   `tfsdk:"destination_address"`
+			DestinationAddressName types.String   `tfsdk:"destination_address_name"`
+			Application            []types.String `tfsdk:"application"`
+			DestinationPort        []types.String `tfsdk:"destination_port"`
+			Protocol               []types.String `tfsdk:"protocol"`
+			SourceAddress          []types.String `tfsdk:"source_address"`
+			SourceAddressName      []types.String `tfsdk:"source_address_name"`
+			Then                   []struct {
+				Type types.String `tfsdk:"type"`
+				Pool types.String `tfsdk:"pool"`
+			} `tfsdk:"then"`
 		} `tfsdk:"rule"`
 	}
 
@@ -125,7 +131,10 @@ func upgradeSecurityNatDestinationV0toV1(
 	dataV1.Name = dataV0.Name
 	dataV1.Description = dataV0.Description
 	if len(dataV0.From) > 0 {
-		dataV1.From = &dataV0.From[0]
+		dataV1.From = &securityNatDestinationBlockFrom{
+			Type:  dataV0.From[0].Type,
+			Value: dataV0.From[0].Value,
+		}
 	}
 	for _, blockV0 := range dataV0.Rule {
 		blockV1 := securityNatDestinationBlockRule{
@@ -139,7 +148,10 @@ func upgradeSecurityNatDestinationV0toV1(
 			SourceAddressName:      blockV0.SourceAddressName,
 		}
 		if len(blockV0.Then) > 0 {
-			blockV1.Then = &blockV0.Then[0]
+			blockV1.Then = &securityNatDestinationBlockRuleBlockThen{
+				Type: blockV0.Then[0].Type,
+				Pool: blockV0.Then[0].Pool,
+			}
 		}
 		dataV1.Rule = append(dataV1.Rule, blockV1)
 	}
