@@ -79,7 +79,7 @@ func (rsc *securityZoneBookAddressSet) Schema(
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "An identifier for the resource with format `<zone>_-_<name>`.",
+				Description: "An identifier for the resource with format `<zone>" + junos.IDSeparator + "<name>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

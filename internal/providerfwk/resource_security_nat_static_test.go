@@ -4,6 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -61,7 +63,7 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 				{
 					ResourceName:  "junos_security_nat_static.testacc_securityNATStt_singly",
 					ImportState:   true,
-					ImportStateId: "testacc_securityNATStt_singly_-_no_rules",
+					ImportStateId: "testacc_securityNATStt_singly" + junos.IDSeparator + "no_rules",
 				},
 				{
 					Config: testAccJunosSecurityNatStaticConfigUpdate2(),

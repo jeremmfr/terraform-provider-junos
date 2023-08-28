@@ -84,7 +84,7 @@ func (rsc *securityPolicy) Schema(
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "An identifier for the resource with format `<from_zone>_-_<to_zone>`.",
+				Description: "An identifier for the resource with format `<from_zone>" + junos.IDSeparator + "<to_zone>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

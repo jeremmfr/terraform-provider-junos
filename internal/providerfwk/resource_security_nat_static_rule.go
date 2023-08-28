@@ -86,7 +86,7 @@ func (rsc *securityNatStaticRule) Schema(
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "An identifier for the resource with format `<rule_set>_-_<name>`.",
+				Description: "An identifier for the resource with format `<rule_set>" + junos.IDSeparator + "<name>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -552,7 +552,7 @@ func (rsc *securityNatStaticRule) ImportState(
 		req,
 		resp,
 		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <rule_set>_-_<name>)", req.ID),
+			"(id must be <rule_set>"+junos.IDSeparator+"<name>)", req.ID),
 	)
 }
 
