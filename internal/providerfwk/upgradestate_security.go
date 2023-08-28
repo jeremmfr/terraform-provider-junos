@@ -560,25 +560,48 @@ func upgradeSecurityV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		CleanOnDestroy types.Bool         `tfsdk:"clean_on_destroy"`
-		ID             types.String       `tfsdk:"id"`
-		Alg            []securityBlockAlg `tfsdk:"alg"`
-		Flow           []struct {
-			AllowDNSReply                    types.Bool                              `tfsdk:"allow_dns_reply"`
-			AllowEmbeddedIcmp                types.Bool                              `tfsdk:"allow_embedded_icmp"`
-			AllowReverseEcmp                 types.Bool                              `tfsdk:"allow_reverse_ecmp"`
-			EnableRerouteUniformLinkCheckNat types.Bool                              `tfsdk:"enable_reroute_uniform_link_check_nat"`
-			ForceIPReassembly                types.Bool                              `tfsdk:"force_ip_reassembly"`
-			IpsecPerformanceAcceleration     types.Bool                              `tfsdk:"ipsec_performance_acceleration"`
-			McastBufferEnhance               types.Bool                              `tfsdk:"mcast_buffer_enhance"`
-			PreserveIncomingFragmentSize     types.Bool                              `tfsdk:"preserve_incoming_fragment_size"`
-			SyncIcmpSession                  types.Bool                              `tfsdk:"sync_icmp_session"`
-			PendingSessQueueLength           types.String                            `tfsdk:"pending_sess_queue_length"`
-			RouteChangeTimeout               types.Int64                             `tfsdk:"route_change_timeout"`
-			SynFloodProtectionMode           types.String                            `tfsdk:"syn_flood_protection_mode"`
-			AdvancedOptions                  []securityBlockFlowBlockAdvancedOptions `tfsdk:"advanced_options"`
-			Aging                            []securityBlockFlowBlockAging           `tfsdk:"aging"`
-			EthernetSwitching                []struct {
+		CleanOnDestroy types.Bool   `tfsdk:"clean_on_destroy"`
+		ID             types.String `tfsdk:"id"`
+		Alg            []struct {
+			DNSDisable    types.Bool `tfsdk:"dns_disable"`
+			FtpDisable    types.Bool `tfsdk:"ftp_disable"`
+			H323Disable   types.Bool `tfsdk:"h323_disable"`
+			MgcpDisable   types.Bool `tfsdk:"mgcp_disable"`
+			MsrpcDisable  types.Bool `tfsdk:"msrpc_disable"`
+			PptpDisable   types.Bool `tfsdk:"pptp_disable"`
+			RshDisable    types.Bool `tfsdk:"rsh_disable"`
+			RtspDisable   types.Bool `tfsdk:"rtsp_disable"`
+			SccpDisable   types.Bool `tfsdk:"sccp_disable"`
+			SIPDisable    types.Bool `tfsdk:"sip_disable"`
+			SQLDisable    types.Bool `tfsdk:"sql_disable"`
+			SunrpcDisable types.Bool `tfsdk:"sunrpc_disable"`
+			TalkDisable   types.Bool `tfsdk:"talk_disable"`
+			TftpDisable   types.Bool `tfsdk:"tftp_disable"`
+		} `tfsdk:"alg"`
+		Flow []struct {
+			AllowDNSReply                    types.Bool   `tfsdk:"allow_dns_reply"`
+			AllowEmbeddedIcmp                types.Bool   `tfsdk:"allow_embedded_icmp"`
+			AllowReverseEcmp                 types.Bool   `tfsdk:"allow_reverse_ecmp"`
+			EnableRerouteUniformLinkCheckNat types.Bool   `tfsdk:"enable_reroute_uniform_link_check_nat"`
+			ForceIPReassembly                types.Bool   `tfsdk:"force_ip_reassembly"`
+			IpsecPerformanceAcceleration     types.Bool   `tfsdk:"ipsec_performance_acceleration"`
+			McastBufferEnhance               types.Bool   `tfsdk:"mcast_buffer_enhance"`
+			PreserveIncomingFragmentSize     types.Bool   `tfsdk:"preserve_incoming_fragment_size"`
+			SyncIcmpSession                  types.Bool   `tfsdk:"sync_icmp_session"`
+			PendingSessQueueLength           types.String `tfsdk:"pending_sess_queue_length"`
+			RouteChangeTimeout               types.Int64  `tfsdk:"route_change_timeout"`
+			SynFloodProtectionMode           types.String `tfsdk:"syn_flood_protection_mode"`
+			AdvancedOptions                  []struct {
+				DropMatchingLinkLocalAddress  types.Bool `tfsdk:"drop_matching_link_local_address"`
+				DropMatchingReservedIPAddress types.Bool `tfsdk:"drop_matching_reserved_ip_address"`
+				ReverseRoutePacketModeVR      types.Bool `tfsdk:"reverse_route_packet_mode_vr"`
+			} `tfsdk:"advanced_options"`
+			Aging []struct {
+				EarlyAgeout   types.Int64 `tfsdk:"early_ageout"`
+				HighWatermark types.Int64 `tfsdk:"high_watermark"`
+				LowWatermark  types.Int64 `tfsdk:"low_watermark"`
+			} `tfsdk:"aging"`
+			EthernetSwitching []struct {
 				BlockNonIPAll      types.Bool `tfsdk:"block_non_ip_all"`
 				BypassNonIPUnicast types.Bool `tfsdk:"bypass_non_ip_unicast"`
 				BpduVlanFlooding   types.Bool `tfsdk:"bpdu_vlan_flooding"`
@@ -599,53 +622,115 @@ func upgradeSecurityV0toV1(
 				} `tfsdk:"ipsec_vpn"`
 			} `tfsdk:"tcp_mss"`
 			TCPSession []struct {
-				FinInvalidateSession types.Bool                                           `tfsdk:"fin_invalidate_session"`
-				NoSequenceCheck      types.Bool                                           `tfsdk:"no_sequence_check"`
-				NoSynCheck           types.Bool                                           `tfsdk:"no_syn_check"`
-				NoSynCheckInTunnel   types.Bool                                           `tfsdk:"no_syn_check_in_tunnel"`
-				RstInvalidateSession types.Bool                                           `tfsdk:"rst_invalidate_session"`
-				RstSequenceCheck     types.Bool                                           `tfsdk:"rst_sequence_check"`
-				StrictSynCheck       types.Bool                                           `tfsdk:"strict_syn_check"`
-				MaximumWindow        types.String                                         `tfsdk:"maximum_window"`
-				TCPInitialTimeout    types.Int64                                          `tfsdk:"tcp_initial_timeout"`
-				TimeWaitState        []securityBlockFlowBlockTCPSessionBlockTimeWaitState `tfsdk:"time_wait_state"`
+				FinInvalidateSession types.Bool   `tfsdk:"fin_invalidate_session"`
+				NoSequenceCheck      types.Bool   `tfsdk:"no_sequence_check"`
+				NoSynCheck           types.Bool   `tfsdk:"no_syn_check"`
+				NoSynCheckInTunnel   types.Bool   `tfsdk:"no_syn_check_in_tunnel"`
+				RstInvalidateSession types.Bool   `tfsdk:"rst_invalidate_session"`
+				RstSequenceCheck     types.Bool   `tfsdk:"rst_sequence_check"`
+				StrictSynCheck       types.Bool   `tfsdk:"strict_syn_check"`
+				MaximumWindow        types.String `tfsdk:"maximum_window"`
+				TCPInitialTimeout    types.Int64  `tfsdk:"tcp_initial_timeout"`
+				TimeWaitState        []struct {
+					ApplyToHalfCloseState types.Bool  `tfsdk:"apply_to_half_close_state"`
+					SessionAgeout         types.Bool  `tfsdk:"session_ageout"`
+					SessionTimeout        types.Int64 `tfsdk:"session_timeout"`
+				} `tfsdk:"time_wait_state"`
 			} `tfsdk:"tcp_session"`
 		} `tfsdk:"flow"`
-		ForwardingOptions      []securityBlockForwardingOptions  `tfsdk:"forwarding_options"`
-		ForwardingProcess      []securityBlockForwardingProcess  `tfsdk:"forwarding_process"`
-		IdpSecurityPackage     []securityBlockIdpSecurityPackage `tfsdk:"idp_security_package"`
+		ForwardingOptions []struct {
+			Inet6Mode          types.String `tfsdk:"inet6_mode"`
+			IsoModePacketBased types.Bool   `tfsdk:"iso_mode_packet_based"`
+			MplsMode           types.String `tfsdk:"mpls_mode"`
+		} `tfsdk:"forwarding_options"`
+		ForwardingProcess []struct {
+			EnhancedServicesMode types.Bool `tfsdk:"enhanced_services_mode"`
+		} `tfsdk:"forwarding_process"`
+		IdpSecurityPackage []struct {
+			AutomaticEnable           types.Bool   `tfsdk:"automatic_enable"`
+			InstallIgnoreVersionCheck types.Bool   `tfsdk:"install_ignore_version_check"`
+			AutomaticInterval         types.Int64  `tfsdk:"automatic_interval"`
+			AutomaticStartTime        types.String `tfsdk:"automatic_start_time"`
+			ProxyProfile              types.String `tfsdk:"proxy_profile"`
+			SourceAddress             types.String `tfsdk:"source_address"`
+			URL                       types.String `tfsdk:"url"`
+		} `tfsdk:"idp_security_package"`
 		IdpSensorConfiguration []struct {
-			LogCacheSize                        types.Int64                                              `tfsdk:"log_cache_size"`
-			SecurityConfigurationProtectionMode types.String                                             `tfsdk:"security_configuration_protection_mode"`
-			LogSuppression                      []securityBlockIdpSensorConfigurationBlockLogSuppression `tfsdk:"log_suppression"`
-			PacketLog                           []securityBlockIdpSensorConfigurationBlockPacketLog      `tfsdk:"packet_log"`
+			LogCacheSize                        types.Int64  `tfsdk:"log_cache_size"`
+			SecurityConfigurationProtectionMode types.String `tfsdk:"security_configuration_protection_mode"`
+			LogSuppression                      []struct {
+				Disable                     types.Bool  `tfsdk:"disable"`
+				IncludeDestinationAddress   types.Bool  `tfsdk:"include_destination_address"`
+				NoIncludeDestinationAddress types.Bool  `tfsdk:"no_include_destination_address"`
+				MaxLogsOperate              types.Int64 `tfsdk:"max_logs_operate"`
+				MaxTimeReport               types.Int64 `tfsdk:"max_time_report"`
+				StartLog                    types.Int64 `tfsdk:"start_log"`
+			} `tfsdk:"log_suppression"`
+			PacketLog []struct {
+				SourceAddress            types.String `tfsdk:"source_address"`
+				HostAddress              types.String `tfsdk:"host_address"`
+				HostPort                 types.Int64  `tfsdk:"host_port"`
+				MaxSessions              types.Int64  `tfsdk:"max_sessions"`
+				ThresholdLoggingInterval types.Int64  `tfsdk:"threshold_logging_interval"`
+				TotalMemory              types.Int64  `tfsdk:"total_memory"`
+			} `tfsdk:"packet_log"`
 		} `tfsdk:"idp_sensor_configuration"`
 		IkeTraceoptions []struct {
-			Flag          []types.String                          `tfsdk:"flag"`
-			NoRemoteTrace types.Bool                              `tfsdk:"no_remote_trace"`
-			RateLimit     types.Int64                             `tfsdk:"rate_limit"`
-			File          []securityBlockIkeTraceoptionsBlockFile `tfsdk:"file"`
+			Flag          []types.String `tfsdk:"flag"`
+			NoRemoteTrace types.Bool     `tfsdk:"no_remote_trace"`
+			RateLimit     types.Int64    `tfsdk:"rate_limit"`
+			File          []struct {
+				NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
+				WorldReadable   types.Bool   `tfsdk:"world_readable"`
+				Name            types.String `tfsdk:"name"`
+				Files           types.Int64  `tfsdk:"files"`
+				Match           types.String `tfsdk:"match"`
+				Size            types.Int64  `tfsdk:"size"`
+			} `tfsdk:"file"`
 		} `tfsdk:"ike_traceoptions"`
 		Log []struct {
-			Disable           types.Bool                       `tfsdk:"disable"`
-			Report            types.Bool                       `tfsdk:"report"`
-			UtcTimestamp      types.Bool                       `tfsdk:"utc_timestamp"`
-			EventRate         types.Int64                      `tfsdk:"event_rate"`
-			FacilityOverride  types.String                     `tfsdk:"facility_override"`
-			Format            types.String                     `tfsdk:"format"`
-			MaxDatabaseRecord types.Int64                      `tfsdk:"max_database_record"`
-			Mode              types.String                     `tfsdk:"mode"`
-			RateCap           types.Int64                      `tfsdk:"rate_cap"`
-			SourceAddress     types.String                     `tfsdk:"source_address"`
-			SourceInterface   types.String                     `tfsdk:"source_interface"`
-			File              []securityBlockLogBlockFile      `tfsdk:"file"`
-			Transport         []securityBlockLogBlockTransport `tfsdk:"transport"`
+			Disable           types.Bool   `tfsdk:"disable"`
+			Report            types.Bool   `tfsdk:"report"`
+			UtcTimestamp      types.Bool   `tfsdk:"utc_timestamp"`
+			EventRate         types.Int64  `tfsdk:"event_rate"`
+			FacilityOverride  types.String `tfsdk:"facility_override"`
+			Format            types.String `tfsdk:"format"`
+			MaxDatabaseRecord types.Int64  `tfsdk:"max_database_record"`
+			Mode              types.String `tfsdk:"mode"`
+			RateCap           types.Int64  `tfsdk:"rate_cap"`
+			SourceAddress     types.String `tfsdk:"source_address"`
+			SourceInterface   types.String `tfsdk:"source_interface"`
+			File              []struct {
+				Files types.Int64  `tfsdk:"files"`
+				Name  types.String `tfsdk:"name"`
+				Path  types.String `tfsdk:"path"`
+				Size  types.Int64  `tfsdk:"size"`
+			} `tfsdk:"file"`
+			Transport []struct {
+				Protocol       types.String `tfsdk:"protocol"`
+				TCPConnections types.Int64  `tfsdk:"tcp_connections"`
+				TLSProfile     types.String `tfsdk:"tls_profile"`
+			} `tfsdk:"transport"`
 		} `tfsdk:"log"`
-		Policies                     []securityBlockPolicies                     `tfsdk:"policies"`
-		UserIdentificationAuthSource []securityBlockUserIdentificationAuthSource `tfsdk:"user_identification_auth_source"`
-		Utm                          []struct {
-			FeatureProfileWebFilteringType                  types.String                                                           `tfsdk:"feature_profile_web_filtering_type"`
-			FeatureProfileWebFilteringJuniperEnhancedServer []securityBlockUtmBlockFeatureProfileWebFilteringJuniperEnhancedServer `tfsdk:"feature_profile_web_filtering_juniper_enhanced_server"`
+		Policies []struct {
+			PolicyRematch          types.Bool `tfsdk:"policy_rematch"`
+			PolicyRematchExtensive types.Bool `tfsdk:"policy_rematch_extensive"`
+		} `tfsdk:"policies"`
+		UserIdentificationAuthSource []struct {
+			ADAuthPriority               types.Int64 `tfsdk:"ad_auth_priority"`
+			ArubaClearpassPriority       types.Int64 `tfsdk:"aruba_clearpass_priority"`
+			FirewallAuthPriority         types.Int64 `tfsdk:"firewall_auth_priority"`
+			LocalAuthPriority            types.Int64 `tfsdk:"local_auth_priority"`
+			UnifiedAccessControlPriority types.Int64 `tfsdk:"unified_access_control_priority"`
+		} `tfsdk:"user_identification_auth_source"`
+		Utm []struct {
+			FeatureProfileWebFilteringType                  types.String `tfsdk:"feature_profile_web_filtering_type"`
+			FeatureProfileWebFilteringJuniperEnhancedServer []struct {
+				Host            types.String `tfsdk:"host"`
+				Port            types.Int64  `tfsdk:"port"`
+				ProxyProfile    types.String `tfsdk:"proxy_profile"`
+				RoutingInstance types.String `tfsdk:"routing_instance"`
+			} `tfsdk:"feature_profile_web_filtering_juniper_enhanced_server"`
 		} `tfsdk:"utm"`
 	}
 
@@ -662,7 +747,22 @@ func upgradeSecurityV0toV1(
 		dataV1.CleanOnDestroy = types.BoolNull()
 	}
 	if len(dataV0.Alg) > 0 {
-		dataV1.Alg = &dataV0.Alg[0]
+		dataV1.Alg = &securityBlockAlg{
+			DNSDisable:    dataV0.Alg[0].DNSDisable,
+			FtpDisable:    dataV0.Alg[0].FtpDisable,
+			H323Disable:   dataV0.Alg[0].H323Disable,
+			MgcpDisable:   dataV0.Alg[0].MgcpDisable,
+			MsrpcDisable:  dataV0.Alg[0].MsrpcDisable,
+			PptpDisable:   dataV0.Alg[0].PptpDisable,
+			RshDisable:    dataV0.Alg[0].RshDisable,
+			RtspDisable:   dataV0.Alg[0].RtspDisable,
+			SccpDisable:   dataV0.Alg[0].SccpDisable,
+			SIPDisable:    dataV0.Alg[0].SIPDisable,
+			SQLDisable:    dataV0.Alg[0].SQLDisable,
+			SunrpcDisable: dataV0.Alg[0].SunrpcDisable,
+			TalkDisable:   dataV0.Alg[0].TalkDisable,
+			TftpDisable:   dataV0.Alg[0].TftpDisable,
+		}
 	}
 	if len(dataV0.Flow) > 0 {
 		dataV1.Flow = &securityBlockFlow{
@@ -680,10 +780,18 @@ func upgradeSecurityV0toV1(
 			SynFloodProtectionMode:           dataV0.Flow[0].SynFloodProtectionMode,
 		}
 		if len(dataV0.Flow[0].AdvancedOptions) > 0 {
-			dataV1.Flow.AdvancedOptions = &dataV0.Flow[0].AdvancedOptions[0]
+			dataV1.Flow.AdvancedOptions = &securityBlockFlowBlockAdvancedOptions{
+				DropMatchingLinkLocalAddress:  dataV0.Flow[0].AdvancedOptions[0].DropMatchingLinkLocalAddress,
+				DropMatchingReservedIPAddress: dataV0.Flow[0].AdvancedOptions[0].DropMatchingReservedIPAddress,
+				ReverseRoutePacketModeVR:      dataV0.Flow[0].AdvancedOptions[0].ReverseRoutePacketModeVR,
+			}
 		}
 		if len(dataV0.Flow[0].Aging) > 0 {
-			dataV1.Flow.Aging = &dataV0.Flow[0].Aging[0]
+			dataV1.Flow.Aging = &securityBlockFlowBlockAging{
+				EarlyAgeout:   dataV0.Flow[0].Aging[0].EarlyAgeout,
+				HighWatermark: dataV0.Flow[0].Aging[0].HighWatermark,
+				LowWatermark:  dataV0.Flow[0].Aging[0].LowWatermark,
+			}
 		}
 		if len(dataV0.Flow[0].EthernetSwitching) > 0 {
 			dataV1.Flow.EthernetSwitching = &securityBlockFlowBlockEthernetSwitching{
@@ -722,18 +830,36 @@ func upgradeSecurityV0toV1(
 				TCPInitialTimeout:    dataV0.Flow[0].TCPSession[0].TCPInitialTimeout,
 			}
 			if len(dataV0.Flow[0].TCPSession[0].TimeWaitState) > 0 {
-				dataV1.Flow.TCPSession.TimeWaitState = &dataV0.Flow[0].TCPSession[0].TimeWaitState[0]
+				dataV1.Flow.TCPSession.TimeWaitState = &securityBlockFlowBlockTCPSessionBlockTimeWaitState{
+					ApplyToHalfCloseState: dataV0.Flow[0].TCPSession[0].TimeWaitState[0].ApplyToHalfCloseState,
+					SessionAgeout:         dataV0.Flow[0].TCPSession[0].TimeWaitState[0].SessionAgeout,
+					SessionTimeout:        dataV0.Flow[0].TCPSession[0].TimeWaitState[0].SessionTimeout,
+				}
 			}
 		}
 	}
 	if len(dataV0.ForwardingOptions) > 0 {
-		dataV1.ForwardingOptions = &dataV0.ForwardingOptions[0]
+		dataV1.ForwardingOptions = &securityBlockForwardingOptions{
+			Inet6Mode:          dataV0.ForwardingOptions[0].Inet6Mode,
+			IsoModePacketBased: dataV0.ForwardingOptions[0].IsoModePacketBased,
+			MplsMode:           dataV0.ForwardingOptions[0].MplsMode,
+		}
 	}
 	if len(dataV0.ForwardingProcess) > 0 {
-		dataV1.ForwardingProcess = &dataV0.ForwardingProcess[0]
+		dataV1.ForwardingProcess = &securityBlockForwardingProcess{
+			EnhancedServicesMode: dataV0.ForwardingProcess[0].EnhancedServicesMode,
+		}
 	}
 	if len(dataV0.IdpSecurityPackage) > 0 {
-		dataV1.IdpSecurityPackage = &dataV0.IdpSecurityPackage[0]
+		dataV1.IdpSecurityPackage = &securityBlockIdpSecurityPackage{
+			AutomaticEnable:           dataV0.IdpSecurityPackage[0].AutomaticEnable,
+			InstallIgnoreVersionCheck: dataV0.IdpSecurityPackage[0].InstallIgnoreVersionCheck,
+			AutomaticInterval:         dataV0.IdpSecurityPackage[0].AutomaticInterval,
+			AutomaticStartTime:        dataV0.IdpSecurityPackage[0].AutomaticStartTime,
+			ProxyProfile:              dataV0.IdpSecurityPackage[0].ProxyProfile,
+			SourceAddress:             dataV0.IdpSecurityPackage[0].SourceAddress,
+			URL:                       dataV0.IdpSecurityPackage[0].URL,
+		}
 	}
 	if len(dataV0.IdpSensorConfiguration) > 0 {
 		dataV1.IdpSensorConfiguration = &securityBlockIdpSensorConfiguration{
@@ -741,10 +867,24 @@ func upgradeSecurityV0toV1(
 			SecurityConfigurationProtectionMode: dataV0.IdpSensorConfiguration[0].SecurityConfigurationProtectionMode,
 		}
 		if len(dataV0.IdpSensorConfiguration[0].LogSuppression) > 0 {
-			dataV1.IdpSensorConfiguration.LogSuppression = &dataV0.IdpSensorConfiguration[0].LogSuppression[0]
+			dataV1.IdpSensorConfiguration.LogSuppression = &securityBlockIdpSensorConfigurationBlockLogSuppression{
+				Disable:                     dataV0.IdpSensorConfiguration[0].LogSuppression[0].Disable,
+				IncludeDestinationAddress:   dataV0.IdpSensorConfiguration[0].LogSuppression[0].IncludeDestinationAddress,
+				NoIncludeDestinationAddress: dataV0.IdpSensorConfiguration[0].LogSuppression[0].NoIncludeDestinationAddress,
+				MaxLogsOperate:              dataV0.IdpSensorConfiguration[0].LogSuppression[0].MaxLogsOperate,
+				MaxTimeReport:               dataV0.IdpSensorConfiguration[0].LogSuppression[0].MaxTimeReport,
+				StartLog:                    dataV0.IdpSensorConfiguration[0].LogSuppression[0].StartLog,
+			}
 		}
 		if len(dataV0.IdpSensorConfiguration[0].PacketLog) > 0 {
-			dataV1.IdpSensorConfiguration.PacketLog = &dataV0.IdpSensorConfiguration[0].PacketLog[0]
+			dataV1.IdpSensorConfiguration.PacketLog = &securityBlockIdpSensorConfigurationBlockPacketLog{
+				SourceAddress:            dataV0.IdpSensorConfiguration[0].PacketLog[0].SourceAddress,
+				HostAddress:              dataV0.IdpSensorConfiguration[0].PacketLog[0].HostAddress,
+				HostPort:                 dataV0.IdpSensorConfiguration[0].PacketLog[0].HostPort,
+				MaxSessions:              dataV0.IdpSensorConfiguration[0].PacketLog[0].MaxSessions,
+				ThresholdLoggingInterval: dataV0.IdpSensorConfiguration[0].PacketLog[0].ThresholdLoggingInterval,
+				TotalMemory:              dataV0.IdpSensorConfiguration[0].PacketLog[0].TotalMemory,
+			}
 		}
 	}
 	if len(dataV0.IkeTraceoptions) > 0 {
@@ -754,7 +894,14 @@ func upgradeSecurityV0toV1(
 			RateLimit:     dataV0.IkeTraceoptions[0].RateLimit,
 		}
 		if len(dataV0.IkeTraceoptions[0].File) > 0 {
-			dataV1.IkeTraceoptions.File = &dataV0.IkeTraceoptions[0].File[0]
+			dataV1.IkeTraceoptions.File = &securityBlockIkeTraceoptionsBlockFile{
+				NoWorldReadable: dataV0.IkeTraceoptions[0].File[0].NoWorldReadable,
+				WorldReadable:   dataV0.IkeTraceoptions[0].File[0].WorldReadable,
+				Name:            dataV0.IkeTraceoptions[0].File[0].Name,
+				Files:           dataV0.IkeTraceoptions[0].File[0].Files,
+				Match:           dataV0.IkeTraceoptions[0].File[0].Match,
+				Size:            dataV0.IkeTraceoptions[0].File[0].Size,
+			}
 		}
 	}
 	if len(dataV0.Log) > 0 {
@@ -772,24 +919,47 @@ func upgradeSecurityV0toV1(
 			SourceInterface:   dataV0.Log[0].SourceInterface,
 		}
 		if len(dataV0.Log[0].File) > 0 {
-			dataV1.Log.File = &dataV0.Log[0].File[0]
+			dataV1.Log.File = &securityBlockLogBlockFile{
+				Files: dataV0.Log[0].File[0].Files,
+				Name:  dataV0.Log[0].File[0].Name,
+				Path:  dataV0.Log[0].File[0].Path,
+				Size:  dataV0.Log[0].File[0].Size,
+			}
 		}
 		if len(dataV0.Log[0].Transport) > 0 {
-			dataV1.Log.Transport = &dataV0.Log[0].Transport[0]
+			dataV1.Log.Transport = &securityBlockLogBlockTransport{
+				Protocol:       dataV0.Log[0].Transport[0].Protocol,
+				TCPConnections: dataV0.Log[0].Transport[0].TCPConnections,
+				TLSProfile:     dataV0.Log[0].Transport[0].TLSProfile,
+			}
 		}
 	}
 	if len(dataV0.Policies) > 0 {
-		dataV1.Policies = &dataV0.Policies[0]
+		dataV1.Policies = &securityBlockPolicies{
+			PolicyRematch:          dataV0.Policies[0].PolicyRematch,
+			PolicyRematchExtensive: dataV0.Policies[0].PolicyRematchExtensive,
+		}
 	}
 	if len(dataV0.UserIdentificationAuthSource) > 0 {
-		dataV1.UserIdentificationAuthSource = &dataV0.UserIdentificationAuthSource[0]
+		dataV1.UserIdentificationAuthSource = &securityBlockUserIdentificationAuthSource{
+			ADAuthPriority:               dataV0.UserIdentificationAuthSource[0].ADAuthPriority,
+			ArubaClearpassPriority:       dataV0.UserIdentificationAuthSource[0].ArubaClearpassPriority,
+			FirewallAuthPriority:         dataV0.UserIdentificationAuthSource[0].FirewallAuthPriority,
+			LocalAuthPriority:            dataV0.UserIdentificationAuthSource[0].LocalAuthPriority,
+			UnifiedAccessControlPriority: dataV0.UserIdentificationAuthSource[0].UnifiedAccessControlPriority,
+		}
 	}
 	if len(dataV0.Utm) > 0 {
 		dataV1.Utm = &securityBlockUtm{
 			FeatureProfileWebFilteringType: dataV0.Utm[0].FeatureProfileWebFilteringType,
 		}
 		if len(dataV0.Utm[0].FeatureProfileWebFilteringJuniperEnhancedServer) > 0 {
-			dataV1.Utm.FeatureProfileWebFilteringJuniperEnhancedServer = &dataV0.Utm[0].FeatureProfileWebFilteringJuniperEnhancedServer[0]
+			dataV1.Utm.FeatureProfileWebFilteringJuniperEnhancedServer = &securityBlockUtmBlockFeatureProfileWebFilteringJuniperEnhancedServer{
+				Host:            dataV0.Utm[0].FeatureProfileWebFilteringJuniperEnhancedServer[0].Host,
+				Port:            dataV0.Utm[0].FeatureProfileWebFilteringJuniperEnhancedServer[0].Port,
+				ProxyProfile:    dataV0.Utm[0].FeatureProfileWebFilteringJuniperEnhancedServer[0].ProxyProfile,
+				RoutingInstance: dataV0.Utm[0].FeatureProfileWebFilteringJuniperEnhancedServer[0].RoutingInstance,
+			}
 		}
 	}
 
