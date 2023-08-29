@@ -3,6 +3,8 @@ package providerfwk
 import (
 	"context"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -176,6 +178,7 @@ func upgradeForwardingoptionsSamplingInstanceStateV0toV1(
 	var dataV1 forwardingoptionsSamplingInstanceData
 	dataV1.ID = dataV0.ID
 	dataV1.Name = dataV0.Name
+	dataV1.RoutingInstance = types.StringValue(junos.DefaultW)
 	dataV1.Disable = dataV0.Disable
 	if len(dataV0.FamilyInetInput) > 0 {
 		dataV1.FamilyInetInput = &dataV0.FamilyInetInput[0]
