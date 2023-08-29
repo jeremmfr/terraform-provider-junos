@@ -245,37 +245,82 @@ func (rsc *interfacePhysical) UpgradeState(_ context.Context) map[int64]resource
 	}
 }
 
-//nolint:lll
 func upgradeInterfacePhysicalV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		NoDisableOnDestroy types.Bool                        `tfsdk:"no_disable_on_destroy"`
-		Disable            types.Bool                        `tfsdk:"disable"`
-		Trunk              types.Bool                        `tfsdk:"trunk"`
-		VlanTagging        types.Bool                        `tfsdk:"vlan_tagging"`
-		ID                 types.String                      `tfsdk:"id"`
-		Name               types.String                      `tfsdk:"name"`
-		Description        types.String                      `tfsdk:"description"`
-		Mtu                types.Int64                       `tfsdk:"mtu"`
-		VlanMembers        []types.String                    `tfsdk:"vlan_members"`
-		VlanNative         types.Int64                       `tfsdk:"vlan_native"`
-		ESI                []interfacePhysicalBlockESI       `tfsdk:"esi"`
-		EtherOpts          []interfacePhysicalBlockEtherOpts `tfsdk:"ether_opts"`
-		GigetherOpts       []interfacePhysicalBlockEtherOpts `tfsdk:"gigether_opts"`
-		ParentEtherOpts    []struct {
-			FlowControl          types.Bool                                                       `tfsdk:"flow_control"`
-			NoFlowControl        types.Bool                                                       `tfsdk:"no_flow_control"`
-			Loopback             types.Bool                                                       `tfsdk:"loopback"`
-			NoLoopback           types.Bool                                                       `tfsdk:"no_loopback"`
-			SourceFiltering      types.Bool                                                       `tfsdk:"source_filtering"`
-			LinkSpeed            types.String                                                     `tfsdk:"link_speed"`
-			MinimumBandwidth     types.String                                                     `tfsdk:"minimum_bandwidth"`
-			MinimumLinks         types.Int64                                                      `tfsdk:"minimum_links"`
-			RedundancyGroup      types.Int64                                                      `tfsdk:"redundancy_group"`
-			SourceAddressFilter  []types.String                                                   `tfsdk:"source_address_filter"`
-			BFDLivenessDetection []interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
-			Lacp                 []interfacePhysicalBlockParentEtherOptsBlockLacp                 `tfsdk:"lacp"`
+		NoDisableOnDestroy types.Bool     `tfsdk:"no_disable_on_destroy"`
+		Disable            types.Bool     `tfsdk:"disable"`
+		Trunk              types.Bool     `tfsdk:"trunk"`
+		VlanTagging        types.Bool     `tfsdk:"vlan_tagging"`
+		ID                 types.String   `tfsdk:"id"`
+		Name               types.String   `tfsdk:"name"`
+		Description        types.String   `tfsdk:"description"`
+		Mtu                types.Int64    `tfsdk:"mtu"`
+		VlanMembers        []types.String `tfsdk:"vlan_members"`
+		VlanNative         types.Int64    `tfsdk:"vlan_native"`
+		ESI                []struct {
+			AutoDeriveLacp types.Bool   `tfsdk:"auto_derive_lacp"`
+			Mode           types.String `tfsdk:"mode"`
+			DFElectionType types.String `tfsdk:"df_election_type"`
+			Identifier     types.String `tfsdk:"identifier"`
+			SourceBMAC     types.String `tfsdk:"source_bmac"`
+		} `tfsdk:"esi"`
+		EtherOpts []struct {
+			AutoNegotiation   types.Bool   `tfsdk:"auto_negotiation"`
+			NoAutoNegotiation types.Bool   `tfsdk:"no_auto_negotiation"`
+			FlowControl       types.Bool   `tfsdk:"flow_control"`
+			NoFlowControl     types.Bool   `tfsdk:"no_flow_control"`
+			Loopback          types.Bool   `tfsdk:"loopback"`
+			NoLoopback        types.Bool   `tfsdk:"no_loopback"`
+			Ae8023ad          types.String `tfsdk:"ae_8023ad"`
+			RedundantParent   types.String `tfsdk:"redundant_parent"`
+		} `tfsdk:"ether_opts"`
+		GigetherOpts []struct {
+			AutoNegotiation   types.Bool   `tfsdk:"auto_negotiation"`
+			NoAutoNegotiation types.Bool   `tfsdk:"no_auto_negotiation"`
+			FlowControl       types.Bool   `tfsdk:"flow_control"`
+			NoFlowControl     types.Bool   `tfsdk:"no_flow_control"`
+			Loopback          types.Bool   `tfsdk:"loopback"`
+			NoLoopback        types.Bool   `tfsdk:"no_loopback"`
+			Ae8023ad          types.String `tfsdk:"ae_8023ad"`
+			RedundantParent   types.String `tfsdk:"redundant_parent"`
+		} `tfsdk:"gigether_opts"`
+		ParentEtherOpts []struct {
+			FlowControl          types.Bool     `tfsdk:"flow_control"`
+			NoFlowControl        types.Bool     `tfsdk:"no_flow_control"`
+			Loopback             types.Bool     `tfsdk:"loopback"`
+			NoLoopback           types.Bool     `tfsdk:"no_loopback"`
+			SourceFiltering      types.Bool     `tfsdk:"source_filtering"`
+			LinkSpeed            types.String   `tfsdk:"link_speed"`
+			MinimumBandwidth     types.String   `tfsdk:"minimum_bandwidth"`
+			MinimumLinks         types.Int64    `tfsdk:"minimum_links"`
+			RedundancyGroup      types.Int64    `tfsdk:"redundancy_group"`
+			SourceAddressFilter  []types.String `tfsdk:"source_address_filter"`
+			BFDLivenessDetection []struct {
+				AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
+				NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
+				LocalAddress                    types.String `tfsdk:"local_address"`
+				AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
+				AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
+				DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
+				HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
+				MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
+				MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
+				Multiplier                      types.Int64  `tfsdk:"multiplier"`
+				Neighbor                        types.String `tfsdk:"neighbor"`
+				TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
+				TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
+				Version                         types.String `tfsdk:"version"`
+			} `tfsdk:"bfd_liveness_detection"`
+			Lacp []struct {
+				Mode           types.String `tfsdk:"mode"`
+				AdminKey       types.Int64  `tfsdk:"admin_key"`
+				Periodic       types.String `tfsdk:"periodic"`
+				SyncReset      types.String `tfsdk:"sync_reset"`
+				SystemID       types.String `tfsdk:"system_id"`
+				SystemPriority types.Int64  `tfsdk:"system_priority"`
+			} `tfsdk:"lacp"`
 		} `tfsdk:"parent_ether_opts"`
 	}
 
@@ -300,13 +345,37 @@ func upgradeInterfacePhysicalV0toV1(
 	dataV1.VlanNative = dataV0.VlanNative
 	dataV1.VlanTagging = dataV0.VlanTagging
 	if len(dataV0.ESI) > 0 {
-		dataV1.ESI = &dataV0.ESI[0]
+		dataV1.ESI = &interfacePhysicalBlockESI{
+			AutoDeriveLacp: dataV0.ESI[0].AutoDeriveLacp,
+			Mode:           dataV0.ESI[0].Mode,
+			DFElectionType: dataV0.ESI[0].DFElectionType,
+			Identifier:     dataV0.ESI[0].Identifier,
+			SourceBMAC:     dataV0.ESI[0].SourceBMAC,
+		}
 	}
 	if len(dataV0.EtherOpts) > 0 {
-		dataV1.EtherOpts = &dataV0.EtherOpts[0]
+		dataV1.EtherOpts = &interfacePhysicalBlockEtherOpts{
+			AutoNegotiation:   dataV0.EtherOpts[0].AutoNegotiation,
+			NoAutoNegotiation: dataV0.EtherOpts[0].NoAutoNegotiation,
+			FlowControl:       dataV0.EtherOpts[0].FlowControl,
+			NoFlowControl:     dataV0.EtherOpts[0].NoFlowControl,
+			Loopback:          dataV0.EtherOpts[0].Loopback,
+			NoLoopback:        dataV0.EtherOpts[0].NoLoopback,
+			Ae8023ad:          dataV0.EtherOpts[0].Ae8023ad,
+			RedundantParent:   dataV0.EtherOpts[0].RedundantParent,
+		}
 	}
 	if len(dataV0.GigetherOpts) > 0 {
-		dataV1.GigetherOpts = &dataV0.GigetherOpts[0]
+		dataV1.GigetherOpts = &interfacePhysicalBlockEtherOpts{
+			AutoNegotiation:   dataV0.GigetherOpts[0].AutoNegotiation,
+			NoAutoNegotiation: dataV0.GigetherOpts[0].NoAutoNegotiation,
+			FlowControl:       dataV0.GigetherOpts[0].FlowControl,
+			NoFlowControl:     dataV0.GigetherOpts[0].NoFlowControl,
+			Loopback:          dataV0.GigetherOpts[0].Loopback,
+			NoLoopback:        dataV0.GigetherOpts[0].NoLoopback,
+			Ae8023ad:          dataV0.GigetherOpts[0].Ae8023ad,
+			RedundantParent:   dataV0.GigetherOpts[0].RedundantParent,
+		}
 	}
 	if len(dataV0.ParentEtherOpts) > 0 {
 		dataV1.ParentEtherOpts = &interfacePhysicalBlockParentEtherOpts{
@@ -322,10 +391,32 @@ func upgradeInterfacePhysicalV0toV1(
 			SourceFiltering:     dataV0.ParentEtherOpts[0].SourceFiltering,
 		}
 		if len(dataV0.ParentEtherOpts[0].BFDLivenessDetection) > 0 {
-			dataV1.ParentEtherOpts.BFDLivenessDetection = &dataV0.ParentEtherOpts[0].BFDLivenessDetection[0]
+			dataV1.ParentEtherOpts.BFDLivenessDetection = &interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection{
+				AuthenticationLooseCheck:        dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].AuthenticationLooseCheck,
+				NoAdaptation:                    dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].NoAdaptation,
+				LocalAddress:                    dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].LocalAddress,
+				AuthenticationAlgorithm:         dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].AuthenticationAlgorithm,
+				AuthenticationKeyChain:          dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].AuthenticationKeyChain,
+				DetectionTimeThreshold:          dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].DetectionTimeThreshold,
+				HolddownInterval:                dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].HolddownInterval,
+				MinimumInterval:                 dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].MinimumInterval,
+				MinimumReceiveInterval:          dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].MinimumReceiveInterval,
+				Multiplier:                      dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].Multiplier,
+				Neighbor:                        dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].Neighbor,
+				TransmitIntervalMinimumInterval: dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].TransmitIntervalMinimumInterval,
+				TransmitIntervalThreshold:       dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].TransmitIntervalThreshold,
+				Version:                         dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].Version,
+			}
 		}
 		if len(dataV0.ParentEtherOpts[0].Lacp) > 0 {
-			dataV1.ParentEtherOpts.Lacp = &dataV0.ParentEtherOpts[0].Lacp[0]
+			dataV1.ParentEtherOpts.Lacp = &interfacePhysicalBlockParentEtherOptsBlockLacp{
+				Mode:           dataV0.ParentEtherOpts[0].Lacp[0].Mode,
+				AdminKey:       dataV0.ParentEtherOpts[0].Lacp[0].AdminKey,
+				Periodic:       dataV0.ParentEtherOpts[0].Lacp[0].Periodic,
+				SyncReset:      dataV0.ParentEtherOpts[0].Lacp[0].SyncReset,
+				SystemID:       dataV0.ParentEtherOpts[0].Lacp[0].SystemID,
+				SystemPriority: dataV0.ParentEtherOpts[0].Lacp[0].SystemPriority,
+			}
 		}
 	}
 
