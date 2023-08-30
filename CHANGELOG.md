@@ -1,6 +1,12 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.1.3 (August 30, 2023)
+
+BUG FIXES:
+
+* **resource/junos_forwardingoptions_sampling_instance**: avoid resources replacement when upgrading the provider before `v2.0.0` and without refreshing resource states (`-refresh=false`) (Fix [#536](https://github.com/jeremmfr/terraform-provider-junos/issues/536))
+
 ## v2.1.2 (August 28, 2023)
 
 BUG FIXES:
