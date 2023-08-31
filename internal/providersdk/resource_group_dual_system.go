@@ -506,7 +506,7 @@ func setGroupDualSystem(d *schema.ResourceData, junSess *junos.Session) error {
 			}
 			staticRouteDestList = append(staticRouteDestList, staticRoute["destination"].(string))
 			for _, v3 := range staticRoute["next_hop"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"routing-options static route "+
+				configSet = append(configSet, setPrefix+junos.RoutingOptionsWS+"static route "+
 					staticRoute["destination"].(string)+" next-hop "+v3.(string))
 			}
 		}
@@ -611,7 +611,7 @@ func readGroupDualSystem(group string, junSess *junos.Session,
 					confRead.interfaceFxp0[0]["family_inet6_address"] = append(
 						confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), familyInet6Address)
 				}
-			case balt.CutPrefixInString(&itemTrim, "routing-options static route "):
+			case balt.CutPrefixInString(&itemTrim, junos.RoutingOptionsWS+"static route "):
 				if len(confRead.routingOptions) == 0 {
 					confRead.routingOptions = append(confRead.routingOptions, map[string]interface{}{
 						"static_route": make([]map[string]interface{}, 0),

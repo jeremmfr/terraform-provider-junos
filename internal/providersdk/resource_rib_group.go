@@ -282,7 +282,8 @@ func resourceRibGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func checkRibGroupExists(group string, junSess *junos.Session) (bool, error) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "routing-options rib-groups " + group + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		junos.RoutingOptionsWS + "rib-groups " + group + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -313,7 +314,7 @@ func setRibGroup(d *schema.ResourceData, junSess *junos.Session) error {
 func readRibGroup(group string, junSess *junos.Session,
 ) (confRead ribGroupOptions, err error) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"routing-options rib-groups " + group + junos.PipeDisplaySetRelative)
+		junos.RoutingOptionsWS + "rib-groups " + group + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return confRead, err
 	}

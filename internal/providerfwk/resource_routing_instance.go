@@ -567,19 +567,19 @@ func (rscData *routingInstanceData) set(
 		}
 	}
 	if v := rscData.AS.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"routing-options autonomous-system "+v)
+		configSet = append(configSet, setPrefix+junos.RoutingOptionsWS+"autonomous-system "+v)
 	}
 	if v := rscData.RouterID.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"routing-options router-id "+v)
+		configSet = append(configSet, setPrefix+junos.RoutingOptionsWS+"router-id "+v)
 	}
 	if v := rscData.Description.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
 	for _, v := range rscData.InstanceExport {
-		configSet = append(configSet, setPrefix+"routing-options instance-export \""+v.ValueString()+"\"")
+		configSet = append(configSet, setPrefix+junos.RoutingOptionsWS+"instance-export \""+v.ValueString()+"\"")
 	}
 	for _, v := range rscData.InstanceImport {
-		configSet = append(configSet, setPrefix+"routing-options instance-import \""+v.ValueString()+"\"")
+		configSet = append(configSet, setPrefix+junos.RoutingOptionsWS+"instance-import \""+v.ValueString()+"\"")
 	}
 	if v := rscData.VTEPSourceInterface.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"vtep-source-interface "+v)
@@ -616,15 +616,15 @@ func (rscData *routingInstanceData) read(
 				rscData.Type = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "route-distinguisher "):
 				rscData.RouteDistinguisher = types.StringValue(itemTrim)
-			case balt.CutPrefixInString(&itemTrim, "routing-options autonomous-system "):
+			case balt.CutPrefixInString(&itemTrim, junos.RoutingOptionsWS+"autonomous-system "):
 				rscData.AS = types.StringValue(itemTrim)
-			case balt.CutPrefixInString(&itemTrim, "routing-options instance-export "):
+			case balt.CutPrefixInString(&itemTrim, junos.RoutingOptionsWS+"instance-export "):
 				rscData.InstanceExport = append(rscData.InstanceExport,
 					types.StringValue(strings.Trim(itemTrim, "\"")))
-			case balt.CutPrefixInString(&itemTrim, "routing-options instance-import "):
+			case balt.CutPrefixInString(&itemTrim, junos.RoutingOptionsWS+"instance-import "):
 				rscData.InstanceImport = append(rscData.InstanceImport,
 					types.StringValue(strings.Trim(itemTrim, "\"")))
-			case balt.CutPrefixInString(&itemTrim, "routing-options router-id "):
+			case balt.CutPrefixInString(&itemTrim, junos.RoutingOptionsWS+"router-id "):
 				rscData.RouterID = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "vrf-export "):
 				rscData.VRFExport = append(rscData.VRFExport,
@@ -659,10 +659,10 @@ func (rscData *routingInstanceData) delOpts(
 	setPrefix := junos.DelRoutingInstances + rscData.Name.ValueString() + " "
 	configSet = append(configSet,
 		setPrefix+"description",
-		setPrefix+"routing-options autonomous-system",
-		setPrefix+"routing-options instance-export",
-		setPrefix+"routing-options instance-import",
-		setPrefix+"routing-options router-id",
+		setPrefix+junos.RoutingOptionsWS+"autonomous-system",
+		setPrefix+junos.RoutingOptionsWS+"instance-export",
+		setPrefix+junos.RoutingOptionsWS+"instance-import",
+		setPrefix+junos.RoutingOptionsWS+"router-id",
 		setPrefix+"vtep-source-interface",
 	)
 	if !rscData.ConfigureTypeSingly.ValueBool() {
