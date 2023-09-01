@@ -201,7 +201,6 @@ func Provider() *schema.Provider {
 			"junos_snmp_v3_vacm_accessgroup":                             resourceSnmpV3VacmAccessGroup(),
 			"junos_snmp_v3_vacm_securitytogroup":                         resourceSnmpV3VacmSecurityToGroup(),
 			"junos_snmp_view":                                            resourceSnmpView(),
-			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_switch_options":                                       resourceSwitchOptions(),
 			"junos_system":                                               resourceSystem(),
 			"junos_system_login_class":                                   resourceSystemLoginClass(),
