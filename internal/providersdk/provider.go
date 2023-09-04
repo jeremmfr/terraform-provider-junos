@@ -218,7 +218,6 @@ func Provider() *schema.Provider {
 			"junos_vstp_vlan_group":                                      resourceVstpVlanGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"junos_routes":             dataSourceRoutes(),
 			"junos_system_information": dataSourceSystemInformation(),
 		},
 		ConfigureContextFunc: configureProvider,
