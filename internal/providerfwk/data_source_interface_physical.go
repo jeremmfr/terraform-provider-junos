@@ -341,7 +341,7 @@ func (dsc *interfacePhysicalDataSource) Read(
 	}
 
 	var data interfacePhysicalDataSourceData
-	data.CopyFromResourceData(rscData)
+	data.copyFromResourceData(rscData)
 
 	data.ConfigInterface = configInterface
 	data.Match = match
@@ -391,7 +391,7 @@ func (dsc *interfacePhysicalDataSource) searchName(
 	return intConfigList[0], nil
 }
 
-func (dscData *interfacePhysicalDataSourceData) CopyFromResourceData(rscData interfacePhysicalData) {
+func (dscData *interfacePhysicalDataSourceData) copyFromResourceData(rscData interfacePhysicalData) {
 	dscData.ID = rscData.ID
 	dscData.Name = rscData.Name
 	dscData.Description = rscData.Description

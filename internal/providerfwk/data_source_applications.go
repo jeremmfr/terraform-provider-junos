@@ -260,7 +260,7 @@ func (dsc *applicationsDataSource) Read(
 	defer junSess.Close()
 
 	junos.MutexLock()
-	applicationMap, err := dsc.Search(junSess)
+	applicationMap, err := dsc.search(junSess)
 	junos.MutexUnlock()
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
@@ -268,7 +268,7 @@ func (dsc *applicationsDataSource) Read(
 		return
 	}
 
-	if err := data.Filter(applicationMap); err != nil {
+	if err := data.filter(applicationMap); err != nil {
 		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
 
 		return
@@ -279,7 +279,7 @@ func (dsc *applicationsDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
-func (dsc *applicationsDataSource) Search(
+func (dsc *applicationsDataSource) search(
 	junSess *junos.Session,
 ) (
 	map[string]applicationsDataSourceBlockApplications, error,
@@ -402,7 +402,7 @@ func (block *applicationsDataSourceBlockApplicationsBlockTerm) read(itemTrim str
 	return nil
 }
 
-func (dscData *applicationsDataSourceData) Filter(
+func (dscData *applicationsDataSourceData) filter(
 	results map[string]applicationsDataSourceBlockApplications,
 ) error {
 	if v := dscData.MatchName.ValueString(); v != "" {
