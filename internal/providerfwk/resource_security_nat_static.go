@@ -364,7 +364,7 @@ func (rsc *securityNatStatic) ValidateConfig(
 		)
 	}
 
-	if !config.Rule.IsNull() {
+	if !config.Rule.IsNull() && !config.Rule.IsUnknown() {
 		var rule []securityNatStaticBlockRuleConfig
 		asDiags := config.Rule.ElementsAs(ctx, &rule, false)
 		if asDiags.HasError() {
