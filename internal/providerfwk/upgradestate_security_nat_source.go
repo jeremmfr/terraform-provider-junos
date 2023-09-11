@@ -122,15 +122,33 @@ func upgradeSecurityNatSourceV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		ID          types.String                   `tfsdk:"id"`
-		Name        types.String                   `tfsdk:"name"`
-		Description types.String                   `tfsdk:"description"`
-		From        []securityNatSourceBlockFromTo `tfsdk:"from"`
-		To          []securityNatSourceBlockFromTo `tfsdk:"to"`
-		Rule        []struct {
-			Name  types.String                           `tfsdk:"name"`
-			Match []securityNatSourceBlockRuleBlockMatch `tfsdk:"match"`
-			Then  []securityNatSourceBlockRuleBlockThen  `tfsdk:"then"`
+		ID          types.String `tfsdk:"id"`
+		Name        types.String `tfsdk:"name"`
+		Description types.String `tfsdk:"description"`
+		From        []struct {
+			Type  types.String   `tfsdk:"type"`
+			Value []types.String `tfsdk:"value"`
+		} `tfsdk:"from"`
+		To []struct {
+			Type  types.String   `tfsdk:"type"`
+			Value []types.String `tfsdk:"value"`
+		} `tfsdk:"to"`
+		Rule []struct {
+			Name  types.String `tfsdk:"name"`
+			Match []struct {
+				Application            []types.String `tfsdk:"application"`
+				DestinationAddress     []types.String `tfsdk:"destination_address"`
+				DestinationAddressName []types.String `tfsdk:"destination_address_name"`
+				DestinationPort        []types.String `tfsdk:"destination_port"`
+				Protocol               []types.String `tfsdk:"protocol"`
+				SourceAddress          []types.String `tfsdk:"source_address"`
+				SourceAddressName      []types.String `tfsdk:"source_address_name"`
+				SourcePort             []types.String `tfsdk:"source_port"`
+			} `tfsdk:"match"`
+			Then []struct {
+				Type types.String `tfsdk:"type"`
+				Pool types.String `tfsdk:"pool"`
+			} `tfsdk:"then"`
 		} `tfsdk:"rule"`
 	}
 
@@ -145,20 +163,38 @@ func upgradeSecurityNatSourceV0toV1(
 	dataV1.Name = dataV0.Name
 	dataV1.Description = dataV0.Description
 	if len(dataV0.From) > 0 {
-		dataV1.From = &dataV0.From[0]
+		dataV1.From = &securityNatSourceBlockFromTo{
+			Type:  dataV0.From[0].Type,
+			Value: dataV0.From[0].Value,
+		}
 	}
 	if len(dataV0.To) > 0 {
-		dataV1.To = &dataV0.To[0]
+		dataV1.To = &securityNatSourceBlockFromTo{
+			Type:  dataV0.To[0].Type,
+			Value: dataV0.To[0].Value,
+		}
 	}
 	for _, blockV0 := range dataV0.Rule {
 		blockV1 := securityNatSourceBlockRule{
 			Name: blockV0.Name,
 		}
 		if len(blockV0.Match) > 0 {
-			blockV1.Match = &blockV0.Match[0]
+			blockV1.Match = &securityNatSourceBlockRuleBlockMatch{
+				Application:            blockV0.Match[0].Application,
+				DestinationAddress:     blockV0.Match[0].DestinationAddress,
+				DestinationAddressName: blockV0.Match[0].DestinationAddressName,
+				DestinationPort:        blockV0.Match[0].DestinationPort,
+				Protocol:               blockV0.Match[0].Protocol,
+				SourceAddress:          blockV0.Match[0].SourceAddress,
+				SourceAddressName:      blockV0.Match[0].SourceAddressName,
+				SourcePort:             blockV0.Match[0].SourcePort,
+			}
 		}
 		if len(blockV0.Then) > 0 {
-			blockV1.Then = &blockV0.Then[0]
+			blockV1.Then = &securityNatSourceBlockRuleBlockThen{
+				Type: blockV0.Then[0].Type,
+				Pool: blockV0.Then[0].Pool,
+			}
 		}
 		dataV1.Rule = append(dataV1.Rule, blockV1)
 	}

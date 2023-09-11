@@ -37,7 +37,32 @@ func (rsc *policyoptionsPolicyStatement) UpgradeState(_ context.Context) map[int
 					},
 					"then": schema.ListNestedBlock{
 						NestedObject: schema.NestedBlockObject{
-							Attributes: rsc.schemaThenAttributes(),
+							Attributes: map[string]schema.Attribute{
+								"action": schema.StringAttribute{
+									Optional: true,
+								},
+								"as_path_expand": schema.StringAttribute{
+									Optional: true,
+								},
+								"as_path_prepend": schema.StringAttribute{
+									Optional: true,
+								},
+								"default_action": schema.StringAttribute{
+									Optional: true,
+								},
+								"load_balance": schema.StringAttribute{
+									Optional: true,
+								},
+								"next": schema.StringAttribute{
+									Optional: true,
+								},
+								"next_hop": schema.StringAttribute{
+									Optional: true,
+								},
+								"origin": schema.StringAttribute{
+									Optional: true,
+								},
+							},
 							Blocks: map[string]schema.Block{
 								"community": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
@@ -111,7 +136,32 @@ func (rsc *policyoptionsPolicyStatement) UpgradeState(_ context.Context) map[int
 								},
 								"then": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaThenAttributes(),
+										Attributes: map[string]schema.Attribute{
+											"action": schema.StringAttribute{
+												Optional: true,
+											},
+											"as_path_expand": schema.StringAttribute{
+												Optional: true,
+											},
+											"as_path_prepend": schema.StringAttribute{
+												Optional: true,
+											},
+											"default_action": schema.StringAttribute{
+												Optional: true,
+											},
+											"load_balance": schema.StringAttribute{
+												Optional: true,
+											},
+											"next": schema.StringAttribute{
+												Optional: true,
+											},
+											"next_hop": schema.StringAttribute{
+												Optional: true,
+											},
+											"origin": schema.StringAttribute{
+												Optional: true,
+											},
+										},
 										Blocks: map[string]schema.Block{
 											"community": schema.ListNestedBlock{
 												NestedObject: schema.NestedBlockObject{
@@ -184,36 +234,60 @@ func upgradePolicyoptionsPolicyStatementStateV0toV1(
 		From                         []policyoptionsPolicyStatementBlockFrom `tfsdk:"from"`
 		To                           []policyoptionsPolicyStatementBlockTo   `tfsdk:"to"`
 		Then                         []struct {
-			Action          types.String                                                 `tfsdk:"action"`
-			ASPathExpand    types.String                                                 `tfsdk:"as_path_expand"`
-			ASPathPrepend   types.String                                                 `tfsdk:"as_path_prepend"`
-			DefaultAction   types.String                                                 `tfsdk:"default_action"`
-			LoadBalance     types.String                                                 `tfsdk:"load_balance"`
-			Next            types.String                                                 `tfsdk:"next"`
-			NextHop         types.String                                                 `tfsdk:"next_hop"`
-			Origin          types.String                                                 `tfsdk:"origin"`
-			Community       []policyoptionsPolicyStatementBlockThenBlockActionValue      `tfsdk:"community"`
-			LocalPreference []policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"local_preference"`
-			Metric          []policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"metric"`
-			Preference      []policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"preference"`
+			Action        types.String `tfsdk:"action"`
+			ASPathExpand  types.String `tfsdk:"as_path_expand"`
+			ASPathPrepend types.String `tfsdk:"as_path_prepend"`
+			DefaultAction types.String `tfsdk:"default_action"`
+			LoadBalance   types.String `tfsdk:"load_balance"`
+			Next          types.String `tfsdk:"next"`
+			NextHop       types.String `tfsdk:"next_hop"`
+			Origin        types.String `tfsdk:"origin"`
+			Community     []struct {
+				Action types.String `tfsdk:"action"`
+				Value  types.String `tfsdk:"value"`
+			} `tfsdk:"community"`
+			LocalPreference []struct {
+				Action types.String `tfsdk:"action"`
+				Value  types.Int64  `tfsdk:"value"`
+			} `tfsdk:"local_preference"`
+			Metric []struct {
+				Action types.String `tfsdk:"action"`
+				Value  types.Int64  `tfsdk:"value"`
+			} `tfsdk:"metric"`
+			Preference []struct {
+				Action types.String `tfsdk:"action"`
+				Value  types.Int64  `tfsdk:"value"`
+			} `tfsdk:"preference"`
 		} `tfsdk:"then"`
 		Term []struct {
 			Name types.String                            `tfsdk:"name"`
 			From []policyoptionsPolicyStatementBlockFrom `tfsdk:"from"`
 			To   []policyoptionsPolicyStatementBlockTo   `tfsdk:"to"`
 			Then []struct {
-				Action          types.String                                                 `tfsdk:"action"`
-				ASPathExpand    types.String                                                 `tfsdk:"as_path_expand"`
-				ASPathPrepend   types.String                                                 `tfsdk:"as_path_prepend"`
-				DefaultAction   types.String                                                 `tfsdk:"default_action"`
-				LoadBalance     types.String                                                 `tfsdk:"load_balance"`
-				Next            types.String                                                 `tfsdk:"next"`
-				NextHop         types.String                                                 `tfsdk:"next_hop"`
-				Origin          types.String                                                 `tfsdk:"origin"`
-				Community       []policyoptionsPolicyStatementBlockThenBlockActionValue      `tfsdk:"community"`
-				LocalPreference []policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"local_preference"`
-				Metric          []policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"metric"`
-				Preference      []policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"preference"`
+				Action        types.String `tfsdk:"action"`
+				ASPathExpand  types.String `tfsdk:"as_path_expand"`
+				ASPathPrepend types.String `tfsdk:"as_path_prepend"`
+				DefaultAction types.String `tfsdk:"default_action"`
+				LoadBalance   types.String `tfsdk:"load_balance"`
+				Next          types.String `tfsdk:"next"`
+				NextHop       types.String `tfsdk:"next_hop"`
+				Origin        types.String `tfsdk:"origin"`
+				Community     []struct {
+					Action types.String `tfsdk:"action"`
+					Value  types.String `tfsdk:"value"`
+				} `tfsdk:"community"`
+				LocalPreference []struct {
+					Action types.String `tfsdk:"action"`
+					Value  types.Int64  `tfsdk:"value"`
+				} `tfsdk:"local_preference"`
+				Metric []struct {
+					Action types.String `tfsdk:"action"`
+					Value  types.Int64  `tfsdk:"value"`
+				} `tfsdk:"metric"`
+				Preference []struct {
+					Action types.String `tfsdk:"action"`
+					Value  types.Int64  `tfsdk:"value"`
+				} `tfsdk:"preference"`
 			} `tfsdk:"then"`
 		} `tfsdk:"term"`
 	}
@@ -247,16 +321,32 @@ func upgradePolicyoptionsPolicyStatementStateV0toV1(
 			Next:          dataV0.Then[0].Next,
 			NextHop:       dataV0.Then[0].NextHop,
 			Origin:        dataV0.Then[0].Origin,
-			Community:     dataV0.Then[0].Community,
+		}
+		for _, blockV0 := range dataV0.Then[0].Community {
+			dataV1.Then.Community = append(dataV1.Then.Community,
+				policyoptionsPolicyStatementBlockThenBlockActionValue{
+					Action: blockV0.Action,
+					Value:  blockV0.Value,
+				},
+			)
 		}
 		if len(dataV0.Then[0].LocalPreference) > 0 {
-			dataV1.Then.LocalPreference = &dataV0.Then[0].LocalPreference[0]
+			dataV1.Then.LocalPreference = &policyoptionsPolicyStatementBlockThenBlockActionValueInt64{
+				Action: dataV0.Then[0].LocalPreference[0].Action,
+				Value:  dataV0.Then[0].LocalPreference[0].Value,
+			}
 		}
 		if len(dataV0.Then[0].Metric) > 0 {
-			dataV1.Then.Metric = &dataV0.Then[0].Metric[0]
+			dataV1.Then.Metric = &policyoptionsPolicyStatementBlockThenBlockActionValueInt64{
+				Action: dataV0.Then[0].Metric[0].Action,
+				Value:  dataV0.Then[0].Metric[0].Value,
+			}
 		}
 		if len(dataV0.Then[0].Preference) > 0 {
-			dataV1.Then.Preference = &dataV0.Then[0].Preference[0]
+			dataV1.Then.Preference = &policyoptionsPolicyStatementBlockThenBlockActionValueInt64{
+				Action: dataV0.Then[0].Preference[0].Action,
+				Value:  dataV0.Then[0].Preference[0].Value,
+			}
 		}
 	}
 	for _, blockV0 := range dataV0.Term {
@@ -279,16 +369,32 @@ func upgradePolicyoptionsPolicyStatementStateV0toV1(
 				Next:          blockV0.Then[0].Next,
 				NextHop:       blockV0.Then[0].NextHop,
 				Origin:        blockV0.Then[0].Origin,
-				Community:     blockV0.Then[0].Community,
+			}
+			for _, subBlockV0 := range blockV0.Then[0].Community {
+				blockV1.Then.Community = append(blockV1.Then.Community,
+					policyoptionsPolicyStatementBlockThenBlockActionValue{
+						Action: subBlockV0.Action,
+						Value:  subBlockV0.Value,
+					},
+				)
 			}
 			if len(blockV0.Then[0].LocalPreference) > 0 {
-				blockV1.Then.LocalPreference = &blockV0.Then[0].LocalPreference[0]
+				blockV1.Then.LocalPreference = &policyoptionsPolicyStatementBlockThenBlockActionValueInt64{
+					Action: blockV0.Then[0].LocalPreference[0].Action,
+					Value:  blockV0.Then[0].LocalPreference[0].Value,
+				}
 			}
 			if len(blockV0.Then[0].Metric) > 0 {
-				blockV1.Then.Metric = &blockV0.Then[0].Metric[0]
+				blockV1.Then.Metric = &policyoptionsPolicyStatementBlockThenBlockActionValueInt64{
+					Action: blockV0.Then[0].Metric[0].Action,
+					Value:  blockV0.Then[0].Metric[0].Value,
+				}
 			}
 			if len(dataV0.Then[0].Preference) > 0 {
-				blockV1.Then.Preference = &blockV0.Then[0].Preference[0]
+				blockV1.Then.Preference = &policyoptionsPolicyStatementBlockThenBlockActionValueInt64{
+					Action: blockV0.Then[0].Preference[0].Action,
+					Value:  blockV0.Then[0].Preference[0].Value,
+				}
 			}
 		}
 		dataV1.Term = append(dataV1.Term, blockV1)

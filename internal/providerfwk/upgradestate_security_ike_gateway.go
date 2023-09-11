@@ -149,30 +149,43 @@ func (rsc *securityIkeGateway) UpgradeState(_ context.Context) map[int64]resourc
 func upgradeSecurityIkeGatewayV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
-	//nolint:lll
 	type modelV0 struct {
-		GeneralIkeID      types.Bool                                 `tfsdk:"general_ike_id"`
-		NoNatTraversal    types.Bool                                 `tfsdk:"no_nat_traversal"`
-		ID                types.String                               `tfsdk:"id"`
-		Name              types.String                               `tfsdk:"name"`
-		ExternalInterface types.String                               `tfsdk:"external_interface"`
-		Policy            types.String                               `tfsdk:"policy"`
-		Address           []types.String                             `tfsdk:"address"`
-		LocalAddress      types.String                               `tfsdk:"local_address"`
-		Version           types.String                               `tfsdk:"version"`
-		Aaa               []securityIkeGatewayBlockAaa               `tfsdk:"aaa"`
-		DeadPeerDetection []securityIkeGatewayBlockDeadPeerDetection `tfsdk:"dead_peer_detection"`
-		DynamicRemote     []struct {
-			ConnectionsLimit          types.Int64                                                  `tfsdk:"connections_limit"`
-			Hostname                  types.String                                                 `tfsdk:"hostname"`
-			IkeUserType               types.String                                                 `tfsdk:"ike_user_type"`
-			Inet                      types.String                                                 `tfsdk:"inet"`
-			Inet6                     types.String                                                 `tfsdk:"inet6"`
-			RejectDuplicateConnection types.Bool                                                   `tfsdk:"reject_duplicate_connection"`
-			UserAtHostname            types.String                                                 `tfsdk:"user_at_hostname"`
-			DistinguishedName         []securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName `tfsdk:"distinguished_name"`
+		GeneralIkeID      types.Bool     `tfsdk:"general_ike_id"`
+		NoNatTraversal    types.Bool     `tfsdk:"no_nat_traversal"`
+		ID                types.String   `tfsdk:"id"`
+		Name              types.String   `tfsdk:"name"`
+		ExternalInterface types.String   `tfsdk:"external_interface"`
+		Policy            types.String   `tfsdk:"policy"`
+		Address           []types.String `tfsdk:"address"`
+		LocalAddress      types.String   `tfsdk:"local_address"`
+		Version           types.String   `tfsdk:"version"`
+		Aaa               []struct {
+			AccessProfile  types.String `tfsdk:"access_profile"`
+			ClientPassword types.String `tfsdk:"client_password"`
+			ClientUsername types.String `tfsdk:"client_username"`
+		} `tfsdk:"aaa"`
+		DeadPeerDetection []struct {
+			Interval  types.Int64  `tfsdk:"interval"`
+			SendMode  types.String `tfsdk:"send_mode"`
+			Threshold types.Int64  `tfsdk:"threshold"`
+		} `tfsdk:"dead_peer_detection"`
+		DynamicRemote []struct {
+			ConnectionsLimit          types.Int64  `tfsdk:"connections_limit"`
+			Hostname                  types.String `tfsdk:"hostname"`
+			IkeUserType               types.String `tfsdk:"ike_user_type"`
+			Inet                      types.String `tfsdk:"inet"`
+			Inet6                     types.String `tfsdk:"inet6"`
+			RejectDuplicateConnection types.Bool   `tfsdk:"reject_duplicate_connection"`
+			UserAtHostname            types.String `tfsdk:"user_at_hostname"`
+			DistinguishedName         []struct {
+				Container types.String `tfsdk:"container"`
+				Wildcard  types.String `tfsdk:"wildcard"`
+			} `tfsdk:"distinguished_name"`
 		} `tfsdk:"dynamic_remote"`
-		LocalIdentity  []securityIkeGatewayBlockLocalIdentity `tfsdk:"local_identity"`
+		LocalIdentity []struct {
+			Type  types.String `tfsdk:"type"`
+			Value types.String `tfsdk:"value"`
+		} `tfsdk:"local_identity"`
 		RemoteIdentity []struct {
 			Type  types.String `tfsdk:"type"`
 			Value types.String `tfsdk:"value"`
@@ -206,17 +219,31 @@ func upgradeSecurityIkeGatewayV0toV1(
 			UserAtHostname:            dataV0.DynamicRemote[0].UserAtHostname,
 		}
 		if len(dataV0.DynamicRemote[0].DistinguishedName) > 0 {
-			dataV1.DynamicRemote.DistinguishedName = &dataV0.DynamicRemote[0].DistinguishedName[0]
+			dataV1.DynamicRemote.DistinguishedName = &securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName{
+				Container: dataV0.DynamicRemote[0].DistinguishedName[0].Container,
+				Wildcard:  dataV0.DynamicRemote[0].DistinguishedName[0].Wildcard,
+			}
 		}
 	}
 	if len(dataV0.Aaa) > 0 {
-		dataV1.Aaa = &dataV0.Aaa[0]
+		dataV1.Aaa = &securityIkeGatewayBlockAaa{
+			AccessProfile:  dataV0.Aaa[0].AccessProfile,
+			ClientPassword: dataV0.Aaa[0].ClientPassword,
+			ClientUsername: dataV0.Aaa[0].ClientUsername,
+		}
 	}
 	if len(dataV0.DeadPeerDetection) > 0 {
-		dataV1.DeadPeerDetection = &dataV0.DeadPeerDetection[0]
+		dataV1.DeadPeerDetection = &securityIkeGatewayBlockDeadPeerDetection{
+			Interval:  dataV0.DeadPeerDetection[0].Interval,
+			SendMode:  dataV0.DeadPeerDetection[0].SendMode,
+			Threshold: dataV0.DeadPeerDetection[0].Threshold,
+		}
 	}
 	if len(dataV0.LocalIdentity) > 0 {
-		dataV1.LocalIdentity = &dataV0.LocalIdentity[0]
+		dataV1.LocalIdentity = &securityIkeGatewayBlockLocalIdentity{
+			Type:  dataV0.LocalIdentity[0].Type,
+			Value: dataV0.LocalIdentity[0].Value,
+		}
 	}
 	if len(dataV0.RemoteIdentity) > 0 {
 		dataV1.RemoteIdentity = &securityIkeGatewayBlockRemoteIdentity{

@@ -80,17 +80,23 @@ func upgradeSecurityNatStaticRuleV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		ID                     types.String                     `tfsdk:"id"`
-		Name                   types.String                     `tfsdk:"name"`
-		RuleSet                types.String                     `tfsdk:"rule_set"`
-		DestinationAddress     types.String                     `tfsdk:"destination_address"`
-		DestinationAddressName types.String                     `tfsdk:"destination_address_name"`
-		DestinationPort        types.Int64                      `tfsdk:"destination_port"`
-		DestiantionPortTo      types.Int64                      `tfsdk:"destination_port_to"`
-		SourceAddress          []types.String                   `tfsdk:"source_address"`
-		SourceAddressName      []types.String                   `tfsdk:"source_address_name"`
-		SourcePort             []types.String                   `tfsdk:"source_port"`
-		Then                   []securityNatStaticRuleBlockThen `tfsdk:"then"`
+		ID                     types.String   `tfsdk:"id"`
+		Name                   types.String   `tfsdk:"name"`
+		RuleSet                types.String   `tfsdk:"rule_set"`
+		DestinationAddress     types.String   `tfsdk:"destination_address"`
+		DestinationAddressName types.String   `tfsdk:"destination_address_name"`
+		DestinationPort        types.Int64    `tfsdk:"destination_port"`
+		DestiantionPortTo      types.Int64    `tfsdk:"destination_port_to"`
+		SourceAddress          []types.String `tfsdk:"source_address"`
+		SourceAddressName      []types.String `tfsdk:"source_address_name"`
+		SourcePort             []types.String `tfsdk:"source_port"`
+		Then                   []struct {
+			Type            types.String `tfsdk:"type"`
+			MappedPort      types.Int64  `tfsdk:"mapped_port"`
+			MappedPortTo    types.Int64  `tfsdk:"mapped_port_to"`
+			Prefix          types.String `tfsdk:"prefix"`
+			RoutingInstance types.String `tfsdk:"routing_instance"`
+		} `tfsdk:"then"`
 	}
 
 	var dataV0 modelV0
@@ -111,7 +117,13 @@ func upgradeSecurityNatStaticRuleV0toV1(
 	dataV1.SourceAddressName = dataV0.SourceAddressName
 	dataV1.SourcePort = dataV0.SourcePort
 	if len(dataV0.Then) > 0 {
-		dataV1.Then = &dataV0.Then[0]
+		dataV1.Then = &securityNatStaticRuleBlockThen{
+			Type:            dataV0.Then[0].Type,
+			MappedPort:      dataV0.Then[0].MappedPort,
+			MappedPortTo:    dataV0.Then[0].MappedPortTo,
+			Prefix:          dataV0.Then[0].Prefix,
+			RoutingInstance: dataV0.Then[0].RoutingInstance,
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, dataV1)...)
