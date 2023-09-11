@@ -161,7 +161,7 @@ func (dsc *applicationsDataSource) Schema(
 						},
 						"protocol": schema.StringAttribute{
 							Optional:    true,
-							Description: " Match IP protocol type.",
+							Description: "Match IP protocol type.",
 						},
 						"rpc_program_number": schema.StringAttribute{
 							Optional:    true,

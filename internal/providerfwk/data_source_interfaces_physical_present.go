@@ -74,7 +74,7 @@ func (dsc *interfacesPhysicalPresentDataSource) Schema(
 			},
 			"match_name": schema.StringAttribute{
 				Optional:    true,
-				Description: " A regexp to apply filter on name.",
+				Description: "A regexp to apply filter on name.",
 				Validators: []validator.String{
 					tfvalidator.StringRegex(),
 				},
