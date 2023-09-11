@@ -823,7 +823,7 @@ func (rsc *policyoptionsPolicyStatement) schemaThenBlocks() map[string]schema.Bl
 				"action": schema.StringAttribute{
 					Required:    false, // true when SingleNestedBlock is specified
 					Optional:    true,
-					Description: " Action on local-preference.",
+					Description: "Action on local-preference.",
 					Validators: []validator.String{
 						stringvalidator.OneOf("add", "subtract", "none"),
 					},
