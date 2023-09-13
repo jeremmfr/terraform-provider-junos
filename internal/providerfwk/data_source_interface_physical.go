@@ -224,6 +224,10 @@ func (dsc *interfacePhysicalDataSource) Schema(
 				Computed:    true,
 				Description: "Interface mode is trunk.",
 			},
+			"trunk_non_els": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Port mode is trunk.",
+			},
 			"vlan_members": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
@@ -232,6 +236,10 @@ func (dsc *interfacePhysicalDataSource) Schema(
 			"vlan_native": schema.Int64Attribute{
 				Computed:    true,
 				Description: "Vlan for untagged frames.",
+			},
+			"vlan_native_non_els": schema.StringAttribute{
+				Computed:    true,
+				Description: "Vlan for untagged frames (non-ELS).",
 			},
 			"vlan_tagging": schema.BoolAttribute{
 				Computed:    true,
@@ -248,6 +256,7 @@ type interfacePhysicalDataSourceData struct {
 	NoGratuitousArpReply   types.Bool                             `tfsdk:"no_gratuitous_arp_reply"`
 	NoGratuitousArpRequest types.Bool                             `tfsdk:"no_gratuitous_arp_request"`
 	Trunk                  types.Bool                             `tfsdk:"trunk"`
+	TrunkNonELS            types.Bool                             `tfsdk:"trunk_non_els"`
 	VlanTagging            types.Bool                             `tfsdk:"vlan_tagging"`
 	ID                     types.String                           `tfsdk:"id"`
 	ConfigInterface        types.String                           `tfsdk:"config_interface"`
@@ -262,6 +271,7 @@ type interfacePhysicalDataSourceData struct {
 	Speed                  types.String                           `tfsdk:"speed"`
 	VlanMembers            []types.String                         `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                            `tfsdk:"vlan_native"`
+	VlanNativeNonELS       types.String                           `tfsdk:"vlan_native_non_els"`
 	ESI                    *interfacePhysicalBlockESI             `tfsdk:"esi"`
 	EtherOpts              *interfacePhysicalBlockEtherOpts       `tfsdk:"ether_opts"`
 	GigetherOpts           *interfacePhysicalBlockEtherOpts       `tfsdk:"gigether_opts"`
@@ -411,7 +421,9 @@ func (dscData *interfacePhysicalDataSourceData) copyFromResourceData(rscData int
 	dscData.ParentEtherOpts = rscData.ParentEtherOpts
 	dscData.Speed = rscData.Speed
 	dscData.Trunk = rscData.Trunk
+	dscData.TrunkNonELS = rscData.TrunkNonELS
 	dscData.VlanMembers = rscData.VlanMembers
 	dscData.VlanNative = rscData.VlanNative
+	dscData.VlanNativeNonELS = rscData.VlanNativeNonELS
 	dscData.VlanTagging = rscData.VlanTagging
 }
