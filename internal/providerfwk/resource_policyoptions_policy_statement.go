@@ -2583,7 +2583,7 @@ func (rscData *policyoptionsPolicyStatementData) read(
 	}
 
 	showConfigForwardingTableExport, err := junSess.Command(junos.CmdShowConfig +
-		"routing-options forwarding-table export" + junos.PipeDisplaySetRelative)
+		junos.RoutingOptionsWS + "forwarding-table export" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}

@@ -22,9 +22,9 @@ resource "junos_static_route" "demo_static_route" {
 The following arguments are supported:
 
 - **destination** (Required, String, Forces new resource)  
-  The destination for static route.
+  Destination prefix.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Routing instance for route.  
+  Routing instance for static route.  
   Need to be `default` or name of routing instance.  
   Defaults to `default`.
 - **active** (Optional, Boolean)  
@@ -42,7 +42,7 @@ The following arguments are supported:
 - **as_path_path** (Optional, String)  
   Path to as-path.
 - **community** (Optional, List of String)  
-  List of BGP community.
+  BGP community.
 - **discard** (Optional, Boolean)  
   Drop packets to destination; send no ICMP unreachables.  
   Conflict with `next_hop`, `next_table`, `qualified_next_hop`, `receive` and `reject`.
@@ -55,7 +55,7 @@ The following arguments are supported:
 - **metric** (Optional, Number)  
   Metric for static route.
 - **next_hop** (Optional, List of String)  
-  List of next-hop.  
+  Next-hop to destination.  
   Conflict with `discard`, `next_table`, `receive` and `reject`.
 - **next_table** (Optional, String)  
   Next hop to another table.  
@@ -66,10 +66,10 @@ The following arguments are supported:
 - **preference** (Optional, Number)  
   Preference for static route.
 - **qualified_next_hop** (Optional, Block List)  
-  For each `next_hop`.  
+  For each `next_hop` with qualifiers.  
   Conflict with `discard`, `next_table`, `receive` and `reject`.
   - **next_hop** (Required, String)  
-    Target for qualified-next-hop.
+    Next-hop with qualifiers to destination.
   - **interface** (Optional, String)  
     Interface of qualified next hop (Cannot be used with interface set as next-hop).
   - **metric** (Optional, Number)  

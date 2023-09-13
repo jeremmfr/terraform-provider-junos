@@ -22,9 +22,9 @@ resource "junos_aggregate_route" "demo_aggregate_route" {
 The following arguments are supported:
 
 - **destination** (Required, String, Forces new resource)  
-  The destination for aggregate route.
+  Destination prefix.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Routing instance for route.  
+  Routing instance for aggregate route.  
   Need to be `default` or name of routing instance.  
   Defaults to `default`
 - **active** (Optional, Boolean)  
@@ -43,7 +43,7 @@ The following arguments are supported:
 - **brief** (Optional, Boolean)  
   Include longest common sequences from contributing paths.
 - **community** (Optional, List of String)  
-  List of BGP community.
+  BGP community.
 - **discard** (Optional, Boolean)  
   Drop packets to destination; send no ICMP unreachables.
 - **full** (Optional, Boolean)  
@@ -53,7 +53,7 @@ The following arguments are supported:
 - **passive** (Optional, Boolean)  
   Retain inactive route in forwarding table.
 - **policy** (Optional, List of String)  
-  List of Policy filter.
+  Policy filter.
 - **preference** (Optional, Number)  
   Preference for aggregate route.
 

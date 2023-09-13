@@ -89,19 +89,19 @@ type GetRouteInformationReply struct {
 			Route     []struct {
 				Destination string `xml:"rt-destination"`
 				Entry       []struct {
-					ASPath          string    `xml:"as-path"`
+					ASPath          *string   `xml:"as-path"`
 					CurrentActive   *struct{} `xml:"current-active"`
-					LocalPreference int       `xml:"local-preference"`
-					Metric          int       `xml:"metric"`
+					LocalPreference *int      `xml:"local-preference"`
+					Metric          *int      `xml:"metric"`
 					NextHop         []struct {
 						SelectedNextHop *struct{} `xml:"selected-next-hop"`
-						LocalInterface  string    `xml:"nh-local-interface"`
-						To              string    `xml:"to"`
-						Via             string    `xml:"via"`
+						LocalInterface  *string   `xml:"nh-local-interface"`
+						To              *string   `xml:"to"`
+						Via             *string   `xml:"via"`
 					} `xml:"nh"`
-					NextHopType string `xml:"nh-type"`
-					Preference  int    `xml:"preference"`
-					Protocol    string `xml:"protocol-name"`
+					NextHopType *string `xml:"nh-type"`
+					Preference  *int    `xml:"preference"`
+					Protocol    *string `xml:"protocol-name"`
 				} `xml:"rt-entry"`
 			} `xml:"rt"`
 		} `xml:"route-table"`

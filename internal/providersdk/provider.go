@@ -146,7 +146,6 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"junos_access_address_assignment_pool":                       resourceAccessAddressAssignPool(),
-			"junos_aggregate_route":                                      resourceAggregateRoute(),
 			"junos_bridge_domain":                                        resourceBridgeDomain(),
 			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_chassis_redundancy":                                   resourceChassisRedundancy(),
@@ -157,7 +156,6 @@ func Provider() *schema.Provider {
 			"junos_forwardingoptions_dhcprelay":                          resourceForwardingOptionsDhcpRelay(),
 			"junos_forwardingoptions_dhcprelay_group":                    resourceForwardingOptionsDhcpRelayGroup(),
 			"junos_forwardingoptions_dhcprelay_servergroup":              resourceForwardingOptionsDhcpRelayServerGroup(),
-			"junos_generate_route":                                       resourceGenerateRoute(),
 			"junos_group_dual_system":                                    resourceGroupDualSystem(),
 			"junos_igmp_snooping_vlan":                                   resourceIgmpSnoopingVlan(),
 			"junos_layer2_control":                                       resourceLayer2Control(),
@@ -203,7 +201,6 @@ func Provider() *schema.Provider {
 			"junos_snmp_v3_vacm_accessgroup":                             resourceSnmpV3VacmAccessGroup(),
 			"junos_snmp_v3_vacm_securitytogroup":                         resourceSnmpV3VacmSecurityToGroup(),
 			"junos_snmp_view":                                            resourceSnmpView(),
-			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_switch_options":                                       resourceSwitchOptions(),
 			"junos_system":                                               resourceSystem(),
 			"junos_system_login_class":                                   resourceSystemLoginClass(),
@@ -221,7 +218,6 @@ func Provider() *schema.Provider {
 			"junos_vstp_vlan_group":                                      resourceVstpVlanGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"junos_routes":             dataSourceRoutes(),
 			"junos_system_information": dataSourceSystemInformation(),
 		},
 		ConfigureContextFunc: configureProvider,

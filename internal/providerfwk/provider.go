@@ -192,6 +192,7 @@ func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataS
 		newInterfaceLogicalInfoDataSource,
 		newInterfacePhysicalDataSource,
 		newInterfacesPhysicalPresentDataSource,
+		newRoutesDataSource,
 		newRoutingInstanceDataSource,
 		newSecurityZoneDataSource,
 	}
@@ -199,6 +200,7 @@ func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataS
 
 func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		newAggregateRouteResource,
 		newApplicationSetResource,
 		newApplicationResource,
 		newBgpGroupResource,
@@ -207,6 +209,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newFirewallPolicerResource,
 		newForwardingoptionsSamplingResource,
 		newForwardingoptionsSamplingInstanceResource,
+		newGenerateRouteResource,
 		newInterfaceLogicalResource,
 		newInterfacePhysicalDisableResource,
 		newInterfacePhysicalResource,
@@ -240,6 +243,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSecurityZoneBookAddressSetResource,
 		newServicesFlowMonitoringV9TemplateResource,
 		newServicesFlowMonitoringVIPFixTemplateResource,
+		newStaticRouteResource,
 	}
 }
 

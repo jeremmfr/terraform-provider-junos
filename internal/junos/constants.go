@@ -17,6 +17,9 @@ const (
 	SetRoutingInstances = SetLS + RoutingInstancesWS
 	DelRoutingInstances = DeleteLS + RoutingInstancesWS
 
+	RoutingOptionsWS = "routing-options "
+	RibInet60WS      = "rib inet6.0 "
+
 	EmptyW   = "empty"
 	PermitW  = "permit"
 	DiscardW = "discard"
