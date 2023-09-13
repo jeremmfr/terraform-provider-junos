@@ -1,6 +1,46 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.2.0 (September 13, 2023)
+
+ENHANCEMENTS:
+
+* **resource/junos_interface_physical**: add `trunk_non_els` and `vlan_native_non_els` arguments (Fix [#521](https://github.com/jeremmfr/terraform-provider-junos/issues/521))
+* **data-source/junos_interface_physical**: add `trunk_non_els` and `vlan_native_non_els` attributes
+* **resource/junos_aggregate_route**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value
+* **resource/junos_generate_route**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value
+* **resource/junos_static_route**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value
+* **data-source/junos_routes**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+* **resource/junos_security_nat_destination**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_security_nat_destination_pool**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional string attributes doesn't accept *empty* value
+* **resource/junos_security_nat_source**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_security_nat_source_pool**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional string attributes doesn't accept *empty* value
+* **resource/junos_security_nat_static**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+  optional boolean attributes doesn't accept value *false*  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_security_nat_static_rule**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* release now with golang 1.21
+
 ## v2.1.3 (August 30, 2023)
 
 BUG FIXES:

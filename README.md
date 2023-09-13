@@ -30,7 +30,7 @@ for provider and resources documentation.
 
 ### In addition to develop
 
-- [Go](https://golang.org/doc/install) `v1.19` or `v1.20`
+- [Go](https://golang.org/doc/install) `v1.20` or `v1.21`
 
 ## Automatic install
 

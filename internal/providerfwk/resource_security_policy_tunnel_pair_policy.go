@@ -77,7 +77,9 @@ func (rsc *securityPolicyTunnelPairPolicy) Schema(
 			"id": schema.StringAttribute{
 				Computed: true,
 				Description: "An identifier for the resource with format " +
-					"`<zone_a>_-_<policy_a_to_b>_-_<zone_b>_-_<policy_b_to_a>`.",
+					"`<zone_a>" + junos.IDSeparator + "<policy_a_to_b>" +
+					junos.IDSeparator +
+					"<zone_b>" + junos.IDSeparator + "<policy_b_to_a>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

@@ -84,18 +84,18 @@ The following arguments are supported in the `provider` block:
 - **sshkey_pem** (Optional, String)  
   This is the ssh key in PEM format for establish ssh connection.  
   It can also be sourced from the `JUNOS_KEYPEM` environment variable.  
-  Defaults is empty.
+  Defaults to empty.
 
 - **sshkeyfile** (Optional, String)  
   This is the path to ssh key for establish ssh connection.  
   Used only if `sshkey_pem` is empty.  
   It can also be sourced from the `JUNOS_KEYFILE` environment variable.  
-  Defaults is empty.
+  Defaults to empty.
 
 - **password** (Optional, String)  
   This is a password for ssh connection.  
   It can also be sourced from the `JUNOS_PASSWORD` environment variable.  
-  Defaults is empty.
+  Defaults to empty.
 
 - **port** (Optional, Number)  
   This is the tcp port for ssh connection.  
@@ -105,7 +105,7 @@ The following arguments are supported in the `provider` block:
 - **keypass** (Optional, String)  
   This is the passphrase for open `sshkeyfile` or `sshkey_pem`.  
   It can also be sourced from the `JUNOS_KEYPASS` environment variable.  
-  Defaults is empty.
+  Defaults to empty.
 
 - **group_interface_delete** (Optional, String)  
   This is the Junos group used to remove configuration on a physical interface.  
@@ -177,7 +177,7 @@ The following arguments are supported in the `provider` block:
 - **debug_netconf_log_path** (Optional, String)  
   More detailed log (netconf) in the specified file.  
   It can also be sourced from the `JUNOS_LOG_PATH` environment variable.  
-  Defaults is empty.
+  Defaults to empty.
 
   ~> **NOTE:** If this option is used (not empty), all Junos commands are logged in this file,
   therefore there may be sensitive data in plain text in the file.
@@ -208,7 +208,7 @@ The following arguments are supported in the `provider` block:
 
   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment
   variable.  
-  Defaults is empty.
+  Defaults to empty.
 
   ~> **NOTE:** If this option is used (not empty), all Junos commands are added to this file,
   therefore there may be sensitive data in plain text in the file.
@@ -229,7 +229,7 @@ The following arguments are supported in the `provider` block:
 
   It can also be sourced from the `JUNOS_FAKEUPDATE_ALSO` environment variable and
   its value is `true`.  
-  Defaults is `false`.
+  Defaults to `false`.
 
 - **fake_delete_also** (Optional, Boolean, **don't use in normal terraform run**)  
   As with `create` and `fake_create_with_setfile`, when this option is true, the normal
@@ -245,7 +245,7 @@ The following arguments are supported in the `provider` block:
 
   It can also be sourced from the `JUNOS_FAKEDELETE_ALSO` environment variable and
   its value is `true`.  
-  Defaults is `false`.
+  Defaults to `false`.
 
 ## Interface specifications
 

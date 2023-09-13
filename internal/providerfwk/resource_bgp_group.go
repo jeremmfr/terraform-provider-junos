@@ -88,7 +88,7 @@ func (rsc *bgpGroup) Schema(
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "An identifier for the resource with format `<name>_-_<routing_instance>`.",
+				Description: "An identifier for the resource with format `<name>" + junos.IDSeparator + "<routing_instance>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

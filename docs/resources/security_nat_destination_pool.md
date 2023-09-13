@@ -21,18 +21,18 @@ resource "junos_security_nat_destination_pool" "demo_dnat_pool" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of destination nat pool.
+  Pool name.
 - **address** (Required, String)  
-  IP/mask for destination nat pool.
+  CIDR address to destination nat pool.
 - **address_port** (Optional, Number)  
   Port change too with destination nat.  
   Conflict with `address_to`.
 - **address_to** (Optional, String)  
-  IP/mask for range of destination nat pool (range = `address` to `address_to`).
+  CIDR to define range of address to destination nat pool (range = `address` to `address_to`).
 - **description** (Optional, String)  
-  Text description of pool
+  Text description of pool.
 - **routing_instance** (Optional, String)  
-  Name of routing instance for switch instance with nat.
+  Name of routing instance to switch instance with nat.
 
 ## Attributes Reference
 

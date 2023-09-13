@@ -87,8 +87,9 @@ func (rsc *bgpNeighbor) Schema(
 		Description: "Provides a " + rsc.junosName() + ".",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "An identifier for the resource with format `<ip>_-_<routing_instance>_-_<group>`.",
+				Computed: true,
+				Description: "An identifier for the resource with format " +
+					"`<ip>" + junos.IDSeparator + "<routing_instance>" + junos.IDSeparator + "<group>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

@@ -298,52 +298,69 @@ func upgradeBgpNeighborStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		AcceptRemoteNexthop          types.Bool                     `tfsdk:"accept_remote_nexthop"`
-		AdvertiseExternal            types.Bool                     `tfsdk:"advertise_external"`
-		AdvertiseExternalConditional types.Bool                     `tfsdk:"advertise_external_conditional"`
-		AdvertiseInactive            types.Bool                     `tfsdk:"advertise_inactive"`
-		AdvertisePeerAS              types.Bool                     `tfsdk:"advertise_peer_as"`
-		NoAdvertisePeerAS            types.Bool                     `tfsdk:"no_advertise_peer_as"`
-		ASOverride                   types.Bool                     `tfsdk:"as_override"`
-		Damping                      types.Bool                     `tfsdk:"damping"`
-		KeepAll                      types.Bool                     `tfsdk:"keep_all"`
-		KeepNone                     types.Bool                     `tfsdk:"keep_none"`
-		LocalASAlias                 types.Bool                     `tfsdk:"local_as_alias"`
-		LocalASNoPrependGlobalAS     types.Bool                     `tfsdk:"local_as_no_prepend_global_as"`
-		LocalASPrivate               types.Bool                     `tfsdk:"local_as_private"`
-		LogUpdown                    types.Bool                     `tfsdk:"log_updown"`
-		MetricOutIgp                 types.Bool                     `tfsdk:"metric_out_igp"`
-		MetricOutIgpDelayMedUpdate   types.Bool                     `tfsdk:"metric_out_igp_delay_med_update"`
-		MetricOutMinimumIgp          types.Bool                     `tfsdk:"metric_out_minimum_igp"`
-		MtuDiscovery                 types.Bool                     `tfsdk:"mtu_discovery"`
-		Multihop                     types.Bool                     `tfsdk:"multihop"`
-		Passive                      types.Bool                     `tfsdk:"passive"`
-		RemovePrivate                types.Bool                     `tfsdk:"remove_private"`
-		AuthenticationAlgorithm      types.String                   `tfsdk:"authentication_algorithm"`
-		AuthenticationKey            types.String                   `tfsdk:"authentication_key"`
-		AuthenticationKeyChain       types.String                   `tfsdk:"authentication_key_chain"`
-		Cluster                      types.String                   `tfsdk:"cluster"`
-		Export                       []types.String                 `tfsdk:"export"`
-		Group                        types.String                   `tfsdk:"group"`
-		HoldTime                     types.Int64                    `tfsdk:"hold_time"`
-		ID                           types.String                   `tfsdk:"id"`
-		Import                       []types.String                 `tfsdk:"import"`
-		IP                           types.String                   `tfsdk:"ip"`
-		LocalAddress                 types.String                   `tfsdk:"local_address"`
-		LocalAS                      types.String                   `tfsdk:"local_as"`
-		LocalASLoops                 types.Int64                    `tfsdk:"local_as_loops"`
-		LocalInterface               types.String                   `tfsdk:"local_interface"`
-		LocalPreference              types.Int64                    `tfsdk:"local_preference"`
-		MetricOut                    types.Int64                    `tfsdk:"metric_out"`
-		MetricOutIgpOffset           types.Int64                    `tfsdk:"metric_out_igp_offset"`
-		MetricOutMinimumIgpOffset    types.Int64                    `tfsdk:"metric_out_minimum_igp_offset"`
-		OutDelay                     types.Int64                    `tfsdk:"out_delay"`
-		PeerAS                       types.String                   `tfsdk:"peer_as"`
-		Preference                   types.Int64                    `tfsdk:"preference"`
-		RoutingInstance              types.String                   `tfsdk:"routing_instance"`
-		BfdLivenessDetection         []bgpBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
-		BgpMultipath                 []bgpBlockBgpMultipath         `tfsdk:"bgp_multipath"`
-		FamilyEvpn                   []struct {
+		AcceptRemoteNexthop          types.Bool     `tfsdk:"accept_remote_nexthop"`
+		AdvertiseExternal            types.Bool     `tfsdk:"advertise_external"`
+		AdvertiseExternalConditional types.Bool     `tfsdk:"advertise_external_conditional"`
+		AdvertiseInactive            types.Bool     `tfsdk:"advertise_inactive"`
+		AdvertisePeerAS              types.Bool     `tfsdk:"advertise_peer_as"`
+		NoAdvertisePeerAS            types.Bool     `tfsdk:"no_advertise_peer_as"`
+		ASOverride                   types.Bool     `tfsdk:"as_override"`
+		Damping                      types.Bool     `tfsdk:"damping"`
+		KeepAll                      types.Bool     `tfsdk:"keep_all"`
+		KeepNone                     types.Bool     `tfsdk:"keep_none"`
+		LocalASAlias                 types.Bool     `tfsdk:"local_as_alias"`
+		LocalASNoPrependGlobalAS     types.Bool     `tfsdk:"local_as_no_prepend_global_as"`
+		LocalASPrivate               types.Bool     `tfsdk:"local_as_private"`
+		LogUpdown                    types.Bool     `tfsdk:"log_updown"`
+		MetricOutIgp                 types.Bool     `tfsdk:"metric_out_igp"`
+		MetricOutIgpDelayMedUpdate   types.Bool     `tfsdk:"metric_out_igp_delay_med_update"`
+		MetricOutMinimumIgp          types.Bool     `tfsdk:"metric_out_minimum_igp"`
+		MtuDiscovery                 types.Bool     `tfsdk:"mtu_discovery"`
+		Multihop                     types.Bool     `tfsdk:"multihop"`
+		Passive                      types.Bool     `tfsdk:"passive"`
+		RemovePrivate                types.Bool     `tfsdk:"remove_private"`
+		AuthenticationAlgorithm      types.String   `tfsdk:"authentication_algorithm"`
+		AuthenticationKey            types.String   `tfsdk:"authentication_key"`
+		AuthenticationKeyChain       types.String   `tfsdk:"authentication_key_chain"`
+		Cluster                      types.String   `tfsdk:"cluster"`
+		Export                       []types.String `tfsdk:"export"`
+		Group                        types.String   `tfsdk:"group"`
+		HoldTime                     types.Int64    `tfsdk:"hold_time"`
+		ID                           types.String   `tfsdk:"id"`
+		Import                       []types.String `tfsdk:"import"`
+		IP                           types.String   `tfsdk:"ip"`
+		LocalAddress                 types.String   `tfsdk:"local_address"`
+		LocalAS                      types.String   `tfsdk:"local_as"`
+		LocalASLoops                 types.Int64    `tfsdk:"local_as_loops"`
+		LocalInterface               types.String   `tfsdk:"local_interface"`
+		LocalPreference              types.Int64    `tfsdk:"local_preference"`
+		MetricOut                    types.Int64    `tfsdk:"metric_out"`
+		MetricOutIgpOffset           types.Int64    `tfsdk:"metric_out_igp_offset"`
+		MetricOutMinimumIgpOffset    types.Int64    `tfsdk:"metric_out_minimum_igp_offset"`
+		OutDelay                     types.Int64    `tfsdk:"out_delay"`
+		PeerAS                       types.String   `tfsdk:"peer_as"`
+		Preference                   types.Int64    `tfsdk:"preference"`
+		RoutingInstance              types.String   `tfsdk:"routing_instance"`
+		BfdLivenessDetection         []struct {
+			AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
+			AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
+			AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
+			DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
+			HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
+			MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
+			MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
+			Multiplier                      types.Int64  `tfsdk:"multiplier"`
+			SessionMode                     types.String `tfsdk:"session_mode"`
+			TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
+			TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
+			Version                         types.String `tfsdk:"version"`
+		} `tfsdk:"bfd_liveness_detection"`
+		BgpMultipath []struct {
+			AllowProtection types.Bool `tfsdk:"allow_protection"`
+			Disable         types.Bool `tfsdk:"disable"`
+			MultipleAS      types.Bool `tfsdk:"multiple_as"`
+		} `tfsdk:"bgp_multipath"`
+		FamilyEvpn []struct {
 			NlriType            types.String                     `tfsdk:"nlri_type"`
 			AcceptedPrefixLimit []bgpBlockFamilyBlockPrefixLimit `tfsdk:"accepted_prefix_limit"`
 			PrefixLimit         []bgpBlockFamilyBlockPrefixLimit `tfsdk:"prefix_limit"`
@@ -358,7 +375,11 @@ func upgradeBgpNeighborStateV0toV1(
 			AcceptedPrefixLimit []bgpBlockFamilyBlockPrefixLimit `tfsdk:"accepted_prefix_limit"`
 			PrefixLimit         []bgpBlockFamilyBlockPrefixLimit `tfsdk:"prefix_limit"`
 		} `tfsdk:"family_inet6"`
-		GracefulRestart []bgpBlockGracefulRestart `tfsdk:"graceful_restart"`
+		GracefulRestart []struct {
+			Disable        types.Bool  `tfsdk:"disable"`
+			RestartTime    types.Int64 `tfsdk:"restart_time"`
+			StaleRouteTime types.Int64 `tfsdk:"stale_route_time"`
+		} `tfsdk:"graceful_restart"`
 	}
 
 	var dataV0 modelV0
@@ -412,10 +433,27 @@ func upgradeBgpNeighborStateV0toV1(
 	dataV1.Preference = dataV0.Preference
 	dataV1.RemovePrivate = dataV0.RemovePrivate
 	if len(dataV0.BfdLivenessDetection) > 0 {
-		dataV1.BfdLivenessDetection = &dataV0.BfdLivenessDetection[0]
+		dataV1.BfdLivenessDetection = &bgpBlockBfdLivenessDetection{
+			AuthenticationLooseCheck:        dataV0.BfdLivenessDetection[0].AuthenticationLooseCheck,
+			AuthenticationAlgorithm:         dataV0.BfdLivenessDetection[0].AuthenticationAlgorithm,
+			AuthenticationKeyChain:          dataV0.BfdLivenessDetection[0].AuthenticationKeyChain,
+			DetectionTimeThreshold:          dataV0.BfdLivenessDetection[0].DetectionTimeThreshold,
+			HolddownInterval:                dataV0.BfdLivenessDetection[0].HolddownInterval,
+			MinimumInterval:                 dataV0.BfdLivenessDetection[0].MinimumInterval,
+			MinimumReceiveInterval:          dataV0.BfdLivenessDetection[0].MinimumReceiveInterval,
+			Multiplier:                      dataV0.BfdLivenessDetection[0].Multiplier,
+			SessionMode:                     dataV0.BfdLivenessDetection[0].SessionMode,
+			TransmitIntervalMinimumInterval: dataV0.BfdLivenessDetection[0].TransmitIntervalMinimumInterval,
+			TransmitIntervalThreshold:       dataV0.BfdLivenessDetection[0].TransmitIntervalThreshold,
+			Version:                         dataV0.BfdLivenessDetection[0].Version,
+		}
 	}
 	if len(dataV0.BgpMultipath) > 0 {
-		dataV1.BgpMultipath = &dataV0.BgpMultipath[0]
+		dataV1.BgpMultipath = &bgpBlockBgpMultipath{
+			AllowProtection: dataV0.BgpMultipath[0].AllowProtection,
+			Disable:         dataV0.BgpMultipath[0].Disable,
+			MultipleAS:      dataV0.BgpMultipath[0].MultipleAS,
+		}
 	}
 	for _, blockV0 := range dataV0.FamilyEvpn {
 		blockV1 := bgpBlockFamily{
@@ -454,7 +492,11 @@ func upgradeBgpNeighborStateV0toV1(
 		dataV1.FamilyInet6 = append(dataV1.FamilyInet6, blockV1)
 	}
 	if len(dataV0.GracefulRestart) > 0 {
-		dataV1.GracefulRestart = &dataV0.GracefulRestart[0]
+		dataV1.GracefulRestart = &bgpBlockGracefulRestart{
+			Disable:        dataV0.GracefulRestart[0].Disable,
+			RestartTime:    dataV0.GracefulRestart[0].RestartTime,
+			StaleRouteTime: dataV0.GracefulRestart[0].StaleRouteTime,
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, dataV1)...)

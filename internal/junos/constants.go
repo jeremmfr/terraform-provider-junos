@@ -17,6 +17,9 @@ const (
 	SetRoutingInstances = SetLS + RoutingInstancesWS
 	DelRoutingInstances = DeleteLS + RoutingInstancesWS
 
+	RoutingOptionsWS = "routing-options "
+	RibInet60WS      = "rib inet6.0 "
+
 	EmptyW   = "empty"
 	PermitW  = "permit"
 	DiscardW = "discard"
@@ -24,10 +27,9 @@ const (
 
 	St0Word = "st0"
 
-	EvpnW  = "evpn"
 	InetW  = "inet"
 	Inet6W = "inet6"
-	MplsW  = "mpls"
+
 	OspfV2 = "ospf"
 	OspfV3 = "ospf3"
 
@@ -39,7 +41,7 @@ const (
 	EnvPassword              = "JUNOS_PASSWORD"
 	EnvKeyPem                = "JUNOS_KEYPEM"
 	EnvKeyFile               = "JUNOS_KEYFILE"
-	EnvKeyPass               = "JUNOS_KEYPASS" //nolint:gosec
+	EnvKeyPass               = "JUNOS_KEYPASS"
 	EnvGroupInterfaceDelete  = "JUNOS_GROUP_INTERFACE_DELETE"
 	EnvSleepShort            = "JUNOS_SLEEP_SHORT"
 	EnvSleepLock             = "JUNOS_SLEEP_LOCK"

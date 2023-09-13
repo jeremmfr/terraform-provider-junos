@@ -86,7 +86,7 @@ func (rsc *firewallFilter) Schema(
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "An identifier for the resource with format `<name>_-_<family>`.",
+				Description: "An identifier for the resource with format `<name>" + junos.IDSeparator + "<family>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

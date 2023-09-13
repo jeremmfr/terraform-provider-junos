@@ -1,10 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccJunosStaticRoute_basic(t *testing.T) {
@@ -250,7 +250,7 @@ resource "junos_static_route" "testacc_staticRoute_instance" {
   community = ["no-advertise"]
 }
 resource "junos_static_route" "testacc_staticRoute_default" {
-  destination = "192.0.2.0/24"
+  destination = "192.0.2.0/25"
   preference  = 100
   metric      = 100
   next_hop    = ["st0.0"]
@@ -270,6 +270,12 @@ resource "junos_static_route" "testacc_staticRoute_default" {
   as_path_atomic_aggregate     = true
   as_path_origin               = "igp"
   as_path_path                 = "65000 65000"
+}
+resource "junos_static_route" "testacc_staticRoute2_default" {
+  destination = "192.0.2.128/28"
+  next_hop = [
+    "192.0.2.254"
+  ]
 }
 resource "junos_static_route" "testacc_staticRoute_ipv6_default" {
   destination = "2001:db8:85a3::/48"

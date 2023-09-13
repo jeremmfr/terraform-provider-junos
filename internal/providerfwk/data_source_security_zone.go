@@ -252,11 +252,11 @@ func (dsc *securityZoneDataSource) Read(
 	}
 
 	var data securityZoneDataSourceData
-	data.CopyFromResourceData(rscData)
+	data.copyFromResourceData(rscData)
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
-func (dscData *securityZoneDataSourceData) CopyFromResourceData(rscData securityZoneData) {
+func (dscData *securityZoneDataSourceData) copyFromResourceData(rscData securityZoneData) {
 	dscData.ID = rscData.ID
 	dscData.Name = rscData.Name
 	dscData.AdvancePolicyBasedRoutingProfile = rscData.AdvancePolicyBasedRoutingProfile

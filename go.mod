@@ -1,20 +1,20 @@
 module github.com/jeremmfr/terraform-provider-junos
 
-go 1.19
+go 1.20
 
 require (
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
-	github.com/hashicorp/terraform-plugin-framework v1.3.3
-	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0
+	github.com/hashicorp/terraform-plugin-framework v1.3.5
+	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-mux v0.11.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
 	github.com/hashicorp/terraform-plugin-testing v1.4.0
-	github.com/jeremmfr/go-netconf v0.4.12
-	github.com/jeremmfr/go-utils v0.9.0
+	github.com/jeremmfr/go-netconf v0.4.13
+	github.com/jeremmfr/go-utils v0.10.0
 	github.com/jeremmfr/junosdecode v1.1.1
-	golang.org/x/crypto v0.11.0
+	golang.org/x/crypto v0.13.0
 )
 
 require (
@@ -55,8 +55,8 @@ require (
 	github.com/zclconf/go-cty v1.13.2 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.56.1 // indirect

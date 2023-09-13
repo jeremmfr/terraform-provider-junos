@@ -626,7 +626,7 @@ func (rsc *interfaceLogical) Schema(
 				},
 				Blocks: map[string]schema.Block{
 					"address": schema.ListNestedBlock{
-						Description: " For each IPv6 address to declare.",
+						Description: "For each IPv6 address to declare.",
 						NestedObject: schema.NestedBlockObject{
 							Attributes: map[string]schema.Attribute{
 								"cidr_ip": schema.StringAttribute{

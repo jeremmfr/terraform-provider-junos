@@ -5,21 +5,21 @@ jobs:
     name: golangci-lint
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.20
+      - name: Set up Go 1.21
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
           check-latest: true
         id: go
       - name: Disable cgo
         run: |
           echo "CGO_ENABLED=0" >> $GITHUB_ENV
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.53
+          version: 'v1.54.2'
           args: -c .golangci.yml -v
 
   markdown-lint:
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Markdown files linting
       uses: avto-dev/markdown-lint@v1
@@ -38,18 +38,18 @@ jobs:
     name: terrafmt
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.20
+      - name: Set up Go 1.21
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
           check-latest: true
         id: go
       - name: Show version
         run: go version
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check out terrafmt code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: katbyte/terrafmt
           ref: v0.5.2
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: diff SingleNestedBlock and BlockRemoveNull
         working-directory: ./internal/providerfwk
         run: diff <( grep 'schema.SingleNestedBlock{' -c * ) <( grep 'BlockRemoveNull()' -c *)

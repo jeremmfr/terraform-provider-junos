@@ -823,7 +823,7 @@ func (rsc *policyoptionsPolicyStatement) schemaThenBlocks() map[string]schema.Bl
 				"action": schema.StringAttribute{
 					Required:    false, // true when SingleNestedBlock is specified
 					Optional:    true,
-					Description: " Action on local-preference.",
+					Description: "Action on local-preference.",
 					Validators: []validator.String{
 						stringvalidator.OneOf("add", "subtract", "none"),
 					},
@@ -2446,7 +2446,7 @@ func (block *policyoptionsPolicyStatementBlockThen) configSet(
 		values := v.Action.ValueString() + " " + v.Value.ValueString()
 		if _, ok := communityBlock[values]; ok {
 			return configSet,
-				pathRoot.AtName("community").AtListIndex(i),
+				pathRoot.AtName("community").AtListIndex(i).AtName("action"),
 				fmt.Errorf("multiple community blocks with the same argument values %q in then block", values)
 		}
 		communityBlock[values] = struct{}{}
@@ -2583,7 +2583,7 @@ func (rscData *policyoptionsPolicyStatementData) read(
 	}
 
 	showConfigForwardingTableExport, err := junSess.Command(junos.CmdShowConfig +
-		"routing-options forwarding-table export" + junos.PipeDisplaySetRelative)
+		junos.RoutingOptionsWS + "forwarding-table export" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}

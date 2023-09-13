@@ -68,11 +68,20 @@ func upgradeFirewallPolicerStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		FilterSpecific types.Bool                        `tfsdk:"filter_specific"`
-		ID             types.String                      `tfsdk:"id"`
-		Name           types.String                      `tfsdk:"name"`
-		IfExceeding    []firewallPolicerBlockIfExceeding `tfsdk:"if_exceeding"`
-		Then           []firewallPolicerBlockThen        `tfsdk:"then"`
+		FilterSpecific types.Bool   `tfsdk:"filter_specific"`
+		ID             types.String `tfsdk:"id"`
+		Name           types.String `tfsdk:"name"`
+		IfExceeding    []struct {
+			BurstSizeLimit   types.String `tfsdk:"burst_size_limit"`
+			BandwidthPercent types.Int64  `tfsdk:"bandwidth_percent"`
+			BandwidthLimit   types.String `tfsdk:"bandwidth_limit"`
+		} `tfsdk:"if_exceeding"`
+		Then []struct {
+			Discard         types.Bool   `tfsdk:"discard"`
+			OutOfProfile    types.Bool   `tfsdk:"out_of_profile"`
+			ForwardingClass types.String `tfsdk:"forwarding_class"`
+			LossPriority    types.String `tfsdk:"loss_priority"`
+		} `tfsdk:"then"`
 	}
 
 	var dataV0 modelV0
@@ -86,10 +95,19 @@ func upgradeFirewallPolicerStateV0toV1(
 	dataV1.Name = dataV0.Name
 	dataV1.FilterSpecific = dataV0.FilterSpecific
 	if len(dataV0.IfExceeding) > 0 {
-		dataV1.IfExceeding = &dataV0.IfExceeding[0]
+		dataV1.IfExceeding = &firewallPolicerBlockIfExceeding{
+			BurstSizeLimit:   dataV0.IfExceeding[0].BurstSizeLimit,
+			BandwidthPercent: dataV0.IfExceeding[0].BandwidthPercent,
+			BandwidthLimit:   dataV0.IfExceeding[0].BandwidthLimit,
+		}
 	}
 	if len(dataV0.Then) > 0 {
-		dataV1.Then = &dataV0.Then[0]
+		dataV1.Then = &firewallPolicerBlockThen{
+			Discard:         dataV0.Then[0].Discard,
+			OutOfProfile:    dataV0.Then[0].OutOfProfile,
+			ForwardingClass: dataV0.Then[0].ForwardingClass,
+			LossPriority:    dataV0.Then[0].LossPriority,
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, dataV1)...)

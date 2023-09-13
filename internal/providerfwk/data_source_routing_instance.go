@@ -203,11 +203,11 @@ func (dsc *routingInstanceDataSource) Read(
 	}
 
 	var data routingInstanceDataSourceData
-	data.CopyFromResourceData(rscData)
+	data.copyFromResourceData(rscData)
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
-func (dscData *routingInstanceDataSourceData) CopyFromResourceData(rscData routingInstanceData) {
+func (dscData *routingInstanceDataSourceData) copyFromResourceData(rscData routingInstanceData) {
 	dscData.ID = rscData.ID
 	dscData.Name = rscData.Name
 	dscData.Type = rscData.Type
