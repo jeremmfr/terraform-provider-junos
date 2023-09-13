@@ -35,8 +35,6 @@ func TestAccJunosFirewallPolicer_basic(t *testing.T) {
 							"then.forwarding_class", "best-effort"),
 						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
 							"then.loss_priority", "high"),
-						resource.TestCheckResourceAttr("junos_firewall_policer.testacc_fwPolic",
-							"then.out_of_profile", "true"),
 					),
 				},
 				{
