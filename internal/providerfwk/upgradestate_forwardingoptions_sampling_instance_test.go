@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
@@ -16,17 +17,11 @@ func TestAccJunosForwardingoptionsSamplingInstanceUpgradeStateV0toV1_basic(t *te
 		resource.Test(t, resource.TestCase{
 			Steps: []resource.TestStep{
 				{
-					ExternalProviders: map[string]resource.ExternalProvider{
-						"junos": {
-							VersionConstraint: "1.33.0",
-							Source:            "jeremmfr/junos",
-						},
-					},
-					Config: testAccJunosForwardingoptionsSamplingInstanceConfigV0(),
+					ConfigDirectory: config.TestStepDirectory(),
 				},
 				{
 					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-					Config:                   testAccJunosForwardingoptionsSamplingInstanceConfigV0(),
+					ConfigDirectory:          config.TestStepDirectory(),
 					ConfigPlanChecks: resource.ConfigPlanChecks{
 						PreApply: []plancheck.PlanCheck{
 							plancheck.ExpectEmptyPlan(),
@@ -36,37 +31,4 @@ func TestAccJunosForwardingoptionsSamplingInstanceUpgradeStateV0toV1_basic(t *te
 			},
 		})
 	}
-}
-
-func testAccJunosForwardingoptionsSamplingInstanceConfigV0() string {
-	return `
-resource "junos_forwardingoptions_sampling_instance" "testacc_v0toV1_sampInstance" {
-  depends_on = [
-    junos_interface_logical.testacc_v0toV1_sampInstance,
-    junos_system_ntp_server.testacc_v0toV1_sampInstance,
-  ]
-
-  name = "testacc_v0toV1_sampInstance"
-  input {
-    rate = 1
-  }
-  family_inet_output {
-    flow_server {
-      hostname = "192.0.2.1"
-      port     = 3000
-    }
-    interface {
-      name           = "si-0/1/0"
-      source_address = "192.0.2.2"
-    }
-  }
-}
-resource "junos_system_ntp_server" "testacc_v0toV1_sampInstance" {
-  address = "192.0.2.3"
-}
-resource "junos_interface_logical" "testacc_v0toV1_sampInstance" {
-  name = "si-0/1/0.0"
-  family_inet {}
-}
-`
 }

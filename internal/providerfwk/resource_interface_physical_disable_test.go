@@ -1,13 +1,13 @@
 package providerfwk_test
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -25,60 +25,38 @@ func TestAccJunosInterfacePhysicalDisable_basic(t *testing.T) {
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosInterfacePhysicalDisablePreConfigCreate(testaccInterface),
+				ConfigDirectory: config.TestStepDirectory(),
+				ConfigVariables: map[string]config.Variable{
+					"interface": config.StringVariable(testaccInterface),
+				},
 			},
 			{
-				Config:  testAccJunosInterfacePhysicalDisablePreConfigCreate(testaccInterface),
+				ConfigDirectory: config.TestStepDirectory(),
+				ConfigVariables: map[string]config.Variable{
+					"interface": config.StringVariable(testaccInterface),
+				},
 				Destroy: true,
 			},
 			{
-				Config: testAccJunosInterfacePhysicalDisableConfigCreate(testaccInterface),
+				ConfigDirectory: config.TestStepDirectory(),
+				ConfigVariables: map[string]config.Variable{
+					"interface": config.StringVariable(testaccInterface),
+				},
 			},
 			{
-				Config:             testAccJunosInterfacePhysicalDisableConfigConflict(testaccInterface),
+				ConfigDirectory: config.TestStepDirectory(),
+				ConfigVariables: map[string]config.Variable{
+					"interface": config.StringVariable(testaccInterface),
+				},
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config:      testAccJunosInterfacePhysicalDisableConfigConflict(testaccInterface),
+				ConfigDirectory: config.TestStepDirectory(),
+				ConfigVariables: map[string]config.Variable{
+					"interface": config.StringVariable(testaccInterface),
+				},
 				ExpectError: regexp.MustCompile("interface \"" + testaccInterface + "\" is configured"),
 			},
 		},
 	})
-}
-
-func testAccJunosInterfacePhysicalDisablePreConfigCreate(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_interface_disable" {
-  name                  = "%s"
-  no_disable_on_destroy = true
-}
-resource "junos_interface_logical" "testacc_interface_disable" {
-  name        = "${junos_interface_physical.testacc_interface_disable.name}.0"
-  description = "testacc_interface_disable"
-}
-`, interFace)
-}
-
-func testAccJunosInterfacePhysicalDisableConfigCreate(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical_disable" "testacc_interface_disable" {
-  name = "%s"
-}
-resource "junos_interface_physical_disable" "testacc_interface_disable2" {
-  name = "%s"
-}
-`, interFace, interFace)
-}
-
-func testAccJunosInterfacePhysicalDisableConfigConflict(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_interface_disable" {
-  name                  = "%s"
-  description           = "testacc_interface_disable"
-  no_disable_on_destroy = true
-}
-resource "junos_interface_physical_disable" "testacc_interface_disable" {
-  name = "%s"
-}
-`, interFace, interFace)
 }
