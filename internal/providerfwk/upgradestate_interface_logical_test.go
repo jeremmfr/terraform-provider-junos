@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestAccJunosInterfaceLogicalUpgradeStateV0toV1_basic(t *testing.T) {
+func TestAccUpgradeStateResourceInterfaceLogical_V0toV1_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface

@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosVstpVlan_basic(t *testing.T) {
+func TestAccResourceVstpVlan_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosVstpVlanSWConfigCreate(),
+					Config: testAccResourceVstpVlanSWConfigCreate(),
 				},
 				{
-					Config: testAccJunosVstpVlanSWConfigUpdate(),
+					Config: testAccResourceVstpVlanSWConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_vstp_vlan.testacc_ri_vstp_vlan",
@@ -29,7 +29,7 @@ func TestAccJunosVstpVlan_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosVstpVlanSWConfigCreate() string {
+func testAccResourceVstpVlanSWConfigCreate() string {
 	return `
 resource "junos_vstp_vlan" "testacc_vstp_vlan" {
   vlan_id = "10"
@@ -54,7 +54,7 @@ resource "junos_vstp_vlan" "testacc_ri_vstp_vlan_all" {
 `
 }
 
-func testAccJunosVstpVlanSWConfigUpdate() string {
+func testAccResourceVstpVlanSWConfigUpdate() string {
 	return `
 resource "junos_vstp_vlan" "testacc_vstp_vlan" {
   vlan_id                = "10"

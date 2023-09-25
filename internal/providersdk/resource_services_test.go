@@ -7,21 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosServices_basic(t *testing.T) {
+func TestAccResourceServices_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosServicesConfigCreate(),
+					Config: testAccResourceServicesConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services.testacc",
 							"security_intelligence.#", "1"),
 					),
 				},
 				{
-					Config: testAccJunosServicesConfigUpdate(),
+					Config: testAccResourceServicesConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services.testacc",
 							"security_intelligence.#", "1"),
@@ -40,14 +40,14 @@ func TestAccJunosServices_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosServicesConfigUpdate2(),
+					Config: testAccResourceServicesConfigUpdate2(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosServicesConfigCreate() string {
+func testAccResourceServicesConfigCreate() string {
 	return `
 resource "junos_services_proxy_profile" "testacc_services" {
   name               = "testacc_services"
@@ -147,7 +147,7 @@ resource "junos_services" "testacc" {
 `
 }
 
-func testAccJunosServicesConfigUpdate() string {
+func testAccResourceServicesConfigUpdate() string {
 	return `
 resource "junos_services_proxy_profile" "testacc_services" {
   lifecycle {
@@ -235,7 +235,7 @@ resource "junos_services" "testacc" {
 `
 }
 
-func testAccJunosServicesConfigUpdate2() string {
+func testAccResourceServicesConfigUpdate2() string {
 	return `
 resource "junos_services" "testacc" {
   clean_on_destroy = true

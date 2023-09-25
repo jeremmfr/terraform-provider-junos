@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSystem_basic(t *testing.T) {
+func TestAccResourceSystem_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSystemConfigCreate(),
+					Config: testAccResourceSystemConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"host_name", "testacc-terraform"),
@@ -200,7 +200,7 @@ func TestAccJunosSystem_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosSystemConfigUpdate(),
+					Config: testAccResourceSystemConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"internet_options.#", "1"),
@@ -241,7 +241,7 @@ func TestAccJunosSystem_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSystemPostTest(),
+					Config: testAccResourceSystemPostTest(),
 				},
 			},
 		})
@@ -249,7 +249,7 @@ func TestAccJunosSystem_basic(t *testing.T) {
 }
 
 //nolint:lll
-func testAccJunosSystemConfigCreate() string {
+func testAccResourceSystemConfigCreate() string {
 	return `
 data "junos_system_information" "srx" {}
 locals {
@@ -439,7 +439,7 @@ resource "junos_system" "testacc_system" {
 `
 }
 
-func testAccJunosSystemConfigUpdate() string {
+func testAccResourceSystemConfigUpdate() string {
 	return `
 resource "junos_system" "testacc_system" {
   host_name = "testacc-terraform"
@@ -497,7 +497,7 @@ resource "junos_system" "testacc_system" {
 `
 }
 
-func testAccJunosSystemPostTest() string {
+func testAccResourceSystemPostTest() string {
 	return `
 resource "junos_system" "testacc_system" {
   host_name = "testacc-terraform"

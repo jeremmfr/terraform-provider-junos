@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosForwardingOptionsDhcpRelay_basic(t *testing.T) {
+func TestAccResourceForwardingOptionsDhcpRelay_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosForwardingOptionsDhcpRelayConfigCreate(),
+					Config: testAccResourceForwardingOptionsDhcpRelayConfigCreate(),
 				},
 				{
-					Config: testAccJunosForwardingOptionsDhcpRelayConfigUpdate(),
+					Config: testAccResourceForwardingOptionsDhcpRelayConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_forwardingoptions_dhcprelay.testacc_dhcprelay_v4_default",
@@ -40,14 +40,14 @@ func TestAccJunosForwardingOptionsDhcpRelay_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosForwardingOptionsDhcpRelayConfigUpdate2(),
+					Config: testAccResourceForwardingOptionsDhcpRelayConfigUpdate2(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosForwardingOptionsDhcpRelayConfigCreate() string {
+func testAccResourceForwardingOptionsDhcpRelayConfigCreate() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v4_default" {
   active_leasequery {}
@@ -82,7 +82,7 @@ resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v6_ri" {
 }
 
 //nolint:lll
-func testAccJunosForwardingOptionsDhcpRelayConfigUpdate() string {
+func testAccResourceForwardingOptionsDhcpRelayConfigUpdate() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v4_default" {
   active_leasequery {
@@ -430,7 +430,7 @@ resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v6_ri" {
 `
 }
 
-func testAccJunosForwardingOptionsDhcpRelayConfigUpdate2() string {
+func testAccResourceForwardingOptionsDhcpRelayConfigUpdate2() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v4_default" {
 

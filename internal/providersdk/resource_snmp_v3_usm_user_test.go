@@ -6,16 +6,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSnmpV3UsmUser_basic(t *testing.T) {
+func TestAccResourceSnmpV3UsmUser_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSnmpV3UsmUserConfigCreate(),
+				Config: testAccResourceSnmpV3UsmUserConfigCreate(),
 			},
 			{
-				Config: testAccJunosSnmpV3UsmUserConfigUpdate(),
+				Config: testAccResourceSnmpV3UsmUserConfigUpdate(),
 			},
 			{
 				ResourceName:      "junos_snmp_v3_usm_user.testacc_snmpv3user_2",
@@ -31,7 +31,7 @@ func TestAccJunosSnmpV3UsmUser_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosSnmpV3UsmUserConfigCreate() string {
+func testAccResourceSnmpV3UsmUserConfigCreate() string {
 	return `
 resource "junos_snmp_v3_usm_user" "testacc_snmpv3user" {
   name = "testacc_snmpv3user"
@@ -55,7 +55,7 @@ resource "junos_snmp_v3_usm_user" "testacc_snmpv3user_3" {
 `
 }
 
-func testAccJunosSnmpV3UsmUserConfigUpdate() string {
+func testAccResourceSnmpV3UsmUserConfigUpdate() string {
 	return `
 resource "junos_snmp_v3_usm_user" "testacc_snmpv3user" {
   name                = "testacc_snmpv3user"

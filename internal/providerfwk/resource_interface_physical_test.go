@@ -13,7 +13,7 @@ import (
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 // export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's ge-0/0/4.
 // export TESTACC_INTERFACE_AE=ae<num> for choose interface aggregate test else it's ae0.
-func TestAccJunosInterfacePhysical_basic(t *testing.T) {
+func TestAccResourceInterfacePhysical_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	testaccInterfaceAE := "ae0"
@@ -102,7 +102,7 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 	}
 }
 
-func TestAccJunosInterfacePhysical_router(t *testing.T) {
+func TestAccResourceInterfacePhysical_router(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterfaceAE := "ae0"
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -160,7 +160,7 @@ func TestAccJunosInterfacePhysical_router(t *testing.T) {
 	}
 }
 
-func TestAccJunosInterfacePhysical_srx(t *testing.T) {
+func TestAccResourceInterfacePhysical_srx(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -196,7 +196,7 @@ func TestAccJunosInterfacePhysical_srx(t *testing.T) {
 	}
 }
 
-func TestAccJunosInterfacePhysical_switch(t *testing.T) {
+func TestAccResourceInterfacePhysical_switch(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceSwitchTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface

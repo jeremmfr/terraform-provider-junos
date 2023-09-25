@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityIdpPolicy_basic(t *testing.T) {
+func TestAccResourceSecurityIdpPolicy_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityIdpPolicyConfigCreate(),
+					Config: testAccResourceSecurityIdpPolicyConfigCreate(),
 				},
 				{
 					ResourceName:      "junos_security_idp_policy.testacc_idp_pol",
@@ -22,17 +22,17 @@ func TestAccJunosSecurityIdpPolicy_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosSecurityIdpPolicyConfigUpdate(),
+					Config: testAccResourceSecurityIdpPolicyConfigUpdate(),
 				},
 				{
-					Config: testAccJunosSecurityIdpPolicyConfigPostCheck(),
+					Config: testAccResourceSecurityIdpPolicyConfigPostCheck(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosSecurityIdpPolicyConfigCreate() string {
+func testAccResourceSecurityIdpPolicyConfigCreate() string {
 	return `
 resource "junos_security" "testacc_secIdpPolicy" {
   lifecycle {
@@ -129,7 +129,7 @@ resource "junos_security_idp_policy" "testacc_idp_pol" {
 `
 }
 
-func testAccJunosSecurityIdpPolicyConfigUpdate() string {
+func testAccResourceSecurityIdpPolicyConfigUpdate() string {
 	return `
 resource "junos_security" "testacc_secIdpPolicy" {
   idp_sensor_configuration {
@@ -180,7 +180,7 @@ resource "junos_security_idp_policy" "testacc_idp_pol" {
 `
 }
 
-func testAccJunosSecurityIdpPolicyConfigPostCheck() string {
+func testAccResourceSecurityIdpPolicyConfigPostCheck() string {
 	return `
 resource "junos_security" "testacc_secIdpPolicy" {
   alg {

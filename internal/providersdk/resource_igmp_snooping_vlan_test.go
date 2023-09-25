@@ -11,7 +11,7 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3 or xe-0/0/3.
-func TestAccJunosIgmpSnoopingVlan_basic(t *testing.T) {
+func TestAccResourceIgmpSnoopingVlan_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		testaccInterface := junos.DefaultInterfaceSwitchTestAcc
 		if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -22,10 +22,10 @@ func TestAccJunosIgmpSnoopingVlan_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosIgmpSnoopingVlanSWConfigCreate(testaccInterface),
+					Config: testAccResourceIgmpSnoopingVlanSWConfigCreate(testaccInterface),
 				},
 				{
-					Config: testAccJunosIgmpSnoopingVlanSWConfigUpdate(testaccInterface),
+					Config: testAccResourceIgmpSnoopingVlanSWConfigUpdate(testaccInterface),
 				},
 				{
 					ResourceName:      "junos_igmp_snooping_vlan.vlan10",
@@ -44,10 +44,10 @@ func TestAccJunosIgmpSnoopingVlan_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosIgmpSnoopingVlanConfigCreate(testaccInterface),
+					Config: testAccResourceIgmpSnoopingVlanConfigCreate(testaccInterface),
 				},
 				{
-					Config: testAccJunosIgmpSnoopingVlanConfigUpdate(testaccInterface),
+					Config: testAccResourceIgmpSnoopingVlanConfigUpdate(testaccInterface),
 				},
 				{
 					ResourceName:      "junos_igmp_snooping_vlan.vlan10",
@@ -59,7 +59,7 @@ func TestAccJunosIgmpSnoopingVlan_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosIgmpSnoopingVlanSWConfigCreate(interFace string) string {
+func testAccResourceIgmpSnoopingVlanSWConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_igmp_snooping_vlan" "all" {
   name = "all"
@@ -76,7 +76,7 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
 `, interFace)
 }
 
-func testAccJunosIgmpSnoopingVlanSWConfigUpdate(interFace string) string {
+func testAccResourceIgmpSnoopingVlanSWConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_igmp_snooping_vlan" "vlan10" {
   name            = "vlan10"
@@ -108,7 +108,7 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
 `, interFace)
 }
 
-func testAccJunosIgmpSnoopingVlanConfigCreate(interFace string) string {
+func testAccResourceIgmpSnoopingVlanConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_routing_instance" "testacc_igmp_snooping_vlan" {
   name = "testacc_igmp_snooping_vlan"
@@ -130,7 +130,7 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
 `, interFace)
 }
 
-func testAccJunosIgmpSnoopingVlanConfigUpdate(interFace string) string {
+func testAccResourceIgmpSnoopingVlanConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_routing_instance" "testacc_igmp_snooping_vlan" {
   name = "testacc_igmp_snooping_vlan"

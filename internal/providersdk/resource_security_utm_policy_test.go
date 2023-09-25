@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityUtmPolicy_basic(t *testing.T) {
+func TestAccResourceSecurityUtmPolicy_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityUtmPolicyConfigCreate(),
+					Config: testAccResourceSecurityUtmPolicyConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_policy.testacc_Policy",
 							"anti_virus.#", "1"),
@@ -29,7 +29,7 @@ func TestAccJunosSecurityUtmPolicy_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityUtmPolicyConfigUpdate(),
+					Config: testAccResourceSecurityUtmPolicyConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_policy.testacc_Policy",
 							"anti_virus.#", "0"),
@@ -49,7 +49,7 @@ func TestAccJunosSecurityUtmPolicy_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityUtmPolicyConfigCreate() string {
+func testAccResourceSecurityUtmPolicyConfigCreate() string {
 	return `
 resource "junos_security_utm_policy" "testacc_Policy" {
   name = "testacc Policy"
@@ -64,7 +64,7 @@ resource "junos_security_utm_policy" "testacc_Policy" {
 `
 }
 
-func testAccJunosSecurityUtmPolicyConfigUpdate() string {
+func testAccResourceSecurityUtmPolicyConfigUpdate() string {
 	return `
 resource "junos_security_utm_policy" "testacc_Policy" {
   name                  = "testacc Policy"

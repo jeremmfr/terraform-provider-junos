@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosAccessAddressAssignmentPool_basic(t *testing.T) {
+func TestAccResourceAccessAddressAssignmentPool_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosAccessAddressAssignmentPoolCreate(),
+					Config: testAccResourceAccessAddressAssignmentPoolCreate(),
 				},
 				{
-					Config: testAccJunosAccessAddressAssignmentPoolUpdate(),
+					Config: testAccResourceAccessAddressAssignmentPoolUpdate(),
 				},
 				{
 					ResourceName:      "junos_access_address_assignment_pool.testacc_accessAddAssP4",
@@ -39,7 +39,7 @@ func TestAccJunosAccessAddressAssignmentPool_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosAccessAddressAssignmentPoolCreate() string {
+func testAccResourceAccessAddressAssignmentPoolCreate() string {
 	return `
 resource "junos_access_address_assignment_pool" "testacc_accessAddAssP4" {
   name = "testacc_accessAddAssP4"
@@ -63,7 +63,7 @@ resource "junos_access_address_assignment_pool" "testacc_accessAddAssP6_1" {
 `
 }
 
-func testAccJunosAccessAddressAssignmentPoolUpdate() string {
+func testAccResourceAccessAddressAssignmentPoolUpdate() string {
 	return `
 resource "junos_interface_logical" "testacc_accessAddAssP4" {
   name = "lo0.1"

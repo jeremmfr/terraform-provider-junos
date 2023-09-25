@@ -6,16 +6,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSnmpCommunity_basic(t *testing.T) {
+func TestAccResourceSnmpCommunity_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSnmpCommunityConfigCreate(),
+				Config: testAccResourceSnmpCommunityConfigCreate(),
 			},
 			{
-				Config: testAccJunosSnmpCommunityConfigUpdate(),
+				Config: testAccResourceSnmpCommunityConfigUpdate(),
 			},
 			{
 				ResourceName:      "junos_snmp_community.testacc_snmpcom",
@@ -26,7 +26,7 @@ func TestAccJunosSnmpCommunity_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosSnmpCommunityConfigCreate() string {
+func testAccResourceSnmpCommunityConfigCreate() string {
 	return `
 resource "junos_snmp" "testacc_snmpcom" {
   routing_instance_access = true
@@ -62,7 +62,7 @@ resource "junos_snmp_view" "testacc_snmpcom" {
 `
 }
 
-func testAccJunosSnmpCommunityConfigUpdate() string {
+func testAccResourceSnmpCommunityConfigUpdate() string {
 	return `
 resource "junos_snmp_community" "testacc_snmpcom" {
   name                     = "testacc_snmpcom@public"

@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityDynamicAddressName_basic(t *testing.T) {
+func TestAccResourceSecurityDynamicAddressName_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityDynamicAddressNameConfigCreate(),
+					Config: testAccResourceSecurityDynamicAddressNameConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_dynamic_address_name.testacc_dyn_add_name",
 							"profile_feed_name", "feedtfacc"),
@@ -35,7 +35,7 @@ func TestAccJunosSecurityDynamicAddressName_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosSecurityDynamicAddressNameConfigUpdate(),
+					Config: testAccResourceSecurityDynamicAddressNameConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_dynamic_address_name.testacc_dyn_add_name",
 							"profile_category.#", "1"),
@@ -46,7 +46,7 @@ func TestAccJunosSecurityDynamicAddressName_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityDynamicAddressNameConfigCreate() string {
+func testAccResourceSecurityDynamicAddressNameConfigCreate() string {
 	return `
 resource "junos_security_dynamic_address_feed_server" "testacc_dyn_add_name" {
   lifecycle {
@@ -83,7 +83,7 @@ resource "junos_security_dynamic_address_name" "testacc_dyn_add_name2" {
 `
 }
 
-func testAccJunosSecurityDynamicAddressNameConfigUpdate() string {
+func testAccResourceSecurityDynamicAddressNameConfigUpdate() string {
 	return `
 resource "junos_security_dynamic_address_name" "testacc_dyn_add_name" {
   name        = "tfacc_dynadd"

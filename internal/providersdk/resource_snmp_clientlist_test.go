@@ -6,16 +6,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSnmpClientlist_basic(t *testing.T) {
+func TestAccResourceSnmpClientlist_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSnmpClientlistConfigCreate(),
+				Config: testAccResourceSnmpClientlistConfigCreate(),
 			},
 			{
-				Config: testAccJunosSnmpClientlistConfigUpdate(),
+				Config: testAccResourceSnmpClientlistConfigUpdate(),
 			},
 			{
 				ResourceName:      "junos_snmp_clientlist.testacc_snmpclientlist",
@@ -26,7 +26,7 @@ func TestAccJunosSnmpClientlist_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosSnmpClientlistConfigCreate() string {
+func testAccResourceSnmpClientlistConfigCreate() string {
 	return `
 resource "junos_snmp_clientlist" "testacc_snmpclientlist" {
   name = "testacc@snmpclientlist"
@@ -34,7 +34,7 @@ resource "junos_snmp_clientlist" "testacc_snmpclientlist" {
 `
 }
 
-func testAccJunosSnmpClientlistConfigUpdate() string {
+func testAccResourceSnmpClientlistConfigUpdate() string {
 	return `
 resource "junos_snmp_clientlist" "testacc_snmpclientlist" {
   name   = "testacc@snmpclientlist"

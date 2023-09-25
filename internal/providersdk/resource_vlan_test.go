@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosVlan_basic(t *testing.T) {
+func TestAccResourceVlan_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosVlanSwConfigCreate(),
+					Config: testAccResourceVlanSwConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_vlan.testacc_vlansw",
 							"description", "testacc_vlansw"),
@@ -33,7 +33,7 @@ func TestAccJunosVlan_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosVlanSwConfigUpdate(),
+					Config: testAccResourceVlanSwConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_vlan.testacc_vlansw",
 							"vlan_id", "0"),
@@ -63,7 +63,7 @@ func TestAccJunosVlan_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosVlanSwConfigCreate() string {
+func testAccResourceVlanSwConfigCreate() string {
 	return `
 resource "junos_firewall_filter" "testacc_vlansw" {
   lifecycle {
@@ -97,7 +97,7 @@ resource "junos_vlan" "testacc_vlansw" {
 `
 }
 
-func testAccJunosVlanSwConfigUpdate() string {
+func testAccResourceVlanSwConfigUpdate() string {
 	return `
 resource "junos_vlan" "testacc_vlansw" {
   name         = "testacc_vlansw"

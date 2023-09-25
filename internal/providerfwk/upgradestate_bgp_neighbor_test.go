@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestAccJunosBgpNeighborUpgradeStateV0toV1_basic(t *testing.T) {
+func TestAccUpgradeStateResourceBgpNeighbor_V0toV1_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			Steps: []resource.TestStep{

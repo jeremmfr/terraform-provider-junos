@@ -12,7 +12,7 @@ import (
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 // export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's ge-0/0/4.
-func TestAccJunosCluster_basic(t *testing.T) {
+func TestAccResourceChassisCluster_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -27,7 +27,7 @@ func TestAccJunosCluster_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosClusterConfigCreate(testaccInterface, testaccInterface2),
+					Config: testAccResourceChassisClusterConfigCreate(testaccInterface, testaccInterface2),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_chassis_cluster.testacc_cluster",
 							"fab0.#", "1"),
@@ -48,7 +48,7 @@ func TestAccJunosCluster_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosClusterConfigUpdate(testaccInterface, testaccInterface2),
+					Config: testAccResourceChassisClusterConfigUpdate(testaccInterface, testaccInterface2),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_chassis_cluster.testacc_cluster",
 							"redundancy_group.#", "3"),
@@ -68,7 +68,7 @@ func TestAccJunosCluster_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosClusterConfigCreate(interFace, interFace2 string) string {
+func testAccResourceChassisClusterConfigCreate(interFace, interFace2 string) string {
 	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_cluster_int2" {
   name        = "%s"
@@ -102,7 +102,7 @@ resource "junos_chassis_cluster" "testacc_cluster" {
 `, interFace2, interFace)
 }
 
-func testAccJunosClusterConfigUpdate(interFace, interFace2 string) string {
+func testAccResourceChassisClusterConfigUpdate(interFace, interFace2 string) string {
 	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_cluster_int2" {
   name        = "%s"

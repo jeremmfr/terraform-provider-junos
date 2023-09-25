@@ -12,7 +12,7 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3 or xe-0/0/3.
-func TestAccJunosInterfacePhysicalDisable_basic(t *testing.T) {
+func TestAccResourceInterfacePhysicalDisable_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		testaccInterface = junos.DefaultInterfaceSwitchTestAcc

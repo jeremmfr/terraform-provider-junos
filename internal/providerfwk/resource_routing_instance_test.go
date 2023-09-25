@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccJunosRoutingInstance_router(t *testing.T) {
+func TestAccResourceRoutingInstance_router(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
@@ -45,7 +45,7 @@ func TestAccJunosRoutingInstance_router(t *testing.T) {
 	}
 }
 
-func TestAccJunosRoutingInstance_srx(t *testing.T) {
+func TestAccResourceRoutingInstance_srx(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },

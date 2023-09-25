@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccJunosFirewallPolicer_basic(t *testing.T) {
+func TestAccResourceFirewallPolicer_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
@@ -48,7 +48,7 @@ func TestAccJunosFirewallPolicer_basic(t *testing.T) {
 	}
 }
 
-func TestAccJunosFirewallPolicer_srx(t *testing.T) {
+func TestAccResourceFirewallPolicer_srx(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },

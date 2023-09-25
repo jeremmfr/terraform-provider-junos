@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestAccJunosPolicyoptionsPolicyStatementUpgradeStateV0toV1_basic(t *testing.T) {
+func TestAccUpgradeStateResourcePolicyoptionsPolicyStatement_V0toV1_basic(t *testing.T) {
 	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
 		return
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccJunosInterfaceSt0Unit_basic(t *testing.T) {
+func TestAccResourceInterfaceSt0Unit_basic(t *testing.T) {
 	regexpSt0 := regexp.MustCompile("st0.")
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{

@@ -12,7 +12,7 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
-func TestAccJunosSecurityIpsecVPNUpgradeStateV0toV1_basic(t *testing.T) {
+func TestAccUpgradeStateResourceSecurityIpsecVPN_V0toV1_basic(t *testing.T) {
 	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
 		return
 	}

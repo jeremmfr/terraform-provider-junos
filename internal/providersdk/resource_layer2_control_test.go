@@ -12,7 +12,7 @@ import (
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's xe-0/0/3.
 // export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's xe-0/0/4.
-func TestAccJunosLayer2Control_basic(t *testing.T) {
+func TestAccResourceLayer2Control_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	if os.Getenv("TESTACC_SWITCH") != "" {
@@ -30,10 +30,10 @@ func TestAccJunosLayer2Control_basic(t *testing.T) {
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosLayer2ControlConfigCreate(),
+				Config: testAccResourceLayer2ControlConfigCreate(),
 			},
 			{
-				Config: testAccJunosLayer2ControlConfigUpdate(testaccInterface),
+				Config: testAccResourceLayer2ControlConfigUpdate(testaccInterface),
 			},
 			{
 				ResourceName:      "junos_layer2_control.l2c",
@@ -41,13 +41,13 @@ func TestAccJunosLayer2Control_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccJunosLayer2ControlConfigUpdate2(testaccInterface, testaccInterface2),
+				Config: testAccResourceLayer2ControlConfigUpdate2(testaccInterface, testaccInterface2),
 			},
 		},
 	})
 }
 
-func testAccJunosLayer2ControlConfigCreate() string {
+func testAccResourceLayer2ControlConfigCreate() string {
 	return `
 resource "junos_layer2_control" "l2c" {
   bpdu_block {}
@@ -55,7 +55,7 @@ resource "junos_layer2_control" "l2c" {
 `
 }
 
-func testAccJunosLayer2ControlConfigUpdate(interFace string) string {
+func testAccResourceLayer2ControlConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_chassis_redundancy" "l2c" {
   graceful_switchover = true
@@ -85,7 +85,7 @@ resource "junos_layer2_control" "l2c" {
 `, interFace, interFace)
 }
 
-func testAccJunosLayer2ControlConfigUpdate2(interFace, interFace2 string) string {
+func testAccResourceLayer2ControlConfigUpdate2(interFace, interFace2 string) string {
 	return fmt.Sprintf(`
 resource "junos_layer2_control" "l2c" {
   bpdu_block {

@@ -6,16 +6,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosChassisRedundancy_basic(t *testing.T) {
+func TestAccResourceChassisRedundancy_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosChassisRedundancyConfigCreate(),
+				Config: testAccResourceChassisRedundancyConfigCreate(),
 			},
 			{
-				Config: testAccJunosChassisRedundancyConfigUpdate(),
+				Config: testAccResourceChassisRedundancyConfigUpdate(),
 			},
 			{
 				ResourceName:      "junos_chassis_redundancy.testacc_cred",
@@ -26,7 +26,7 @@ func TestAccJunosChassisRedundancy_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosChassisRedundancyConfigCreate() string {
+func testAccResourceChassisRedundancyConfigCreate() string {
 	return `
 resource "junos_chassis_redundancy" "testacc_cred" {
   graceful_switchover = true
@@ -34,7 +34,7 @@ resource "junos_chassis_redundancy" "testacc_cred" {
 `
 }
 
-func testAccJunosChassisRedundancyConfigUpdate() string {
+func testAccResourceChassisRedundancyConfigUpdate() string {
 	return `
 resource "junos_chassis_redundancy" "testacc_cred" {
   failover_disk_read_threshold      = 2000

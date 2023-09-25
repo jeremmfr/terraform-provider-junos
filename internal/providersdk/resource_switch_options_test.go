@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSwitchOptions_basic(t *testing.T) {
+func TestAccResourceSwitchOptions_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSwitchOptionsConfigCreate(),
+					Config: testAccResourceSwitchOptionsConfigCreate(),
 				},
 				{
 					ResourceName:      "junos_switch_options.testacc_switchOpts",
@@ -22,14 +22,14 @@ func TestAccJunosSwitchOptions_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosSwitchOptionsConfigUpdate(),
+					Config: testAccResourceSwitchOptionsConfigUpdate(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosSwitchOptionsConfigCreate() string {
+func testAccResourceSwitchOptionsConfigCreate() string {
 	return `
 resource "junos_interface_logical" "testacc_switchOpts" {
   lifecycle {
@@ -48,7 +48,7 @@ resource "junos_switch_options" "testacc_switchOpts" {
 `
 }
 
-func testAccJunosSwitchOptionsConfigUpdate() string {
+func testAccResourceSwitchOptionsConfigUpdate() string {
 	return `
 resource "junos_switch_options" "testacc_switchOpts" {
 }

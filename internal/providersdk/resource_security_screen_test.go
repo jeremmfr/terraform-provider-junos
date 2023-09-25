@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityScreen_basic(t *testing.T) {
+func TestAccResourceSecurityScreen_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityScreenConfigCreate(),
+					Config: testAccResourceSecurityScreenConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_screen.testacc_securityScreen",
 							"icmp.#", "1"),
@@ -31,7 +31,7 @@ func TestAccJunosSecurityScreen_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityScreenConfigUpdate(),
+					Config: testAccResourceSecurityScreenConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_screen_whitelist.testacc2",
 							"address.#", "1"),
@@ -52,7 +52,7 @@ func TestAccJunosSecurityScreen_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityScreenConfigCreate() string {
+func testAccResourceSecurityScreenConfigCreate() string {
 	return `
 resource "junos_security_screen" "testacc_securityScreen" {
   name               = "testacc 1"
@@ -162,7 +162,7 @@ resource "junos_security_screen_whitelist" "testacc1" {
 `
 }
 
-func testAccJunosSecurityScreenConfigUpdate() string {
+func testAccResourceSecurityScreenConfigUpdate() string {
 	return `
 resource "junos_security_screen" "testacc_securityScreen" {
   name               = "testacc 1"

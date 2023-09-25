@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestAccJunosInterfacePhysicalUpgradeStateV0toV1_basic(t *testing.T) {
+func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	testaccInterfaceAE := "ae0"
@@ -54,7 +54,7 @@ func TestAccJunosInterfacePhysicalUpgradeStateV0toV1_basic(t *testing.T) {
 	}
 }
 
-func TestAccJunosInterfacePhysicalUpgradeStateV0toV1_router(t *testing.T) {
+func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_router(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterfaceAE := "ae0"
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -91,7 +91,7 @@ func TestAccJunosInterfacePhysicalUpgradeStateV0toV1_router(t *testing.T) {
 	}
 }
 
-func TestAccJunosInterfacePhysicalUpgradeStateV0toV1_srx(t *testing.T) {
+func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_srx(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -128,7 +128,7 @@ func TestAccJunosInterfacePhysicalUpgradeStateV0toV1_srx(t *testing.T) {
 	}
 }
 
-func TestAccJunosInterfacePhysicalUpgradeStateV0toV1_switch(t *testing.T) {
+func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_switch(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceSwitchTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface

@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosServicesUserIdentAdAccessDomain_basic(t *testing.T) {
+func TestAccResourceServicesUserIdentAdAccessDomain_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosServicesUserIdentAdAccessDomainCreate(),
+					Config: testAccResourceServicesUserIdentAdAccessDomainCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_user_identification_ad_access_domain.testacc_userID_addomain",
 							"domain_controller.#", "1"),
@@ -25,7 +25,7 @@ func TestAccJunosServicesUserIdentAdAccessDomain_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosServicesUserIdentAdAccessDomainUpdate(),
+					Config: testAccResourceServicesUserIdentAdAccessDomainUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_user_identification_ad_access_domain.testacc_userID_addomain",
 							"domain_controller.#", "2"),
@@ -37,14 +37,14 @@ func TestAccJunosServicesUserIdentAdAccessDomain_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosServicesUserIdentAdAccessDomainPostCheck(),
+					Config: testAccResourceServicesUserIdentAdAccessDomainPostCheck(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosServicesUserIdentAdAccessDomainCreate() string {
+func testAccResourceServicesUserIdentAdAccessDomainCreate() string {
 	return `
 resource "junos_services" "testacc_userID_addomain" {
   user_identification {
@@ -67,7 +67,7 @@ resource "junos_services_user_identification_ad_access_domain" "testacc_userID_a
 `
 }
 
-func testAccJunosServicesUserIdentAdAccessDomainUpdate() string {
+func testAccResourceServicesUserIdentAdAccessDomainUpdate() string {
 	return `
 resource "junos_services" "testacc_userID_addomain" {
   user_identification {
@@ -102,7 +102,7 @@ resource "junos_services_user_identification_ad_access_domain" "testacc_userID_a
 `
 }
 
-func testAccJunosServicesUserIdentAdAccessDomainPostCheck() string {
+func testAccResourceServicesUserIdentAdAccessDomainPostCheck() string {
 	return `
 resource "junos_services" "testacc_userID_addomain" {
 }
