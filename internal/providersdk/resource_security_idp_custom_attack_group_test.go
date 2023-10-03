@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityIdpCustomAttackGroup_basic(t *testing.T) {
+func TestAccResourceSecurityIdpCustomAttackGroup_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityIdpCustomAttackGroupConfigCreate(),
+					Config: testAccResourceSecurityIdpCustomAttackGroupConfigCreate(),
 				},
 				{
-					Config: testAccJunosSecurityIdpCustomAttackGroupConfigUpdate(),
+					Config: testAccResourceSecurityIdpCustomAttackGroupConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_security_idp_custom_attack_group.testacc_idpCustomAttackGroup",
@@ -29,7 +29,7 @@ func TestAccJunosSecurityIdpCustomAttackGroup_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityIdpCustomAttackGroupConfigCreate() string {
+func testAccResourceSecurityIdpCustomAttackGroupConfigCreate() string {
 	return `
 resource "junos_security_idp_custom_attack" "testacc_idpCustomAttackGroup" {
   name               = "testacc/#1_Group"
@@ -51,7 +51,7 @@ resource "junos_security_idp_custom_attack_group" "testacc_idpCustomAttackGroup"
 `
 }
 
-func testAccJunosSecurityIdpCustomAttackGroupConfigUpdate() string {
+func testAccResourceSecurityIdpCustomAttackGroupConfigUpdate() string {
 	return `
 resource "junos_security_idp_custom_attack" "testacc_idpCustomAttackGroup" {
   name               = "testacc/#1_Group"

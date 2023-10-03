@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSystemSyslogFile_basic(t *testing.T) {
+func TestAccResourceSystemSyslogFile_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSystemSyslogFileConfigCreate(),
+				Config: testAccResourceSystemSyslogFileConfigCreate(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_file.testacc_syslogFile",
 						"filename", "testacc"),
@@ -59,7 +59,7 @@ func TestAccJunosSystemSyslogFile_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccJunosSystemSyslogFileConfigUpdate(),
+				Config: testAccResourceSystemSyslogFileConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_file.testacc_syslogFile",
 						"structured_data.#", "1"),
@@ -72,7 +72,7 @@ func TestAccJunosSystemSyslogFile_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccJunosSystemSyslogFileConfigUpdate2(),
+				Config: testAccResourceSystemSyslogFileConfigUpdate2(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_file.testacc_syslogFile",
 						"structured_data.#", "1"),
@@ -111,7 +111,7 @@ func TestAccJunosSystemSyslogFile_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosSystemSyslogFileConfigCreate() string {
+func testAccResourceSystemSyslogFileConfigCreate() string {
 	return `
 resource "junos_system_syslog_file" "testacc_syslogFile" {
   filename                     = "testacc"
@@ -137,7 +137,7 @@ resource "junos_system_syslog_file" "testacc_syslogFile" {
 `
 }
 
-func testAccJunosSystemSyslogFileConfigUpdate() string {
+func testAccResourceSystemSyslogFileConfigUpdate() string {
 	return `
 resource "junos_system_syslog_file" "testacc_syslogFile" {
   filename                     = "testacc"
@@ -167,7 +167,7 @@ resource "junos_system_syslog_file" "testacc_syslogFile2" {
 `
 }
 
-func testAccJunosSystemSyslogFileConfigUpdate2() string {
+func testAccResourceSystemSyslogFileConfigUpdate2() string {
 	return `
 resource "junos_routing_instance" "testacc_syslogFile" {
   name = "testacc_syslogFile"

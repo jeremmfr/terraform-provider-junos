@@ -7,21 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityDynamicAddressFeedServer_basic(t *testing.T) {
+func TestAccResourceSecurityDynamicAddressFeedServer_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityDynamicAddressFeedServerConfigCreate(),
+					Config: testAccResourceSecurityDynamicAddressFeedServerConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_dynamic_address_feed_server.testacc_dyn_add_feed_srv",
 							"feed_name.#", "2"),
 					),
 				},
 				{
-					Config: testAccJunosSecurityDynamicAddressFeedServerConfigUpdate(),
+					Config: testAccResourceSecurityDynamicAddressFeedServerConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_dynamic_address_feed_server.testacc_dyn_add_feed_srv",
 							"feed_name.#", "3"),
@@ -37,7 +37,7 @@ func TestAccJunosSecurityDynamicAddressFeedServer_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityDynamicAddressFeedServerConfigCreate() string {
+func testAccResourceSecurityDynamicAddressFeedServerConfigCreate() string {
 	return `
 resource "junos_security_dynamic_address_feed_server" "testacc_dyn_add_feed_srv" {
   name     = "tfacc_dafeedsrv"
@@ -58,7 +58,7 @@ resource "junos_security_dynamic_address_feed_server" "testacc_dyn_add_feed_srv2
 `
 }
 
-func testAccJunosSecurityDynamicAddressFeedServerConfigUpdate() string {
+func testAccResourceSecurityDynamicAddressFeedServerConfigUpdate() string {
 	return `
 resource "junos_security_dynamic_address_feed_server" "testacc_dyn_add_feed_srv" {
   name        = "tfacc_dafeedsrv"

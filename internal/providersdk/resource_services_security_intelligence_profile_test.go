@@ -7,21 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosServicesSecurityIntellProfile_basic(t *testing.T) {
+func TestAccResourceServicesSecurityIntellProfile_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosServicesSecurityIntellProfileConfigCreate(),
+					Config: testAccResourceServicesSecurityIntellProfileConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_security_intelligence_profile.testacc_svcSecIntelProfile",
 							"rule.#", "1"),
 					),
 				},
 				{
-					Config: testAccJunosServicesSecurityIntellProfileConfigUpdate(),
+					Config: testAccResourceServicesSecurityIntellProfileConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_security_intelligence_profile.testacc_svcSecIntelProfile",
 							"rule.#", "4"),
@@ -37,7 +37,7 @@ func TestAccJunosServicesSecurityIntellProfile_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosServicesSecurityIntellProfileConfigCreate() string {
+func testAccResourceServicesSecurityIntellProfileConfigCreate() string {
 	return `
 resource "junos_services_security_intelligence_profile" "testacc_svcSecIntelProfile" {
   name     = "testacc_svcSecIntelProfile@1"
@@ -55,7 +55,7 @@ resource "junos_services_security_intelligence_profile" "testacc_svcSecIntelProf
 `
 }
 
-func testAccJunosServicesSecurityIntellProfileConfigUpdate() string {
+func testAccResourceServicesSecurityIntellProfileConfigUpdate() string {
 	return `
 resource "junos_services_security_intelligence_profile" "testacc_svcSecIntelProfile" {
   name     = "testacc_svcSecIntelProfile@1"

@@ -11,7 +11,7 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
-func TestAccJunosRipNeighbor_basic(t *testing.T) {
+func TestAccResourceRipNeighbor_basic(t *testing.T) {
 	testaccRipNeigh := junos.DefaultInterfaceTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccRipNeigh = iface
@@ -22,10 +22,10 @@ func TestAccJunosRipNeighbor_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosRipNeighborConfigCreate(testaccRipNeigh),
+					Config: testAccResourceRipNeighborConfigCreate(testaccRipNeigh),
 				},
 				{
-					Config: testAccJunosRipNeighborConfigUpdate(testaccRipNeigh),
+					Config: testAccResourceRipNeighborConfigUpdate(testaccRipNeigh),
 				},
 				{
 					ResourceName:      "junos_rip_neighbor.testacc_ripneigh",
@@ -48,14 +48,14 @@ func TestAccJunosRipNeighbor_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosRipNeighborConfigCreate(testaccRipNeigh),
+					Config: testAccResourceRipNeighborConfigCreate(testaccRipNeigh),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosRipNeighborConfigCreate(interFace string) string {
+func testAccResourceRipNeighborConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_rip_group" "testacc_ripneigh" {
   name = "test_rip_group#1"
@@ -111,7 +111,7 @@ resource "junos_rip_neighbor" "testacc_ripngneigh2" {
 `, interFace)
 }
 
-func testAccJunosRipNeighborConfigUpdate(interFace string) string {
+func testAccResourceRipNeighborConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_policyoptions_policy_statement" "testacc_ripneigh" {
   lifecycle {

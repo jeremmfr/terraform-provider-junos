@@ -7,21 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosServicesUserIdentDeviceIdentityProfile_basic(t *testing.T) {
+func TestAccResourceServicesUserIdentDeviceIdentityProfile_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosServicesUserIdentDeviceIdentityProfileCreate(),
+					Config: testAccResourceServicesUserIdentDeviceIdentityProfileCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_user_identification_device_identity_profile.testacc_devidProf",
 							"attribute.#", "1"),
 					),
 				},
 				{
-					Config: testAccJunosServicesUserIdentDeviceIdentityProfileUpdate(),
+					Config: testAccResourceServicesUserIdentDeviceIdentityProfileUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_user_identification_device_identity_profile.testacc_devidProf",
 							"attribute.#", "2"),
@@ -37,7 +37,7 @@ func TestAccJunosServicesUserIdentDeviceIdentityProfile_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosServicesUserIdentDeviceIdentityProfileCreate() string {
+func testAccResourceServicesUserIdentDeviceIdentityProfileCreate() string {
 	return `
 resource "junos_services_user_identification_device_identity_profile" "testacc_devidProf" {
   name   = "testacc_devidProf.1"
@@ -50,7 +50,7 @@ resource "junos_services_user_identification_device_identity_profile" "testacc_d
 `
 }
 
-func testAccJunosServicesUserIdentDeviceIdentityProfileUpdate() string {
+func testAccResourceServicesUserIdentDeviceIdentityProfileUpdate() string {
 	return `
 resource "junos_services_user_identification_device_identity_profile" "testacc_devidProf" {
   name   = "testacc_devidProf.1"

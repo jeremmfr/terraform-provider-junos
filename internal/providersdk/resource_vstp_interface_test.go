@@ -11,7 +11,7 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's xe-0/0/3.
-func TestAccJunosVstpInterface_basic(t *testing.T) {
+func TestAccResourceVstpInterface_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		testaccInterface := junos.DefaultInterfaceSwitchTestAcc
 		if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -22,10 +22,10 @@ func TestAccJunosVstpInterface_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosVstpInterfaceSWConfigCreate(testaccInterface),
+					Config: testAccResourceVstpInterfaceSWConfigCreate(testaccInterface),
 				},
 				{
-					Config: testAccJunosVstpInterfaceSWConfigUpdate(testaccInterface),
+					Config: testAccResourceVstpInterfaceSWConfigUpdate(testaccInterface),
 				},
 				{
 					ResourceName:      "junos_vstp_interface.testacc_vstp_interface",
@@ -62,7 +62,7 @@ func TestAccJunosVstpInterface_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosVstpInterfaceSWConfigCreate(interFace string) string {
+func testAccResourceVstpInterfaceSWConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_vstp_interface" "testacc_vstp_interface" {
   name = "all"
@@ -117,7 +117,7 @@ resource "junos_vstp_interface" "testacc_vstp_interface6" {
 `, interFace, interFace)
 }
 
-func testAccJunosVstpInterfaceSWConfigUpdate(interFace string) string {
+func testAccResourceVstpInterfaceSWConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_vstp_interface" "testacc_vstp_interface" {
   name                      = "all"

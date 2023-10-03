@@ -1,17 +1,17 @@
 package providerfwk_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
-func TestAccJunosSecurityZone_basic(t *testing.T) {
+func TestAccResourceSecurityZone_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface
@@ -22,7 +22,7 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityZoneConfigCreate(),
+					ConfigDirectory: config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book.#", "1"),
@@ -58,7 +58,10 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosSecurityZoneConfigUpdate(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book.#", "2"),
@@ -75,7 +78,10 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityZoneConfigUpdate2(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_interface_logical.testacc_securityZone",
 							"security_zone", "testacc_securityZone"),
@@ -84,112 +90,4 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 			},
 		})
 	}
-}
-
-func testAccJunosSecurityZoneConfigCreate() string {
-	return `
-resource "junos_security_screen" "testaccZone" {
-  lifecycle {
-    create_before_destroy = true
-  }
-  name        = "testaccZone"
-  description = "testaccZone"
-}
-resource "junos_security_zone" "testacc_securityZone" {
-  name = "testacc_securityZone"
-  address_book {
-    name        = "testacc_zone1"
-    description = "testacc_zone 1"
-    network     = "192.0.2.0/25"
-  }
-  address_book_dns {
-    name        = "testacc_zone2"
-    description = "testacc_zone 2"
-    fqdn        = "test.com"
-  }
-  address_book_dns {
-    name        = "testacc_zone2b"
-    description = "testacc_zone 2b"
-    fqdn        = "test.com"
-    ipv4_only   = true
-  }
-  address_book_dns {
-    name        = "testacc_zone2c"
-    description = "testacc_zone 2c"
-    fqdn        = "test.com"
-    ipv6_only   = true
-  }
-  address_book_range {
-    name        = "testacc_zone3"
-    description = "testacc_zone 3"
-    from        = "192.0.2.10"
-    to          = "192.0.2.12"
-  }
-  address_book_set {
-    name        = "testacc_zoneSet"
-    description = "testacc_zone Set"
-    address     = ["testacc_zone1"]
-  }
-  address_book_set {
-    name        = "testacc_zoneSet2"
-    description = "testacc_zone Set2"
-    address     = ["testacc_zone2c"]
-    address_set = ["testacc_zoneSet"]
-  }
-  address_book_wildcard {
-    name        = "testacc_zone4"
-    description = "testacc_zone 4"
-    network     = "192.0.2.0/255.0.255.255"
-  }
-  application_tracking = true
-  inbound_protocols    = ["bgp"]
-  description          = "testacc securityZone"
-  reverse_reroute      = true
-  screen               = junos_security_screen.testaccZone.id
-  source_identity_log  = true
-  tcp_rst              = true
-}
-`
-}
-
-func testAccJunosSecurityZoneConfigUpdate(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_security_zone" "testacc_securityZone" {
-  name = "testacc_securityZone"
-  address_book {
-    name    = "testacc_zone1"
-    network = "192.0.2.0/25"
-  }
-  address_book {
-    name    = "testacc_zone2"
-    network = "192.0.2.128/25"
-  }
-  address_book_set {
-    name    = "testacc_zoneSet"
-    address = ["testacc_zone1", "testacc_zone2"]
-  }
-  inbound_protocols = ["bgp"]
-  inbound_services  = ["ssh"]
-}
-resource "junos_interface_logical" "testacc_securityZone" {
-  name                       = "%s.0"
-  security_zone              = junos_security_zone.testacc_securityZone.name
-  security_inbound_protocols = ["bgp"]
-  security_inbound_services  = ["ssh"]
-}
-`, interFace)
-}
-
-func testAccJunosSecurityZoneConfigUpdate2(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_security_zone" "testacc_securityZone" {
-  name = "testacc_securityZone"
-}
-resource "junos_interface_logical" "testacc_securityZone" {
-  name                       = "%s.0"
-  security_zone              = junos_security_zone.testacc_securityZone.name
-  security_inbound_protocols = ["bgp"]
-  security_inbound_services  = ["ssh"]
-}
-`, interFace)
 }

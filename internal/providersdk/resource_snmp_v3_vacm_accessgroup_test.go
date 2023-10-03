@@ -6,16 +6,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSnmpV3VacmAccessGroup_basic(t *testing.T) {
+func TestAccResourceSnmpV3VacmAccessGroup_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSnmpV3VacmAccessGroupConfigCreate(),
+				Config: testAccResourceSnmpV3VacmAccessGroupConfigCreate(),
 			},
 			{
-				Config: testAccJunosSnmpV3VacmAccessGroupConfigUpdate(),
+				Config: testAccResourceSnmpV3VacmAccessGroupConfigUpdate(),
 			},
 			{
 				ResourceName:      "junos_snmp_v3_vacm_accessgroup.testacc_group",
@@ -26,7 +26,7 @@ func TestAccJunosSnmpV3VacmAccessGroup_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosSnmpV3VacmAccessGroupConfigCreate() string {
+func testAccResourceSnmpV3VacmAccessGroupConfigCreate() string {
 	return `
 resource "junos_snmp_v3_vacm_accessgroup" "testacc_group" {
   name = "testacc_group#1"
@@ -58,7 +58,7 @@ resource "junos_snmp_v3_vacm_accessgroup" "testacc_group2" {
 `
 }
 
-func testAccJunosSnmpV3VacmAccessGroupConfigUpdate() string {
+func testAccResourceSnmpV3VacmAccessGroupConfigUpdate() string {
 	return `
 resource "junos_snmp_v3_vacm_accessgroup" "testacc_group" {
   name = "testacc_group#1"

@@ -7,21 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosGroupDualSystem_basic(t *testing.T) {
+func TestAccResourceGroupDualSystem_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosGroupDualSystemConfigCreate(),
+					Config: testAccResourceGroupDualSystemConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_group_dual_system.testacc_node0",
 							"apply_groups", "true"),
 					),
 				},
 				{
-					Config: testAccJunosGroupDualSystemConfigUpdate(),
+					Config: testAccResourceGroupDualSystemConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_group_dual_system.testacc_node0",
 							"interface_fxp0.#", "1"),
@@ -47,7 +47,7 @@ func TestAccJunosGroupDualSystem_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosGroupDualSystemConfigCreate() string {
+func testAccResourceGroupDualSystemConfigCreate() string {
 	return `
 resource "junos_group_dual_system" "testacc_node0" {
   name = "node0"
@@ -88,7 +88,7 @@ resource "junos_group_dual_system" "testacc_node0" {
 `
 }
 
-func testAccJunosGroupDualSystemConfigUpdate() string {
+func testAccResourceGroupDualSystemConfigUpdate() string {
 	return `
 resource "junos_group_dual_system" "testacc_node0" {
   name         = "node0"

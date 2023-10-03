@@ -6,16 +6,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosEventoptionsPolicy_basic(t *testing.T) {
+func TestAccResourceEventoptionsPolicy_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosEventoptionsPolicyConfigCreate(),
+				Config: testAccResourceEventoptionsPolicyConfigCreate(),
 			},
 			{
-				Config: testAccJunosEventoptionsPolicyConfigUpdate(),
+				Config: testAccResourceEventoptionsPolicyConfigUpdate(),
 			},
 			{
 				ResourceName:      "junos_eventoptions_policy.testacc_evtopts_policy",
@@ -23,13 +23,13 @@ func TestAccJunosEventoptionsPolicy_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccJunosEventoptionsPolicyConfigUpdate2(),
+				Config: testAccResourceEventoptionsPolicyConfigUpdate2(),
 			},
 		},
 	})
 }
 
-func testAccJunosEventoptionsPolicyConfigCreate() string {
+func testAccResourceEventoptionsPolicyConfigCreate() string {
 	return `
 resource "junos_eventoptions_destination" "testacc_evtopts_policy" {
   lifecycle {
@@ -104,7 +104,7 @@ resource "junos_eventoptions_policy" "testacc_evtopts_policy" {
 `
 }
 
-func testAccJunosEventoptionsPolicyConfigUpdate() string {
+func testAccResourceEventoptionsPolicyConfigUpdate() string {
 	return `
 resource "junos_eventoptions_destination" "testacc_evtopts_policy" {
   lifecycle {
@@ -215,7 +215,7 @@ resource "junos_eventoptions_policy" "testacc_evtopts_policy" {
 `
 }
 
-func testAccJunosEventoptionsPolicyConfigUpdate2() string {
+func testAccResourceEventoptionsPolicyConfigUpdate2() string {
 	return `
 resource "junos_eventoptions_policy" "testacc_evtopts_policy" {
   name   = "testacc_evtopts_policy#1"

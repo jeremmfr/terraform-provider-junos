@@ -1,12 +1,12 @@
 package providerfwk_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -21,10 +21,16 @@ func TestAccDataSourceRoutes_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccDataSourceRoutesPre(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 				},
 				{
-					Config: testAccDataSourceRoutesConfig(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckTypeSetElemNestedAttrs("data.junos_routes.all",
 							"table.*", map[string]string{"name": "inet.0"}),
@@ -57,54 +63,4 @@ func TestAccDataSourceRoutes_basic(t *testing.T) {
 			},
 		})
 	}
-}
-
-func testAccDataSourceRoutesPre(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_routing_instance" "testacc_data_routes" {
-  name = "testacc_data_routes"
-}
-resource "junos_interface_physical" "testacc_data_routes" {
-  name         = "%s"
-  vlan_tagging = true
-}
-resource "junos_interface_logical" "testacc_interface_logical" {
-  name             = "${junos_interface_physical.testacc_data_routes.name}.100"
-  routing_instance = junos_routing_instance.testacc_data_routes.name
-  family_inet {
-    address {
-      cidr_ip = "192.0.2.1/25"
-    }
-  }
-}
-`, interFace)
-}
-
-func testAccDataSourceRoutesConfig(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_routing_instance" "testacc_data_routes" {
-  name = "testacc_data_routes"
-}
-resource "junos_interface_physical" "testacc_data_routes" {
-  name         = "%s"
-  vlan_tagging = true
-}
-resource "junos_interface_logical" "testacc_interface_logical" {
-  name             = "${junos_interface_physical.testacc_data_routes.name}.100"
-  routing_instance = junos_routing_instance.testacc_data_routes.name
-  family_inet {
-    address {
-      cidr_ip = "192.0.2.1/25"
-    }
-  }
-}
-
-data "junos_routes" "all" {}
-data "junos_routes" "default" {
-  table_name = "inet.0"
-}
-data "junos_routes" "testacc" {
-  table_name = "${junos_routing_instance.testacc_data_routes.name}.inet.0"
-}
-`, interFace)
 }

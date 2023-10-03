@@ -6,16 +6,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosEventoptionsGenerateEvent_basic(t *testing.T) {
+func TestAccResourceEventoptionsGenerateEvent_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosEventoptionsGenerateEventConfigCreate(),
+				Config: testAccResourceEventoptionsGenerateEventConfigCreate(),
 			},
 			{
-				Config: testAccJunosEventoptionsGenerateEventConfigUpdate(),
+				Config: testAccResourceEventoptionsGenerateEventConfigUpdate(),
 			},
 			{
 				ResourceName:      "junos_eventoptions_generate_event.testacc_evtopts_genevent",
@@ -26,7 +26,7 @@ func TestAccJunosEventoptionsGenerateEvent_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosEventoptionsGenerateEventConfigCreate() string {
+func testAccResourceEventoptionsGenerateEventConfigCreate() string {
 	return `
 resource "junos_eventoptions_generate_event" "testacc_evtopts_genevent" {
   name          = "testacc_evtopts_genevent#1"
@@ -36,7 +36,7 @@ resource "junos_eventoptions_generate_event" "testacc_evtopts_genevent" {
 `
 }
 
-func testAccJunosEventoptionsGenerateEventConfigUpdate() string {
+func testAccResourceEventoptionsGenerateEventConfigUpdate() string {
 	return `
 resource "junos_eventoptions_generate_event" "testacc_evtopts_genevent" {
   name        = "testacc_evtopts_genevent#1"

@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosEvpn_basic(t *testing.T) {
+func TestAccResourceEvpn_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosEvpnConfigCreate(),
+					Config: testAccResourceEvpnConfigCreate(),
 				},
 				{
 					ResourceName:      "junos_evpn.testacc_evpn_default",
@@ -27,14 +27,14 @@ func TestAccJunosEvpn_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosEvpnConfigUpdate(),
+					Config: testAccResourceEvpnConfigUpdate(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosEvpnConfigCreate() string {
+func testAccResourceEvpnConfigCreate() string {
 	return `
 resource "junos_interface_logical" "testacc_evpn" {
   depends_on = [
@@ -120,7 +120,7 @@ resource "junos_evpn" "testacc_evpn_ri2" {
 `
 }
 
-func testAccJunosEvpnConfigUpdate() string {
+func testAccResourceEvpnConfigUpdate() string {
 	return `
 resource "junos_interface_logical" "testacc_evpn" {
   depends_on = [

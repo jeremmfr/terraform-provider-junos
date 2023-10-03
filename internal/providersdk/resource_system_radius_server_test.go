@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSystemRadiusServer_basic(t *testing.T) {
+func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSystemRadiusServerConfigCreate(),
+				Config: testAccResourceSystemRadiusServerConfigCreate(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
 						"address", "192.0.2.1"),
@@ -21,7 +21,7 @@ func TestAccJunosSystemRadiusServer_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccJunosSystemRadiusServerConfigUpdate(),
+				Config: testAccResourceSystemRadiusServerConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
 						"preauthentication_secret", "password"),
@@ -58,7 +58,7 @@ func TestAccJunosSystemRadiusServer_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosSystemRadiusServerConfigCreate() string {
+func testAccResourceSystemRadiusServerConfigCreate() string {
 	return `
 resource "junos_system_radius_server" "testacc_radiusServer" {
   address = "192.0.2.1"
@@ -67,7 +67,7 @@ resource "junos_system_radius_server" "testacc_radiusServer" {
 `
 }
 
-func testAccJunosSystemRadiusServerConfigUpdate() string {
+func testAccResourceSystemRadiusServerConfigUpdate() string {
 	return `
 resource "junos_routing_instance" "testacc_radiusServer" {
   name = "testacc_radiusServer"

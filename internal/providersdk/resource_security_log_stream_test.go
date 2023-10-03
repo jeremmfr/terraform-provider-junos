@@ -7,18 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityLogStream_basic(t *testing.T) {
+func TestAccResourceSecurityLogStream_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:             testAccJunosSecurityLogStreamConfigPreCreate(),
+					Config:             testAccResourceSecurityLogStreamConfigPreCreate(),
 					ExpectNonEmptyPlan: true,
 				},
 				{
-					Config: testAccJunosSecurityLogStreamConfigCreate(),
+					Config: testAccResourceSecurityLogStreamConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_log_stream.testacc_logstream",
 							"category.#", "1"),
@@ -41,7 +41,7 @@ func TestAccJunosSecurityLogStream_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityLogStreamConfigUpdate(),
+					Config: testAccResourceSecurityLogStreamConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_log_stream.testacc_logstream",
 							"file.#", "1"),
@@ -67,7 +67,7 @@ func TestAccJunosSecurityLogStream_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityLogStreamConfigPreCreate() string {
+func testAccResourceSecurityLogStreamConfigPreCreate() string {
 	return `
 resource "junos_security" "security" {
   log {
@@ -77,7 +77,7 @@ resource "junos_security" "security" {
 `
 }
 
-func testAccJunosSecurityLogStreamConfigCreate() string {
+func testAccResourceSecurityLogStreamConfigCreate() string {
 	return `
 resource "junos_routing_instance" "testacc_logstream" {
   lifecycle {
@@ -100,7 +100,7 @@ resource "junos_security_log_stream" "testacc_logstream" {
 `
 }
 
-func testAccJunosSecurityLogStreamConfigUpdate() string {
+func testAccResourceSecurityLogStreamConfigUpdate() string {
 	return `
 resource "junos_security_log_stream" "testacc_logstream" {
   name = "testacc_logstream"

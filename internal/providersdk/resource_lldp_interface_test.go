@@ -11,7 +11,7 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3 or xe-0/0/3.
-func TestAccJunosLldpInterface_basic(t *testing.T) {
+func TestAccResourceLldpInterface_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		testaccInterface := junos.DefaultInterfaceSwitchTestAcc
 		if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -22,10 +22,10 @@ func TestAccJunosLldpInterface_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosLldpInterfaceSWConfigCreate(testaccInterface),
+					Config: testAccResourceLldpInterfaceSWConfigCreate(testaccInterface),
 				},
 				{
-					Config: testAccJunosLldpInterfaceSWConfigUpdate(testaccInterface),
+					Config: testAccResourceLldpInterfaceSWConfigUpdate(testaccInterface),
 				},
 				{
 					ResourceName:      "junos_lldp_interface.testacc_interface",
@@ -44,10 +44,10 @@ func TestAccJunosLldpInterface_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosLldpInterfaceConfigCreate(testaccInterface),
+					Config: testAccResourceLldpInterfaceConfigCreate(testaccInterface),
 				},
 				{
-					Config: testAccJunosLldpInterfaceConfigUpdate(testaccInterface),
+					Config: testAccResourceLldpInterfaceConfigUpdate(testaccInterface),
 				},
 				{
 					ResourceName:      "junos_lldp_interface.testacc_interface",
@@ -59,7 +59,7 @@ func TestAccJunosLldpInterface_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosLldpInterfaceSWConfigCreate(interFace string) string {
+func testAccResourceLldpInterfaceSWConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldp_interface" "testacc_all" {
   name = "all"
@@ -71,7 +71,7 @@ resource "junos_lldp_interface" "testacc_interface" {
 `, interFace)
 }
 
-func testAccJunosLldpInterfaceSWConfigUpdate(interFace string) string {
+func testAccResourceLldpInterfaceSWConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldp_interface" "testacc_all" {
   name   = "all"
@@ -91,7 +91,7 @@ resource "junos_lldp_interface" "testacc_interface" {
 `, interFace)
 }
 
-func testAccJunosLldpInterfaceConfigCreate(interFace string) string {
+func testAccResourceLldpInterfaceConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldp_interface" "testacc_all" {
   name = "all"
@@ -102,7 +102,7 @@ resource "junos_lldp_interface" "testacc_interface" {
 `, interFace)
 }
 
-func testAccJunosLldpInterfaceConfigUpdate(interFace string) string {
+func testAccResourceLldpInterfaceConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldp_interface" "testacc_all" {
   name                     = "all"

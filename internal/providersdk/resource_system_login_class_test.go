@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSystemLoginClass_basic(t *testing.T) {
+func TestAccResourceSystemLoginClass_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSystemLoginClassConfigCreate(),
+					Config: testAccResourceSystemLoginClassConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_system_login_class.testacc",
 							"name", "testacc"),
@@ -27,7 +27,7 @@ func TestAccJunosSystemLoginClass_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSystemLoginClassConfigUpdate(),
+					Config: testAccResourceSystemLoginClassConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_system_login_class.testacc",
 							"name", "testacc"),
@@ -59,7 +59,7 @@ func TestAccJunosSystemLoginClass_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSystemLoginClassConfigCreate() string {
+func testAccResourceSystemLoginClassConfigCreate() string {
 	return `
 resource "junos_system_login_class" "testacc" {
   name                      = "testacc"
@@ -83,7 +83,7 @@ resource "junos_system_login_class" "testacc" {
 `
 }
 
-func testAccJunosSystemLoginClassConfigUpdate() string {
+func testAccResourceSystemLoginClassConfigUpdate() string {
 	return `
 resource "junos_system_login_class" "testacc" {
   name                        = "testacc"

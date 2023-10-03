@@ -13,7 +13,7 @@ import (
 const testaccNullCommitFile = "/tmp/testacc/terraform-provider-junos/null-commit-file"
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
-func TestAccJunosNullCommitFile_basic(t *testing.T) {
+func TestAccResourceNullCommitFile_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface
@@ -26,20 +26,20 @@ func TestAccJunosNullCommitFile_basic(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosNullCommitFileFakeCreate(testaccInterface),
+				Config: testAccResourceNullCommitFileFakeCreate(testaccInterface),
 			},
 			{
-				Config: testAccJunosNullCommitFileFakeUpdate(testaccInterface),
+				Config: testAccResourceNullCommitFileFakeUpdate(testaccInterface),
 			},
 			{
-				Config: testAccJunosNullCommitFilePreCustom(testaccInterface),
+				Config: testAccResourceNullCommitFilePreCustom(testaccInterface),
 			},
 			{
-				Config:             testAccJunosNullCommitFileCustom(testaccInterface),
+				Config:             testAccResourceNullCommitFileCustom(testaccInterface),
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config:   testAccJunosNullCommitFileRead(testaccInterface),
+				Config:   testAccResourceNullCommitFileRead(testaccInterface),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_interface_physical.testacc_nullcommitfile",
@@ -53,7 +53,7 @@ func TestAccJunosNullCommitFile_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosNullCommitFileFakeCreate(interFace string) string {
+func testAccResourceNullCommitFileFakeCreate(interFace string) string {
 	return fmt.Sprintf(`
 provider "junos" {
   alias                    = "fake"
@@ -76,7 +76,7 @@ resource "junos_null_commit_file" "setfile" {
 `, testaccNullCommitFile, interFace, testaccNullCommitFile)
 }
 
-func testAccJunosNullCommitFileFakeUpdate(interFace string) string {
+func testAccResourceNullCommitFileFakeUpdate(interFace string) string {
 	return fmt.Sprintf(`
 provider "junos" {
   alias                    = "fake"
@@ -100,7 +100,7 @@ resource "junos_null_commit_file" "setfile2" {
 `, testaccNullCommitFile, interFace, testaccNullCommitFile)
 }
 
-func testAccJunosNullCommitFilePreCustom(interFace string) string {
+func testAccResourceNullCommitFilePreCustom(interFace string) string {
 	return fmt.Sprintf(`
 provider "junos" {
   alias = "fake"
@@ -114,7 +114,7 @@ resource "junos_interface_physical" "testacc_nullcommitfile" {
 `, interFace)
 }
 
-func testAccJunosNullCommitFileCustom(interFace string) string {
+func testAccResourceNullCommitFileCustom(interFace string) string {
 	return fmt.Sprintf(`
 provider "junos" {
   alias = "fake"
@@ -135,7 +135,7 @@ resource "junos_null_commit_file" "testacc_nullcommitfile" {
 `, interFace, interFace, testaccNullCommitFile)
 }
 
-func testAccJunosNullCommitFileRead(interFace string) string {
+func testAccResourceNullCommitFileRead(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_nullcommitfile" {
   name         = "%s"

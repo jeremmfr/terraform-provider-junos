@@ -7,20 +7,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityIdpCustomAttack_basic(t *testing.T) {
+func TestAccResourceSecurityIdpCustomAttack_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityIdpCustomAttackConfigCreate(),
+					Config: testAccResourceSecurityIdpCustomAttackConfigCreate(),
 				},
 				{
-					Config: testAccJunosSecurityIdpCustomAttackConfigUpdate(),
+					Config: testAccResourceSecurityIdpCustomAttackConfigUpdate(),
 				},
 				{
-					Config: testAccJunosSecurityIdpCustomAttackConfigUpdate2(),
+					Config: testAccResourceSecurityIdpCustomAttackConfigUpdate2(),
 				},
 				{
 					ResourceName:      "junos_security_idp_custom_attack.testacc_idpCustomAttack",
@@ -28,20 +28,20 @@ func TestAccJunosSecurityIdpCustomAttack_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosSecurityIdpCustomAttackConfigUpdate3(),
+					Config: testAccResourceSecurityIdpCustomAttackConfigUpdate3(),
 				},
 				{
-					Config: testAccJunosSecurityIdpCustomAttackConfigUpdate4(),
+					Config: testAccResourceSecurityIdpCustomAttackConfigUpdate4(),
 				},
 				{
-					Config: testAccJunosSecurityIdpCustomAttackConfigUpdate5(),
+					Config: testAccResourceSecurityIdpCustomAttackConfigUpdate5(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosSecurityIdpCustomAttackConfigCreate() string {
+func testAccResourceSecurityIdpCustomAttackConfigCreate() string {
 	return `
 resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
   name               = "testacc/#1_"
@@ -57,7 +57,7 @@ resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
 `
 }
 
-func testAccJunosSecurityIdpCustomAttackConfigUpdate() string {
+func testAccResourceSecurityIdpCustomAttackConfigUpdate() string {
 	return `
 resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
   name               = "testacc/#1_"
@@ -86,7 +86,7 @@ resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
 `
 }
 
-func testAccJunosSecurityIdpCustomAttackConfigUpdate2() string {
+func testAccResourceSecurityIdpCustomAttackConfigUpdate2() string {
 	return `
 resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
   name               = "testacc/#1_"
@@ -156,7 +156,7 @@ resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
 `
 }
 
-func testAccJunosSecurityIdpCustomAttackConfigUpdate3() string {
+func testAccResourceSecurityIdpCustomAttackConfigUpdate3() string {
 	return `
 resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
   name               = "testacc/#1_"
@@ -202,7 +202,7 @@ resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
 `
 }
 
-func testAccJunosSecurityIdpCustomAttackConfigUpdate4() string {
+func testAccResourceSecurityIdpCustomAttackConfigUpdate4() string {
 	return `
 resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
   name               = "testacc/#1_"
@@ -230,7 +230,7 @@ resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
 `
 }
 
-func testAccJunosSecurityIdpCustomAttackConfigUpdate5() string {
+func testAccResourceSecurityIdpCustomAttackConfigUpdate5() string {
 	return `
 resource "junos_security_idp_custom_attack" "testacc_idpCustomAttack" {
   name               = "testacc/#1_"

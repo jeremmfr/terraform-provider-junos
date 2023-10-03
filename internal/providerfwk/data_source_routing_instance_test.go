@@ -1,13 +1,13 @@
 package providerfwk_test
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -23,10 +23,16 @@ func TestAccDataSourceRoutingInstance_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccDataSourceRoutingInstanceConfigCreate(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 				},
 				{
-					Config: testAccDataSourceRoutingInstanceConfigData(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("data.junos_routing_instance.testacc_dataRoutingInstance",
 							"id", "testacc_dataRoutingInstance"),
@@ -37,59 +43,11 @@ func TestAccDataSourceRoutingInstance_basic(t *testing.T) {
 					),
 				},
 				{
-					Config:      testAccDataSourceRoutingInstanceConfigDataFailed(),
-					ExpectError: regexp.MustCompile("routing instance .* doesn't exist"),
+					ConfigDirectory: config.TestStepDirectory(),
+					ExpectError:     regexp.MustCompile("routing instance .* doesn't exist"),
 				},
 			},
 			PreventPostDestroyRefresh: true,
 		})
 	}
-}
-
-func testAccDataSourceRoutingInstanceConfigCreate(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_dataRoutingInstance" {
-  name         = "%s"
-  description  = "testacc_dataRoutingInstance"
-  vlan_tagging = true
-}
-resource "junos_routing_instance" "testacc_dataRoutingInstance" {
-  name = "testacc_dataRoutingInstance"
-}
-resource "junos_interface_logical" "testacc_dataRoutingInstance" {
-  name             = "${junos_interface_physical.testacc_dataRoutingInstance.name}.100"
-  description      = "testacc_dataRoutingInstance"
-  routing_instance = junos_routing_instance.testacc_dataRoutingInstance.name
-}
-`, interFace)
-}
-
-func testAccDataSourceRoutingInstanceConfigData(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_dataRoutingInstance" {
-  name         = "%s"
-  description  = "testacc_dataRoutingInstance"
-  vlan_tagging = true
-}
-resource "junos_routing_instance" "testacc_dataRoutingInstance" {
-  name = "testacc_dataRoutingInstance"
-}
-resource "junos_interface_logical" "testacc_dataRoutingInstance" {
-  name             = "${junos_interface_physical.testacc_dataRoutingInstance.name}.100"
-  description      = "testacc_dataRoutingInstance"
-  routing_instance = junos_routing_instance.testacc_dataRoutingInstance.name
-}
-
-data "junos_routing_instance" "testacc_dataRoutingInstance" {
-  name = "testacc_dataRoutingInstance"
-}
-`, interFace)
-}
-
-func testAccDataSourceRoutingInstanceConfigDataFailed() string {
-	return `
-data "junos_routing_instance" "testacc_dataRoutingInstance" {
-  name = "testacc"
-}
-`
 }

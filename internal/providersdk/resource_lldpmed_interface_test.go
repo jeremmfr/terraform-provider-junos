@@ -11,7 +11,7 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3 or xe-0/0/3.
-func TestAccJunosLldpMedInterface_basic(t *testing.T) {
+func TestAccResourceLldpMedInterface_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		testaccInterface := junos.DefaultInterfaceSwitchTestAcc
 		if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -22,10 +22,10 @@ func TestAccJunosLldpMedInterface_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosLldpMedInterfaceSWConfigCreate(testaccInterface),
+					Config: testAccResourceLldpMedInterfaceSWConfigCreate(testaccInterface),
 				},
 				{
-					Config: testAccJunosLldpMedInterfaceSWConfigUpdate(testaccInterface),
+					Config: testAccResourceLldpMedInterfaceSWConfigUpdate(testaccInterface),
 				},
 				{
 					ResourceName:      "junos_lldpmed_interface.testacc_interface",
@@ -44,13 +44,13 @@ func TestAccJunosLldpMedInterface_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosLldpMedInterfaceConfigCreate(testaccInterface),
+					Config: testAccResourceLldpMedInterfaceConfigCreate(testaccInterface),
 				},
 				{
-					Config: testAccJunosLldpMedInterfaceConfigUpdate(testaccInterface),
+					Config: testAccResourceLldpMedInterfaceConfigUpdate(testaccInterface),
 				},
 				{
-					Config: testAccJunosLldpMedInterfaceConfigUpdate2(testaccInterface),
+					Config: testAccResourceLldpMedInterfaceConfigUpdate2(testaccInterface),
 				},
 				{
 					ResourceName:      "junos_lldpmed_interface.testacc_interface",
@@ -62,7 +62,7 @@ func TestAccJunosLldpMedInterface_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosLldpMedInterfaceSWConfigCreate(interFace string) string {
+func testAccResourceLldpMedInterfaceSWConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldpmed_interface" "testacc_all" {
   name = "all"
@@ -74,7 +74,7 @@ resource "junos_lldpmed_interface" "testacc_interface" {
 `, interFace)
 }
 
-func testAccJunosLldpMedInterfaceSWConfigUpdate(interFace string) string {
+func testAccResourceLldpMedInterfaceSWConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldpmed_interface" "testacc_all" {
   name = "all"
@@ -99,7 +99,7 @@ resource "junos_lldpmed_interface" "testacc_interface" {
 `, interFace)
 }
 
-func testAccJunosLldpMedInterfaceConfigCreate(interFace string) string {
+func testAccResourceLldpMedInterfaceConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldpmed_interface" "testacc_all" {
   name    = "all"
@@ -113,7 +113,7 @@ resource "junos_lldpmed_interface" "testacc_interface" {
 `, interFace)
 }
 
-func testAccJunosLldpMedInterfaceConfigUpdate(interFace string) string {
+func testAccResourceLldpMedInterfaceConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldpmed_interface" "testacc_all" {
   name = "all"
@@ -138,7 +138,7 @@ resource "junos_lldpmed_interface" "testacc_interface" {
 `, interFace)
 }
 
-func testAccJunosLldpMedInterfaceConfigUpdate2(interFace string) string {
+func testAccResourceLldpMedInterfaceConfigUpdate2(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_lldpmed_interface" "testacc_all" {
   name = "all"

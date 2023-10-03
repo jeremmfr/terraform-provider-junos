@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityUtmProfileWebFWebS_basic(t *testing.T) {
+func TestAccResourceSecurityUtmProfileWebFWebS_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityUtmProfileWebFWebSConfigCreate(),
+					Config: testAccResourceSecurityUtmProfileWebFWebSConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
@@ -37,7 +37,7 @@ func TestAccJunosSecurityUtmProfileWebFWebS_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityUtmProfileWebFWebSConfigUpdate(),
+					Config: testAccResourceSecurityUtmProfileWebFWebSConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
@@ -72,7 +72,7 @@ func TestAccJunosSecurityUtmProfileWebFWebS_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityUtmProfileWebFWebSConfigCreate() string {
+func testAccResourceSecurityUtmProfileWebFWebSConfigCreate() string {
 	return `
 resource "junos_security_utm_profile_web_filtering_websense_redirect" "testacc_ProfileWebFWebS" {
   name                 = "testacc ProfileWebFWebS"
@@ -86,7 +86,7 @@ resource "junos_security_utm_profile_web_filtering_websense_redirect" "testacc_P
 `
 }
 
-func testAccJunosSecurityUtmProfileWebFWebSConfigUpdate() string {
+func testAccResourceSecurityUtmProfileWebFWebSConfigUpdate() string {
 	return `
 resource "junos_security_utm_profile_web_filtering_websense_redirect" "testacc_ProfileWebFWebS" {
   name                 = "testacc ProfileWebFWebS"

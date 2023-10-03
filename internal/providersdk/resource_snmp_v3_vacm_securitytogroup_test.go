@@ -6,16 +6,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSnmpV3VacmSecurityToGroup_basic(t *testing.T) {
+func TestAccResourceSnmpV3VacmSecurityToGroup_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSnmpV3VacmSecurityToGroupConfigCreate(),
+				Config: testAccResourceSnmpV3VacmSecurityToGroupConfigCreate(),
 			},
 			{
-				Config: testAccJunosSnmpV3VacmSecurityToGroupConfigUpdate(),
+				Config: testAccResourceSnmpV3VacmSecurityToGroupConfigUpdate(),
 			},
 			{
 				ResourceName:      "junos_snmp_v3_vacm_securitytogroup.testacc_snmpv3secutogrp",
@@ -26,7 +26,7 @@ func TestAccJunosSnmpV3VacmSecurityToGroup_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosSnmpV3VacmSecurityToGroupConfigCreate() string {
+func testAccResourceSnmpV3VacmSecurityToGroupConfigCreate() string {
 	return `
 resource "junos_snmp_v3_vacm_securitytogroup" "testacc_snmpv3secutogrp" {
   name  = "testacc_snmpv3secutogrp"
@@ -46,7 +46,7 @@ resource "junos_snmp_v3_vacm_securitytogroup" "testacc_snmpv3secutogrp3" {
 `
 }
 
-func testAccJunosSnmpV3VacmSecurityToGroupConfigUpdate() string {
+func testAccResourceSnmpV3VacmSecurityToGroupConfigUpdate() string {
 	return `
 resource "junos_snmp_v3_vacm_securitytogroup" "testacc_snmpv3secutogrp" {
   name  = "testacc_snmpv3secutogrp"

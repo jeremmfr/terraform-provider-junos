@@ -7,21 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosServicesSecurityIntellPolicy_basic(t *testing.T) {
+func TestAccResourceServicesSecurityIntellPolicy_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosServicesSecurityIntellPolicyConfigCreate(),
+					Config: testAccResourceServicesSecurityIntellPolicyConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_security_intelligence_policy.testacc_svcSecIntelPolicy",
 							"category.#", "1"),
 					),
 				},
 				{
-					Config: testAccJunosServicesSecurityIntellPolicyConfigUpdate(),
+					Config: testAccResourceServicesSecurityIntellPolicyConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_security_intelligence_policy.testacc_svcSecIntelPolicy",
 							"category.#", "2"),
@@ -37,7 +37,7 @@ func TestAccJunosServicesSecurityIntellPolicy_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosServicesSecurityIntellPolicyConfigCreate() string {
+func testAccResourceServicesSecurityIntellPolicyConfigCreate() string {
 	return `
 resource "junos_services_security_intelligence_profile" "testacc_svcSecIntelPolicy_CC" {
   name     = "testacc_svcSecIntelPolicy_CC"
@@ -60,7 +60,7 @@ resource "junos_services_security_intelligence_policy" "testacc_svcSecIntelPolic
 `
 }
 
-func testAccJunosServicesSecurityIntellPolicyConfigUpdate() string {
+func testAccResourceServicesSecurityIntellPolicyConfigUpdate() string {
 	return `
 resource "junos_services_security_intelligence_profile" "testacc_svcSecIntelPolicy_CC" {
   name     = "testacc_svcSecIntelPolicy_CC"

@@ -11,7 +11,7 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's xe-0/0/3.
-func TestAccJunosRstpInterface_basic(t *testing.T) {
+func TestAccResourceRstpInterface_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		testaccInterface := junos.DefaultInterfaceSwitchTestAcc
 		if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -22,10 +22,10 @@ func TestAccJunosRstpInterface_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosRstpInterfaceSWConfigCreate(),
+					Config: testAccResourceRstpInterfaceSWConfigCreate(),
 				},
 				{
-					Config: testAccJunosRstpInterfaceSWConfigUpdate(testaccInterface),
+					Config: testAccResourceRstpInterfaceSWConfigUpdate(testaccInterface),
 				},
 				{
 					ResourceName:      "junos_rstp_interface.all",
@@ -50,10 +50,10 @@ func TestAccJunosRstpInterface_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosRstpInterfaceConfigCreate(),
+					Config: testAccResourceRstpInterfaceConfigCreate(),
 				},
 				{
-					Config: testAccJunosRstpInterfaceConfigUpdate(),
+					Config: testAccResourceRstpInterfaceConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_rstp_interface.all",
@@ -65,7 +65,7 @@ func TestAccJunosRstpInterface_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosRstpInterfaceSWConfigCreate() string {
+func testAccResourceRstpInterfaceSWConfigCreate() string {
 	return `
 resource "junos_rstp_interface" "all" {
   name = "all"
@@ -83,7 +83,7 @@ resource "junos_rstp_interface" "all2" {
 `
 }
 
-func testAccJunosRstpInterfaceSWConfigUpdate(interFace string) string {
+func testAccResourceRstpInterfaceSWConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_rstp_interface" "all" {
   name                      = "all"
@@ -125,7 +125,7 @@ resource "junos_rstp_interface" "all2" {
 `, interFace)
 }
 
-func testAccJunosRstpInterfaceConfigCreate() string {
+func testAccResourceRstpInterfaceConfigCreate() string {
 	return `
 resource "junos_rstp_interface" "all" {
   name = "all"
@@ -133,7 +133,7 @@ resource "junos_rstp_interface" "all" {
 `
 }
 
-func testAccJunosRstpInterfaceConfigUpdate() string {
+func testAccResourceRstpInterfaceConfigUpdate() string {
 	return `
 resource "junos_rstp_interface" "all" {
   name                      = "all"

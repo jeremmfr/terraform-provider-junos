@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosServicesRpmProbe_basic(t *testing.T) {
+func TestAccResourceServicesRpmProbe_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosServicesRpmProbeConfigCreate(),
+					Config: testAccResourceServicesRpmProbeConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_rpm_probe.testacc_rpmprobe",
 							"test.#", "4"),
@@ -26,14 +26,14 @@ func TestAccJunosServicesRpmProbe_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosServicesRpmProbeConfigUpdate(),
+					Config: testAccResourceServicesRpmProbeConfigUpdate(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosServicesRpmProbeConfigCreate() string {
+func testAccResourceServicesRpmProbeConfigCreate() string {
 	return `
 resource "junos_routing_instance" "testacc_rpmprobe" {
   name = "testacc_rpmprobe"
@@ -115,7 +115,7 @@ resource "junos_services_rpm_probe" "testacc_rpmprobe2" {
 `
 }
 
-func testAccJunosServicesRpmProbeConfigUpdate() string {
+func testAccResourceServicesRpmProbeConfigUpdate() string {
 	return `
 resource "junos_routing_instance" "testacc_rpmprobe" {
   name = "testacc_rpmprobe"

@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosRstp_basic(t *testing.T) {
+func TestAccResourceRstp_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosRstpSWConfigCreate(),
+					Config: testAccResourceRstpSWConfigCreate(),
 				},
 				{
-					Config: testAccJunosRstpSWConfigUpdate(),
+					Config: testAccResourceRstpSWConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_rstp.testacc_ri_rstp",
@@ -32,13 +32,13 @@ func TestAccJunosRstp_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosRstpConfigCreate(),
+					Config: testAccResourceRstpConfigCreate(),
 				},
 				{
-					Config: testAccJunosRstpConfigUpdate(),
+					Config: testAccResourceRstpConfigUpdate(),
 				},
 				{
-					Config: testAccJunosRstpConfigUpdate2(),
+					Config: testAccResourceRstpConfigUpdate2(),
 				},
 				{
 					ResourceName:      "junos_rstp.testacc_rstp",
@@ -50,7 +50,7 @@ func TestAccJunosRstp_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosRstpSWConfigCreate() string {
+func testAccResourceRstpSWConfigCreate() string {
 	return `
 resource "junos_rstp" "testacc_rstp" {
   bpdu_block_on_edge = true
@@ -69,7 +69,7 @@ resource "junos_rstp" "testacc_ri_rstp" {
 `
 }
 
-func testAccJunosRstpSWConfigUpdate() string {
+func testAccResourceRstpSWConfigUpdate() string {
 	return `
 resource "junos_rstp" "testacc_rstp" {
   bpdu_block_on_edge     = true
@@ -104,7 +104,7 @@ resource "junos_rstp" "testacc_ri_rstp" {
 `
 }
 
-func testAccJunosRstpConfigCreate() string {
+func testAccResourceRstpConfigCreate() string {
 	return `
 resource "junos_rstp" "testacc_rstp" {
   disable = true
@@ -112,7 +112,7 @@ resource "junos_rstp" "testacc_rstp" {
 `
 }
 
-func testAccJunosRstpConfigUpdate() string {
+func testAccResourceRstpConfigUpdate() string {
 	return `
 resource "junos_rstp" "testacc_rstp" {
   backup_bridge_priority = "32k"
@@ -124,7 +124,7 @@ resource "junos_rstp" "testacc_rstp" {
 `
 }
 
-func testAccJunosRstpConfigUpdate2() string {
+func testAccResourceRstpConfigUpdate2() string {
 	return `
 resource "junos_rstp" "testacc_rstp" {
   backup_bridge_priority                             = "60k"

@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosBridgeDomain_basic(t *testing.T) {
+func TestAccResourceBridgeDomain_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosBridgeDomainSwConfigCreate(),
+					Config: testAccResourceBridgeDomainSwConfigCreate(),
 				},
 				{
 					ResourceName:      "junos_bridge_domain.testacc_default",
@@ -27,14 +27,14 @@ func TestAccJunosBridgeDomain_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosBridgeDomainSwConfigUpdate(),
+					Config: testAccResourceBridgeDomainSwConfigUpdate(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosBridgeDomainSwConfigCreate() string {
+func testAccResourceBridgeDomainSwConfigCreate() string {
 	return `
 resource "junos_bridge_domain" "testacc_default" {
   name               = "testacc_bd_def"
@@ -101,7 +101,7 @@ resource "junos_bridge_domain" "testacc_bridge_ri" {
 `
 }
 
-func testAccJunosBridgeDomainSwConfigUpdate() string {
+func testAccResourceBridgeDomainSwConfigUpdate() string {
 	return `
 resource "junos_bridge_domain" "testacc_default" {
   name        = "testacc_bd_def"

@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSnmp_basic(t *testing.T) {
+func TestAccResourceSnmp_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSnmpConfigCreate(),
+				Config: testAccResourceSnmpConfigCreate(),
 			},
 			{
 				ResourceName:      "junos_snmp.testacc_snmp",
@@ -20,13 +20,13 @@ func TestAccJunosSnmp_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccJunosSnmpConfigUpdate(),
+				Config: testAccResourceSnmpConfigUpdate(),
 			},
 		},
 	})
 }
 
-func testAccJunosSnmpConfigCreate() string {
+func testAccResourceSnmpConfigCreate() string {
 	return `
 resource "junos_snmp" "testacc_snmp" {
   arp                        = true
@@ -60,7 +60,7 @@ resource "junos_routing_instance" "testacc_snmp" {
 `
 }
 
-func testAccJunosSnmpConfigUpdate() string {
+func testAccResourceSnmpConfigUpdate() string {
 	return `
 resource "junos_snmp" "testacc_snmp" {
   clean_on_destroy         = true

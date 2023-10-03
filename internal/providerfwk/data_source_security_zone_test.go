@@ -1,13 +1,13 @@
 package providerfwk_test
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -23,10 +23,16 @@ func TestAccDataSourceSecurityZone_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccDataSourceSecurityZoneConfigCreate(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 				},
 				{
-					Config: testAccDataSourceSecurityZoneConfigData(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("data.junos_security_zone.testacc_dataSecurityZone",
 							"id", "testacc_dataSecurityZone"),
@@ -39,73 +45,11 @@ func TestAccDataSourceSecurityZone_basic(t *testing.T) {
 					),
 				},
 				{
-					Config:      testAccDataSourceSecurityZoneConfigDataFailed(),
-					ExpectError: regexp.MustCompile("security zone .* doesn't exist"),
+					ConfigDirectory: config.TestStepDirectory(),
+					ExpectError:     regexp.MustCompile("security zone .* doesn't exist"),
 				},
 			},
 			PreventPostDestroyRefresh: true,
 		})
 	}
-}
-
-func testAccDataSourceSecurityZoneConfigCreate(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_dataSecurityZone" {
-  name         = "%s"
-  description  = "testacc_dataSecurityZone"
-  vlan_tagging = true
-}
-resource "junos_security_zone" "testacc_dataSecurityZone" {
-  name                          = "testacc_dataSecurityZone"
-  address_book_configure_singly = true
-}
-resource "junos_security_zone_book_address" "testacc_dataSecurityZone" {
-  name = "testacc_dataSecurityZone"
-  zone = junos_security_zone.testacc_dataSecurityZone.name
-  cidr = "192.0.2.0/25"
-}
-resource "junos_interface_logical" "testacc_dataSecurityZone" {
-  name                      = "${junos_interface_physical.testacc_dataSecurityZone.name}.100"
-  description               = "testacc_dataSecurityZone"
-  security_zone             = junos_security_zone.testacc_dataSecurityZone.name
-  security_inbound_services = ["ssh"]
-}
-`, interFace)
-}
-
-func testAccDataSourceSecurityZoneConfigData(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_dataSecurityZone" {
-  name         = "%s"
-  description  = "testacc_dataSecurityZone"
-  vlan_tagging = true
-}
-resource "junos_security_zone" "testacc_dataSecurityZone" {
-  name                          = "testacc_dataSecurityZone"
-  address_book_configure_singly = true
-}
-resource "junos_security_zone_book_address" "testacc_dataSecurityZone" {
-  name = "testacc_dataSecurityZone"
-  zone = junos_security_zone.testacc_dataSecurityZone.name
-  cidr = "192.0.2.0/25"
-}
-resource "junos_interface_logical" "testacc_dataSecurityZone" {
-  name                      = "${junos_interface_physical.testacc_dataSecurityZone.name}.100"
-  description               = "testacc_dataSecurityZone"
-  security_zone             = junos_security_zone.testacc_dataSecurityZone.name
-  security_inbound_services = ["ssh"]
-}
-
-data "junos_security_zone" "testacc_dataSecurityZone" {
-  name = "testacc_dataSecurityZone"
-}
-`, interFace)
-}
-
-func testAccDataSourceSecurityZoneConfigDataFailed() string {
-	return `
-data "junos_security_zone" "testacc_dataSecurityZone" {
-  name = "testacc"
-}
-`
 }
