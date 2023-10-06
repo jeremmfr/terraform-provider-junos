@@ -38,6 +38,11 @@ resource "junos_routing_instance" "testacc_evpn_ri1" {
 resource "junos_evpn" "testacc_evpn_ri1" {
   routing_instance = junos_routing_instance.testacc_evpn_ri1.name
   encapsulation    = "vxlan"
+  duplicate_mac_detection {
+    auto_recovery_time  = 100
+    detection_threshold = 10
+    detection_window    = 30
+  }
 }
 resource "junos_routing_instance" "testacc_evpn_ri2" {
   name                        = "testacc_evpn_ri2"

@@ -7,10 +7,13 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
+	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -137,6 +140,35 @@ func (rsc *evpn) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
+			"duplicate_mac_detection": schema.SingleNestedBlock{
+				Description: "Duplicate MAC detection settings",
+				Attributes: map[string]schema.Attribute{
+					"auto_recovery_time": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Automatically unblock duplicate MACs after a time delay.",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 360),
+						},
+					},
+					"detection_threshold": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Number of moves to trigger duplicate MAC detection.",
+						Validators: []validator.Int64{
+							int64validator.Between(2, 20),
+						},
+					},
+					"detection_window": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Time window for detection of duplicate MACs.",
+						Validators: []validator.Int64{
+							int64validator.Between(5, 600),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
 			"switch_or_ri_options": schema.SingleNestedBlock{
 				Description: "Declare `switch-options` or `routing-instance` configuration.",
 				PlanModifiers: []planmodifier.Object{
@@ -215,23 +247,44 @@ func (rsc *evpn) Schema(
 }
 
 type evpnData struct {
-	RoutingInstanceEvpn types.Bool                  `tfsdk:"routing_instance_evpn"`
-	ID                  types.String                `tfsdk:"id"`
-	RoutingInstance     types.String                `tfsdk:"routing_instance"`
-	Encapsulation       types.String                `tfsdk:"encapsulation"`
-	DefaultGateway      types.String                `tfsdk:"default_gateway"`
-	MulticastMode       types.String                `tfsdk:"multicast_mode"`
-	SwitchOrRIOptions   *evpnBlockSwitchOrRIOptions `tfsdk:"switch_or_ri_options"`
+	RoutingInstanceEvpn   types.Bool                      `tfsdk:"routing_instance_evpn"`
+	ID                    types.String                    `tfsdk:"id"`
+	RoutingInstance       types.String                    `tfsdk:"routing_instance"`
+	Encapsulation         types.String                    `tfsdk:"encapsulation"`
+	DefaultGateway        types.String                    `tfsdk:"default_gateway"`
+	MulticastMode         types.String                    `tfsdk:"multicast_mode"`
+	DuplicateMacDetection *evpnBlockDuplicateMACDetection `tfsdk:"duplicate_mac_detection"`
+	SwitchOrRIOptions     *evpnBlockSwitchOrRIOptions     `tfsdk:"switch_or_ri_options"`
 }
 
 type evpnConfig struct {
-	RoutingInstanceEvpn types.Bool                        `tfsdk:"routing_instance_evpn"`
-	ID                  types.String                      `tfsdk:"id"`
-	RoutingInstance     types.String                      `tfsdk:"routing_instance"`
-	Encapsulation       types.String                      `tfsdk:"encapsulation"`
-	DefaultGateway      types.String                      `tfsdk:"default_gateway"`
-	MulticastMode       types.String                      `tfsdk:"multicast_mode"`
-	SwitchOrRIOptions   *evpnBlockSwitchOrRIOptionsConfig `tfsdk:"switch_or_ri_options"`
+	RoutingInstanceEvpn   types.Bool                        `tfsdk:"routing_instance_evpn"`
+	ID                    types.String                      `tfsdk:"id"`
+	RoutingInstance       types.String                      `tfsdk:"routing_instance"`
+	Encapsulation         types.String                      `tfsdk:"encapsulation"`
+	DefaultGateway        types.String                      `tfsdk:"default_gateway"`
+	MulticastMode         types.String                      `tfsdk:"multicast_mode"`
+	DuplicateMacDetection *evpnBlockDuplicateMACDetection   `tfsdk:"duplicate_mac_detection"`
+	SwitchOrRIOptions     *evpnBlockSwitchOrRIOptionsConfig `tfsdk:"switch_or_ri_options"`
+}
+
+type evpnBlockDuplicateMACDetection struct {
+	AutoRecoveryTime   types.Int64 `tfsdk:"auto_recovery_time"`
+	DetectionThreshold types.Int64 `tfsdk:"detection_threshold"`
+	DetectionWindow    types.Int64 `tfsdk:"detection_window"`
+}
+
+func (block *evpnBlockDuplicateMACDetection) isEmpty() bool {
+	switch {
+	case !block.AutoRecoveryTime.IsNull():
+		return false
+	case !block.DetectionThreshold.IsNull():
+		return false
+	case !block.DetectionWindow.IsNull():
+		return false
+	default:
+		return true
+	}
 }
 
 type evpnBlockSwitchOrRIOptions struct {
@@ -284,6 +337,15 @@ func (rsc *evpn) ValidateConfig(
 				path.Root("default_gateway"),
 				tfdiag.ConflictConfigErrSummary,
 				fmt.Sprintf("default_gateway cannot be configured when routing_instance = %q", junos.DefaultW),
+			)
+		}
+	}
+	if config.DuplicateMacDetection != nil {
+		if config.DuplicateMacDetection.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("duplicate_mac_detection").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"duplicate_mac_detection block is empty",
 			)
 		}
 	}
@@ -556,6 +618,27 @@ func (rscData *evpnData) set(
 	if v := rscData.DefaultGateway.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"default-gateway "+v)
 	}
+	if rscData.DuplicateMacDetection != nil {
+		if rscData.DuplicateMacDetection.isEmpty() {
+			return path.Root("duplicate_mac_detection"),
+				fmt.Errorf("duplicate_mac_detection block is empty")
+		}
+		if !rscData.DuplicateMacDetection.AutoRecoveryTime.IsNull() {
+			configSet = append(configSet, setPrefix+"duplicate-mac-detection auto-recovery-time "+
+				utils.ConvI64toa(rscData.DuplicateMacDetection.AutoRecoveryTime.ValueInt64()),
+			)
+		}
+		if !rscData.DuplicateMacDetection.DetectionThreshold.IsNull() {
+			configSet = append(configSet, setPrefix+"duplicate-mac-detection detection-threshold "+
+				utils.ConvI64toa(rscData.DuplicateMacDetection.DetectionThreshold.ValueInt64()),
+			)
+		}
+		if !rscData.DuplicateMacDetection.DetectionWindow.IsNull() {
+			configSet = append(configSet, setPrefix+"duplicate-mac-detection detection-window "+
+				utils.ConvI64toa(rscData.DuplicateMacDetection.DetectionWindow.ValueInt64()),
+			)
+		}
+	}
 	if v := rscData.MulticastMode.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"multicast-mode "+v)
 	}
@@ -624,6 +707,22 @@ func (rscData *evpnData) read(
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "default-gateway "):
 				rscData.DefaultGateway = types.StringValue(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "duplicate-mac-detection "):
+				if rscData.DuplicateMacDetection == nil {
+					rscData.DuplicateMacDetection = &evpnBlockDuplicateMACDetection{}
+				}
+				var err error
+				switch {
+				case balt.CutPrefixInString(&itemTrim, "auto-recovery-time "):
+					rscData.DuplicateMacDetection.AutoRecoveryTime, err = tfdata.ConvAtoi64Value(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "detection-threshold "):
+					rscData.DuplicateMacDetection.DetectionThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "detection-window "):
+					rscData.DuplicateMacDetection.DetectionWindow, err = tfdata.ConvAtoi64Value(itemTrim)
+				}
+				if err != nil {
+					return err
+				}
 			case balt.CutPrefixInString(&itemTrim, "encapsulation "):
 				rscData.Encapsulation = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "multicast-mode "):
@@ -693,6 +792,7 @@ func (rscData *evpnData) delOpts(
 
 	configSet := []string{
 		delPrefix + "default-gateway",
+		delPrefix + "duplicate-mac-detection",
 		delPrefix + "encapsulation",
 		delPrefix + "multicast-mode",
 	}
