@@ -3,8 +3,6 @@ package providerfwk
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -158,7 +156,7 @@ func (rsc *securityNatSourcePool) Schema(
 				Optional:    true,
 				Description: "Range of port to source nat.",
 				Validators: []validator.String{
-					attributeSecurityNatSourcePoolPortRangeValidator{},
+					tfvalidator.StringNumberRange(1024, 65535).WithNameInError("Nat Source Port"),
 				},
 			},
 			"routing_instance": schema.StringAttribute{
@@ -170,80 +168,6 @@ func (rsc *securityNatSourcePool) Schema(
 				},
 			},
 		},
-	}
-}
-
-type attributeSecurityNatSourcePoolPortRangeValidator struct{}
-
-func (v attributeSecurityNatSourcePoolPortRangeValidator) Description(_ context.Context) string {
-	return "Must be a valid Security Nat Source Pool Port Range."
-}
-
-func (v attributeSecurityNatSourcePoolPortRangeValidator) MarkdownDescription(_ context.Context) string {
-	return "Must be a valid Security Nat Source Pool Port Range."
-}
-
-func (v attributeSecurityNatSourcePoolPortRangeValidator) ValidateString(
-	_ context.Context, req validator.StringRequest, resp *validator.StringResponse,
-) {
-	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
-		return
-	}
-
-	value := req.ConfigValue.ValueString()
-	if ok := regexp.MustCompile(`^\d+(-\d+)?$`).MatchString(value); !ok {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			fmt.Sprintf(`expected value of port_range to match regular expression \d+(-\d+)?, got %v`, v),
-		)
-
-		return
-	}
-	vSplit := strings.Split(value, "-")
-	low, err := strconv.Atoi(vSplit[0])
-	if err != nil {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			err.Error(),
-		)
-
-		return
-	}
-	high := low
-	if len(vSplit) > 1 {
-		high, err = strconv.Atoi(vSplit[1])
-		if err != nil {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
-				"Invalid Security Nat Source Pool Port Range",
-				err.Error(),
-			)
-
-			return
-		}
-	}
-	if low > high {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			fmt.Sprintf("low(%d) in %s bigger than high(%d)", low, value, high),
-		)
-	}
-	if low < 1024 {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			fmt.Sprintf("low(%d) in %s is too small (min 1024)", low, v),
-		)
-	}
-	if high > 65535 {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			fmt.Sprintf("high(%d) in %s is too big (max 65535)", high, v),
-		)
 	}
 }
 
