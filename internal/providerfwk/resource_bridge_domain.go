@@ -150,6 +150,19 @@ func (rsc *bridgeDomain) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"interface": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Interface for this bridge domain.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.ValueStringsAre(
+						stringvalidator.LengthAtLeast(1),
+						tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
+						tfvalidator.String1DotCount(),
+					),
+				},
+			},
 			"isolated_vlan": schema.Int64Attribute{
 				Optional:    true,
 				Description: "Isolated VLAN ID for private vlan bridge domain.",
@@ -271,6 +284,7 @@ type bridgeDomainData struct {
 	CommunityVlans   []types.String          `tfsdk:"community_vlans"`
 	Description      types.String            `tfsdk:"description"`
 	DomainID         types.Int64             `tfsdk:"domain_id"`
+	Interface        []types.String          `tfsdk:"interface"`
 	IsolatedVLAN     types.Int64             `tfsdk:"isolated_vlan"`
 	RoutingInterface types.String            `tfsdk:"routing_interface"`
 	ServiceID        types.Int64             `tfsdk:"service_id"`
@@ -287,6 +301,7 @@ type bridgeDomainConfig struct {
 	CommunityVlans   types.Set               `tfsdk:"community_vlans"`
 	Description      types.String            `tfsdk:"description"`
 	DomainID         types.Int64             `tfsdk:"domain_id"`
+	Interface        types.Set               `tfsdk:"interface"`
 	IsolatedVLAN     types.Int64             `tfsdk:"isolated_vlan"`
 	RoutingInterface types.String            `tfsdk:"routing_interface"`
 	ServiceID        types.Int64             `tfsdk:"service_id"`
@@ -304,6 +319,8 @@ func (rscConfig *bridgeDomainConfig) isEmpty() bool {
 	case !rscConfig.Description.IsNull():
 		return false
 	case !rscConfig.DomainID.IsNull():
+		return false
+	case !rscConfig.Interface.IsNull():
 		return false
 	case !rscConfig.IsolatedVLAN.IsNull():
 		return false
@@ -605,6 +622,9 @@ func (rscData *bridgeDomainData) set(
 	if rscData.DomainTypeBridge.ValueBool() {
 		configSet = append(configSet, setPrefix+"domain-type bridge")
 	}
+	for _, v := range rscData.Interface {
+		configSet = append(configSet, setPrefix+"interface "+v.ValueString())
+	}
 	if !rscData.IsolatedVLAN.IsNull() {
 		configSet = append(configSet, setPrefix+"isolated-vlan "+
 			utils.ConvI64toa(rscData.IsolatedVLAN.ValueInt64()))
@@ -702,6 +722,8 @@ func (rscData *bridgeDomainData) read(
 				}
 			case itemTrim == "domain-type bridge":
 				rscData.DomainTypeBridge = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "interface "):
+				rscData.Interface = append(rscData.Interface, types.StringValue(itemTrim))
 			case balt.CutPrefixInString(&itemTrim, "isolated-vlan "):
 				rscData.IsolatedVLAN, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
@@ -798,6 +820,9 @@ func (rscData *bridgeDomainData) delOpts(
 		delPrefix + "vlan-id",
 		delPrefix + "vlan-id-list",
 		delPrefix + "vxlan",
+	}
+	for _, v := range rscData.Interface {
+		configSet = append(configSet, delPrefix+"interface "+v.ValueString())
 	}
 	if rscData.VXLAN != nil {
 		if rscData.VXLAN.VNIExtendEvpn.ValueBool() {

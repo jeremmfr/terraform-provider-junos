@@ -43,7 +43,6 @@ resource "junos_bridge_domain" "testacc_bridge_ri" {
   routing_interface = "irb.13"
   interface = [
     "${var.interface}.0",
-    "${var.interface2}.0",
   ]
   service_id = 12
   vlan_id    = 13

@@ -38,6 +38,8 @@ The following arguments are supported:
   Domain-id for auto derived Route Target (1..15).
 - **domain_type_bridge** (Optional, Boolean)  
   Forwarding instance.
+- **interface** (Optional, Set of String)  
+  Interface for this bridge domain.
 - **isolated_vlan** (Optional, Number)  
   Isolated VLAN ID for private vlan bridge domain (1..4094).
 - **routing_interface** (Optional, String)  
