@@ -317,8 +317,8 @@ func (rsc *interfaceSt0Unit) ImportState(
 	if emptyInt && !setInt {
 		resp.Diagnostics.AddError(
 			tfdiag.NotFoundErrSummary,
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be the name of st0 unit interface <st0.?>)", req.ID),
+			defaultResourceImportDontFindMessage(rsc, req.ID)+
+				" (id must be the name of st0 unit interface <st0.?>)",
 		)
 
 		return

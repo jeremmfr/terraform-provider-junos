@@ -82,7 +82,7 @@ func (rsc *firewallFilter) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -1209,14 +1209,14 @@ func (rsc *firewallFilter) ValidateConfig(
 func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 	_ context.Context, family string, pathRoot path.Path, resp *resource.ValidateConfigResponse,
 ) {
+	errorMessageWithFamilySuffix := fmt.Sprintf(" in from block cannot be configured with family %q", family)
 	if !block.Address.IsNull() && !bchk.InSlice(family, []string{
 		junos.InetW, junos.Inet6W, "ethernet-switching",
 	}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("address"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("address in from block cannot be configured with"+
-				" family %q", family),
+			"address"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.AddressExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1225,8 +1225,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("address_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("address_except in from block cannot be configured with"+
-				" family %q", family),
+			"address_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.DestinationAddress.IsNull() && !bchk.InSlice(family, []string{
@@ -1235,8 +1234,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_address"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("destination_address in from block cannot be configured with"+
-				" family %q", family),
+			"destination_address"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.DestinationAddressExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1245,8 +1243,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_address_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("destination_address_except in from block cannot be configured with"+
-				" family %q", family),
+			"destination_address_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.DestinationMacAddress.IsNull() && !bchk.InSlice(family, []string{
@@ -1255,8 +1252,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_mac_address"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("destination_mac_address in from block cannot be configured with"+
-				" family %q", family),
+			"destination_mac_address"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.DestinationMacAddressExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1265,8 +1261,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_mac_address_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("destination_mac_address_except in from block cannot be configured with"+
-				" family %q", family),
+			"destination_mac_address_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.DestinationPort.IsNull() && !bchk.InSlice(family, []string{
@@ -1275,8 +1270,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_port"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("destination_port in from block cannot be configured with"+
-				" family %q", family),
+			"destination_port"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.DestinationPortExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1285,8 +1279,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_port_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("destination_port_except in from block cannot be configured with"+
-				" family %q", family),
+			"destination_port_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.DestinationPrefixList.IsNull() && !bchk.InSlice(family, []string{
@@ -1295,8 +1288,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("destination_prefix_list in from block cannot be configured with"+
-				" family %q", family),
+			"destination_prefix_list"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.DestinationPrefixListExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1305,8 +1297,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("destination_prefix_list_except in from block cannot be configured with"+
-				" family %q", family),
+			"destination_prefix_list_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.ForwardingClass.IsNull() && !bchk.InSlice(family, []string{
@@ -1315,8 +1306,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("forwarding_class"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("forwarding_class in from block cannot be configured with"+
-				" family %q", family),
+			"forwarding_class"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.ForwardingClassExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1325,8 +1315,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("forwarding_class_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("forwarding_class_except in from block cannot be configured with"+
-				" family %q", family),
+			"forwarding_class_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.IcmpCode.IsNull() && !bchk.InSlice(family, []string{
@@ -1335,8 +1324,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_code"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("icmp_code in from block cannot be configured with"+
-				" family %q", family),
+			"icmp_code"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.IcmpCodeExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1345,8 +1333,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_code_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("icmp_code_except in from block cannot be configured with"+
-				" family %q", family),
+			"icmp_code_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.IcmpType.IsNull() && !bchk.InSlice(family, []string{
@@ -1355,8 +1342,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_type"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("icmp_type in from block cannot be configured with"+
-				" family %q", family),
+			"icmp_type"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.IcmpTypeExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1365,8 +1351,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_type_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("icmp_type_except in from block cannot be configured with"+
-				" family %q", family),
+			"icmp_type_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.Interface.IsNull() && !bchk.InSlice(family, []string{
@@ -1375,8 +1360,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("interface"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("interface in from block cannot be configured with"+
-				" family %q", family),
+			"interface"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.IsFragment.IsNull() && !bchk.InSlice(family, []string{
@@ -1385,8 +1369,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("is_fragment"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("is_fragment in from block cannot be configured with"+
-				" family %q", family),
+			"is_fragment"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.LossPriority.IsNull() && !bchk.InSlice(family, []string{
@@ -1395,8 +1378,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("loss_priority"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("loss_priority in from block cannot be configured with"+
-				" family %q", family),
+			"loss_priority"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.LossPriorityExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1405,8 +1387,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("loss_priority_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("loss_priority_except in from block cannot be configured with"+
-				" family %q", family),
+			"loss_priority_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.NextHeader.IsNull() && !bchk.InSlice(family, []string{
@@ -1415,8 +1396,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("next_header"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("next_header in from block cannot be configured with"+
-				" family %q", family),
+			"next_header"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.NextHeaderExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1425,8 +1405,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("next_header_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("next_header_except in from block cannot be configured with"+
-				" family %q", family),
+			"next_header_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.PacketLength.IsNull() && !bchk.InSlice(family, []string{
@@ -1435,8 +1414,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("packet_length"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("packet_length in from block cannot be configured with"+
-				" family %q", family),
+			"packet_length"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.PacketLengthExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1445,8 +1423,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("packet_length_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("packet_length_except in from block cannot be configured with"+
-				" family %q", family),
+			"packet_length_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.PolicyMap.IsNull() && !bchk.InSlice(family, []string{
@@ -1455,8 +1432,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("policy_map"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("policy_map in from block cannot be configured with"+
-				" family %q", family),
+			"policy_map"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.PolicyMapExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1465,8 +1441,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("policy_map_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("policy_map_except in from block cannot be configured with"+
-				" family %q", family),
+			"policy_map_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.Port.IsNull() && !bchk.InSlice(family, []string{
@@ -1475,8 +1450,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("port"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("port in from block cannot be configured with"+
-				" family %q", family),
+			"port"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.PortExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1485,8 +1459,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("port_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("port_except in from block cannot be configured with"+
-				" family %q", family),
+			"port_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.PrefixList.IsNull() && !bchk.InSlice(family, []string{
@@ -1495,8 +1468,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("prefix_list in from block cannot be configured with"+
-				" family %q", family),
+			"prefix_list"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.PrefixListExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1505,8 +1477,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("prefix_list_except in from block cannot be configured with"+
-				" family %q", family),
+			"prefix_list_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.Protocol.IsNull() && !bchk.InSlice(family, []string{
@@ -1515,8 +1486,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("protocol"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("protocol in from block cannot be configured with"+
-				" family %q", family),
+			"protocol"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.ProtocolExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1525,8 +1495,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("protocol_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("protocol_except in from block cannot be configured with"+
-				" family %q", family),
+			"protocol_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.SourceAddress.IsNull() && !bchk.InSlice(family, []string{
@@ -1535,8 +1504,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_address"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("source_address in from block cannot be configured with"+
-				" family %q", family),
+			"source_address"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.SourceAddressExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1545,8 +1513,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_address_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("source_address_except in from block cannot be configured with"+
-				" family %q", family),
+			"source_address_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.SourceMacAddress.IsNull() && !bchk.InSlice(family, []string{
@@ -1555,8 +1522,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_mac_address"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("source_mac_address in from block cannot be configured with"+
-				" family %q", family),
+			"source_mac_address"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.SourceMacAddressExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1565,8 +1531,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_mac_address_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("source_mac_address_except in from block cannot be configured with"+
-				" family %q", family),
+			"source_mac_address_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.SourcePort.IsNull() && !bchk.InSlice(family, []string{
@@ -1575,8 +1540,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_port"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("source_port in from block cannot be configured with"+
-				" family %q", family),
+			"source_port"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.SourcePortExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1585,8 +1549,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_port_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("source_port_except in from block cannot be configured with"+
-				" family %q", family),
+			"source_port_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.SourcePrefixList.IsNull() && !bchk.InSlice(family, []string{
@@ -1595,8 +1558,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("source_prefix_list in from block cannot be configured with"+
-				" family %q", family),
+			"source_prefix_list"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.SourcePrefixListExcept.IsNull() && !bchk.InSlice(family, []string{
@@ -1605,8 +1567,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("source_prefix_list_except in from block cannot be configured with"+
-				" family %q", family),
+			"source_prefix_list_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.TCPEstablished.IsNull() && !bchk.InSlice(family, []string{
@@ -1615,8 +1576,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_established"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("tcp_established in from block cannot be configured with"+
-				" family %q", family),
+			"tcp_established"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.TCPFlags.IsNull() && !bchk.InSlice(family, []string{
@@ -1625,8 +1585,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_flags"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("tcp_flags in from block cannot be configured with"+
-				" family %q", family),
+			"tcp_flags"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.TCPInitial.IsNull() && !bchk.InSlice(family, []string{
@@ -1635,8 +1594,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_initial"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("tcp_initial in from block cannot be configured with"+
-				" family %q", family),
+			"tcp_initial"+errorMessageWithFamilySuffix,
 		)
 	}
 }
@@ -1653,7 +1611,7 @@ func (rsc *firewallFilter) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -1672,7 +1630,7 @@ func (rsc *firewallFilter) Create(
 			if filterExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+					defaultResourceAlreadyExistsMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -1690,8 +1648,7 @@ func (rsc *firewallFilter) Create(
 			if !filterExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-						"=> check your config", plan.Name.ValueString()),
+					defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -1775,8 +1732,8 @@ func (rsc *firewallFilter) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <name>"+junos.IDSeparator+"<family>)", req.ID),
+		defaultResourceImportDontFindMessage(rsc, req.ID)+
+			" (id must be <name>"+junos.IDSeparator+"<family>)",
 	)
 }
 

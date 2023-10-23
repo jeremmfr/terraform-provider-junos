@@ -79,7 +79,7 @@ func (rsc *interfacePhysical) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -1034,7 +1034,7 @@ func (rsc *interfacePhysical) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -1460,8 +1460,7 @@ func (rsc *interfacePhysical) ImportState(
 		if !intExists {
 			resp.Diagnostics.AddError(
 				tfdiag.NotFoundErrSummary,
-				fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-					"(id must be <name>)", req.ID),
+				defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "name"),
 			)
 
 			return

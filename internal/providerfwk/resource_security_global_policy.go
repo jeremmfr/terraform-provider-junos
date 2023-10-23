@@ -499,8 +499,8 @@ func (rsc *securityGlobalPolicy) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf(rsc.junosName()+" not compatible "+
-						"with Junos device %q", junSess.SystemInformation.HardwareModel))
+					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
+				)
 
 				return false
 			}

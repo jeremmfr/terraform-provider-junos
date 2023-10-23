@@ -80,7 +80,7 @@ func (rsc *securityNatSource) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -528,7 +528,7 @@ func (rsc *securityNatSource) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -541,8 +541,7 @@ func (rsc *securityNatSource) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf(rsc.junosName()+" not compatible "+
-						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
 				)
 
 				return false
@@ -556,7 +555,7 @@ func (rsc *securityNatSource) Create(
 			if natSourceExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+					defaultResourceAlreadyExistsMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -574,8 +573,7 @@ func (rsc *securityNatSource) Create(
 			if !natSourceExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-						"=> check your config", plan.Name.ValueString()),
+					defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -658,8 +656,7 @@ func (rsc *securityNatSource) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <name>)", req.ID),
+		defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "name"),
 	)
 }
 
