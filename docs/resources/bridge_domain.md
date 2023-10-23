@@ -19,10 +19,13 @@ resource "junos_bridge_domain" "demo" {
 
 ## Argument Reference
 
+-> **Note:** At least one of arguments need to be set
+(in addition to `name` and `routing_instance`).
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of bridge domain.
+  Bridge domain name.
 - **routing_instance** (Optional, String, Forces new resource)  
   Routing instance.  
   Need to be `default` (for root level) or the name of routing instance.
@@ -35,6 +38,8 @@ The following arguments are supported:
   Domain-id for auto derived Route Target (1..15).
 - **domain_type_bridge** (Optional, Boolean)  
   Forwarding instance.
+- **interface** (Optional, Set of String)  
+  Interface for this bridge domain.
 - **isolated_vlan** (Optional, Number)  
   Isolated VLAN ID for private vlan bridge domain (1..4094).
 - **routing_interface** (Optional, String)  
@@ -47,7 +52,7 @@ The following arguments are supported:
 - **vlan_id_list** (Optional, Set of String)  
   Create bridge-domain for each of the vlan-id specified in the vlan-id-list.
 - **vxlan** (Optional, Block)  
-  Declare vxlan configuration.
+  Declare vxlan options.
   - **vni** (Required, Number)  
     VXLAN identifier (0..16777214).
   - **decapsulate_accept_inner_vlan** (Optional, Boolean)  
@@ -60,10 +65,10 @@ The following arguments are supported:
     CIDR for Multicast group registered for VXLAN segment.
   - **ovsdb_managed** (Optional, Boolean)  
     Bridge-domain is managed remotely via VXLAN OVSDB Controller.
-  - **vni_extend_evpn** (Optional, Boolean)  
-    Extend VNI to EVPN.
   - **unreachable_vtep_aging_timer** (Optional, Number)  
     Unreachable VXLAN tunnel endpoint removal timer (300..1800 seconds).
+  - **vni_extend_evpn** (Optional, Boolean)  
+    Extend VNI to EVPN.
 
 ## Attributes Reference
 

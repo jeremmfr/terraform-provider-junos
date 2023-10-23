@@ -146,7 +146,6 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"junos_access_address_assignment_pool":                       resourceAccessAddressAssignPool(),
-			"junos_bridge_domain":                                        resourceBridgeDomain(),
 			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_chassis_redundancy":                                   resourceChassisRedundancy(),
 			"junos_eventoptions_destination":                             resourceEventoptionsDestination(),
