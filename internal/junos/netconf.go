@@ -47,6 +47,10 @@ type sysInfo struct {
 	ClusterNode   *bool  `xml:"cluster-node"`
 }
 
+func (i sysInfo) NotCompatibleMsg() string {
+	return fmt.Sprintf(" not compatible with Junos device %q", i.HardwareModel)
+}
+
 type commandXMLConfig struct {
 	Config string `xml:",innerxml"`
 }

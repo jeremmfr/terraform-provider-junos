@@ -84,7 +84,7 @@ func (rsc *bgpNeighbor) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -1303,7 +1303,7 @@ func (rsc *bgpNeighbor) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ip"),
 			"Empty ip",
-			"could not create "+rsc.junosName()+" with empty ip",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "ip"),
 		)
 
 		return
@@ -1312,7 +1312,7 @@ func (rsc *bgpNeighbor) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("group"),
 			"Empty group",
-			"could not create "+rsc.junosName()+" with empty group",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "group"),
 		)
 
 		return
@@ -1546,8 +1546,8 @@ func (rsc *bgpNeighbor) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <ip>"+junos.IDSeparator+"<routing_instance>"+junos.IDSeparator+"<group>)", req.ID),
+		defaultResourceImportDontFindMessage(rsc, req.ID)+
+			" (id must be <ip>"+junos.IDSeparator+"<routing_instance>"+junos.IDSeparator+"<group>)",
 	)
 }
 

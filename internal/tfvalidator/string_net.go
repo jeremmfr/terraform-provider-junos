@@ -128,7 +128,7 @@ func (v StringCIDRValidator) ValidateString(
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid CIDR",
-			fmt.Sprintf("%s", err),
+			err.Error(),
 		)
 
 		return
@@ -191,7 +191,7 @@ func (v StringCIDRNetworkValidator) ValidateString(
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid CIDR Network",
-			fmt.Sprintf("%s", err),
+			err.Error(),
 		)
 
 		return
@@ -351,7 +351,7 @@ func (v StringMACAddressValidator) ValidateString(
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid MAC Address",
-			fmt.Sprintf("%s", err),
+			err.Error(),
 		)
 
 		return

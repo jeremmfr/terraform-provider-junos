@@ -553,8 +553,7 @@ func (rsc *evpn) ImportState(
 	if data.nullID() {
 		resp.Diagnostics.AddError(
 			tfdiag.NotFoundErrSummary,
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <routing_instance>)", req.ID),
+			defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "routing_instance"),
 		)
 
 		return

@@ -2,7 +2,6 @@ package tfvalidator
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -37,7 +36,7 @@ func (v StringRegexValidator) ValidateString(
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid regex",
-			fmt.Sprintf("%s", err),
+			err.Error(),
 		)
 
 		return

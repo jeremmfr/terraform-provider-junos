@@ -80,7 +80,7 @@ func (rsc *securityPolicy) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -565,7 +565,7 @@ func (rsc *securityPolicy) Create(
 	if plan.FromZone.ValueString() == "" || plan.ToZone.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Empty Zone",
-			"could not create "+rsc.junosName()+" with empty from_zone or to_zone",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "from_zone or to_zone"),
 		)
 
 		return
@@ -578,8 +578,8 @@ func (rsc *securityPolicy) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf(rsc.junosName()+" not compatible "+
-						"with Junos device %q", junSess.SystemInformation.HardwareModel))
+					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
+				)
 
 				return false
 			}
@@ -777,8 +777,8 @@ func (rsc *securityPolicy) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <zone>"+junos.IDSeparator+"<name>)", req.ID),
+		defaultResourceImportDontFindMessage(rsc, req.ID)+
+			" (id must be <zone>"+junos.IDSeparator+"<name>)",
 	)
 }
 
