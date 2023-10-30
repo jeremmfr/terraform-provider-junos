@@ -41,7 +41,8 @@ The following arguments are supported:
   Declare `archival configuration` configuration.  
   See [below for nested schema](#archival_configuration-arguments).
 - **authentication_order** (Optional, List of String)  
-  Order in which authentication methods are invoked.
+  Order in which authentication methods are invoked.  
+  Element need to be `password`, `radius` or `tacplus`.
 - **auto_snapshot** (Optional, Boolean)  
   Enable auto-snapshot when boots from alternate slice.
 - **default_address_selection** (Optional, Boolean)  
@@ -117,7 +118,8 @@ The following arguments are supported:
 - **ports** (Optional, Block)  
   Declare `ports` configuration.
   - **auxiliary_authentication_order** (Optional, List of String)  
-    Order in which authentication methods are invoked on auxiliary port.
+    Order in which authentication methods are invoked on auxiliary port.  
+    Element need to be `password`, `radius` or `tacplus`.
   - **auxiliary_disable** (Optional, Boolean)  
     Disable console on auxiliary port.
   - **auxiliary_insecure** (Optional, Boolean)  
@@ -127,7 +129,8 @@ The following arguments are supported:
   - **auxiliary_type** (Optional, String)  
     Terminal type on auxiliary port.
   - **console_authentication_order** (Optional, List of String)  
-    Order in which authentication methods are invoked on console port.
+    Order in which authentication methods are invoked on console port.  
+    Element need to be `password`, `radius` or `tacplus`.
   - **console_disable** (Optional, Boolean)  
     Disable console on console port.
   - **console_insecure** (Optional, Boolean)  
@@ -204,6 +207,9 @@ The following arguments are supported:
 - **gre_path_mtu_discovery** (Optional, Boolean)  
   Enable path MTU discovery for GRE tunnels.  
   Conflict with `no_gre_path_mtu_discovery`.
+- **no_gre_path_mtu_discovery** (Optional, Boolean)  
+  Don't enable path MTU discovery for GRE tunnels.  
+  Conflict with `gre_path_mtu_discovery`.
 - **icmpv4_rate_limit** (Optional, Block)  
   Declare `icmpv4-rate-limit` configuration.
   - **bucket_size** (Optional, Number)  
@@ -219,34 +225,25 @@ The following arguments are supported:
 - **ipip_path_mtu_discovery** (Optional, Boolean)  
   Enable path MTU discovery for IP-IP tunnels.  
   Conflict with `no_ipip_path_mtu_discovery`.
+- **no_ipip_path_mtu_discovery** (Optional, Boolean)  
+  Don't enable path MTU discovery for IP-IP tunnels.  
+  Conflict with `ipip_path_mtu_discovery`.
 - **ipv6_duplicate_addr_detection_transmits** (Optional, Number)  
   IPv6 Duplicate address detection transmits (0..20).
 - **ipv6_path_mtu_discovery** (Optional, Boolean)  
   Enable IPv6 Path MTU discovery.  
   Conflict with `no_ipv6_path_mtu_discovery`.
+- **no_ipv6_path_mtu_discovery** (Optional, Boolean)  
+  Don't enable IPv6 Path MTU discovery.  
+  Conflict with `ipv6_path_mtu_discovery`.
 - **ipv6_path_mtu_discovery_timeout** (Optional, Number)  
   IPv6 Path MTU Discovery timeout (5..71582788 minutes).
 - **ipv6_reject_zero_hop_limit** (Optional, Boolean)  
   Enable dropping IPv6 packets with zero hop-limit.  
   Conflict with `no_ipv6_reject_zero_hop_limit`.
-- **no_gre_path_mtu_discovery** (Optional, Boolean)  
-  Don't enable path MTU discovery for GRE tunnels.  
-  Conflict with `gre_path_mtu_discovery`.
-- **no_ipip_path_mtu_discovery** (Optional, Boolean)  
-  Don't enable path MTU discovery for IP-IP tunnels.  
-  Conflict with `ipip_path_mtu_discovery`.
-- **no_ipv6_path_mtu_discovery** (Optional, Boolean)  
-  Don't enable IPv6 Path MTU discovery.  
-  Conflict with `ipv6_path_mtu_discovery`.
 - **no_ipv6_reject_zero_hop_limit** (Optional, Boolean)  
   Don't enable dropping IPv6 packets with zero hop-limit.  
   Conflict with `ipv6_reject_zero_hop_limit`.
-- **no_path_mtu_discovery** (Optional, Boolean)  
-  Don't enable Path MTU discovery on TCP connections.  
-  Conflict with `path_mtu_discovery`.
-- **no_source_quench** (Optional, Boolean)  
-  Don't react to incoming ICMP Source Quench messages.  
-  Conflict with `source_quench`
 - **no_tcp_reset** (Optional, String)  
   Do not send RST TCP packet for packets sent to non-listening ports.  
   Need to be `drop-all-tcp` or `drop-tcp-with-syn-only`.
@@ -257,11 +254,17 @@ The following arguments are supported:
 - **path_mtu_discovery** (Optional, Boolean)  
   Enable Path MTU discovery on TCP connections.  
   Conflict with `no_path_mtu_discovery`.
+- **no_path_mtu_discovery** (Optional, Boolean)  
+  Don't enable Path MTU discovery on TCP connections.  
+  Conflict with `path_mtu_discovery`.
 - **source_port_upper_limit** (Optional, Number)  
   Specify upper limit of source port selection range (5000..65535).
 - **source_quench** (Optional, Boolean)  
   React to incoming ICMP Source Quench messages.  
   Conflict with `no_source_quench`.
+- **no_source_quench** (Optional, Boolean)  
+  Don't react to incoming ICMP Source Quench messages.  
+  Conflict with `source_quench`
 - **tcp_drop_synfin_set** (Optional, Boolean)  
   Drop TCP packets that have both SYN and FIN flags.
 - **tcp_mss** (Optional, Number)  
@@ -341,14 +344,15 @@ The following arguments are supported:
   Maximum number of trace files (2..1000).
 - **file_match** (Optional, String)  
   Regular expression for lines to be logged.
-- **file_no_world_readable** (Optional, Boolean)  
-  Don't allow any user to read the log file.
 - **file_size** (Optional, Number)  
   Maximum trace file size (10240..1073741824).
 - **file_world_readable** (Optional, Boolean)  
   Allow any user to read the log file.
+- **file_no_world_readable** (Optional, Boolean)  
+  Don't allow any user to read the log file.
 - **flag** (Optional, Set of String)  
-  Tracing parameters.
+  Tracing parameters.  
+  Element need to be `all`, `debug`, `incoming` or `outgoing`.
 - **no_remote_trace** (Optional, Boolean)  
   Disable remote tracing.
 - **on_demand** (Optional, Boolean)  
@@ -359,7 +363,8 @@ The following arguments are supported:
 ### ssh arguments for services
 
 - **authentication_order** (Optional, List of String)  
-  Order in which authentication methods are invoked.
+  Order in which authentication methods are invoked.  
+  Element need to be `password`, `radius` or `tacplus`.
 - **ciphers** (Optional, Set of String)  
   Specify the ciphers allowed for protocol version 2.
 - **client_alive_count_max** (Optional, Number)  
@@ -374,6 +379,8 @@ The following arguments are supported:
   Specify permissible SSH host-key algorithms.
 - **key_exchange** (Optional, Set of String)  
   Specify ssh key-exchange for Diffie-Hellman keys.
+- **log_key_changes** (Optional, Boolean)  
+  Log changes to authorized keys to syslog.
 - **macs** (Optional, Set of String)  
   Message Authentication Code algorithms allowed (SSHv2).
 - **max_pre_authentication_packets** (Optional, Number)  
@@ -388,15 +395,16 @@ The following arguments are supported:
   Port number to accept incoming connections (1..65535).
 - **protocol_version** (Optional, Set of String)  
   Specify ssh protocol versions supported.
+  Element need to be `v1` or `v2`.
 - **rate_limit** (Optional, Number)  
   Maximum number of connections per minute (1..250).
 - **root_login** (Optional, String)  
   Configure root access via ssh.  
   Need to be `allow`, `deny` or `deny-password`.
-- **no_tcp_forwarding** (Optional, Boolean)  
-  Do not allow forwarding TCP connections via SSH.
 - **tcp_forwarding** (Optional, Boolean)  
   Allow forwarding TCP connections via SSH.
+- **no_tcp_forwarding** (Optional, Boolean)  
+  Do not allow forwarding TCP connections via SSH.
 
 ---
 
@@ -411,19 +419,19 @@ The following arguments are supported:
 
 ### web_management_https arguments for services
 
+-> **Note:** One of `local_certificate`, `pki_local_certificate` or `system_generated_certificate`
+arguments is required.
+
 - **interface** (Optional, Set of String)  
   Specify the name of one or more interfaces.
 - **local_certificate** (Optional, String)  
-  Specify the name of the certificate.  
-  Need to set one of three: `local_certificate`, `pki_local_certificate` or `system_generated_certificate`.
+  Specify the name of the certificate.
 - **pki_local_certificate** (Optional, String)  
-  Specify the name of the certificate that is generated by the PKI and authenticated by a CA.  
-  Need to set one of three: `local_certificate`, `pki_local_certificate` or `system_generated_certificate`.
+  Specify the name of the certificate that is generated by the PKI and authenticated by a CA.
 - **port** (Optional, Number)  
   Port number to connect to HTTPS service (1..65535).
 - **system_generated_certificate** (Optional, Boolean)  
-  Will automatically generate a self-signed certificate.  
-  Need to set one of three: `local_certificate`, `pki_local_certificate` or `system_generated_certificate`.
+  Will automatically generate a self-signed certificate.
 
 ---
 
