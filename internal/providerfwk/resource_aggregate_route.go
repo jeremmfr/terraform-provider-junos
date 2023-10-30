@@ -153,6 +153,7 @@ func (rsc *aggregateRoute) Schema(
 				Optional:    true,
 				Description: "Path to as-path.",
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
