@@ -79,7 +79,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
       - name: Terraform format check testdata directory
         run: terraform fmt -check -diff -recursive internal/providerfwk/testdata
 
