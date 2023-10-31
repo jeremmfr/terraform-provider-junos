@@ -10,7 +10,10 @@ resource "junos_system" "testacc_system" {
     }
     transfer_on_commit = true
   }
-  name_server = ["192.0.2.10"]
+  name_server_opts {
+    address          = "192.0.2.10"
+    routing_instance = junos_routing_instance.testacc_system.name
+  }
   internet_options {
     no_gre_path_mtu_discovery     = true
     no_ipip_path_mtu_discovery    = true
@@ -50,4 +53,8 @@ resource "junos_system" "testacc_system" {
     }
   }
   time_zone = "Europe/Paris"
+}
+
+resource "junos_routing_instance" "testacc_system" {
+  name = "testacc_system"
 }

@@ -734,6 +734,28 @@ func (rsc *system) Schema(
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
+			"name_server_opts": schema.ListNestedBlock{
+				Description: "DNS name servers with optional options.",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"address": schema.StringAttribute{
+							Required:    true,
+							Description: "Address of the name server.",
+							Validators: []validator.String{
+								tfvalidator.StringIPAddress(),
+							},
+						},
+						"routing_instance": schema.StringAttribute{
+							Optional:    true,
+							Description: "Routing instance through which the name server is reachable.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 63),
+								tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+							},
+						},
+					},
+				},
+			},
 			"ntp": schema.SingleNestedBlock{
 				Description: "Declare `ntp` configuration.",
 				Attributes: map[string]schema.Attribute{
@@ -1484,6 +1506,7 @@ type systemData struct {
 	InternetOptions                       *systemBlockInternetOptions       `tfsdk:"internet_options"`
 	License                               *systemBlockLicense               `tfsdk:"license"`
 	Login                                 *systemBlockLogin                 `tfsdk:"login"`
+	NameServerOpts                        []systemBlockNameServerOpts       `tfsdk:"name_server_opts"`
 	Ntp                                   *systemBlockNtp                   `tfsdk:"ntp"`
 	Ports                                 *systemBlockPorts                 `tfsdk:"ports"`
 	Services                              *systemBlockServices              `tfsdk:"services"`
@@ -1516,6 +1539,7 @@ type systemConfig struct {
 	InternetOptions                       *systemBlockInternetOptions             `tfsdk:"internet_options"`
 	License                               *systemBlockLicense                     `tfsdk:"license"`
 	Login                                 *systemBlockLoginConfig                 `tfsdk:"login"`
+	NameServerOpts                        types.List                              `tfsdk:"name_server_opts"`
 	Ntp                                   *systemBlockNtp                         `tfsdk:"ntp"`
 	Ports                                 *systemBlockPortsConfig                 `tfsdk:"ports"`
 	Services                              *systemBlockServicesConfig              `tfsdk:"services"`
@@ -1721,6 +1745,11 @@ func (block *systemBlockLoginConfig) isEmpty() bool {
 	default:
 		return true
 	}
+}
+
+type systemBlockNameServerOpts struct {
+	Address         types.String `tfsdk:"address"`
+	RoutingInstance types.String `tfsdk:"routing_instance"`
 }
 
 type systemBlockLoginBlockPassword struct {
@@ -2318,6 +2347,14 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 		return
 	}
 
+	if !config.NameServer.IsNull() &&
+		!config.NameServerOpts.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("name_server"),
+			tfdiag.ConflictConfigErrSummary,
+			"name_server and name_server_opts cannot be configured together",
+		)
+	}
 	if config.ArchivalConfiguration != nil {
 		if config.ArchivalConfiguration.ArchiveSite.IsNull() {
 			resp.Diagnostics.AddAttributeError(
@@ -2759,7 +2796,21 @@ func (rsc *system) Read(
 		rsc,
 		nil,
 		&data,
-		nil,
+		func() {
+			nameServerWithOpts := false
+			for _, block := range data.NameServerOpts {
+				if !block.RoutingInstance.IsNull() {
+					nameServerWithOpts = true
+
+					break
+				}
+			}
+			if nameServerWithOpts || len(state.NameServerOpts) != 0 {
+				data.NameServer = nil
+			} else {
+				data.NameServerOpts = nil
+			}
+		},
 		resp,
 	)
 }
@@ -2790,19 +2841,38 @@ func (rsc *system) Delete(
 }
 
 func (rsc *system) ImportState(
-	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
+	ctx context.Context, _ resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	var data systemData
+	junSess, err := rsc.junosClient().StartNewSession(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
-	var _ resourceDataReadFrom0String = &data
-	defaultResourceImportState(
-		ctx,
-		rsc,
-		&data,
-		req,
-		resp,
-		"",
-	)
+		return
+	}
+	defer junSess.Close()
+
+	var data systemData
+	if err := data.read(ctx, junSess); err != nil {
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
+
+		return
+	}
+
+	nameServerWithOpts := false
+	for _, block := range data.NameServerOpts {
+		if !block.RoutingInstance.IsNull() {
+			nameServerWithOpts = true
+
+			break
+		}
+	}
+	if nameServerWithOpts {
+		data.NameServer = nil
+	} else {
+		data.NameServerOpts = nil
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func (rscData *systemData) fillID() {
@@ -2923,6 +2993,13 @@ func (rscData *systemData) set(
 			return pathErr, err
 		}
 		configSet = append(configSet, blockSet...)
+	}
+	for _, block := range rscData.NameServerOpts {
+		configSet = append(configSet, setPrefix+"name-server "+block.Address.ValueString())
+		if v := block.RoutingInstance.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"name-server "+block.Address.ValueString()+
+				" routing-instance "+v)
+		}
 	}
 	if rscData.Ntp != nil {
 		if rscData.Ntp.isEmpty() {
@@ -3649,7 +3726,17 @@ func (rscData *systemData) read(
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "name-server "):
-				rscData.NameServer = append(rscData.NameServer, types.StringValue(itemTrim))
+				itemTrimFields := strings.Split(itemTrim, " ")
+				var nameServerOpts systemBlockNameServerOpts
+				rscData.NameServerOpts, nameServerOpts = tfdata.ExtractBlockWithTFTypesString(
+					rscData.NameServerOpts, "Address", itemTrimFields[0],
+				)
+				nameServerOpts.Address = types.StringValue(itemTrimFields[0])
+				rscData.NameServer = append(rscData.NameServer, types.StringValue(itemTrimFields[0]))
+				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" routing-instance ") {
+					nameServerOpts.RoutingInstance = types.StringValue(itemTrim)
+				}
+				rscData.NameServerOpts = append(rscData.NameServerOpts, nameServerOpts)
 			case itemTrim == "no-multicast-echo":
 				rscData.NoMulticastEcho = types.BoolValue(true)
 			case itemTrim == "no-ping-record-route":

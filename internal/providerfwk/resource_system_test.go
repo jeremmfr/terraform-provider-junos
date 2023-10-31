@@ -209,6 +209,11 @@ func TestAccResourceSystem_basic(t *testing.T) {
 					),
 				},
 				{
+					ResourceName:      "junos_system.testacc_system",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
 					ConfigDirectory: config.TestStepDirectory(),
 				},
 			},

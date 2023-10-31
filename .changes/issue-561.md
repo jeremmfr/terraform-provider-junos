@@ -8,3 +8,4 @@ ENHANCEMENTS:
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
   * `authentication_order`, `auxiliary_authentication_order`, `console_authentication_order` arguments have now a value validator: need to be `password`, `radius` or `tacplus`
+  * add `name_server_opts` argument (in conflict with `name_server` argument) to also configure DNS name server but with optional options (`routing_instance`) (Fix [#561](https://github.com/jeremmfr/terraform-provider-junos/issues/561))

@@ -84,7 +84,15 @@ The following arguments are supported:
 - **max_configurations_on_flash** (Optional, Number)  
   Number of configuration files stored on flash (0..49).
 - **name_server** (Optional, List of String)  
-  DNS name servers.
+  DNS name servers.  
+  Conflict with `name_server_opts`.
+- **name_server_opts** (Optional, Block List)  
+  DNS name servers with optional options.  
+  Conflict with `name_server`.
+  - **address** (Required, String)  
+    Address of the name server.
+  - **routing_instance** (Optional, String)  
+    Routing instance through which the name server is reachable.
 - **no_multicast_echo** (Optional, Boolean)  
   Disable responding to ICMP echo requests sent to multicast group addresses.
 - **no_ping_record_route** (Optional, Boolean)  
