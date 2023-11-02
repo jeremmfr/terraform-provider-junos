@@ -153,6 +153,7 @@ func (rsc *generateRoute) Schema(
 				Optional:    true,
 				Description: "Path to as-path.",
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
@@ -200,6 +201,7 @@ func (rsc *generateRoute) Schema(
 				Optional:    true,
 				Description: "Next hop to another table.",
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
