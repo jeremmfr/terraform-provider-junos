@@ -3122,45 +3122,45 @@ func (rscData *securityData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockAlg{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockAlg{}.junosLines()):
 				if rscData.Alg == nil {
 					rscData.Alg = &securityBlockAlg{}
 				}
 				rscData.Alg.read(itemTrim)
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockFlow{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockFlow{}.junosLines()):
 				if rscData.Flow == nil {
 					rscData.Flow = &securityBlockFlow{}
 				}
 				if err := rscData.Flow.read(itemTrim); err != nil {
 					return err
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockForwardingOptions{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockForwardingOptions{}.junosLines()):
 				if rscData.ForwardingOptions == nil {
 					rscData.ForwardingOptions = &securityBlockForwardingOptions{}
 				}
 				rscData.ForwardingOptions.read(itemTrim)
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockForwardingProcess{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockForwardingProcess{}.junosLines()):
 				if rscData.ForwardingProcess == nil {
 					rscData.ForwardingProcess = &securityBlockForwardingProcess{}
 				}
 				if itemTrim == "forwarding-process enhanced-services-mode" {
 					rscData.ForwardingProcess.EnhancedServicesMode = types.BoolValue(true)
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockIdpSecurityPackage{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockIdpSecurityPackage{}.junosLines()):
 				if rscData.IdpSecurityPackage == nil {
 					rscData.IdpSecurityPackage = &securityBlockIdpSecurityPackage{}
 				}
 				if err := rscData.IdpSecurityPackage.read(itemTrim); err != nil {
 					return err
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockIdpSensorConfiguration{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockIdpSensorConfiguration{}.junosLines()):
 				if rscData.IdpSensorConfiguration == nil {
 					rscData.IdpSensorConfiguration = &securityBlockIdpSensorConfiguration{}
 				}
 				if err := rscData.IdpSensorConfiguration.read(itemTrim); err != nil {
 					return err
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockLog{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockLog{}.junosLines()):
 				if rscData.Log == nil {
 					rscData.Log = &securityBlockLog{}
 				}
@@ -3174,14 +3174,14 @@ func (rscData *securityData) read(
 				if err := rscData.IkeTraceoptions.read(itemTrim); err != nil {
 					return err
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockNatSource{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockNatSource{}.junosLines()):
 				if rscData.NatSource == nil {
 					rscData.NatSource = &securityBlockNatSource{}
 				}
 				if err := rscData.NatSource.read(itemTrim); err != nil {
 					return err
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockPolicies{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockPolicies{}.junosLines()):
 				if rscData.Policies == nil {
 					rscData.Policies = &securityBlockPolicies{}
 				}
@@ -3191,14 +3191,14 @@ func (rscData *securityData) read(
 				if itemTrim == "policies policy-rematch extensive" {
 					rscData.Policies.PolicyRematchExtensive = types.BoolValue(true)
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockUserIdentificationAuthSource{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockUserIdentificationAuthSource{}.junosLines()):
 				if rscData.UserIdentificationAuthSource == nil {
 					rscData.UserIdentificationAuthSource = &securityBlockUserIdentificationAuthSource{}
 				}
 				if err := rscData.UserIdentificationAuthSource.read(itemTrim); err != nil {
 					return err
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockUtm{}.lines()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, securityBlockUtm{}.junosLines()):
 				if rscData.Utm == nil {
 					rscData.Utm = &securityBlockUtm{}
 				}
@@ -3210,6 +3210,25 @@ func (rscData *securityData) read(
 	}
 
 	return nil
+}
+
+func (securityBlockAlg) junosLines() []string {
+	return []string{
+		"alg dns disable",
+		"alg ftp disable",
+		"alg h323 disable",
+		"alg mgcp disable",
+		"alg msrpc disable",
+		"alg pptp disable",
+		"alg rsh disable",
+		"alg rtsp disable",
+		"alg sccp disable",
+		"alg sip disable",
+		"alg sql disable",
+		"alg sunrpc disable",
+		"alg talk disable",
+		"alg tftp disable",
+	}
 }
 
 func (block *securityBlockAlg) read(itemTrim string) {
@@ -3256,6 +3275,28 @@ func (block *securityBlockAlg) read(itemTrim string) {
 	}
 	if itemTrim == "tftp disable" {
 		block.TftpDisable = types.BoolValue(true)
+	}
+}
+
+func (securityBlockFlow) junosLines() []string {
+	return []string{
+		"flow advanced-options",
+		"flow aging",
+		"flow allow-dns-reply",
+		"flow allow-embedded-icmp",
+		"flow allow-reverse-ecmp",
+		"flow enable-reroute-uniform-link-check",
+		"flow ethernet-switching",
+		"flow force-ip-reassembly",
+		"flow ipsec-performance-acceleration",
+		"flow mcast-buffer-enhance",
+		"flow pending-sess-queue-length",
+		"flow preserve-incoming-fragment-size",
+		"flow route-change-timeout",
+		"flow syn-flood-protection-mode",
+		"flow sync-icmp-session",
+		"flow tcp-mss",
+		"flow tcp-session",
 	}
 }
 
@@ -3438,6 +3479,14 @@ func (block *securityBlockFlow) read(itemTrim string) (err error) {
 	return nil
 }
 
+func (securityBlockForwardingOptions) junosLines() []string {
+	return []string{
+		"forwarding-options family mpls mode",
+		"forwarding-options family inet6 mode",
+		"forwarding-options family iso mode",
+	}
+}
+
 func (block *securityBlockForwardingOptions) read(itemTrim string) {
 	balt.CutPrefixInString(&itemTrim, "forwarding-options ")
 
@@ -3448,6 +3497,22 @@ func (block *securityBlockForwardingOptions) read(itemTrim string) {
 		block.IsoModePacketBased = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "family mpls mode "):
 		block.MplsMode = types.StringValue(itemTrim)
+	}
+}
+
+func (securityBlockForwardingProcess) junosLines() []string {
+	return []string{
+		"forwarding-process enhanced-services-mode",
+	}
+}
+
+func (securityBlockIdpSecurityPackage) junosLines() []string {
+	return []string{
+		"idp security-package automatic",
+		"idp security-package install",
+		"idp security-package proxy-profile",
+		"idp security-package source-address",
+		"idp security-package url",
 	}
 }
 
@@ -3475,6 +3540,14 @@ func (block *securityBlockIdpSecurityPackage) read(itemTrim string) (err error) 
 	}
 
 	return nil
+}
+
+func (securityBlockIdpSensorConfiguration) junosLines() []string {
+	return []string{
+		"idp sensor-configuration log",
+		"idp sensor-configuration packet-log",
+		"idp sensor-configuration security-configuration",
+	}
 }
 
 func (block *securityBlockIdpSensorConfiguration) read(itemTrim string) (err error) {
@@ -3550,6 +3623,12 @@ func (block *securityBlockIdpSensorConfiguration) read(itemTrim string) (err err
 	return nil
 }
 
+func (securityBlockIkeTraceoptions) junosLines() []string {
+	return []string{
+		"ike traceoptions",
+	}
+}
+
 func (block *securityBlockIkeTraceoptions) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "file"):
@@ -3600,6 +3679,24 @@ func (block *securityBlockIkeTraceoptions) read(itemTrim string) (err error) {
 	}
 
 	return nil
+}
+
+func (securityBlockLog) junosLines() []string {
+	return []string{
+		"log disable",
+		"log event-rate",
+		"log facility-override",
+		"log file",
+		"log format",
+		"log max-database-record",
+		"log mode",
+		"log rate-cap",
+		"log report",
+		"log source-address",
+		"log source-interface",
+		"log transport",
+		"log utc-timestamp",
+	}
 }
 
 func (block *securityBlockLog) read(itemTrim string) (err error) {
@@ -3677,6 +3774,20 @@ func (block *securityBlockLog) read(itemTrim string) (err error) {
 	return nil
 }
 
+func (securityBlockNatSource) junosLines() []string {
+	return []string{
+		"nat source address-persistent",
+		"nat source interface port-overloading",
+		"nat source interface port-overloading-factor",
+		"nat source pool-default-port-range",
+		"nat source pool-default-twin-port-range",
+		"nat source pool-utilization-alarm",
+		"nat source port-randomization",
+		"nat source session-drop-hold-down",
+		"nat source session-persistence-scan",
+	}
+}
+
 func (block *securityBlockNatSource) read(itemTrim string) (err error) {
 	balt.CutPrefixInString(&itemTrim, "nat source ")
 
@@ -3713,6 +3824,22 @@ func (block *securityBlockNatSource) read(itemTrim string) (err error) {
 	return nil
 }
 
+func (securityBlockPolicies) junosLines() []string {
+	return []string{
+		"policies policy-rematch",
+	}
+}
+
+func (securityBlockUserIdentificationAuthSource) junosLines() []string {
+	return []string{
+		"user-identification authentication-source active-directory-authentication-table",
+		"user-identification authentication-source aruba-clearpass",
+		"user-identification authentication-source firewall-authentication",
+		"user-identification authentication-source local-authentication-table",
+		"user-identification authentication-source unified-access-control",
+	}
+}
+
 func (block *securityBlockUserIdentificationAuthSource) read(itemTrim string) (err error) {
 	balt.CutPrefixInString(&itemTrim, "user-identification authentication-source ")
 
@@ -3733,6 +3860,13 @@ func (block *securityBlockUserIdentificationAuthSource) read(itemTrim string) (e
 	}
 
 	return nil
+}
+
+func (securityBlockUtm) junosLines() []string {
+	return []string{
+		"utm feature-profile web-filtering type",
+		"utm feature-profile web-filtering juniper-enhanced server",
+	}
 }
 
 func (block *securityBlockUtm) read(itemTrim string) (err error) {
@@ -3768,18 +3902,18 @@ func (rscData *securityData) del(
 ) error {
 	listLinesToDelete := make([]string, 0, 50)
 
-	listLinesToDelete = append(listLinesToDelete, securityBlockAlg{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockFlow{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockForwardingOptions{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockForwardingProcess{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockIdpSecurityPackage{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockIdpSensorConfiguration{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockIkeTraceoptions{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockLog{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockNatSource{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockPolicies{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockUserIdentificationAuthSource{}.lines()...)
-	listLinesToDelete = append(listLinesToDelete, securityBlockUtm{}.lines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockAlg{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockFlow{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockForwardingOptions{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockForwardingProcess{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockIdpSecurityPackage{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockIdpSensorConfiguration{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockIkeTraceoptions{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockLog{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockNatSource{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockPolicies{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockUserIdentificationAuthSource{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, securityBlockUtm{}.junosLines()...)
 
 	configSet := make([]string, len(listLinesToDelete))
 	delPrefix := "delete security "
@@ -3788,138 +3922,4 @@ func (rscData *securityData) del(
 	}
 
 	return junSess.ConfigSet(configSet)
-}
-
-func (block securityBlockAlg) lines() []string {
-	return []string{
-		"alg dns disable",
-		"alg ftp disable",
-		"alg h323 disable",
-		"alg mgcp disable",
-		"alg msrpc disable",
-		"alg pptp disable",
-		"alg rsh disable",
-		"alg rtsp disable",
-		"alg sccp disable",
-		"alg sip disable",
-		"alg sql disable",
-		"alg sunrpc disable",
-		"alg talk disable",
-		"alg tftp disable",
-	}
-}
-
-func (block securityBlockFlow) lines() []string {
-	return []string{
-		"flow advanced-options",
-		"flow aging",
-		"flow allow-dns-reply",
-		"flow allow-embedded-icmp",
-		"flow allow-reverse-ecmp",
-		"flow enable-reroute-uniform-link-check",
-		"flow ethernet-switching",
-		"flow force-ip-reassembly",
-		"flow ipsec-performance-acceleration",
-		"flow mcast-buffer-enhance",
-		"flow pending-sess-queue-length",
-		"flow preserve-incoming-fragment-size",
-		"flow route-change-timeout",
-		"flow syn-flood-protection-mode",
-		"flow sync-icmp-session",
-		"flow tcp-mss",
-		"flow tcp-session",
-	}
-}
-
-func (block securityBlockForwardingOptions) lines() []string {
-	return []string{
-		"forwarding-options family mpls mode",
-		"forwarding-options family inet6 mode",
-		"forwarding-options family iso mode",
-	}
-}
-
-func (block securityBlockForwardingProcess) lines() []string {
-	return []string{
-		"forwarding-process enhanced-services-mode",
-	}
-}
-
-func (block securityBlockIdpSecurityPackage) lines() []string {
-	return []string{
-		"idp security-package automatic",
-		"idp security-package install",
-		"idp security-package proxy-profile",
-		"idp security-package source-address",
-		"idp security-package url",
-	}
-}
-
-func (block securityBlockIdpSensorConfiguration) lines() []string {
-	return []string{
-		"idp sensor-configuration log",
-		"idp sensor-configuration packet-log",
-		"idp sensor-configuration security-configuration",
-	}
-}
-
-func (block securityBlockIkeTraceoptions) lines() []string {
-	return []string{
-		"ike traceoptions",
-	}
-}
-
-func (block securityBlockLog) lines() []string {
-	return []string{
-		"log disable",
-		"log event-rate",
-		"log facility-override",
-		"log file",
-		"log format",
-		"log max-database-record",
-		"log mode",
-		"log rate-cap",
-		"log report",
-		"log source-address",
-		"log source-interface",
-		"log transport",
-		"log utc-timestamp",
-	}
-}
-
-func (block securityBlockNatSource) lines() []string {
-	return []string{
-		"nat source address-persistent",
-		"nat source interface port-overloading",
-		"nat source interface port-overloading-factor",
-		"nat source pool-default-port-range",
-		"nat source pool-default-twin-port-range",
-		"nat source pool-utilization-alarm",
-		"nat source port-randomization",
-		"nat source session-drop-hold-down",
-		"nat source session-persistence-scan",
-	}
-}
-
-func (block securityBlockPolicies) lines() []string {
-	return []string{
-		"policies policy-rematch",
-	}
-}
-
-func (block securityBlockUserIdentificationAuthSource) lines() []string {
-	return []string{
-		"user-identification authentication-source active-directory-authentication-table",
-		"user-identification authentication-source aruba-clearpass",
-		"user-identification authentication-source firewall-authentication",
-		"user-identification authentication-source local-authentication-table",
-		"user-identification authentication-source unified-access-control",
-	}
-}
-
-func (block securityBlockUtm) lines() []string {
-	return []string{
-		"utm feature-profile web-filtering type",
-		"utm feature-profile web-filtering juniper-enhanced server",
-	}
 }

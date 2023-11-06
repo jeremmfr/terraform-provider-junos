@@ -246,6 +246,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newServicesFlowMonitoringV9TemplateResource,
 		newServicesFlowMonitoringVIPFixTemplateResource,
 		newStaticRouteResource,
+		newSystemResource,
 	}
 }
 
