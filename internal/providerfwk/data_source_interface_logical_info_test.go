@@ -1,12 +1,12 @@
 package providerfwk_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -22,10 +22,16 @@ func TestAccDataSourceInterfaceLogicalInfo_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccDataSourceInterfaceLogicalInfoPre(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 				},
 				{
-					Config: testAccDataSourceInterfaceLogicalInfoConfig(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("data.junos_interface_logical_info.testacc_dataIfaceLogInfo",
 							"admin_status", "up"),
@@ -38,61 +44,4 @@ func TestAccDataSourceInterfaceLogicalInfo_basic(t *testing.T) {
 			},
 		})
 	}
-}
-
-func testAccDataSourceInterfaceLogicalInfoPre(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_dataIfaceLogInfo" {
-  name         = "%s"
-  description  = "testacc_dataIfaceLogInfo"
-  vlan_tagging = true
-}
-resource "junos_interface_logical" "testacc_dataIfaceLogInfo" {
-  name        = "${junos_interface_physical.testacc_dataIfaceLogInfo.name}.10"
-  description = "testacc_dataIfaceLogInfo"
-  family_inet {
-    address {
-      cidr_ip = "192.0.2.1/25"
-    }
-    address {
-      cidr_ip = "192.0.2.2/25"
-    }
-  }
-  family_inet6 {
-    address {
-      cidr_ip = "2001:db8::1/64"
-    }
-  }
-}
-`, interFace)
-}
-
-func testAccDataSourceInterfaceLogicalInfoConfig(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_dataIfaceLogInfo" {
-  name         = "%s"
-  description  = "testacc_dataIfaceLogInfo"
-  vlan_tagging = true
-}
-resource "junos_interface_logical" "testacc_dataIfaceLogInfo" {
-  name        = "${junos_interface_physical.testacc_dataIfaceLogInfo.name}.10"
-  description = "testacc_dataIfaceLogInfo"
-  family_inet {
-    address {
-      cidr_ip = "192.0.2.1/25"
-    }
-    address {
-      cidr_ip = "192.0.2.2/25"
-    }
-  }
-  family_inet6 {
-    address {
-      cidr_ip = "2001:db8::1/64"
-    }
-  }
-}
-data "junos_interface_logical_info" "testacc_dataIfaceLogInfo" {
-  name = junos_interface_logical.testacc_dataIfaceLogInfo.name
-}
-`, interFace)
 }

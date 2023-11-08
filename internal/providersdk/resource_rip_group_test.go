@@ -8,17 +8,17 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
-func TestAccJunosRipGroup_basic(t *testing.T) {
+func TestAccResourceRipGroup_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosRipGroupConfigCreate(),
+					Config: testAccResourceRipGroupConfigCreate(),
 				},
 				{
-					Config: testAccJunosRipGroupConfigUpdate(),
+					Config: testAccResourceRipGroupConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_rip_group.testacc_ripgroup",
@@ -41,14 +41,14 @@ func TestAccJunosRipGroup_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosRipGroupConfigCreate(),
+					Config: testAccResourceRipGroupConfigCreate(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosRipGroupConfigCreate() string {
+func testAccResourceRipGroupConfigCreate() string {
 	return `
 resource "junos_rip_group" "testacc_ripgroup" {
   name = "test_rip_group#1"
@@ -72,7 +72,7 @@ resource "junos_rip_group" "testacc_ripnggroup2" {
 `
 }
 
-func testAccJunosRipGroupConfigUpdate() string {
+func testAccResourceRipGroupConfigUpdate() string {
 	return `
 resource "junos_policyoptions_policy_statement" "testacc_ripgroup" {
   lifecycle {

@@ -80,7 +80,7 @@ func (rsc *staticRoute) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -153,6 +153,7 @@ func (rsc *staticRoute) Schema(
 				Optional:    true,
 				Description: "Path to as-path.",
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
@@ -215,6 +216,7 @@ func (rsc *staticRoute) Schema(
 				Optional:    true,
 				Description: "Next hop to another table.",
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
@@ -627,7 +629,7 @@ func (rsc *staticRoute) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("destination"),
 			"Empty Destination",
-			"could not create "+rsc.junosName()+" with empty destination",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "destination"),
 		)
 
 		return
@@ -669,12 +671,12 @@ func (rsc *staticRoute) Create(
 				if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 					resp.Diagnostics.AddError(
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf(rsc.junosName()+" %q already exists in routing-instance %q", plan.Destination.ValueString(), v),
+						defaultResourceAlreadyExistsInRoutingInstanceMessage(rsc, plan.Destination, v),
 					)
 				} else {
 					resp.Diagnostics.AddError(
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Destination.ValueString()),
+						defaultResourceAlreadyExistsMessage(rsc, plan.Destination),
 					)
 				}
 
@@ -699,14 +701,12 @@ func (rsc *staticRoute) Create(
 				if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 					resp.Diagnostics.AddError(
 						tfdiag.NotFoundErrSummary,
-						fmt.Sprintf(rsc.junosName()+" %q does not exists in routing-instance %q after commit "+
-							"=> check your config", plan.Destination.ValueString(), v),
+						defaultResourceDoesNotExistsInRoutingInstanceAfterCommitMessage(rsc, plan.Destination, v),
 					)
 				} else {
 					resp.Diagnostics.AddError(
 						tfdiag.NotFoundErrSummary,
-						fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-							"=> check your config", plan.Destination.ValueString()),
+						defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Destination),
 					)
 				}
 
@@ -791,8 +791,8 @@ func (rsc *staticRoute) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <destination>"+junos.IDSeparator+"<routing_instance>)", req.ID),
+		defaultResourceImportDontFindMessage(rsc, req.ID)+
+			" (id must be <destination>"+junos.IDSeparator+"<routing_instance>)",
 	)
 }
 

@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -14,10 +15,10 @@ func TestAccDataSourceApplicationSets_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccDataSourceApplicationSetsPre(),
+					ConfigDirectory: config.TestStepDirectory(),
 				},
 				{
-					Config: testAccDataSourceApplicationSetsConfig(),
+					ConfigDirectory: config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("data.junos_application_sets.testacc_ssh_without_telnet",
 							"application_sets.#", "0"),
@@ -34,43 +35,4 @@ func TestAccDataSourceApplicationSets_basic(t *testing.T) {
 			},
 		})
 	}
-}
-
-func testAccDataSourceApplicationSetsPre() string {
-	return `
-resource "junos_application_set" "testacc_app_set" {
-  name         = "testacc_app_set"
-  applications = ["junos-ssh", "junos-telnet"]
-}
-resource "junos_application_set" "testacc_app_set2" {
-  name            = "testacc_app_set2"
-  application_set = [junos_application_set.testacc_app_set.name]
-  description     = "test-data-source-appSet"
-}
-`
-}
-
-func testAccDataSourceApplicationSetsConfig() string {
-	return `
-resource "junos_application_set" "testacc_app_set" {
-  name         = "testacc_app_set"
-  applications = ["junos-ssh", "junos-telnet"]
-}
-
-data "junos_application_sets" "testacc_ssh_without_telnet" {
-  match_applications = ["junos-ssh"]
-}
-data "junos_application_sets" "testacc_ssh_with_telnet" {
-  match_applications = ["junos-telnet", "junos-ssh"]
-}
-data "junos_application_sets" "testacc_default_cifs" {
-  match_applications = ["junos-netbios-session", "junos-smb-session"]
-}
-data "junos_application_sets" "testacc_name" {
-  match_name = "testacc_.*"
-}
-data "junos_application_sets" "testacc_appsets" {
-  match_application_sets = ["testacc_app_set"]
-}
-`
 }

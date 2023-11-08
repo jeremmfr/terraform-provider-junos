@@ -40,6 +40,15 @@ The following arguments are supported:
 - **default_gateway** (Optional, String)  
   Default gateway mode.  
   Need to be `advertise`, `do-not-advertise` or `no-gateway-community`.
+- **duplicate_mac_detection** (Optional, Block)  
+  Duplicate MAC detection settings.  
+  An attribute of block need to be set.
+  - **auto_recovery_time** (Optional, Number)  
+    Automatically unblock duplicate MACs after a time delay (1..360 minutes).
+  - **detection_threshold** (Optional, Number)  
+    Number of moves to trigger duplicate MAC detection (2..20).
+  - **detection_window** (Optional, Number)  
+    Time window for detection of duplicate MACs (5..600 seconds).
 - **multicast_mode** (Optional, String)  
   Multicast mode for EVPN.
 - **switch_or_ri_options** (Optional, Block, Forces new resource)  

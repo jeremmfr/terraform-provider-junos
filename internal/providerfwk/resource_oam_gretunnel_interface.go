@@ -2,7 +2,6 @@ package providerfwk
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -78,7 +77,7 @@ func (rsc *oamGretunnelInterface) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -158,7 +157,7 @@ func (rsc *oamGretunnelInterface) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -177,7 +176,7 @@ func (rsc *oamGretunnelInterface) Create(
 			if interfaceExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+					defaultResourceAlreadyExistsMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -195,8 +194,7 @@ func (rsc *oamGretunnelInterface) Create(
 			if !interfaceExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-						"=> check your config", plan.Name.ValueString()),
+					defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -279,8 +277,7 @@ func (rsc *oamGretunnelInterface) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <name>)", req.ID),
+		defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "name"),
 	)
 }
 

@@ -1,12 +1,12 @@
 package providerfwk_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -22,10 +22,16 @@ func TestAccDataSourceInterfacePhysical_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccDataSourceInterfacePhysicalConfigCreate(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 				},
 				{
-					Config: testAccDataSourceInterfacePhysicalConfigData(testaccInterface),
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("data.junos_interface_physical.testacc_datainterfaceP",
 							"id", testaccInterface),
@@ -37,28 +43,4 @@ func TestAccDataSourceInterfacePhysical_basic(t *testing.T) {
 			PreventPostDestroyRefresh: true,
 		})
 	}
-}
-
-func testAccDataSourceInterfacePhysicalConfigCreate(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_datainterfaceP" {
-  name         = "%s"
-  description  = "testacc_datainterfaceP"
-  vlan_tagging = true
-}
-`, interFace)
-}
-
-func testAccDataSourceInterfacePhysicalConfigData(interFace string) string {
-	return fmt.Sprintf(`
-resource "junos_interface_physical" "testacc_datainterfaceP" {
-  name         = "%s"
-  description  = "testacc_datainterfaceP"
-  vlan_tagging = true
-}
-
-data "junos_interface_physical" "testacc_datainterfaceP" {
-  config_interface = "%s"
-}
-`, interFace, interFace)
 }

@@ -154,7 +154,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 		plan.PolicyBtoA.ValueString() == "" {
 		resp.Diagnostics.AddError(
 			"Empty Zone",
-			"could not create "+rsc.junosName()+" with empty zone_a, zone_b, policy_a_to_b or policy_b_to_a",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "zone_a, zone_b, policy_a_to_b or policy_b_to_a"),
 		)
 
 		return
@@ -167,8 +167,8 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf(rsc.junosName()+" not compatible"+
-						"with Junos device %q", junSess.SystemInformation.HardwareModel))
+					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
+				)
 
 				return false
 			}
@@ -330,14 +330,12 @@ func (rsc *securityPolicyTunnelPairPolicy) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be "+
+		defaultResourceImportDontFindMessage(rsc, req.ID)+
+			" (id must be "+
 			"<zone_a>"+junos.IDSeparator+
 			"<policy_a_to_b>"+junos.IDSeparator+
 			"<zone_b>"+junos.IDSeparator+
 			"<policy_b_to_a>)",
-			req.ID,
-		),
 	)
 }
 

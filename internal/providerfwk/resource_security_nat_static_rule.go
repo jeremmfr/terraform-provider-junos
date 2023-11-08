@@ -82,7 +82,7 @@ func (rsc *securityNatStaticRule) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -384,7 +384,7 @@ func (rsc *securityNatStaticRule) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -393,7 +393,7 @@ func (rsc *securityNatStaticRule) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("rule_set"),
 			"Empty rule-set",
-			"could not create "+rsc.junosName()+" with empty rule-set",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "rule-set"),
 		)
 
 		return
@@ -406,8 +406,7 @@ func (rsc *securityNatStaticRule) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf(rsc.junosName()+" not compatible "+
-						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
 				)
 
 				return false
@@ -551,8 +550,8 @@ func (rsc *securityNatStaticRule) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <rule_set>"+junos.IDSeparator+"<name>)", req.ID),
+		defaultResourceImportDontFindMessage(rsc, req.ID)+
+			" (id must be <rule_set>"+junos.IDSeparator+"<name>)",
 	)
 }
 

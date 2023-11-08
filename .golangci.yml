@@ -31,6 +31,7 @@ linters:
     - musttag
     - depguard
     - gosec
+    - inamedparam
 linters-settings:
   gci:
     custom-order: true
@@ -43,7 +44,7 @@ linters-settings:
     min-complexity: 180
   goconst:
     # Minimum occurrences of constant string count to trigger issue.
-    min-occurrences: 10
+    min-occurrences: 25
     # Ignore test files.
     ignore-tests: true
   gocyclo:
@@ -72,3 +73,9 @@ issues:
     - text: "github.com/hashicorp/terraform-plugin-framework/datasource"
       linters:
         - ireturn
+    - path: "internal/providersdk/"
+      linters:
+        - goconst
+    - text: "string `description \"` has "
+      linters:
+        - goconst

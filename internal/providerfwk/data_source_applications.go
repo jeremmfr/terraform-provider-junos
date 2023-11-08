@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -558,7 +559,7 @@ func (dscData *applicationsDataSourceData) fillID() {
 	dscData.ID = types.StringValue(
 		"match_name=" + dscData.MatchName.ValueString() +
 			junos.IDSeparator +
-			"match_options_n=" + fmt.Sprintf("%d", len(dscData.MatchOptions)),
+			"match_options_n=" + strconv.Itoa(len(dscData.MatchOptions)),
 	)
 }
 

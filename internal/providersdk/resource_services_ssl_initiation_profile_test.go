@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosServicesSSLInitiationProfile_basic(t *testing.T) {
+func TestAccResourceServicesSSLInitiationProfile_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosServicesSSLInitiationProfileCreate(),
+					Config: testAccResourceServicesSSLInitiationProfileCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_ssl_initiation_profile.testacc_sslInitProf",
 							"actions.#", "1"),
@@ -23,7 +23,7 @@ func TestAccJunosServicesSSLInitiationProfile_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosServicesSSLInitiationProfileUpdate(),
+					Config: testAccResourceServicesSSLInitiationProfileUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_services_ssl_initiation_profile.testacc_sslInitProf",
 							"custom_ciphers.#", "2"),
@@ -39,7 +39,7 @@ func TestAccJunosServicesSSLInitiationProfile_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosServicesSSLInitiationProfileCreate() string {
+func testAccResourceServicesSSLInitiationProfileCreate() string {
 	return `
 resource "junos_services_ssl_initiation_profile" "testacc_sslInitProf" {
   name = "testacc_sslInitProf.1"
@@ -59,7 +59,7 @@ resource "junos_services_ssl_initiation_profile" "testacc_sslInitProf" {
 `
 }
 
-func testAccJunosServicesSSLInitiationProfileUpdate() string {
+func testAccResourceServicesSSLInitiationProfileUpdate() string {
 	return `
 resource "junos_services_ssl_initiation_profile" "testacc_sslInitProf" {
   name = "testacc_sslInitProf.1"

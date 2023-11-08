@@ -286,7 +286,7 @@ func (rsc *securityZoneBookAddress) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" address with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -295,7 +295,7 @@ func (rsc *securityZoneBookAddress) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("zone"),
 			"Empty Zone",
-			"could not create "+rsc.junosName()+" address with empty zone",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "zone"),
 		)
 
 		return
@@ -308,8 +308,7 @@ func (rsc *securityZoneBookAddress) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf(rsc.junosName()+" not compatible "+
-						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
 				)
 
 				return false
@@ -452,8 +451,8 @@ func (rsc *securityZoneBookAddress) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <zone>"+junos.IDSeparator+"<name>)", req.ID),
+		defaultResourceImportDontFindMessage(rsc, req.ID)+
+			" (id must be <zone>"+junos.IDSeparator+"<name>)",
 	)
 }
 

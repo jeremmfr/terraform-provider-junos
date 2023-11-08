@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosRoutingOptions_basic(t *testing.T) {
+func TestAccResourceRoutingOptions_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosRoutingOptionsConfigCreate(),
+					Config: testAccResourceRoutingOptionsConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_routing_options.testacc_routing_options",
 							"autonomous_system.#", "1"),
@@ -38,7 +38,7 @@ func TestAccJunosRoutingOptions_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosRoutingOptionsConfigUpdate(),
+					Config: testAccResourceRoutingOptionsConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_routing_options.testacc_routing_options",
 							"graceful_restart.#", "1"),
@@ -49,7 +49,7 @@ func TestAccJunosRoutingOptions_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosRoutingOptionsConfigCreate() string {
+func testAccResourceRoutingOptionsConfigCreate() string {
 	return `
 resource "junos_policyoptions_policy_statement" "testacc_routing_options" {
   lifecycle {
@@ -119,7 +119,7 @@ resource "junos_routing_options" "testacc_routing_options" {
 `
 }
 
-func testAccJunosRoutingOptionsConfigUpdate() string {
+func testAccResourceRoutingOptionsConfigUpdate() string {
 	return `
 resource "junos_policyoptions_policy_statement" "testacc_routing_options2" {
   name = "testacc_routing_options2"

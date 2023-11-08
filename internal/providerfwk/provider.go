@@ -205,6 +205,8 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newApplicationResource,
 		newBgpGroupResource,
 		newBgpNeighborResource,
+		newBridgeDomainResource,
+		newEvpnResource,
 		newFirewallFilterResource,
 		newFirewallPolicerResource,
 		newForwardingoptionsSamplingResource,
@@ -244,6 +246,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newServicesFlowMonitoringV9TemplateResource,
 		newServicesFlowMonitoringVIPFixTemplateResource,
 		newStaticRouteResource,
+		newSystemResource,
 	}
 }
 
@@ -257,123 +260,103 @@ func (p *junosProvider) Configure(
 		return
 	}
 
+	unknownValueErrorMessage := "The provider cannot create the Junos client as there is an unknown configuration value "
+	instructionUnknownMessage := " Either target apply the source of the value first, " +
+		"set the value statically in the configuration, or use the %s environment variable."
 	if config.IP.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ip"),
 			"Unknown Junos IP target",
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for the Junos IP. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvHost+" environment variable.",
+			unknownValueErrorMessage+"for the Junos IP."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvHost),
 		)
 	}
 	if config.Port.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("port"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'port' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvPort+" environment variable.",
+			unknownValueErrorMessage+"for 'port' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvPort),
 		)
 	}
 	if config.Username.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("username"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'username' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvUsername+" environment variable.",
+			unknownValueErrorMessage+"for 'username' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvUsername),
 		)
 	}
 	if config.Password.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("password"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'password' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvPassword+" environment variable.",
+			unknownValueErrorMessage+"for 'password' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvPassword),
 		)
 	}
 	if config.SSHKeyPem.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("sshkey_pem"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'sshkey_pem' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvKeyPem+" environment variable.",
+			unknownValueErrorMessage+"for 'sshkey_pem' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvKeyPem),
 		)
 	}
 	if config.SSHKeyFile.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("sshkeyfile"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'sshkeyfile' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvKeyFile+" environment variable.",
+			unknownValueErrorMessage+"for 'sshkeyfile' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvKeyFile),
 		)
 	}
 	if config.SSHKeyPass.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("keypass"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'keypass' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvKeyPass+" environment variable.",
+			unknownValueErrorMessage+"for 'keypass' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvKeyPass),
 		)
 	}
 	if config.GroupIntDel.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("group_interface_delete"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'group_interface_delete' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvGroupInterfaceDelete+" environment variable.",
+			unknownValueErrorMessage+"for 'group_interface_delete' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvGroupInterfaceDelete),
 		)
 	}
 	if config.CmdSleepShort.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("cmd_sleep_short"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'cmd_sleep_short' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvSleepShort+" environment variable.",
+			unknownValueErrorMessage+"for 'cmd_sleep_short' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvSleepShort),
 		)
 	}
 	if config.CmdSleepLock.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("cmd_sleep_lock"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'cmd_sleep_lock' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvSleepLock+" environment variable.",
+			unknownValueErrorMessage+"for 'cmd_sleep_lock' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvSleepLock),
 		)
 	}
 	if config.SleepSSHClosed.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ssh_sleep_closed"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'ssh_sleep_closed' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvSleepSSHClosed+" environment variable.",
+			unknownValueErrorMessage+"for 'ssh_sleep_closed' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvSleepSSHClosed),
 		)
 	}
 	if config.SSHCiphers.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ssh_ciphers"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'ssh_ciphers' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration.",
+			unknownValueErrorMessage+"for 'ssh_ciphers' attribute."+
+				" Either target apply the source of the value first or set the value statically in the configuration.",
 		)
 	}
 	for _, v := range config.SSHCiphers.Elements() {
@@ -381,9 +364,8 @@ func (p *junosProvider) Configure(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ssh_ciphers"),
 				tfdiag.UnknownJunosAttrErrSummary,
-				"The provider cannot create the Junos client as there is an unknown configuration value "+
-					"for 'ssh_ciphers' attribute. "+
-					"Either target apply the source of the value first, set the value statically in the configuration.",
+				unknownValueErrorMessage+"for 'ssh_ciphers' attribute."+
+					" Either target apply the source of the value first or set the value statically in the configuration.",
 			)
 		}
 	}
@@ -391,70 +373,56 @@ func (p *junosProvider) Configure(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ssh_timeout_to_establish"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'ssh_timeout_to_establish' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvSSHTimeoutToEstablish+" environment variable.",
+			unknownValueErrorMessage+"for 'ssh_timeout_to_establish' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvSSHTimeoutToEstablish),
 		)
 	}
 	if config.SSHRetryToEstab.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ssh_retry_to_establish"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'ssh_retry_to_establish' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvSSHRetryToEstablish+" environment variable.",
+			unknownValueErrorMessage+"for 'ssh_retry_to_establish' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvSSHRetryToEstablish),
 		)
 	}
 	if config.FilePermission.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("file_permission"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'file_permission' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvFilePermission+" environment variable.",
+			unknownValueErrorMessage+"for 'file_permission' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvFilePermission),
 		)
 	}
 	if config.DebugNetconfLogPath.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("debug_netconf_log_path"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'debug_netconf_log_path' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvLogPath+" environment variable.",
+			unknownValueErrorMessage+"for 'debug_netconf_log_path' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvLogPath),
 		)
 	}
 	if config.FakeCreateSetFile.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("fake_create_with_setfile"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'fake_create_with_setfile' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvFakecreateSetfile+" environment variable.",
+			unknownValueErrorMessage+"for 'fake_create_with_setfile' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvFakecreateSetfile),
 		)
 	}
 	if config.FakeUpdateAlso.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("fake_update_also"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'fake_update_also' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvFakeupdateAlso+" environment variable.",
+			unknownValueErrorMessage+"for 'fake_update_also' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvFakeupdateAlso),
 		)
 	}
 	if config.FakeDeleteAlso.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("fake_delete_also"),
 			tfdiag.UnknownJunosAttrErrSummary,
-			"The provider cannot create the Junos client as there is an unknown configuration value "+
-				"for 'fake_delete_also' attribute. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, "+
-				"or use the "+junos.EnvFakedeleteAlso+" environment variable.",
+			unknownValueErrorMessage+"for 'fake_delete_also' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvFakedeleteAlso),
 		)
 	}
 	if resp.Diagnostics.HasError() {
@@ -469,9 +437,9 @@ func (p *junosProvider) Configure(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ip"),
 			"Missing Junos IP target",
-			"The provider cannot create the Junos client as there is a missing or empty value for the Junos IP. "+
-				"Set the ip value in the configuration or use the "+junos.EnvHost+" environment variable. "+
-				"If either is already set, ensure the value is not empty.",
+			"The provider cannot create the Junos client as there is a missing or empty value for the Junos IP."+
+				" Set the ip value in the configuration or use the "+junos.EnvHost+" environment variable."+
+				" If either is already set, ensure the value is not empty.",
 		)
 
 		return

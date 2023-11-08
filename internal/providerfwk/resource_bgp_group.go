@@ -84,7 +84,7 @@ func (rsc *bgpGroup) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -1304,7 +1304,7 @@ func (rsc *bgpGroup) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -1368,12 +1368,12 @@ func (rsc *bgpGroup) Create(
 				if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 					resp.Diagnostics.AddError(
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf(rsc.junosName()+" %q already exists in routing-instance %q", plan.Name.ValueString(), v),
+						defaultResourceAlreadyExistsInRoutingInstanceMessage(rsc, plan.Name, v),
 					)
 				} else {
 					resp.Diagnostics.AddError(
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+						defaultResourceAlreadyExistsMessage(rsc, plan.Name),
 					)
 				}
 
@@ -1398,14 +1398,12 @@ func (rsc *bgpGroup) Create(
 				if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 					resp.Diagnostics.AddError(
 						tfdiag.NotFoundErrSummary,
-						fmt.Sprintf(rsc.junosName()+" %q does not exists in routing-instance %q after commit "+
-							"=> check your config", plan.Name.ValueString(), v),
+						defaultResourceDoesNotExistsInRoutingInstanceAfterCommitMessage(rsc, plan.Name, v),
 					)
 				} else {
 					resp.Diagnostics.AddError(
 						tfdiag.NotFoundErrSummary,
-						fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-							"=> check your config", plan.Name.ValueString()),
+						defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
 					)
 				}
 
@@ -1513,8 +1511,8 @@ func (rsc *bgpGroup) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <name>"+junos.IDSeparator+"<routing_instance>)", req.ID),
+		defaultResourceImportDontFindMessage(rsc, req.ID)+
+			" (id must be <name>"+junos.IDSeparator+"<routing_instance>)",
 	)
 }
 

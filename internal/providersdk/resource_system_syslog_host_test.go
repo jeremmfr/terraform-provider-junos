@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSystemSyslogHost_basic(t *testing.T) {
+func TestAccResourceSystemSyslogHost_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosSystemSyslogHostConfigCreate(),
+				Config: testAccResourceSystemSyslogHostConfigCreate(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
 						"host", "192.0.2.1"),
@@ -21,7 +21,7 @@ func TestAccJunosSystemSyslogHost_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccJunosSystemSyslogHostConfigUpdate(),
+				Config: testAccResourceSystemSyslogHostConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
 						"structured_data.#", "1"),
@@ -30,7 +30,7 @@ func TestAccJunosSystemSyslogHost_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccJunosSystemSyslogHostConfigUpdate2(),
+				Config: testAccResourceSystemSyslogHostConfigUpdate2(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
 						"structured_data.#", "1"),
@@ -95,7 +95,7 @@ func TestAccJunosSystemSyslogHost_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosSystemSyslogHostConfigCreate() string {
+func testAccResourceSystemSyslogHostConfigCreate() string {
 	return `
 resource "junos_system_syslog_host" "testacc_syslogHost" {
   host = "192.0.2.1"
@@ -104,7 +104,7 @@ resource "junos_system_syslog_host" "testacc_syslogHost" {
 `
 }
 
-func testAccJunosSystemSyslogHostConfigUpdate() string {
+func testAccResourceSystemSyslogHostConfigUpdate() string {
 	return `
 resource "junos_system_syslog_host" "testacc_syslogHost" {
   host = "192.0.2.1"
@@ -115,7 +115,7 @@ resource "junos_system_syslog_host" "testacc_syslogHost" {
 `
 }
 
-func testAccJunosSystemSyslogHostConfigUpdate2() string {
+func testAccResourceSystemSyslogHostConfigUpdate2() string {
 	return `
 resource "junos_system_syslog_host" "testacc_syslogHost" {
   host                         = "192.0.2.1"

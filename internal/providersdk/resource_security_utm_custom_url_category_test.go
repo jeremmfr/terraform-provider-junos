@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityUtmCustomURLCategory_basic(t *testing.T) {
+func TestAccResourceSecurityUtmCustomURLCategory_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityUtmCustomURLCategoryConfigCreate(),
+					Config: testAccResourceSecurityUtmCustomURLCategoryConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
 							"value.#", "1"),
@@ -23,7 +23,7 @@ func TestAccJunosSecurityUtmCustomURLCategory_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityUtmCustomURLCategoryConfigUpdate(),
+					Config: testAccResourceSecurityUtmCustomURLCategoryConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
 							"value.#", "2"),
@@ -43,7 +43,7 @@ func TestAccJunosSecurityUtmCustomURLCategory_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityUtmCustomURLCategoryConfigCreate() string {
+func testAccResourceSecurityUtmCustomURLCategoryConfigCreate() string {
 	return `
 resource "junos_security_utm_custom_url_pattern" "testacc_URLCategory1" {
   name  = "testacc-custom-pattern1"
@@ -58,7 +58,7 @@ resource "junos_security_utm_custom_url_category" "testacc_URLCategory" {
 `
 }
 
-func testAccJunosSecurityUtmCustomURLCategoryConfigUpdate() string {
+func testAccResourceSecurityUtmCustomURLCategoryConfigUpdate() string {
 	return `
 resource "junos_security_utm_custom_url_pattern" "testacc_URLCategory1" {
   name  = "testacc-custom-pattern1"

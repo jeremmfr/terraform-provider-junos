@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosForwardingOptionsDhcpRelayGroup_basic(t *testing.T) {
+func TestAccResourceForwardingOptionsDhcpRelayGroup_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosForwardingOptionsDhcpRelayGroupConfigCreate(),
+					Config: testAccResourceForwardingOptionsDhcpRelayGroupConfigCreate(),
 				},
 				{
-					Config: testAccJunosForwardingOptionsDhcpRelayGroupConfigUpdate(),
+					Config: testAccResourceForwardingOptionsDhcpRelayGroupConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_forwardingoptions_dhcprelay_group.testacc_dhcprelaygroup_v4_default",
@@ -44,7 +44,7 @@ func TestAccJunosForwardingOptionsDhcpRelayGroup_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosForwardingOptionsDhcpRelayGroupConfigCreate() string {
+func testAccResourceForwardingOptionsDhcpRelayGroupConfigCreate() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay_group" "testacc_dhcprelaygroup_v4_default" {
   name = "testacc_dhcprelaygroup_v4_default"
@@ -92,7 +92,7 @@ resource "junos_forwardingoptions_dhcprelay_group" "testacc_dhcprelaygroup_v6_ri
 }
 
 //nolint:lll
-func testAccJunosForwardingOptionsDhcpRelayGroupConfigUpdate() string {
+func testAccResourceForwardingOptionsDhcpRelayGroupConfigUpdate() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay_group" "testacc_dhcprelaygroup_v4_default" {
   name = "testacc_dhcprelaygroup_v4_default"

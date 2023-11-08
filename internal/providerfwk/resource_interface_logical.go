@@ -85,7 +85,7 @@ func (rsc *interfaceLogical) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -1638,7 +1638,7 @@ func (rsc *interfaceLogical) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -1743,8 +1743,7 @@ func (rsc *interfaceLogical) Create(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
 				tfdiag.CompatibilityErrSummary,
-				fmt.Sprintf("security zone arguments not compatible "+
-					"with Junos device %q", junSess.SystemInformation.HardwareModel),
+				"security zone arguments"+junSess.SystemInformation.NotCompatibleMsg(),
 			)
 
 			return
@@ -1994,8 +1993,7 @@ func (rsc *interfaceLogical) Update(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_zone"),
 				tfdiag.CompatibilityErrSummary,
-				fmt.Sprintf("security zone arguments not compatible "+
-					"with Junos device %q", junSess.SystemInformation.HardwareModel),
+				"security zone arguments"+junSess.SystemInformation.NotCompatibleMsg(),
 			)
 
 			return
@@ -2130,8 +2128,7 @@ func (rsc *interfaceLogical) ImportState(
 		if !intExists {
 			resp.Diagnostics.AddError(
 				tfdiag.NotFoundErrSummary,
-				fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-					"(id must be <name>)", req.ID),
+				defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "name"),
 			)
 
 			return

@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSystemServicesDhcpLocalserverGroup_basic(t *testing.T) {
+func TestAccResourceSystemServicesDhcpLocalserverGroup_basic(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSystemServicesDhcpLocalserverGroupConfigCreate(),
+					Config: testAccResourceSystemServicesDhcpLocalserverGroupConfigCreate(),
 				},
 				{
-					Config: testAccJunosSystemServicesDhcpLocalserverGroupConfigUpdate(),
+					Config: testAccResourceSystemServicesDhcpLocalserverGroupConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_system_services_dhcp_localserver_group.testacc_dhcpgroup_v4_default",
@@ -44,7 +44,7 @@ func TestAccJunosSystemServicesDhcpLocalserverGroup_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSystemServicesDhcpLocalserverGroupConfigCreate() string {
+func testAccResourceSystemServicesDhcpLocalserverGroupConfigCreate() string {
 	return `
 resource "junos_system_services_dhcp_localserver_group" "testacc_dhcpgroup_v4_default" {
   name = "testacc_dhcpgroup_v4_default"
@@ -91,7 +91,7 @@ resource "junos_system_services_dhcp_localserver_group" "testacc_dhcpgroup_v6_ri
 `
 }
 
-func testAccJunosSystemServicesDhcpLocalserverGroupConfigUpdate() string {
+func testAccResourceSystemServicesDhcpLocalserverGroupConfigUpdate() string {
 	return `
 resource "junos_system_services_dhcp_localserver_group" "testacc_dhcpgroup_v4_default" {
   name = "testacc_dhcpgroup_v4_default"

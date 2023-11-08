@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosSecurityUtmCustomURLPattern_basic(t *testing.T) {
+func TestAccResourceSecurityUtmCustomURLPattern_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityUtmCustomURLPatternConfigCreate(),
+					Config: testAccResourceSecurityUtmCustomURLPatternConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_pattern.testacc_UrlPattern",
 							"value.#", "1"),
@@ -23,7 +23,7 @@ func TestAccJunosSecurityUtmCustomURLPattern_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityUtmCustomURLPatternConfigUpdate(),
+					Config: testAccResourceSecurityUtmCustomURLPatternConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_pattern.testacc_UrlPattern",
 							"value.#", "2"),
@@ -43,7 +43,7 @@ func TestAccJunosSecurityUtmCustomURLPattern_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityUtmCustomURLPatternConfigCreate() string {
+func testAccResourceSecurityUtmCustomURLPatternConfigCreate() string {
 	return `
 resource "junos_security_utm_custom_url_pattern" "testacc_UrlPattern" {
   name  = "testacc_UrlPattern"
@@ -52,7 +52,7 @@ resource "junos_security_utm_custom_url_pattern" "testacc_UrlPattern" {
 `
 }
 
-func testAccJunosSecurityUtmCustomURLPatternConfigUpdate() string {
+func testAccResourceSecurityUtmCustomURLPatternConfigUpdate() string {
 	return `
 resource "junos_security_utm_custom_url_pattern" "testacc_UrlPattern" {
   name  = "testacc_UrlPattern"

@@ -82,7 +82,7 @@ func (rsc *securityNatStatic) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Version:     1,
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -496,7 +496,7 @@ func (rsc *securityNatStatic) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -509,8 +509,7 @@ func (rsc *securityNatStatic) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf(rsc.junosName()+" not compatible "+
-						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
 				)
 
 				return false
@@ -524,7 +523,7 @@ func (rsc *securityNatStatic) Create(
 			if natStaticExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+					defaultResourceAlreadyExistsMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -542,8 +541,7 @@ func (rsc *securityNatStatic) Create(
 			if !natStaticExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-						"=> check your config", plan.Name.ValueString()),
+					defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -726,8 +724,8 @@ func (rsc *securityNatStatic) ImportState(
 	if data.ID.IsNull() {
 		resp.Diagnostics.AddError(
 			tfdiag.NotFoundErrSummary,
-			fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-				"(id must be <name> or <name>"+junos.IDSeparator+"no_rules)", req.ID),
+			defaultResourceImportDontFindMessage(rsc, req.ID)+
+				" (id must be <name> or <name>"+junos.IDSeparator+"no_rules)",
 		)
 	}
 	if len(idList) > 1 && idList[1] == "no_rules" {

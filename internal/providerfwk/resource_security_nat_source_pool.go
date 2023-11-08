@@ -2,9 +2,6 @@ package providerfwk
 
 import (
 	"context"
-	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -80,7 +77,7 @@ func (rsc *securityNatSourcePool) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		Description: "Provides a " + rsc.junosName() + ".",
+		Description: defaultResourceSchemaDescription(rsc),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -158,7 +155,7 @@ func (rsc *securityNatSourcePool) Schema(
 				Optional:    true,
 				Description: "Range of port to source nat.",
 				Validators: []validator.String{
-					attributeSecurityNatSourcePoolPortRangeValidator{},
+					tfvalidator.StringNumberRange(1024, 65535).WithNameInError("Nat Source Port"),
 				},
 			},
 			"routing_instance": schema.StringAttribute{
@@ -170,80 +167,6 @@ func (rsc *securityNatSourcePool) Schema(
 				},
 			},
 		},
-	}
-}
-
-type attributeSecurityNatSourcePoolPortRangeValidator struct{}
-
-func (v attributeSecurityNatSourcePoolPortRangeValidator) Description(_ context.Context) string {
-	return "Must be a valid Security Nat Source Pool Port Range."
-}
-
-func (v attributeSecurityNatSourcePoolPortRangeValidator) MarkdownDescription(_ context.Context) string {
-	return "Must be a valid Security Nat Source Pool Port Range."
-}
-
-func (v attributeSecurityNatSourcePoolPortRangeValidator) ValidateString(
-	_ context.Context, req validator.StringRequest, resp *validator.StringResponse,
-) {
-	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
-		return
-	}
-
-	value := req.ConfigValue.ValueString()
-	if ok := regexp.MustCompile(`^\d+(-\d+)?$`).MatchString(value); !ok {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			fmt.Sprintf(`expected value of port_range to match regular expression \d+(-\d+)?, got %v`, v),
-		)
-
-		return
-	}
-	vSplit := strings.Split(value, "-")
-	low, err := strconv.Atoi(vSplit[0])
-	if err != nil {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			err.Error(),
-		)
-
-		return
-	}
-	high := low
-	if len(vSplit) > 1 {
-		high, err = strconv.Atoi(vSplit[1])
-		if err != nil {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
-				"Invalid Security Nat Source Pool Port Range",
-				err.Error(),
-			)
-
-			return
-		}
-	}
-	if low > high {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			fmt.Sprintf("low(%d) in %s bigger than high(%d)", low, value, high),
-		)
-	}
-	if low < 1024 {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			fmt.Sprintf("low(%d) in %s is too small (min 1024)", low, v),
-		)
-	}
-	if high > 65535 {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Security Nat Source Pool Port Range",
-			fmt.Sprintf("high(%d) in %s is too big (max 65535)", high, v),
-		)
 	}
 }
 
@@ -330,7 +253,7 @@ func (rsc *securityNatSourcePool) Create(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			"Empty Name",
-			"could not create "+rsc.junosName()+" with empty name",
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "name"),
 		)
 
 		return
@@ -343,8 +266,7 @@ func (rsc *securityNatSourcePool) Create(
 			if !junSess.CheckCompatibilitySecurity() {
 				resp.Diagnostics.AddError(
 					tfdiag.CompatibilityErrSummary,
-					fmt.Sprintf(rsc.junosName()+" not compatible "+
-						"with Junos device %q", junSess.SystemInformation.HardwareModel),
+					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
 				)
 
 				return false
@@ -358,7 +280,7 @@ func (rsc *securityNatSourcePool) Create(
 			if poolExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q already exists", plan.Name.ValueString()),
+					defaultResourceAlreadyExistsMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -376,8 +298,7 @@ func (rsc *securityNatSourcePool) Create(
 			if !poolExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
-					fmt.Sprintf(rsc.junosName()+" %q does not exists after commit "+
-						"=> check your config", plan.Name.ValueString()),
+					defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
 				)
 
 				return false
@@ -460,8 +381,7 @@ func (rsc *securityNatSourcePool) ImportState(
 		&data,
 		req,
 		resp,
-		fmt.Sprintf("don't find "+rsc.junosName()+" with id %q "+
-			"(id must be <name>)", req.ID),
+		defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "name"),
 	)
 }
 

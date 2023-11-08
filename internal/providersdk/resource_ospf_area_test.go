@@ -12,7 +12,7 @@ import (
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 // export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's ge-0/0/4.
-func TestAccJunosOspfArea_basic(t *testing.T) {
+func TestAccResourceOspfArea_basic(t *testing.T) {
 	testaccOspfArea := junos.DefaultInterfaceTestAcc
 	testaccOspfArea2 := junos.DefaultInterfaceTestAcc2
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -27,7 +27,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosOspfAreaConfigCreate(testaccOspfArea),
+					Config: testAccResourceOspfAreaConfigCreate(testaccOspfArea),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
 							"area_id", "0.0.0.0"),
@@ -54,7 +54,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosOspfAreaConfigUpdate(testaccOspfArea, testaccOspfArea2),
+					Config: testAccResourceOspfAreaConfigUpdate(testaccOspfArea, testaccOspfArea2),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
 							"interface.#", "2"),
@@ -91,16 +91,16 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosOspfAreaConfigUpdate2(),
+					Config: testAccResourceOspfAreaConfigUpdate2(),
 				},
 				{
-					Config: testAccJunosOspfAreaConfigUpdate3(),
+					Config: testAccResourceOspfAreaConfigUpdate3(),
 				},
 				{
-					Config: testAccJunosOspfAreaConfigUpdate4(testaccOspfArea),
+					Config: testAccResourceOspfAreaConfigUpdate4(testaccOspfArea),
 				},
 				{
-					Config: testAccJunosOspfAreaConfigUpdate5(testaccOspfArea),
+					Config: testAccResourceOspfAreaConfigUpdate5(testaccOspfArea),
 				},
 				{
 					ResourceName:      "junos_ospf_area.testacc_ospfarea",
@@ -122,7 +122,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosOspfAreaConfigCreate(interFace string) string {
+func testAccResourceOspfAreaConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_ospf_area" "testacc_ospfarea" {
   area_id = "0.0.0.0"
@@ -160,7 +160,7 @@ resource "junos_interface_logical" "testacc_ospfarea" {
 `, interFace)
 }
 
-func testAccJunosOspfAreaConfigUpdate(interFace, interFace2 string) string {
+func testAccResourceOspfAreaConfigUpdate(interFace, interFace2 string) string {
 	return fmt.Sprintf(`
 resource "junos_ospf_area" "testacc_ospfarea" {
   area_id = "0.0.0.0"
@@ -315,7 +315,7 @@ resource "junos_ospf_area" "testacc_ospfarea2v3realm" {
 `, interFace, interFace2)
 }
 
-func testAccJunosOspfAreaConfigUpdate2() string {
+func testAccResourceOspfAreaConfigUpdate2() string {
 	return `
 resource "junos_ospf_area" "testacc_ospfarea" {
   area_id = "0.0.0.0"
@@ -332,7 +332,7 @@ resource "junos_ospf_area" "testacc_ospfarea" {
 `
 }
 
-func testAccJunosOspfAreaConfigUpdate3() string {
+func testAccResourceOspfAreaConfigUpdate3() string {
 	return `
 resource "junos_ospf_area" "testacc_ospfarea" {
   area_id = "0.0.0.0"
@@ -362,7 +362,7 @@ resource "junos_ospf_area" "testacc_ospfarea" {
 `
 }
 
-func testAccJunosOspfAreaConfigUpdate4(interFace string) string {
+func testAccResourceOspfAreaConfigUpdate4(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_ospf_area" "testacc_ospfarea" {
   area_id = "1"
@@ -406,7 +406,7 @@ resource "junos_ospf_area" "testacc_ospfarea2" {
 `, interFace)
 }
 
-func testAccJunosOspfAreaConfigUpdate5(interFace string) string {
+func testAccResourceOspfAreaConfigUpdate5(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_ospf_area" "testacc_ospfarea" {
   area_id = "1"

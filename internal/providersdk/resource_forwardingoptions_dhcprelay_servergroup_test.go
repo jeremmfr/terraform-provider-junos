@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosForwardingOptionsDhcpRelayServerGroup_basic(t *testing.T) {
+func TestAccResourceForwardingOptionsDhcpRelayServerGroup_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" || os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosForwardingOptionsDhcpRelayServerGroupConfigCreate(),
+					Config: testAccResourceForwardingOptionsDhcpRelayServerGroupConfigCreate(),
 				},
 				{
-					Config: testAccJunosForwardingOptionsDhcpRelayServerGroupConfigUpdate(),
+					Config: testAccResourceForwardingOptionsDhcpRelayServerGroupConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_forwardingoptions_dhcprelay_servergroup.testacc_dhcprelay_servergroup_ri",
@@ -30,7 +30,7 @@ func TestAccJunosForwardingOptionsDhcpRelayServerGroup_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosForwardingOptionsDhcpRelayServerGroupConfigUpdate2(),
+					Config: testAccResourceForwardingOptionsDhcpRelayServerGroupConfigUpdate2(),
 				},
 				{
 					ResourceName:      "junos_forwardingoptions_dhcprelay_servergroup.testacc_dhcprelay_servergroup",
@@ -47,7 +47,7 @@ func TestAccJunosForwardingOptionsDhcpRelayServerGroup_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosForwardingOptionsDhcpRelayServerGroupConfigCreate() string {
+func testAccResourceForwardingOptionsDhcpRelayServerGroupConfigCreate() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay_servergroup" "testacc_dhcprelay_servergroup" {
   name = "testacc_dhcprelay_servergroup"
@@ -72,7 +72,7 @@ resource "junos_forwardingoptions_dhcprelay_servergroup" "testacc_dhcprelay_serv
 `
 }
 
-func testAccJunosForwardingOptionsDhcpRelayServerGroupConfigUpdate() string {
+func testAccResourceForwardingOptionsDhcpRelayServerGroupConfigUpdate() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay_servergroup" "testacc_dhcprelay_servergroup" {
   name = "testacc_dhcprelay_servergroup"
@@ -109,7 +109,7 @@ resource "junos_forwardingoptions_dhcprelay_servergroup" "testacc_dhcprelay_serv
 `
 }
 
-func testAccJunosForwardingOptionsDhcpRelayServerGroupConfigUpdate2() string {
+func testAccResourceForwardingOptionsDhcpRelayServerGroupConfigUpdate2() string {
 	return `
 resource "junos_forwardingoptions_dhcprelay_servergroup" "testacc_dhcprelay_servergroup" {
   name = "testacc_dhcprelay_servergroup"

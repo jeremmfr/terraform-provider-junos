@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosVstp_basic(t *testing.T) {
+func TestAccResourceVstp_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosVstpSWConfigCreate(),
+					Config: testAccResourceVstpSWConfigCreate(),
 				},
 				{
-					Config: testAccJunosVstpSWConfigUpdate(),
+					Config: testAccResourceVstpSWConfigUpdate(),
 				},
 				{
 					ResourceName:      "junos_vstp.testacc_ri_vstp",
@@ -29,7 +29,7 @@ func TestAccJunosVstp_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosVstpSWConfigCreate() string {
+func testAccResourceVstpSWConfigCreate() string {
 	return `
 resource "junos_vstp" "testacc_vstp" {
   bpdu_block_on_edge = true
@@ -47,7 +47,7 @@ resource "junos_vstp" "testacc_ri_vstp" {
 `
 }
 
-func testAccJunosVstpSWConfigUpdate() string {
+func testAccResourceVstpSWConfigUpdate() string {
 	return `
 resource "junos_vstp" "testacc_vstp" {
   disable = true

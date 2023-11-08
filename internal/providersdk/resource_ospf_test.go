@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccJunosOspf_basic(t *testing.T) {
+func TestAccResourceOspf_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosOspfConfigCreate(),
+					Config: testAccResourceOspfConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_ospf.testacc_ospf",
 							"import.#", "1"),
@@ -28,14 +28,14 @@ func TestAccJunosOspf_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosOspfConfigUpdate(),
+					Config: testAccResourceOspfConfigUpdate(),
 				},
 			},
 		})
 	}
 }
 
-func testAccJunosOspfConfigCreate() string {
+func testAccResourceOspfConfigCreate() string {
 	return `
 resource "junos_policyoptions_policy_statement" "testacc_ospf" {
   name = "testacc_ospf"
@@ -108,7 +108,7 @@ resource "junos_ospf" "testacc_ospf_v3" {
 `
 }
 
-func testAccJunosOspfConfigUpdate() string {
+func testAccResourceOspfConfigUpdate() string {
 	return `
 resource "junos_policyoptions_policy_statement" "testacc_ospf" {
   name = "testacc_ospf"
