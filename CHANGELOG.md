@@ -1,6 +1,36 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.3.0 (November 08, 2023)
+
+ENHANCEMENTS:
+
+* **resource/junos_bridge_domain**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `interface` argument (Fix [#548](https://github.com/jeremmfr/terraform-provider-junos/issues/548))
+* **resource/junos_evpn**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `duplicate_mac_detection` block argument (Fix [#535](https://github.com/jeremmfr/terraform-provider-junos/issues/535))
+* **resource/junos_system**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * `authentication_order`, `auxiliary_authentication_order`, `console_authentication_order` arguments have now a value validator: need to be `password`, `radius` or `tacplus`
+  * add `name_server_opts` argument (in conflict with `name_server` argument) to also configure DNS name server but with optional options (`routing_instance`) (Fix [#561](https://github.com/jeremmfr/terraform-provider-junos/issues/561))
+
+BUG FIXES:
+
+* **resource/junos_aggregate_route**, **resource/junos_generate_route**, **resource/junos_static_route**: fix missing no-empty value validator on `as_path_path` and `next_table` arguments
+
 ## v2.2.0 (September 13, 2023)
 
 ENHANCEMENTS:
