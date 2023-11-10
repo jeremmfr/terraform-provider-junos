@@ -20,13 +20,15 @@ const (
 	InterfaceWithWildcardFormat
 	HexadecimalFormat
 	ASPathRegularExpression
+	AlgorithmFormat
 )
 
 func (f stringFormat) invalidRune() func(rune) bool {
 	switch f {
 	case DefaultFormat:
 		return func(r rune) bool {
-			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && r != '-' && r != '_'
+			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
+				r != '-' && r != '_'
 		}
 	case AddressNameFormat:
 		return func(r rune) bool {
@@ -58,6 +60,11 @@ func (f stringFormat) invalidRune() func(rune) bool {
 				r != '+' && r != '?' && r != '{' && r != '}' && r != '.' && r != '[' && r != ']' &&
 				r != '(' && r != ')' && (r < '0' || r > '9') && r != ' '
 		}
+	case AlgorithmFormat:
+		return func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
+				r != '-' && r != '_' && r != '@' && r != '.'
+		}
 	default:
 		return func(r rune) bool {
 			return true
@@ -81,6 +88,8 @@ func (f stringFormat) String() string {
 		return "A-F or a-f letters and numbers"
 	case ASPathRegularExpression:
 		return "regular expression characters, numbers and spaces"
+	case AlgorithmFormat:
+		return "letters, numbers, dashes, underscores, at symbol and dots"
 	default:
 		return ""
 	}
