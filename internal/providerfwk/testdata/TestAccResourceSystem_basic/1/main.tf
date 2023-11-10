@@ -125,14 +125,14 @@ resource "junos_system" "testacc_system" {
     }
     ssh {
       authentication_order           = ["password"]
-      ciphers                        = ["aes256-ctr", "aes256-cbc"]
+      ciphers                        = ["aes256-ctr", "aes256-cbc", "aes256-gcm@openssh.com"]
       client_alive_count_max         = 10
       client_alive_interval          = 30
       connection_limit               = 10
       fingerprint_hash               = "md5"
       hostkey_algorithm              = ["no-ssh-dss"]
       key_exchange                   = ["ecdh-sha2-nistp256"]
-      macs                           = ["hmac-sha2-256"]
+      macs                           = ["hmac-sha2-256", "hmac-sha2-256-etm@openssh.com"]
       max_pre_authentication_packets = 10000
       max_sessions_per_connection    = 100
       port                           = 22

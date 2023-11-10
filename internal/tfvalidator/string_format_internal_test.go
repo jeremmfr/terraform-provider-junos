@@ -101,6 +101,16 @@ func TestStringFormat(t *testing.T) {
 			format:      ASPathRegularExpression,
 			expectError: true,
 		},
+		"AlgorithmFormat_valid": {
+			val:         types.StringValue("ok@ok.net"),
+			format:      AlgorithmFormat,
+			expectError: false,
+		},
+		"AlgorithmFormat_invalid": {
+			val:         types.StringValue("not ok@ok.net"),
+			format:      AlgorithmFormat,
+			expectError: true,
+		},
 	}
 
 	for name, test := range tests {

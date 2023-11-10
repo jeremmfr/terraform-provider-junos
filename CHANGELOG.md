@@ -1,6 +1,12 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.3.1 (November 10, 2023)
+
+BUG FIXES:
+
+* **resource/junos_system**: fix value validator (also accept `@`, `.`) on `ciphers`, `hostkey_algorithm`, `key_exchange` and `macs` attributes in `ssh` block in `services` block (Fix [#570](https://github.com/jeremmfr/terraform-provider-junos/issues/570))
+
 ## v2.3.0 (November 08, 2023)
 
 ENHANCEMENTS:

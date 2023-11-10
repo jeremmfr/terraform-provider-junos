@@ -1037,7 +1037,7 @@ func (rsc *system) Schema(
 									setvalidator.SizeAtLeast(1),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
-										tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
 									),
 								},
 							},
@@ -1077,7 +1077,7 @@ func (rsc *system) Schema(
 									setvalidator.SizeAtLeast(1),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
-										tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
 									),
 								},
 							},
@@ -1089,7 +1089,7 @@ func (rsc *system) Schema(
 									setvalidator.SizeAtLeast(1),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
-										tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
 									),
 								},
 							},
@@ -1108,7 +1108,7 @@ func (rsc *system) Schema(
 									setvalidator.SizeAtLeast(1),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
-										tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
 									),
 								},
 							},
@@ -3506,16 +3506,16 @@ func (block *systemBlockServices) configSet() (
 			configSet = append(configSet, setPrefix+"ssh fingerprint-hash "+v)
 		}
 		for _, v := range block.SSH.HostkeyAlgorithm {
-			configSet = append(configSet, setPrefix+"ssh hostkey-algorithm "+v.ValueString())
+			configSet = append(configSet, setPrefix+"ssh hostkey-algorithm \""+v.ValueString()+"\"")
 		}
 		for _, v := range block.SSH.KeyExchange {
-			configSet = append(configSet, setPrefix+"ssh key-exchange "+v.ValueString())
+			configSet = append(configSet, setPrefix+"ssh key-exchange \""+v.ValueString()+"\"")
 		}
 		if block.SSH.LogKeyChanges.ValueBool() {
 			configSet = append(configSet, setPrefix+"ssh log-key-changes")
 		}
 		for _, v := range block.SSH.Macs {
-			configSet = append(configSet, setPrefix+"ssh macs "+v.ValueString())
+			configSet = append(configSet, setPrefix+"ssh macs \""+v.ValueString()+"\"")
 		}
 		if !block.SSH.MaxPreAuthenticationPackets.IsNull() {
 			configSet = append(configSet, setPrefix+"ssh max-pre-authentication-packets "+
@@ -4354,13 +4354,13 @@ func (block *systemBlockServicesBlockSSH) read(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "fingerprint-hash "):
 		block.FingerprintHash = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "hostkey-algorithm "):
-		block.HostkeyAlgorithm = append(block.HostkeyAlgorithm, types.StringValue(itemTrim))
+		block.HostkeyAlgorithm = append(block.HostkeyAlgorithm, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "key-exchange "):
-		block.KeyExchange = append(block.KeyExchange, types.StringValue(itemTrim))
+		block.KeyExchange = append(block.KeyExchange, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case itemTrim == "log-key-changes":
 		block.LogKeyChanges = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "macs "):
-		block.Macs = append(block.Macs, types.StringValue(itemTrim))
+		block.Macs = append(block.Macs, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "max-pre-authentication-packets "):
 		block.MaxPreAuthenticationPackets, err = tfdata.ConvAtoi64Value(itemTrim)
 		if err != nil {
