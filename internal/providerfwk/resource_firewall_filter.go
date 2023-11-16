@@ -1481,7 +1481,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.Protocol.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW,
+		junos.InetW, "ethernet-switching",
 	}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("protocol"),
@@ -1490,7 +1490,7 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.ProtocolExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW,
+		junos.InetW, "ethernet-switching",
 	}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("protocol_except"),
