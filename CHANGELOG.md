@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.3.2 (November 16, 2023)
+
 BUG FIXES:
 
 * **resource/junos_firewall_filter**: allow use `protocol` and `protocol_except` arguments in `from` block in `term` block when `family` is set to `ethernet-switching` (Fix [#577](https://github.com/jeremmfr/terraform-provider-junos/issues/577))
