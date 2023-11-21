@@ -194,6 +194,14 @@ func (rsc *interfacePhysical) Schema(
 						"must be a valid speed (10m | 100m | 1g ...)"),
 				},
 			},
+			"storm_control": schema.StringAttribute{
+				Optional:    true,
+				Description: "Storm control profile name to bind.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 127),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
 			"trunk": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Interface mode is trunk.",
@@ -641,6 +649,7 @@ type interfacePhysicalData struct {
 	LinkMode               types.String                           `tfsdk:"link_mode"`
 	Mtu                    types.Int64                            `tfsdk:"mtu"`
 	Speed                  types.String                           `tfsdk:"speed"`
+	StormControl           types.String                           `tfsdk:"storm_control"`
 	VlanMembers            []types.String                         `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                            `tfsdk:"vlan_native"`
 	VlanNativeNonELS       types.String                           `tfsdk:"vlan_native_non_els"`
@@ -669,6 +678,7 @@ type interfacePhysicalConfig struct {
 	LinkMode               types.String                                 `tfsdk:"link_mode"`
 	Mtu                    types.Int64                                  `tfsdk:"mtu"`
 	Speed                  types.String                                 `tfsdk:"speed"`
+	StormControl           types.String                                 `tfsdk:"storm_control"`
 	VlanMembers            types.List                                   `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                                  `tfsdk:"vlan_native"`
 	VlanNativeNonELS       types.String                                 `tfsdk:"vlan_native_non_els"`
@@ -1737,6 +1747,9 @@ func (rscData *interfacePhysicalData) set(
 	if v := rscData.Speed.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"speed "+v)
 	}
+	if v := rscData.StormControl.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching storm-control \""+v+"\"")
+	}
 	if rscData.Trunk.ValueBool() {
 		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk")
 	}
@@ -2028,6 +2041,8 @@ func (rscData *interfacePhysicalData) read(
 				rscData.NoGratuitousArpRequest = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "speed "):
 				rscData.Speed = types.StringValue(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "unit 0 family ethernet-switching storm-control "):
+				rscData.StormControl = types.StringValue(strings.Trim(itemTrim, "\""))
 			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
 				rscData.Trunk = types.BoolValue(true)
 			case itemTrim == "unit 0 family ethernet-switching port-mode trunk":
@@ -2228,6 +2243,7 @@ func (rscData *interfacePhysicalData) delOpts(
 		delPrefix + "unit 0 family ethernet-switching interface-mode",
 		delPrefix + "unit 0 family ethernet-switching native-vlan-id",
 		delPrefix + "unit 0 family ethernet-switching port-mode",
+		delPrefix + "unit 0 family ethernet-switching storm-control",
 		delPrefix + "unit 0 family ethernet-switching vlan members",
 		delPrefix + "vlan-tagging",
 	}

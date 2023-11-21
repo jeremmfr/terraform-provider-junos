@@ -110,6 +110,8 @@ The following arguments are supported:
 - **speed** (Optional, String)  
   Link speed.  
   Must be a valid speed (10m | 100m | 1g ...)
+- **storm_control** (Optional, String)  
+  Storm control profile name to bind.
 - **trunk** (Optional, Boolean)  
   Interface mode is trunk.
 - **trunk_non_els** (Optional, Boolean)  
