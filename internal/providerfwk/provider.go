@@ -212,6 +212,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newForwardingoptionsSamplingResource,
 		newForwardingoptionsSamplingInstanceResource,
 		newGenerateRouteResource,
+		newIccpResource,
 		newInterfaceLogicalResource,
 		newInterfacePhysicalDisableResource,
 		newInterfacePhysicalResource,
