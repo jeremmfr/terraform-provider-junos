@@ -18,6 +18,13 @@ Please list the new or affected resources and data sources.
 
 * junos_XXXXX
 
+### Example Junos Configuration
+<!-- 
+```txt
+# Copy-paste an example of Junos configuration
+```
+-->
+
 ### Potential Terraform Configuration
 <!-- 
 ```hcl
