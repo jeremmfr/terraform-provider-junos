@@ -707,6 +707,29 @@ type interfacePhysicalBlockEtherOpts struct {
 	RedundantParent   types.String `tfsdk:"redundant_parent"`
 }
 
+func (block *interfacePhysicalBlockEtherOpts) isEmpty() bool {
+	switch {
+	case !block.AutoNegotiation.IsNull():
+		return false
+	case !block.NoAutoNegotiation.IsNull():
+		return false
+	case !block.FlowControl.IsNull():
+		return false
+	case !block.NoFlowControl.IsNull():
+		return false
+	case !block.Loopback.IsNull():
+		return false
+	case !block.NoLoopback.IsNull():
+		return false
+	case !block.Ae8023ad.IsNull():
+		return false
+	case !block.RedundantParent.IsNull():
+		return false
+	default:
+		return true
+	}
+}
+
 type interfacePhysicalBlockParentEtherOpts struct {
 	FlowControl          types.Bool                                                      `tfsdk:"flow_control"`
 	NoFlowControl        types.Bool                                                      `tfsdk:"no_flow_control"`
@@ -735,55 +758,6 @@ type interfacePhysicalBlockParentEtherOptsConfig struct {
 	SourceAddressFilter  types.List                                                      `tfsdk:"source_address_filter"`
 	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
 	Lacp                 *interfacePhysicalBlockParentEtherOptsBlockLacp                 `tfsdk:"lacp"`
-}
-
-type interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection struct {
-	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
-	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
-	LocalAddress                    types.String `tfsdk:"local_address"`
-	AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
-	AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
-	DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
-	HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
-	MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
-	MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
-	Multiplier                      types.Int64  `tfsdk:"multiplier"`
-	Neighbor                        types.String `tfsdk:"neighbor"`
-	TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
-	TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
-	Version                         types.String `tfsdk:"version"`
-}
-
-type interfacePhysicalBlockParentEtherOptsBlockLacp struct {
-	Mode           types.String `tfsdk:"mode"`
-	AdminKey       types.Int64  `tfsdk:"admin_key"`
-	Periodic       types.String `tfsdk:"periodic"`
-	SyncReset      types.String `tfsdk:"sync_reset"`
-	SystemID       types.String `tfsdk:"system_id"`
-	SystemPriority types.Int64  `tfsdk:"system_priority"`
-}
-
-func (block *interfacePhysicalBlockEtherOpts) isEmpty() bool {
-	switch {
-	case !block.AutoNegotiation.IsNull():
-		return false
-	case !block.NoAutoNegotiation.IsNull():
-		return false
-	case !block.FlowControl.IsNull():
-		return false
-	case !block.NoFlowControl.IsNull():
-		return false
-	case !block.Loopback.IsNull():
-		return false
-	case !block.NoLoopback.IsNull():
-		return false
-	case !block.Ae8023ad.IsNull():
-		return false
-	case !block.RedundantParent.IsNull():
-		return false
-	default:
-		return true
-	}
 }
 
 func (block *interfacePhysicalBlockParentEtherOptsConfig) isEmpty() bool {
@@ -815,6 +789,32 @@ func (block *interfacePhysicalBlockParentEtherOptsConfig) isEmpty() bool {
 	default:
 		return true
 	}
+}
+
+type interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection struct {
+	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
+	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
+	LocalAddress                    types.String `tfsdk:"local_address"`
+	AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
+	AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
+	DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
+	HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
+	MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
+	MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
+	Multiplier                      types.Int64  `tfsdk:"multiplier"`
+	Neighbor                        types.String `tfsdk:"neighbor"`
+	TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
+	TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
+	Version                         types.String `tfsdk:"version"`
+}
+
+type interfacePhysicalBlockParentEtherOptsBlockLacp struct {
+	Mode           types.String `tfsdk:"mode"`
+	AdminKey       types.Int64  `tfsdk:"admin_key"`
+	Periodic       types.String `tfsdk:"periodic"`
+	SyncReset      types.String `tfsdk:"sync_reset"`
+	SystemID       types.String `tfsdk:"system_id"`
+	SystemPriority types.Int64  `tfsdk:"system_priority"`
 }
 
 func (rsc *interfacePhysical) ValidateConfig(
