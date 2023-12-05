@@ -125,6 +125,51 @@ func (dsc *interfacePhysicalDataSource) Schema(
 				Computed:    true,
 				Description: "Link operational mode.",
 			},
+			"mtu": schema.Int64Attribute{
+				Computed:    true,
+				Description: "Maximum transmission unit.",
+			},
+			"no_gratuitous_arp_reply": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Don't enable gratuitous ARP reply.",
+			},
+			"no_gratuitous_arp_request": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Ignore gratuitous ARP request.",
+			},
+			"speed": schema.StringAttribute{
+				Computed:    true,
+				Description: "Link speed.",
+			},
+			"storm_control": schema.StringAttribute{
+				Computed:    true,
+				Description: "Storm control profile name to bind.",
+			},
+			"trunk": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Interface mode is trunk.",
+			},
+			"trunk_non_els": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Port mode is trunk.",
+			},
+			"vlan_members": schema.ListAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+				Description: "List of vlan membership for this interface.",
+			},
+			"vlan_native": schema.Int64Attribute{
+				Computed:    true,
+				Description: "Vlan for untagged frames.",
+			},
+			"vlan_native_non_els": schema.StringAttribute{
+				Computed:    true,
+				Description: "Vlan for untagged frames (non-ELS).",
+			},
+			"vlan_tagging": schema.BoolAttribute{
+				Computed:    true,
+				Description: "802.1q VLAN tagging support.",
+			},
 			"esi": schema.ObjectAttribute{
 				Computed:    true,
 				Description: "ESI Config parameters.",
@@ -164,22 +209,20 @@ func (dsc *interfacePhysicalDataSource) Schema(
 					"redundant_parent":    types.StringType,
 				},
 			},
-			"mtu": schema.Int64Attribute{
-				Computed:    true,
-				Description: "Maximum transmission unit.",
-			},
-			"no_gratuitous_arp_reply": schema.BoolAttribute{
-				Computed:    true,
-				Description: "Don't enable gratuitous ARP reply.",
-			},
-			"no_gratuitous_arp_request": schema.BoolAttribute{
-				Computed:    true,
-				Description: "Ignore gratuitous ARP request.",
-			},
 			"parent_ether_opts": schema.ObjectAttribute{
 				Computed:    true,
 				Description: "The `aggregated-ether-options` or `redundant-ether-options` configuration.",
 				AttributeTypes: map[string]attr.Type{
+					"flow_control":          types.BoolType,
+					"no_flow_control":       types.BoolType,
+					"loopback":              types.BoolType,
+					"no_loopback":           types.BoolType,
+					"link_speed":            types.StringType,
+					"minimum_bandwidth":     types.StringType,
+					"minimum_links":         types.Int64Type,
+					"redundancy_group":      types.Int64Type,
+					"source_address_filter": types.ListType{}.WithElementType(types.StringType),
+					"source_filtering":      types.BoolType,
 					"bfd_liveness_detection": types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 						"local_address":                      types.StringType,
 						"authentication_algorithm":           types.StringType,
@@ -196,8 +239,6 @@ func (dsc *interfacePhysicalDataSource) Schema(
 						"transmit_interval_threshold":        types.Int64Type,
 						"version":                            types.StringType,
 					}),
-					"flow_control":    types.BoolType,
-					"no_flow_control": types.BoolType,
 					"lacp": types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 						"mode":            types.StringType,
 						"admin_key":       types.Int64Type,
@@ -206,9 +247,6 @@ func (dsc *interfacePhysicalDataSource) Schema(
 						"system_id":       types.StringType,
 						"system_priority": types.Int64Type,
 					}),
-					"loopback":    types.BoolType,
-					"no_loopback": types.BoolType,
-					"link_speed":  types.StringType,
 					"mc_ae": types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 						"chassis_id":           types.Int64Type,
 						"mc_ae_id":             types.Int64Type,
@@ -224,45 +262,7 @@ func (dsc *interfacePhysicalDataSource) Schema(
 							"prefer_status_control_active": types.BoolType,
 						}),
 					}),
-					"minimum_bandwidth":     types.StringType,
-					"minimum_links":         types.Int64Type,
-					"redundancy_group":      types.Int64Type,
-					"source_address_filter": types.ListType{}.WithElementType(types.StringType),
-					"source_filtering":      types.BoolType,
 				},
-			},
-			"speed": schema.StringAttribute{
-				Computed:    true,
-				Description: "Link speed.",
-			},
-			"storm_control": schema.StringAttribute{
-				Computed:    true,
-				Description: "Storm control profile name to bind.",
-			},
-			"trunk": schema.BoolAttribute{
-				Computed:    true,
-				Description: "Interface mode is trunk.",
-			},
-			"trunk_non_els": schema.BoolAttribute{
-				Computed:    true,
-				Description: "Port mode is trunk.",
-			},
-			"vlan_members": schema.ListAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				Description: "List of vlan membership for this interface.",
-			},
-			"vlan_native": schema.Int64Attribute{
-				Computed:    true,
-				Description: "Vlan for untagged frames.",
-			},
-			"vlan_native_non_els": schema.StringAttribute{
-				Computed:    true,
-				Description: "Vlan for untagged frames (non-ELS).",
-			},
-			"vlan_tagging": schema.BoolAttribute{
-				Computed:    true,
-				Description: "802.1q VLAN tagging support.",
 			},
 		},
 	}
