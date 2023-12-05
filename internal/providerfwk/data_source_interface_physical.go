@@ -176,10 +176,6 @@ func (dsc *interfacePhysicalDataSource) Schema(
 				Computed:    true,
 				Description: "Ignore gratuitous ARP request.",
 			},
-			"speed": schema.StringAttribute{
-				Computed:    true,
-				Description: "Link speed.",
-			},
 			"parent_ether_opts": schema.ObjectAttribute{
 				Computed:    true,
 				Description: "The `aggregated-ether-options` or `redundant-ether-options` configuration.",
@@ -235,6 +231,14 @@ func (dsc *interfacePhysicalDataSource) Schema(
 					"source_filtering":      types.BoolType,
 				},
 			},
+			"speed": schema.StringAttribute{
+				Computed:    true,
+				Description: "Link speed.",
+			},
+			"storm_control": schema.StringAttribute{
+				Computed:    true,
+				Description: "Storm control profile name to bind.",
+			},
 			"trunk": schema.BoolAttribute{
 				Computed:    true,
 				Description: "Interface mode is trunk.",
@@ -284,6 +288,7 @@ type interfacePhysicalDataSourceData struct {
 	LinkMode               types.String                           `tfsdk:"link_mode"`
 	Mtu                    types.Int64                            `tfsdk:"mtu"`
 	Speed                  types.String                           `tfsdk:"speed"`
+	StormControl           types.String                           `tfsdk:"storm_control"`
 	VlanMembers            []types.String                         `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                            `tfsdk:"vlan_native"`
 	VlanNativeNonELS       types.String                           `tfsdk:"vlan_native_non_els"`
@@ -435,6 +440,7 @@ func (dscData *interfacePhysicalDataSourceData) copyFromResourceData(rscData int
 	dscData.NoGratuitousArpRequest = rscData.NoGratuitousArpRequest
 	dscData.ParentEtherOpts = rscData.ParentEtherOpts
 	dscData.Speed = rscData.Speed
+	dscData.StormControl = rscData.StormControl
 	dscData.Trunk = rscData.Trunk
 	dscData.TrunkNonELS = rscData.TrunkNonELS
 	dscData.VlanMembers = rscData.VlanMembers

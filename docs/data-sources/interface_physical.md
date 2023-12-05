@@ -103,6 +103,8 @@ The following attributes are exported:
   See [below for nested schema](#parent_ether_opts-attributes).
 - **speed** (String)  
   Link speed.
+- **storm_control** (String)  
+  Storm control profile name to bind.
 - **trunk** (Boolean)  
   Interface mode is trunk.
 - **trunk_non_els** (Boolean)  

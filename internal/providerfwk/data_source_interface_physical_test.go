@@ -82,3 +82,36 @@ func TestAccDataSourceInterfacePhysical_router(t *testing.T) {
 		})
 	}
 }
+
+func TestAccDataSourceInterfacePhysical_switch(t *testing.T) {
+	testaccInterface := junos.DefaultInterfaceSwitchTestAcc
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
+	}
+	if os.Getenv("TESTACC_SWITCH") != "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
+				},
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("data.junos_interface_physical.testacc_interface",
+							"id", testaccInterface),
+						resource.TestCheckResourceAttr("data.junos_interface_physical.testacc_interface",
+							"storm_control", "testacc interface"),
+					),
+				},
+			},
+		})
+	}
+}
