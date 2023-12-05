@@ -140,7 +140,7 @@ The following attributes are exported:
 
 - **bfd_liveness_detection** (Block)  
   The `bfd-liveness-detection` in `aggregated-ether-options` configuration.  
-  See [below for nested schema](#bfd_liveness_detection-attributes-in-parent_ether_opts) block.
+  See [below for nested schema](#bfd_liveness_detection-attributes-in-parent_ether_opts).
 - **flow_control** (Boolean)  
   Enable flow control.
 - **no_flow_control** (Boolean)  
@@ -165,6 +165,9 @@ The following attributes are exported:
   Don't enable loopback.
 - **link_speed** (String)  
   Link speed of individual interface that joins the AE.
+- **mc_ae** (Block)  
+  Multi-chassis aggregation (MC-AE) network device configuration.  
+  See [below for nested schema](#mc_ae-arguments-in-parent_ether_opts).
 - **minimum_bandwidth** (String)  
   Minimum bandwidth configured for aggregated bundle.
 - **minimum_links** (Number)  
@@ -208,3 +211,32 @@ The following attributes are exported:
   High transmit interval triggering a trap.
 - **version** (String)  
   BFD protocol version number.
+
+---
+
+### mc_ae arguments in parent_ether_opts
+
+- **chassis_id** (Number)  
+  Chassis id of MC-AE network device.
+- **mc_ae_id** (Number)  
+  MC-AE group id.
+- **mode** (String)  
+  Mode of the MC-AE.
+- **status_control** (String)  
+  Status of the MC-AE chassis.
+- **enhanced_convergence** (Boolean)  
+  Optimized convergence time for MC-AE.
+- **events_iccp_peer_down** (Block)  
+  Define behavior in the event of ICCP peer down.  
+  - **force_icl_down** (Boolean)  
+    Bring down ICL logical interface.
+  - **prefer_status_control_active** (Boolean)  
+    Keep this node up (recommended only on status-control active).
+- **init_delay_time** (Number)  
+  Init delay timer for mcae sm for min traffic loss (seconds).
+- **redundancy_group** (Number)  
+  Redundancy group id.
+- **revert_time** (Number)  
+  Wait interval before performing switchover (minute).
+- **switchover_mode** (String)  
+  Switchover mode.

@@ -44,3 +44,41 @@ func TestAccDataSourceInterfacePhysical_basic(t *testing.T) {
 		})
 	}
 }
+
+func TestAccDataSourceInterfacePhysical_router(t *testing.T) {
+	testaccInterface := junos.DefaultInterfaceTestAcc
+	testaccInterfaceAE := "ae0"
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
+	}
+	if iface := os.Getenv("TESTACC_INTERFACE_AE"); iface != "" {
+		testaccInterfaceAE = iface
+	}
+	if os.Getenv("TESTACC_ROUTER") != "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface":   config.StringVariable(testaccInterface),
+						"interfaceAE": config.StringVariable(testaccInterfaceAE),
+					},
+				},
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface":   config.StringVariable(testaccInterface),
+						"interfaceAE": config.StringVariable(testaccInterfaceAE),
+					},
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("data.junos_interface_physical.testacc_interfaceAE",
+							"id", testaccInterfaceAE),
+					),
+				},
+			},
+			PreventPostDestroyRefresh: true,
+		})
+	}
+}
