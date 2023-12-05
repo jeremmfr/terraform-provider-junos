@@ -212,7 +212,7 @@ func (dsc *interfacePhysicalDataSource) Schema(
 					}),
 					"loopback":    types.BoolType,
 					"no_loopback": types.BoolType,
-					"link_speed":  types.Int64Type,
+					"link_speed":  types.StringType,
 					"mc_ae": types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 						"chassis_id":           types.Int64Type,
 						"mc_ae_id":             types.Int64Type,
@@ -228,7 +228,7 @@ func (dsc *interfacePhysicalDataSource) Schema(
 							"prefer_status_control_active": types.BoolType,
 						}),
 					}),
-					"minimum_bandwidth":     types.Int64Type,
+					"minimum_bandwidth":     types.StringType,
 					"minimum_links":         types.Int64Type,
 					"redundancy_group":      types.Int64Type,
 					"source_address_filter": types.ListType{}.WithElementType(types.StringType),
