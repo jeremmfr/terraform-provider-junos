@@ -788,7 +788,7 @@ type interfacePhysicalConfig struct {
 }
 
 type interfacePhysicalBlockESI struct {
-	AutoDeriveLacp types.Bool   `tfsdk:"auto_derive_lacp"`
+	AutoDeriveLACP types.Bool   `tfsdk:"auto_derive_lacp"`
 	Mode           types.String `tfsdk:"mode"`
 	DFElectionType types.String `tfsdk:"df_election_type"`
 	Identifier     types.String `tfsdk:"identifier"`
@@ -841,7 +841,7 @@ type interfacePhysicalBlockParentEtherOpts struct {
 	RedundancyGroup      types.Int64                                                     `tfsdk:"redundancy_group"`
 	SourceAddressFilter  []types.String                                                  `tfsdk:"source_address_filter"`
 	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
-	Lacp                 *interfacePhysicalBlockParentEtherOptsBlockLacp                 `tfsdk:"lacp"`
+	LACP                 *interfacePhysicalBlockParentEtherOptsBlockLACP                 `tfsdk:"lacp"`
 	MCAE                 *interfacePhysicalBlockParentEtherOptsBlockMCAE                 `tfsdk:"mc_ae"`
 }
 
@@ -857,7 +857,7 @@ type interfacePhysicalBlockParentEtherOptsConfig struct {
 	RedundancyGroup      types.Int64                                                     `tfsdk:"redundancy_group"`
 	SourceAddressFilter  types.List                                                      `tfsdk:"source_address_filter"`
 	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
-	Lacp                 *interfacePhysicalBlockParentEtherOptsBlockLacp                 `tfsdk:"lacp"`
+	LACP                 *interfacePhysicalBlockParentEtherOptsBlockLACP                 `tfsdk:"lacp"`
 	MCAE                 *interfacePhysicalBlockParentEtherOptsBlockMCAE                 `tfsdk:"mc_ae"`
 }
 
@@ -885,7 +885,7 @@ func (block *interfacePhysicalBlockParentEtherOptsConfig) isEmpty() bool {
 		return false
 	case block.BFDLivenessDetection != nil:
 		return false
-	case block.Lacp != nil:
+	case block.LACP != nil:
 		return false
 	case block.MCAE != nil:
 		return false
@@ -911,7 +911,7 @@ type interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection struct {
 	Version                         types.String `tfsdk:"version"`
 }
 
-type interfacePhysicalBlockParentEtherOptsBlockLacp struct {
+type interfacePhysicalBlockParentEtherOptsBlockLACP struct {
 	Mode           types.String `tfsdk:"mode"`
 	AdminKey       types.Int64  `tfsdk:"admin_key"`
 	Periodic       types.String `tfsdk:"periodic"`
@@ -956,7 +956,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 				"mode must be specified in esi block",
 			)
 		}
-		if !config.ESI.AutoDeriveLacp.IsNull() && !config.ESI.Identifier.IsNull() {
+		if !config.ESI.AutoDeriveLACP.IsNull() && !config.ESI.Identifier.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("esi").AtName("auto_derive_lacp"),
 				tfdiag.ConflictConfigErrSummary,
@@ -1102,8 +1102,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 				)
 			}
 		}
-		if config.ParentEtherOpts.Lacp != nil {
-			if config.ParentEtherOpts.Lacp.Mode.IsNull() {
+		if config.ParentEtherOpts.LACP != nil {
+			if config.ParentEtherOpts.LACP.Mode.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("parent_ether_opts").AtName("lacp").AtName("mode"),
 					tfdiag.MissingConfigErrSummary,
@@ -1953,7 +1953,7 @@ func (block *interfacePhysicalBlockESI) configSet(setPrefix string) []string {
 		setPrefix + "esi " + block.Mode.ValueString(),
 	}
 
-	if block.AutoDeriveLacp.ValueBool() {
+	if block.AutoDeriveLACP.ValueBool() {
 		configSet = append(configSet, setPrefix+"esi auto-derive lacp")
 	}
 	if v := block.DFElectionType.ValueString(); v != "" {
@@ -2048,25 +2048,25 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 	if block.NoFlowControl.ValueBool() {
 		configSet = append(configSet, setPrefix+"no-flow-control")
 	}
-	if block.Lacp != nil {
-		setPrefixLacp := setPrefix + "lacp "
-		configSet = append(configSet, setPrefixLacp+block.Lacp.Mode.ValueString())
-		if !block.Lacp.AdminKey.IsNull() {
-			configSet = append(configSet, setPrefixLacp+"admin-key "+
-				utils.ConvI64toa(block.Lacp.AdminKey.ValueInt64()))
+	if block.LACP != nil {
+		setPrefixLACP := setPrefix + "lacp "
+		configSet = append(configSet, setPrefixLACP+block.LACP.Mode.ValueString())
+		if !block.LACP.AdminKey.IsNull() {
+			configSet = append(configSet, setPrefixLACP+"admin-key "+
+				utils.ConvI64toa(block.LACP.AdminKey.ValueInt64()))
 		}
-		if v := block.Lacp.Periodic.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixLacp+"periodic "+v)
+		if v := block.LACP.Periodic.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixLACP+"periodic "+v)
 		}
-		if v := block.Lacp.SyncReset.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixLacp+"sync-reset "+v)
+		if v := block.LACP.SyncReset.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixLACP+"sync-reset "+v)
 		}
-		if v := block.Lacp.SystemID.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixLacp+"system-id "+v)
+		if v := block.LACP.SystemID.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixLACP+"system-id "+v)
 		}
-		if !block.Lacp.SystemPriority.IsNull() {
-			configSet = append(configSet, setPrefixLacp+"system-priority "+
-				utils.ConvI64toa(block.Lacp.SystemPriority.ValueInt64()))
+		if !block.LACP.SystemPriority.IsNull() {
+			configSet = append(configSet, setPrefixLACP+"system-priority "+
+				utils.ConvI64toa(block.LACP.SystemPriority.ValueInt64()))
 		}
 	}
 	if block.Loopback.ValueBool() {
@@ -2298,7 +2298,7 @@ func (block *interfacePhysicalBlockESI) read(itemTrim string) error {
 	case balt.CutPrefixInString(&itemTrim, "source-bmac "):
 		block.SourceBMAC = types.StringValue(itemTrim)
 	case itemTrim == "auto-derive lacp":
-		block.AutoDeriveLacp = types.BoolValue(true)
+		block.AutoDeriveLACP = types.BoolValue(true)
 	}
 
 	return nil
@@ -2366,22 +2366,22 @@ func (block *interfacePhysicalBlockParentEtherOpts) read(itemTrim string) (err e
 	case itemTrim == "no-flow-control":
 		block.NoFlowControl = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "lacp "):
-		if block.Lacp == nil {
-			block.Lacp = &interfacePhysicalBlockParentEtherOptsBlockLacp{}
+		if block.LACP == nil {
+			block.LACP = &interfacePhysicalBlockParentEtherOptsBlockLACP{}
 		}
 		switch {
 		case itemTrim == "active", itemTrim == "passive":
-			block.Lacp.Mode = types.StringValue(itemTrim)
+			block.LACP.Mode = types.StringValue(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "admin-key "):
-			block.Lacp.AdminKey, err = tfdata.ConvAtoi64Value(itemTrim)
+			block.LACP.AdminKey, err = tfdata.ConvAtoi64Value(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "periodic "):
-			block.Lacp.Periodic = types.StringValue(itemTrim)
+			block.LACP.Periodic = types.StringValue(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "sync-reset "):
-			block.Lacp.SyncReset = types.StringValue(itemTrim)
+			block.LACP.SyncReset = types.StringValue(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "system-id "):
-			block.Lacp.SystemID = types.StringValue(itemTrim)
+			block.LACP.SystemID = types.StringValue(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "system-priority "):
-			block.Lacp.SystemPriority, err = tfdata.ConvAtoi64Value(itemTrim)
+			block.LACP.SystemPriority, err = tfdata.ConvAtoi64Value(itemTrim)
 		}
 	case itemTrim == "loopback":
 		block.Loopback = types.BoolValue(true)

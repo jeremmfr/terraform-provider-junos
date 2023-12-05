@@ -260,7 +260,7 @@ func upgradeInterfacePhysicalV0toV1(
 		VlanMembers        []types.String `tfsdk:"vlan_members"`
 		VlanNative         types.Int64    `tfsdk:"vlan_native"`
 		ESI                []struct {
-			AutoDeriveLacp types.Bool   `tfsdk:"auto_derive_lacp"`
+			AutoDeriveLACP types.Bool   `tfsdk:"auto_derive_lacp"`
 			Mode           types.String `tfsdk:"mode"`
 			DFElectionType types.String `tfsdk:"df_election_type"`
 			Identifier     types.String `tfsdk:"identifier"`
@@ -313,7 +313,7 @@ func upgradeInterfacePhysicalV0toV1(
 				TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
 				Version                         types.String `tfsdk:"version"`
 			} `tfsdk:"bfd_liveness_detection"`
-			Lacp []struct {
+			LACP []struct {
 				Mode           types.String `tfsdk:"mode"`
 				AdminKey       types.Int64  `tfsdk:"admin_key"`
 				Periodic       types.String `tfsdk:"periodic"`
@@ -346,7 +346,7 @@ func upgradeInterfacePhysicalV0toV1(
 	dataV1.VlanTagging = dataV0.VlanTagging
 	if len(dataV0.ESI) > 0 {
 		dataV1.ESI = &interfacePhysicalBlockESI{
-			AutoDeriveLacp: dataV0.ESI[0].AutoDeriveLacp,
+			AutoDeriveLACP: dataV0.ESI[0].AutoDeriveLACP,
 			Mode:           dataV0.ESI[0].Mode,
 			DFElectionType: dataV0.ESI[0].DFElectionType,
 			Identifier:     dataV0.ESI[0].Identifier,
@@ -408,14 +408,14 @@ func upgradeInterfacePhysicalV0toV1(
 				Version:                         dataV0.ParentEtherOpts[0].BFDLivenessDetection[0].Version,
 			}
 		}
-		if len(dataV0.ParentEtherOpts[0].Lacp) > 0 {
-			dataV1.ParentEtherOpts.Lacp = &interfacePhysicalBlockParentEtherOptsBlockLacp{
-				Mode:           dataV0.ParentEtherOpts[0].Lacp[0].Mode,
-				AdminKey:       dataV0.ParentEtherOpts[0].Lacp[0].AdminKey,
-				Periodic:       dataV0.ParentEtherOpts[0].Lacp[0].Periodic,
-				SyncReset:      dataV0.ParentEtherOpts[0].Lacp[0].SyncReset,
-				SystemID:       dataV0.ParentEtherOpts[0].Lacp[0].SystemID,
-				SystemPriority: dataV0.ParentEtherOpts[0].Lacp[0].SystemPriority,
+		if len(dataV0.ParentEtherOpts[0].LACP) > 0 {
+			dataV1.ParentEtherOpts.LACP = &interfacePhysicalBlockParentEtherOptsBlockLACP{
+				Mode:           dataV0.ParentEtherOpts[0].LACP[0].Mode,
+				AdminKey:       dataV0.ParentEtherOpts[0].LACP[0].AdminKey,
+				Periodic:       dataV0.ParentEtherOpts[0].LACP[0].Periodic,
+				SyncReset:      dataV0.ParentEtherOpts[0].LACP[0].SyncReset,
+				SystemID:       dataV0.ParentEtherOpts[0].LACP[0].SystemID,
+				SystemPriority: dataV0.ParentEtherOpts[0].LACP[0].SystemPriority,
 			}
 		}
 	}
