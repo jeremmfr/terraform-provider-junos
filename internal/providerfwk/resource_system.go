@@ -3573,7 +3573,7 @@ func (block *systemBlockServices) configSet() (
 			configSet = append(configSet,
 				setPrefix+"web-management https pki-local-certificate \""+v+"\"")
 		}
-		if !block.WebManagementHTTP.Port.IsNull() {
+		if !block.WebManagementHTTPS.Port.IsNull() {
 			configSet = append(configSet, setPrefix+"web-management https port "+
 				utils.ConvI64toa(block.WebManagementHTTPS.Port.ValueInt64()))
 		}
