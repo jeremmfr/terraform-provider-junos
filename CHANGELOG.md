@@ -1,6 +1,12 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.3.3 (December 07, 2023)
+
+BUG FIXES:
+
+* **resource/junos_system**: fix crash when `web_management_https` is defined and `web_management_http` is not (Fix [#588](https://github.com/jeremmfr/terraform-provider-junos/issues/588))
+
 ## v2.3.2 (November 16, 2023)
 
 BUG FIXES:
