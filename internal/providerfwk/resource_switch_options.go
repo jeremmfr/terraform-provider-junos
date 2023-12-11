@@ -86,9 +86,6 @@ func (rsc *switchOptions) Schema(
 			"clean_on_destroy": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Clean supported lines when destroy this resource.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
 			},
 			"service_id": schema.Int64Attribute{
 				Optional:    true,
