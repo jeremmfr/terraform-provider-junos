@@ -674,7 +674,7 @@ func (rsc *securityIpsecVpn) ModifyPlan(
 		}
 	}
 
-	resp.Plan.Set(ctx, plan)
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
 }
 
 func (rsc *securityIpsecVpn) Create(
