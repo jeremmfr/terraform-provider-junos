@@ -558,6 +558,105 @@ func (rsc *interfacePhysical) Schema(
 							tfplanmodifier.BlockRemoveNull(),
 						},
 					},
+					"mc_ae": schema.SingleNestedBlock{
+						Description: "Multi-chassis aggregation (MC-AE) network device configuration.",
+						Attributes: map[string]schema.Attribute{
+							"chassis_id": schema.Int64Attribute{
+								Required:    false, // true when SingleNestedBlock is specified
+								Optional:    true,
+								Description: "Chassis id of MC-AE network device.",
+								Validators: []validator.Int64{
+									int64validator.Between(0, 1),
+								},
+							},
+							"mc_ae_id": schema.Int64Attribute{
+								Required:    false, // true when SingleNestedBlock is specified
+								Optional:    true,
+								Description: "MC-AE group id.",
+								Validators: []validator.Int64{
+									int64validator.Between(1, 65535),
+								},
+							},
+							"mode": schema.StringAttribute{
+								Required:    false, // true when SingleNestedBlock is specified
+								Optional:    true,
+								Description: "Mode of the MC-AE.",
+								Validators: []validator.String{
+									stringvalidator.OneOf("active-active", "active-standby"),
+								},
+							},
+							"status_control": schema.StringAttribute{
+								Required:    false, // true when SingleNestedBlock is specified
+								Optional:    true,
+								Description: "Status of the MC-AE chassis.",
+								Validators: []validator.String{
+									stringvalidator.OneOf("active", "standby"),
+								},
+							},
+							"enhanced_convergence": schema.BoolAttribute{
+								Optional:    true,
+								Description: "Optimized convergence time for mcae.",
+								Validators: []validator.Bool{
+									tfvalidator.BoolTrue(),
+								},
+							},
+							"init_delay_time": schema.Int64Attribute{
+								Optional:    true,
+								Description: "Init delay timer for mcae sm for min traffic loss (seconds).",
+								Validators: []validator.Int64{
+									int64validator.Between(1, 6000),
+								},
+							},
+							"redundancy_group": schema.Int64Attribute{
+								Optional:    true,
+								Description: "Redundancy group id.",
+								Validators: []validator.Int64{
+									int64validator.Between(1, 4294967294),
+								},
+							},
+							"revert_time": schema.Int64Attribute{
+								Optional:    true,
+								Description: "Wait interval before performing switchover (minute).",
+								Validators: []validator.Int64{
+									int64validator.Between(1, 10),
+								},
+							},
+							"switchover_mode": schema.StringAttribute{
+								Optional:    true,
+								Description: "Switchover mode.",
+								Validators: []validator.String{
+									stringvalidator.OneOf("revertive", "non-revertive"),
+								},
+							},
+						},
+						Blocks: map[string]schema.Block{
+							"events_iccp_peer_down": schema.SingleNestedBlock{
+								Description: "Define behavior in the event of ICCP peer down.",
+								Attributes: map[string]schema.Attribute{
+									"force_icl_down": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Bring down ICL logical interface.",
+										Validators: []validator.Bool{
+											tfvalidator.BoolTrue(),
+										},
+									},
+									"prefer_status_control_active": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Keep this node up.",
+										Validators: []validator.Bool{
+											tfvalidator.BoolTrue(),
+										},
+									},
+								},
+								PlanModifiers: []planmodifier.Object{
+									tfplanmodifier.BlockRemoveNull(),
+								},
+							},
+						},
+						PlanModifiers: []planmodifier.Object{
+							tfplanmodifier.BlockRemoveNull(),
+						},
+					},
 				},
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
@@ -689,7 +788,7 @@ type interfacePhysicalConfig struct {
 }
 
 type interfacePhysicalBlockESI struct {
-	AutoDeriveLacp types.Bool   `tfsdk:"auto_derive_lacp"`
+	AutoDeriveLACP types.Bool   `tfsdk:"auto_derive_lacp"`
 	Mode           types.String `tfsdk:"mode"`
 	DFElectionType types.String `tfsdk:"df_election_type"`
 	Identifier     types.String `tfsdk:"identifier"`
@@ -705,62 +804,6 @@ type interfacePhysicalBlockEtherOpts struct {
 	NoLoopback        types.Bool   `tfsdk:"no_loopback"`
 	Ae8023ad          types.String `tfsdk:"ae_8023ad"`
 	RedundantParent   types.String `tfsdk:"redundant_parent"`
-}
-
-type interfacePhysicalBlockParentEtherOpts struct {
-	FlowControl          types.Bool                                                      `tfsdk:"flow_control"`
-	NoFlowControl        types.Bool                                                      `tfsdk:"no_flow_control"`
-	Loopback             types.Bool                                                      `tfsdk:"loopback"`
-	NoLoopback           types.Bool                                                      `tfsdk:"no_loopback"`
-	SourceFiltering      types.Bool                                                      `tfsdk:"source_filtering"`
-	LinkSpeed            types.String                                                    `tfsdk:"link_speed"`
-	MinimumBandwidth     types.String                                                    `tfsdk:"minimum_bandwidth"`
-	MinimumLinks         types.Int64                                                     `tfsdk:"minimum_links"`
-	RedundancyGroup      types.Int64                                                     `tfsdk:"redundancy_group"`
-	SourceAddressFilter  []types.String                                                  `tfsdk:"source_address_filter"`
-	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
-	Lacp                 *interfacePhysicalBlockParentEtherOptsBlockLacp                 `tfsdk:"lacp"`
-}
-
-type interfacePhysicalBlockParentEtherOptsConfig struct {
-	FlowControl          types.Bool                                                      `tfsdk:"flow_control"`
-	NoFlowControl        types.Bool                                                      `tfsdk:"no_flow_control"`
-	Loopback             types.Bool                                                      `tfsdk:"loopback"`
-	NoLoopback           types.Bool                                                      `tfsdk:"no_loopback"`
-	SourceFiltering      types.Bool                                                      `tfsdk:"source_filtering"`
-	LinkSpeed            types.String                                                    `tfsdk:"link_speed"`
-	MinimumBandwidth     types.String                                                    `tfsdk:"minimum_bandwidth"`
-	MinimumLinks         types.Int64                                                     `tfsdk:"minimum_links"`
-	RedundancyGroup      types.Int64                                                     `tfsdk:"redundancy_group"`
-	SourceAddressFilter  types.List                                                      `tfsdk:"source_address_filter"`
-	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
-	Lacp                 *interfacePhysicalBlockParentEtherOptsBlockLacp                 `tfsdk:"lacp"`
-}
-
-type interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection struct {
-	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
-	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
-	LocalAddress                    types.String `tfsdk:"local_address"`
-	AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
-	AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
-	DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
-	HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
-	MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
-	MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
-	Multiplier                      types.Int64  `tfsdk:"multiplier"`
-	Neighbor                        types.String `tfsdk:"neighbor"`
-	TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
-	TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
-	Version                         types.String `tfsdk:"version"`
-}
-
-type interfacePhysicalBlockParentEtherOptsBlockLacp struct {
-	Mode           types.String `tfsdk:"mode"`
-	AdminKey       types.Int64  `tfsdk:"admin_key"`
-	Periodic       types.String `tfsdk:"periodic"`
-	SyncReset      types.String `tfsdk:"sync_reset"`
-	SystemID       types.String `tfsdk:"system_id"`
-	SystemPriority types.Int64  `tfsdk:"system_priority"`
 }
 
 func (block *interfacePhysicalBlockEtherOpts) isEmpty() bool {
@@ -784,6 +827,38 @@ func (block *interfacePhysicalBlockEtherOpts) isEmpty() bool {
 	default:
 		return true
 	}
+}
+
+type interfacePhysicalBlockParentEtherOpts struct {
+	FlowControl          types.Bool                                                      `tfsdk:"flow_control"`
+	NoFlowControl        types.Bool                                                      `tfsdk:"no_flow_control"`
+	Loopback             types.Bool                                                      `tfsdk:"loopback"`
+	NoLoopback           types.Bool                                                      `tfsdk:"no_loopback"`
+	SourceFiltering      types.Bool                                                      `tfsdk:"source_filtering"`
+	LinkSpeed            types.String                                                    `tfsdk:"link_speed"`
+	MinimumBandwidth     types.String                                                    `tfsdk:"minimum_bandwidth"`
+	MinimumLinks         types.Int64                                                     `tfsdk:"minimum_links"`
+	RedundancyGroup      types.Int64                                                     `tfsdk:"redundancy_group"`
+	SourceAddressFilter  []types.String                                                  `tfsdk:"source_address_filter"`
+	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
+	LACP                 *interfacePhysicalBlockParentEtherOptsBlockLACP                 `tfsdk:"lacp"`
+	MCAE                 *interfacePhysicalBlockParentEtherOptsBlockMCAE                 `tfsdk:"mc_ae"`
+}
+
+type interfacePhysicalBlockParentEtherOptsConfig struct {
+	FlowControl          types.Bool                                                      `tfsdk:"flow_control"`
+	NoFlowControl        types.Bool                                                      `tfsdk:"no_flow_control"`
+	Loopback             types.Bool                                                      `tfsdk:"loopback"`
+	NoLoopback           types.Bool                                                      `tfsdk:"no_loopback"`
+	SourceFiltering      types.Bool                                                      `tfsdk:"source_filtering"`
+	LinkSpeed            types.String                                                    `tfsdk:"link_speed"`
+	MinimumBandwidth     types.String                                                    `tfsdk:"minimum_bandwidth"`
+	MinimumLinks         types.Int64                                                     `tfsdk:"minimum_links"`
+	RedundancyGroup      types.Int64                                                     `tfsdk:"redundancy_group"`
+	SourceAddressFilter  types.List                                                      `tfsdk:"source_address_filter"`
+	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
+	LACP                 *interfacePhysicalBlockParentEtherOptsBlockLACP                 `tfsdk:"lacp"`
+	MCAE                 *interfacePhysicalBlockParentEtherOptsBlockMCAE                 `tfsdk:"mc_ae"`
 }
 
 func (block *interfacePhysicalBlockParentEtherOptsConfig) isEmpty() bool {
@@ -810,11 +885,58 @@ func (block *interfacePhysicalBlockParentEtherOptsConfig) isEmpty() bool {
 		return false
 	case block.BFDLivenessDetection != nil:
 		return false
-	case block.Lacp != nil:
+	case block.LACP != nil:
+		return false
+	case block.MCAE != nil:
 		return false
 	default:
 		return true
 	}
+}
+
+type interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection struct {
+	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
+	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
+	LocalAddress                    types.String `tfsdk:"local_address"`
+	AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
+	AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
+	DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
+	HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
+	MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
+	MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
+	Multiplier                      types.Int64  `tfsdk:"multiplier"`
+	Neighbor                        types.String `tfsdk:"neighbor"`
+	TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
+	TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
+	Version                         types.String `tfsdk:"version"`
+}
+
+type interfacePhysicalBlockParentEtherOptsBlockLACP struct {
+	Mode           types.String `tfsdk:"mode"`
+	AdminKey       types.Int64  `tfsdk:"admin_key"`
+	Periodic       types.String `tfsdk:"periodic"`
+	SyncReset      types.String `tfsdk:"sync_reset"`
+	SystemID       types.String `tfsdk:"system_id"`
+	SystemPriority types.Int64  `tfsdk:"system_priority"`
+}
+
+//nolint:lll
+type interfacePhysicalBlockParentEtherOptsBlockMCAE struct {
+	EnhancedConvergence types.Bool                                                             `tfsdk:"enhanced_convergence"`
+	ChassisID           types.Int64                                                            `tfsdk:"chassis_id"`
+	MCAEID              types.Int64                                                            `tfsdk:"mc_ae_id"`
+	Mode                types.String                                                           `tfsdk:"mode"`
+	StatusControl       types.String                                                           `tfsdk:"status_control"`
+	InitDelayTime       types.Int64                                                            `tfsdk:"init_delay_time"`
+	RedundancyGroup     types.Int64                                                            `tfsdk:"redundancy_group"`
+	RevertTime          types.Int64                                                            `tfsdk:"revert_time"`
+	SwitchoverMode      types.String                                                           `tfsdk:"switchover_mode"`
+	EventsIccpPeerDown  *interfacePhysicalBlockParentEtherOptsBlockMCAEBlockEventsIccpPeerDown `tfsdk:"events_iccp_peer_down"`
+}
+
+type interfacePhysicalBlockParentEtherOptsBlockMCAEBlockEventsIccpPeerDown struct {
+	ForceIclDown              types.Bool `tfsdk:"force_icl_down"`
+	PreferStatusControlActive types.Bool `tfsdk:"prefer_status_control_active"`
 }
 
 func (rsc *interfacePhysical) ValidateConfig(
@@ -834,7 +956,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 				"mode must be specified in esi block",
 			)
 		}
-		if !config.ESI.AutoDeriveLacp.IsNull() && !config.ESI.Identifier.IsNull() {
+		if !config.ESI.AutoDeriveLACP.IsNull() && !config.ESI.Identifier.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("esi").AtName("auto_derive_lacp"),
 				tfdiag.ConflictConfigErrSummary,
@@ -980,13 +1102,65 @@ func (rsc *interfacePhysical) ValidateConfig(
 				)
 			}
 		}
-		if config.ParentEtherOpts.Lacp != nil {
-			if config.ParentEtherOpts.Lacp.Mode.IsNull() {
+		if config.ParentEtherOpts.LACP != nil {
+			if config.ParentEtherOpts.LACP.Mode.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("parent_ether_opts").AtName("lacp").AtName("mode"),
 					tfdiag.MissingConfigErrSummary,
 					"mode must be specified in lacp block in parent_ether_opts block",
 				)
+			}
+		}
+		if config.ParentEtherOpts.MCAE != nil {
+			if !config.Name.IsUnknown() {
+				if v := config.Name.ValueString(); !strings.HasPrefix(v, "ae") {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("parent_ether_opts").AtName("mc_ae").AtName("*"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("mc_ae in parent_ether_opts block not compatible with this interface %q "+
+							"(need to be ae* interface)", v),
+					)
+				}
+			}
+			if config.ParentEtherOpts.MCAE.ChassisID.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("parent_ether_opts").AtName("mc_ae").AtName("chassis_id"),
+					tfdiag.MissingConfigErrSummary,
+					"chassis_id must be specified in mc_ae block in parent_ether_opts block",
+				)
+			}
+			if config.ParentEtherOpts.MCAE.MCAEID.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("parent_ether_opts").AtName("mc_ae_id").AtName("chassis_id"),
+					tfdiag.MissingConfigErrSummary,
+					"mc_ae_id must be specified in mc_ae block in parent_ether_opts block",
+				)
+			}
+			if config.ParentEtherOpts.MCAE.Mode.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("parent_ether_opts").AtName("mode").AtName("chassis_id"),
+					tfdiag.MissingConfigErrSummary,
+					"mode must be specified in mc_ae block in parent_ether_opts block",
+				)
+			}
+			if config.ParentEtherOpts.MCAE.StatusControl.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("parent_ether_opts").AtName("status_control").AtName("chassis_id"),
+					tfdiag.MissingConfigErrSummary,
+					"status_control must be specified in mc_ae block in parent_ether_opts block",
+				)
+			}
+		}
+		if !config.ParentEtherOpts.RedundancyGroup.IsNull() {
+			if !config.Name.IsUnknown() {
+				if v := config.Name.ValueString(); !strings.HasPrefix(v, "reth") {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("parent_ether_opts").AtName("redundancy_group"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("redundancy_group in parent_ether_opts block not compatible with this interface %q "+
+							"(need to be reth* interface)", v),
+					)
+				}
 			}
 		}
 
@@ -1779,7 +1953,7 @@ func (block *interfacePhysicalBlockESI) configSet(setPrefix string) []string {
 		setPrefix + "esi " + block.Mode.ValueString(),
 	}
 
-	if block.AutoDeriveLacp.ValueBool() {
+	if block.AutoDeriveLACP.ValueBool() {
 		configSet = append(configSet, setPrefix+"esi auto-derive lacp")
 	}
 	if v := block.DFElectionType.ValueString(); v != "" {
@@ -1874,25 +2048,25 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 	if block.NoFlowControl.ValueBool() {
 		configSet = append(configSet, setPrefix+"no-flow-control")
 	}
-	if block.Lacp != nil {
-		setPrefixLacp := setPrefix + "lacp "
-		configSet = append(configSet, setPrefixLacp+block.Lacp.Mode.ValueString())
-		if !block.Lacp.AdminKey.IsNull() {
-			configSet = append(configSet, setPrefixLacp+"admin-key "+
-				utils.ConvI64toa(block.Lacp.AdminKey.ValueInt64()))
+	if block.LACP != nil {
+		setPrefixLACP := setPrefix + "lacp "
+		configSet = append(configSet, setPrefixLACP+block.LACP.Mode.ValueString())
+		if !block.LACP.AdminKey.IsNull() {
+			configSet = append(configSet, setPrefixLACP+"admin-key "+
+				utils.ConvI64toa(block.LACP.AdminKey.ValueInt64()))
 		}
-		if v := block.Lacp.Periodic.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixLacp+"periodic "+v)
+		if v := block.LACP.Periodic.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixLACP+"periodic "+v)
 		}
-		if v := block.Lacp.SyncReset.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixLacp+"sync-reset "+v)
+		if v := block.LACP.SyncReset.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixLACP+"sync-reset "+v)
 		}
-		if v := block.Lacp.SystemID.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixLacp+"system-id "+v)
+		if v := block.LACP.SystemID.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixLACP+"system-id "+v)
 		}
-		if !block.Lacp.SystemPriority.IsNull() {
-			configSet = append(configSet, setPrefixLacp+"system-priority "+
-				utils.ConvI64toa(block.Lacp.SystemPriority.ValueInt64()))
+		if !block.LACP.SystemPriority.IsNull() {
+			configSet = append(configSet, setPrefixLACP+"system-priority "+
+				utils.ConvI64toa(block.LACP.SystemPriority.ValueInt64()))
 		}
 	}
 	if block.Loopback.ValueBool() {
@@ -1903,6 +2077,49 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 	}
 	if v := block.LinkSpeed.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"link-speed "+v)
+	}
+	if block.MCAE != nil {
+		if !strings.HasPrefix(interfaceName, "ae") {
+			return configSet,
+				path.Root("parent_ether_opts").AtName("mc_ae").AtName("*"),
+				fmt.Errorf("mc_ae in parent_ether_opts block not compatible with this interface %q "+
+					"(need to be ae* interface)", interfaceName)
+		}
+		configSet = append(configSet, setPrefix+"mc-ae chassis-id "+
+			utils.ConvI64toa(block.MCAE.ChassisID.ValueInt64()))
+		configSet = append(configSet, setPrefix+"mc-ae mc-ae-id "+
+			utils.ConvI64toa(block.MCAE.MCAEID.ValueInt64()))
+		configSet = append(configSet, setPrefix+"mc-ae mode "+block.MCAE.Mode.ValueString())
+		configSet = append(configSet, setPrefix+"mc-ae status-control "+block.MCAE.StatusControl.ValueString())
+
+		if block.MCAE.EnhancedConvergence.ValueBool() {
+			configSet = append(configSet, setPrefix+"mc-ae enhanced-convergence")
+		}
+		if block.MCAE.EventsIccpPeerDown != nil {
+			configSet = append(configSet, setPrefix+"mc-ae events iccp-peer-down")
+
+			if block.MCAE.EventsIccpPeerDown.ForceIclDown.ValueBool() {
+				configSet = append(configSet, setPrefix+"mc-ae events iccp-peer-down force-icl-down")
+			}
+			if block.MCAE.EventsIccpPeerDown.PreferStatusControlActive.ValueBool() {
+				configSet = append(configSet, setPrefix+"mc-ae events iccp-peer-down prefer-status-control-active")
+			}
+		}
+		if !block.MCAE.InitDelayTime.IsNull() {
+			configSet = append(configSet, setPrefix+"mc-ae init-delay-time "+
+				utils.ConvI64toa(block.MCAE.InitDelayTime.ValueInt64()))
+		}
+		if !block.MCAE.RedundancyGroup.IsNull() {
+			configSet = append(configSet, setPrefix+"mc-ae redundancy-group "+
+				utils.ConvI64toa(block.MCAE.RedundancyGroup.ValueInt64()))
+		}
+		if !block.MCAE.RevertTime.IsNull() {
+			configSet = append(configSet, setPrefix+"mc-ae revert-time "+
+				utils.ConvI64toa(block.MCAE.RevertTime.ValueInt64()))
+		}
+		if v := block.MCAE.SwitchoverMode.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"mc-ae switchover-mode "+v)
+		}
 	}
 	if v := block.MinimumBandwidth.ValueString(); v != "" {
 		vS := strings.Split(v, " ")
@@ -1916,6 +2133,12 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 			utils.ConvI64toa(block.MinimumLinks.ValueInt64()))
 	}
 	if !block.RedundancyGroup.IsNull() {
+		if !strings.HasPrefix(interfaceName, "reth") {
+			return configSet,
+				path.Root("parent_ether_opts").AtName("redundancy_group"),
+				fmt.Errorf("redundancy_group in parent_ether_opts block not compatible with this interface %q "+
+					"(need to be reth* interface)", interfaceName)
+		}
 		configSet = append(configSet, setPrefix+"redundancy-group "+
 			utils.ConvI64toa(block.RedundancyGroup.ValueInt64()))
 	}
@@ -2075,7 +2298,7 @@ func (block *interfacePhysicalBlockESI) read(itemTrim string) error {
 	case balt.CutPrefixInString(&itemTrim, "source-bmac "):
 		block.SourceBMAC = types.StringValue(itemTrim)
 	case itemTrim == "auto-derive lacp":
-		block.AutoDeriveLacp = types.BoolValue(true)
+		block.AutoDeriveLACP = types.BoolValue(true)
 	}
 
 	return nil
@@ -2119,43 +2342,22 @@ func (block *interfacePhysicalBlockParentEtherOpts) read(itemTrim string) (err e
 			block.BFDLivenessDetection.AuthenticationLooseCheck = types.BoolValue(true)
 		case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
 			block.BFDLivenessDetection.DetectionTimeThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
 		case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
 			block.BFDLivenessDetection.HolddownInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
 		case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
 			block.BFDLivenessDetection.MinimumInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
 		case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
 			block.BFDLivenessDetection.MinimumReceiveInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
 		case balt.CutPrefixInString(&itemTrim, "multiplier "):
 			block.BFDLivenessDetection.Multiplier, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
 		case balt.CutPrefixInString(&itemTrim, "neighbor "):
 			block.BFDLivenessDetection.Neighbor = types.StringValue(itemTrim)
 		case itemTrim == "no-adaptation":
 			block.BFDLivenessDetection.NoAdaptation = types.BoolValue(true)
 		case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
 			block.BFDLivenessDetection.TransmitIntervalMinimumInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
 		case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
 			block.BFDLivenessDetection.TransmitIntervalThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
 		case balt.CutPrefixInString(&itemTrim, "version "):
 			block.BFDLivenessDetection.Version = types.StringValue(itemTrim)
 		}
@@ -2164,28 +2366,22 @@ func (block *interfacePhysicalBlockParentEtherOpts) read(itemTrim string) (err e
 	case itemTrim == "no-flow-control":
 		block.NoFlowControl = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "lacp "):
-		if block.Lacp == nil {
-			block.Lacp = &interfacePhysicalBlockParentEtherOptsBlockLacp{}
+		if block.LACP == nil {
+			block.LACP = &interfacePhysicalBlockParentEtherOptsBlockLACP{}
 		}
 		switch {
 		case itemTrim == "active", itemTrim == "passive":
-			block.Lacp.Mode = types.StringValue(itemTrim)
+			block.LACP.Mode = types.StringValue(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "admin-key "):
-			block.Lacp.AdminKey, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
+			block.LACP.AdminKey, err = tfdata.ConvAtoi64Value(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "periodic "):
-			block.Lacp.Periodic = types.StringValue(itemTrim)
+			block.LACP.Periodic = types.StringValue(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "sync-reset "):
-			block.Lacp.SyncReset = types.StringValue(itemTrim)
+			block.LACP.SyncReset = types.StringValue(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "system-id "):
-			block.Lacp.SystemID = types.StringValue(itemTrim)
+			block.LACP.SystemID = types.StringValue(itemTrim)
 		case balt.CutPrefixInString(&itemTrim, "system-priority "):
-			block.Lacp.SystemPriority, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
+			block.LACP.SystemPriority, err = tfdata.ConvAtoi64Value(itemTrim)
 		}
 	case itemTrim == "loopback":
 		block.Loopback = types.BoolValue(true)
@@ -2193,26 +2389,58 @@ func (block *interfacePhysicalBlockParentEtherOpts) read(itemTrim string) (err e
 		block.NoLoopback = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "link-speed "):
 		block.LinkSpeed = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "mc-ae "):
+		if block.MCAE == nil {
+			block.MCAE = &interfacePhysicalBlockParentEtherOptsBlockMCAE{}
+		}
+		switch {
+		case balt.CutPrefixInString(&itemTrim, "chassis-id "):
+			block.MCAE.ChassisID, err = tfdata.ConvAtoi64Value(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "mc-ae-id "):
+			block.MCAE.MCAEID, err = tfdata.ConvAtoi64Value(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "mode "):
+			block.MCAE.Mode = types.StringValue(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "status-control "):
+			block.MCAE.StatusControl = types.StringValue(itemTrim)
+		case itemTrim == "enhanced-convergence":
+			block.MCAE.EnhancedConvergence = types.BoolValue(true)
+		case balt.CutPrefixInString(&itemTrim, "events iccp-peer-down"):
+			if block.MCAE.EventsIccpPeerDown == nil {
+				block.MCAE.EventsIccpPeerDown = &interfacePhysicalBlockParentEtherOptsBlockMCAEBlockEventsIccpPeerDown{}
+			}
+			switch {
+			case itemTrim == " force-icl-down":
+				block.MCAE.EventsIccpPeerDown.ForceIclDown = types.BoolValue(true)
+			case itemTrim == " prefer-status-control-active":
+				block.MCAE.EventsIccpPeerDown.PreferStatusControlActive = types.BoolValue(true)
+			}
+		case balt.CutPrefixInString(&itemTrim, "init-delay-time "):
+			block.MCAE.InitDelayTime, err = tfdata.ConvAtoi64Value(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "redundancy-group "):
+			block.MCAE.RedundancyGroup, err = tfdata.ConvAtoi64Value(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "revert-time "):
+			block.MCAE.RevertTime, err = tfdata.ConvAtoi64Value(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "switchover-mode "):
+			block.MCAE.SwitchoverMode = types.StringValue(itemTrim)
+		}
 	case balt.CutPrefixInString(&itemTrim, "minimum-bandwidth bw-value "):
 		block.MinimumBandwidth = types.StringValue(itemTrim + block.MinimumBandwidth.ValueString())
 	case balt.CutPrefixInString(&itemTrim, "minimum-bandwidth bw-unit "):
 		block.MinimumBandwidth = types.StringValue(block.MinimumBandwidth.ValueString() + " " + itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "minimum-links "):
 		block.MinimumLinks, err = tfdata.ConvAtoi64Value(itemTrim)
-		if err != nil {
-			return err
-		}
 	case balt.CutPrefixInString(&itemTrim, "redundancy-group "):
 		block.RedundancyGroup, err = tfdata.ConvAtoi64Value(itemTrim)
-		if err != nil {
-			return err
-		}
 	case balt.CutPrefixInString(&itemTrim, "source-address-filter "):
 		block.SourceAddressFilter = append(block.SourceAddressFilter,
 			types.StringValue(itemTrim),
 		)
 	case itemTrim == "source-filtering":
 		block.SourceFiltering = types.BoolValue(true)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return nil
