@@ -10,5 +10,6 @@ resource "junos_interface_logical" "testacc_switchOpts" {
   }
 }
 resource "junos_switch_options" "testacc_switchOpts" {
+  service_id            = 111
   vtep_source_interface = junos_interface_logical.testacc_switchOpts.name
 }

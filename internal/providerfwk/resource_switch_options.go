@@ -5,8 +5,11 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
+	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -87,6 +90,13 @@ func (rsc *switchOptions) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"service_id": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Service ID required if multi-chassis AE is part of a bridge-domain.",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 65535),
+				},
+			},
 			"vtep_source_interface": schema.StringAttribute{
 				Optional:    true,
 				Description: "Source layer-3 IFL for VXLAN.",
@@ -103,6 +113,7 @@ func (rsc *switchOptions) Schema(
 type switchOptionsData struct {
 	CleanOnDestroy      types.Bool   `tfsdk:"clean_on_destroy"`
 	ID                  types.String `tfsdk:"id"`
+	ServiceID           types.Int64  `tfsdk:"service_id"`
 	VTEPSourceInterface types.String `tfsdk:"vtep_source_interface"`
 }
 
@@ -217,6 +228,10 @@ func (rscData *switchOptionsData) set(
 	configSet := make([]string, 0)
 	setPrefix := "set switch-options "
 
+	if !rscData.ServiceID.IsNull() {
+		configSet = append(configSet, setPrefix+"service-id "+
+			utils.ConvI64toa(rscData.ServiceID.ValueInt64()))
+	}
 	if v := rscData.VTEPSourceInterface.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"vtep-source-interface "+v)
 	}
@@ -244,7 +259,13 @@ func (rscData *switchOptionsData) read(
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
-			if balt.CutPrefixInString(&itemTrim, "vtep-source-interface ") {
+			switch {
+			case balt.CutPrefixInString(&itemTrim, "service-id "):
+				rscData.ServiceID, err = tfdata.ConvAtoi64Value(itemTrim)
+				if err != nil {
+					return err
+				}
+			case balt.CutPrefixInString(&itemTrim, "vtep-source-interface "):
 				rscData.VTEPSourceInterface = types.StringValue(itemTrim)
 			}
 		}
@@ -257,6 +278,7 @@ func (rscData *switchOptionsData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	listLinesToDelete := []string{
+		"service-id",
 		"vtep-source-interface",
 	}
 
