@@ -298,7 +298,7 @@ func (rsc *iccpPeer) Create(
 	}
 	if plan.IPAddress.ValueString() == "" {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("peer_ip_address"),
+			path.Root("ip_address"),
 			"Empty IP Address",
 			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "ip_address"),
 		)
