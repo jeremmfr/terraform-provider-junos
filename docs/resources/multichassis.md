@@ -25,6 +25,7 @@ The following arguments are supported:
 
 - **clean_on_destroy** (Optional, Boolean)  
   Clean entirely `multi-chassis` block when destroy this resource.  
+  It includes potential `junos_multichassis_protection_peer` resources.
 - **mc_lag_consistency_check** (Optional, Computed, Boolean)  
   Consistency Check.  
   Computed to set to `true` when `mc_lag_consistency_check_comparison_delay_time` is specified.
