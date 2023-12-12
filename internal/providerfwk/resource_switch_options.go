@@ -274,15 +274,11 @@ func (rscData *switchOptionsData) read(
 func (rscData *switchOptionsData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	listLinesToDelete := []string{
-		"service-id",
-		"vtep-source-interface",
-	}
-
-	configSet := make([]string, len(listLinesToDelete))
 	delPrefix := "delete switch-options "
-	for i, line := range listLinesToDelete {
-		configSet[i] = delPrefix + line
+
+	configSet := []string{
+		delPrefix + "service-id",
+		delPrefix + "vtep-source-interface",
 	}
 
 	return junSess.ConfigSet(configSet)
