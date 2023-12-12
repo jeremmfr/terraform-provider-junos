@@ -222,7 +222,7 @@ func (rscData *iccpData) set(
 ) (
 	path.Path, error,
 ) {
-	setPrefix := junos.SetLS + "protocols iccp "
+	setPrefix := "set protocols iccp "
 	configSet := []string{
 		setPrefix + "local-ip-addr " + rscData.LocalIPAddr.ValueString(),
 	}
@@ -282,12 +282,12 @@ func (rscData *iccpData) read(
 func (rscData *iccpData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	delLine := junos.DeleteLS + "protocols iccp "
+	delPrefix := "delete protocols iccp "
 
 	configSet := []string{
-		delLine + "local-ip-addr",
-		delLine + "authentication-key",
-		delLine + "session-establishment-hold-time",
+		delPrefix + "local-ip-addr",
+		delPrefix + "authentication-key",
+		delPrefix + "session-establishment-hold-time",
 	}
 
 	return junSess.ConfigSet(configSet)
