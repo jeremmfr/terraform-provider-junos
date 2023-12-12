@@ -95,9 +95,6 @@ func (rsc *security) Schema(
 			"clean_on_destroy": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Clean supported lines when destroy this resource.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
 			},
 		},
 		Blocks: map[string]schema.Block{

@@ -25,6 +25,8 @@ The following arguments are supported:
 
 - **clean_on_destroy** (Optional, Boolean)  
   Clean supported lines when destroy this resource.
+- **service_id** (Optional, Number)  
+  Service ID required if multi-chassis AE is part of a bridge-domain (1..65535).
 - **vtep_source_interface** (Optional, String)  
   Source layer-3 IFL for VXLAN.
 
