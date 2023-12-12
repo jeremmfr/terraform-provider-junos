@@ -171,7 +171,7 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context, d *schem
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_services_user_identification_ad_access_domain")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_services_user_identification_ad_access_domain")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -261,7 +261,7 @@ func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context, d *schem
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_services_user_identification_ad_access_domain")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_services_user_identification_ad_access_domain")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -298,7 +298,7 @@ func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context, d *schem
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_services_user_identification_ad_access_domain")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_services_user_identification_ad_access_domain")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

@@ -134,6 +134,27 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_SLEEP_LOCK` environment variable.  
   Defaults to `10`.
 
+- **commit_confirmed** (Optional, Number)  
+  Number of minutes until automatic rollback (1..65535).  
+  It can also be sourced from the `JUNOS_COMMIT_CONFIRMED` environment variable.  
+
+  **If this argument is specified**, for each resource action with commit,
+  the commit will take place in three steps:
+  - commit with the `confirmed` option and with the value of this argument as `confirm-timeout`.
+  - wait for `<commit_confirmed_wait_percent>`% of the minutes defined in the value of this argument.
+  - confirm commit to avoid rollback with the `commit check` command.
+
+  If a gracefully shutting down call with `Ctrl-c` is received by Terraform,
+  the wait step is stopped and provider returns an error.
+
+- **commit_confirmed_wait_percent** (Optional, Number)  
+  Percentage of `<commit_confirmed>` minute(s) to wait between
+  `commit confirmed` (commit with automatic rollback) and
+  `commit check` (confirmation) commands (0..99).  
+  No effect if `<commit_confirmed>` is not used.  
+  It can also be sourced from the `JUNOS_COMMIT_CONFIRMED_WAIT_PERCENT` environment variable.  
+  Defaults to `90`.
+
 ---
 
 ### SSH options

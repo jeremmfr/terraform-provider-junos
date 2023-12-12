@@ -737,7 +737,7 @@ func (rsc *securityPolicy) Update(
 
 		return
 	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
+	warns, err := junSess.CommitConf(ctx, "update resource "+rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())

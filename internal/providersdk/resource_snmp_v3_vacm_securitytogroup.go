@@ -93,7 +93,7 @@ func resourceSnmpV3VacmSecurityToGroupCreate(ctx context.Context, d *schema.Reso
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_snmp_v3_vacm_securitytogroup")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_snmp_v3_vacm_securitytogroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -187,7 +187,7 @@ func resourceSnmpV3VacmSecurityToGroupUpdate(ctx context.Context, d *schema.Reso
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_snmp_v3_vacm_securitytogroup")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_snmp_v3_vacm_securitytogroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -224,7 +224,7 @@ func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context, d *schema.Reso
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_snmp_v3_vacm_securitytogroup")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_snmp_v3_vacm_securitytogroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

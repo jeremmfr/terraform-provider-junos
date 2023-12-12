@@ -127,7 +127,7 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(ctx context.Context, d *s
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_security_utm_profile_web_filtering_juniper_local")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_security_utm_profile_web_filtering_juniper_local")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -213,7 +213,7 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(ctx context.Context, d *s
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_security_utm_profile_web_filtering_juniper_local")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_security_utm_profile_web_filtering_juniper_local")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -250,7 +250,7 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(ctx context.Context, d *s
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_security_utm_profile_web_filtering_juniper_local")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_utm_profile_web_filtering_juniper_local")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

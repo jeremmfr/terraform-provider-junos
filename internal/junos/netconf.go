@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -16,9 +18,19 @@ const (
 
 	rpcCommand         = "<command format=\"text\">%s</command>"
 	rpcConfigStringSet = "<load-configuration action=\"set\" format=\"text\">" +
-		"<configuration-set>%s</configuration-set></load-configuration>"
-	rpcSystemInfo      = "<get-system-information/>"
-	rpcCommit          = "<commit-configuration><log>%s</log></commit-configuration>"
+		"<configuration-set>%s</configuration-set>" +
+		"</load-configuration>"
+	rpcSystemInfo = "<get-system-information/>"
+	rpcCommit     = "<commit-configuration>" +
+		"<log>%s</log>" +
+		"</commit-configuration>"
+	rpcCommitConfirmed = "<commit-configuration>" +
+		"<log>%s</log>" +
+		"<confirmed/><confirm-timeout>%d</confirm-timeout>" +
+		"</commit-configuration>"
+	rpcCommitCheck = "<commit-configuration>" +
+		"<check/>" +
+		"</commit-configuration>"
 	rpcCandidateLock   = "<lock><target><candidate/></target></lock>"
 	rpcCandidateUnlock = "<unlock><target><candidate/></target></unlock>"
 	rpcClearCandidate  = "<delete-config><target><candidate/></target></delete-config>"
@@ -144,11 +156,15 @@ func (sess *Session) netconfCommand(cmd string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("executing netconf command: %w", err)
 	}
-	if reply.Errors != nil {
-		for _, m := range reply.Errors {
-			return "", errors.New(m.Error())
-		}
+
+	errs := make([]string, len(reply.Errors))
+	for i, m := range reply.Errors {
+		errs[i] = m.Error()
 	}
+	if len(errs) > 0 {
+		return "", errors.New(strings.Join(errs, "\n"))
+	}
+
 	if reply.Data == "" || strings.Count(reply.Data, "") <= 2 {
 		return EmptyW, errors.New("no output available - please check the syntax of your command")
 	}
@@ -165,10 +181,13 @@ func (sess *Session) netconfCommandXML(cmd string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("executing netconf xml command: %w", err)
 	}
-	if reply.Errors != nil {
-		for _, m := range reply.Errors {
-			return "", errors.New(m.Error())
-		}
+
+	errs := make([]string, len(reply.Errors))
+	for i, m := range reply.Errors {
+		errs[i] = m.Error()
+	}
+	if len(errs) > 0 {
+		return "", errors.New(strings.Join(errs, "\n"))
 	}
 
 	return reply.Data, nil
@@ -182,15 +201,12 @@ func (sess *Session) netconfConfigSet(cmd []string) (string, error) {
 	}
 	// logFile("netconfConfigSet.Reply:" + reply.RawReply)
 	message := ""
-	if reply.Errors != nil {
-		for _, m := range reply.Errors {
-			message += m.Message
-		}
 
-		return message, nil
+	for _, m := range reply.Errors {
+		message += m.Message
 	}
 
-	return "", nil
+	return message, nil
 }
 
 // netConfConfigLock locks the candidate configuration.
@@ -199,88 +215,123 @@ func (sess *Session) netconfConfigLock() bool {
 	if err != nil {
 		return false
 	}
-	if reply.Errors != nil {
+	if len(reply.Errors) > 0 {
 		return false
 	}
 
 	return true
 }
 
-func (sess *Session) netconfConfigClear() []error {
+func (sess *Session) netconfConfigClear() (errs []error) {
 	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {
 		return []error{fmt.Errorf("executing netconf config clear: %w", err)}
 	}
-	if reply.Errors != nil {
-		errs := make([]error, 0)
-		for _, m := range reply.Errors {
-			errs = append(errs, errors.New("config clear: "+m.Message))
-		}
 
-		return errs
+	for _, m := range reply.Errors {
+		errs = append(errs, errors.New("config clear: "+m.Message))
 	}
 
-	return []error{}
+	return errs
 }
 
 // Unlock unlocks the candidate configuration.
-func (sess *Session) netconfConfigUnlock() []error {
+func (sess *Session) netconfConfigUnlock() (errs []error) {
 	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcCandidateUnlock))
 	if err != nil {
 		return []error{fmt.Errorf("executing netconf config unlock: %w", err)}
 	}
-	if reply.Errors != nil {
-		errs := make([]error, 0)
-		for _, m := range reply.Errors {
-			errs = append(errs, errors.New("config unlock: "+m.Message))
-		}
 
-		return errs
+	for _, m := range reply.Errors {
+		errs = append(errs, errors.New("config unlock: "+m.Message))
 	}
 
-	return []error{}
+	return errs
 }
 
 // netconfCommit commits the configuration.
-func (sess *Session) netconfCommit(logMessage string) (_warn []error, _err error) {
+//
+// return potential warnings and/or error.
+func (sess *Session) netconfCommit(logMessage string) (_ []error, _ error) {
 	reply, err := sess.netconf.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
 	if err != nil {
-		return []error{}, fmt.Errorf("executing netconf commit: %w", err)
+		return nil, fmt.Errorf("executing netconf commit: %w", err)
 	}
 
-	if reply.Errors != nil {
-		warnings := make([]error, 0)
-		for _, m := range reply.Errors {
-			if m.Severity == errorSeverity {
-				return warnings, errors.New(m.Error())
-			}
+	return readNetconfCommitReply(reply, "commit-configuration")
+}
+
+// netconfCommitConfirmed commits the configuration with confirmed option and confirmed timeout,
+// then wait percentage of timeout and send afterwards the confirmation with commit check.
+//
+// return potential warnings and/or error.
+func (sess *Session) netconfCommitConfirmed(ctx context.Context, logMessage string) (warnings []error, _ error) {
+	reply, err := sess.netconf.Exec(
+		netconf.RawMethod(fmt.Sprintf(rpcCommitConfirmed, logMessage, sess.commitConfirmedTimeout)),
+	)
+	if err != nil {
+		return warnings, fmt.Errorf("executing netconf commit (confirmed %d): %w", sess.commitConfirmedTimeout, err)
+	}
+
+	replyWarns, err := readNetconfCommitReply(reply, "commit-configuration(confirmed)")
+	warnings = append(warnings, replyWarns...)
+	if err != nil {
+		return warnings, err
+	}
+
+	select {
+	case <-ctx.Done():
+		return warnings, fmt.Errorf("confirmation of commit with 'confirmed' option aborted before done")
+	case <-time.After(sess.commitConfirmedWait):
+	}
+
+	replyConfirm, err := sess.netconf.Exec(netconf.RawMethod(rpcCommitCheck))
+	if err != nil {
+		return warnings, fmt.Errorf("executing netconf commit check (to confirm): %w", err)
+	}
+
+	replyWarns, err = readNetconfCommitReply(replyConfirm, "commit-configuration(check)")
+	warnings = append(warnings, replyWarns...)
+	if err != nil {
+		return warnings, err
+	}
+
+	return warnings, nil
+}
+
+func readNetconfCommitReply(reply *netconf.RPCReply, commitType string) (warnings []error, _ error) {
+	errs := make([]string, 0, len(reply.Errors))
+	for _, m := range reply.Errors {
+		if m.Severity == errorSeverity {
+			errs = append(errs, m.Error())
+		} else {
 			warnings = append(warnings, errors.New(m.Error()))
 		}
-
-		return warnings, nil
+	}
+	if len(errs) > 0 {
+		return warnings, errors.New(strings.Join(errs, "\n"))
 	}
 
-	var errs commitResults
+	var result commitResults
 	if strings.Contains(reply.Data, "<commit-results>") {
-		err = xml.Unmarshal([]byte(reply.Data), &errs)
-		if err != nil {
-			return []error{}, fmt.Errorf("unmarshaling xml reply %q of commit-configuration: %w", reply.Data, err)
+		if err := xml.Unmarshal([]byte(reply.Data), &result); err != nil {
+			return warnings, fmt.Errorf("unmarshaling xml reply %q of %s: %w", reply.Data, commitType, err)
 		}
 
-		if errs.Errors != nil {
-			warnings := make([]error, 0)
-			for _, m := range errs.Errors {
-				if m.Severity == errorSeverity {
-					return []error{}, errors.New(m.Error())
-				}
+		errs = make([]string, 0, len(result.Errors))
+		for _, m := range result.Errors {
+			if m.Severity == errorSeverity {
+				errs = append(errs, m.Error())
+			} else {
 				warnings = append(warnings, errors.New(m.Error()))
 			}
-
-			return warnings, nil
+		}
+		if len(errs) > 0 {
+			return warnings, errors.New(strings.Join(errs, "\n"))
 		}
 	}
 
-	return []error{}, nil
+	return warnings, nil
 }
 
 // Close disconnects our session to the device.

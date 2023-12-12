@@ -85,7 +85,7 @@ func resourceSecurityUtmCustomURLPatternCreate(ctx context.Context, d *schema.Re
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_security_utm_custom_url_pattern")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_security_utm_custom_url_pattern")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -170,7 +170,7 @@ func resourceSecurityUtmCustomURLPatternUpdate(ctx context.Context, d *schema.Re
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_security_utm_custom_url_pattern")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_security_utm_custom_url_pattern")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -207,7 +207,7 @@ func resourceSecurityUtmCustomURLPatternDelete(ctx context.Context, d *schema.Re
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_security_utm_custom_url_pattern")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_utm_custom_url_pattern")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

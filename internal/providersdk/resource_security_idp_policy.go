@@ -322,7 +322,7 @@ func resourceSecurityIdpPolicyCreate(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_security_idp_policy")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_security_idp_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -405,7 +405,7 @@ func resourceSecurityIdpPolicyUpdate(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_security_idp_policy")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_security_idp_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -441,7 +441,7 @@ func resourceSecurityIdpPolicyDelete(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_security_idp_policy")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_idp_policy")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

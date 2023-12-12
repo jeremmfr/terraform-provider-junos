@@ -1792,7 +1792,7 @@ func (rsc *interfaceLogical) Create(
 
 		return
 	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
+	warns, err := junSess.CommitConf(ctx, "create resource "+rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
@@ -2051,7 +2051,7 @@ func (rsc *interfaceLogical) Update(
 
 		return
 	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
+	warns, err := junSess.CommitConf(ctx, "update resource "+rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())

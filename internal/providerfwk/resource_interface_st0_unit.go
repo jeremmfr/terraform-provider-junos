@@ -115,7 +115,7 @@ func (rsc *interfaceSt0Unit) Create(
 
 		return
 	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
+	warns, err := junSess.CommitConf(ctx, "create resource "+rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
@@ -267,7 +267,7 @@ func (rsc *interfaceSt0Unit) Delete(
 
 		return
 	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
+	warns, err := junSess.CommitConf(ctx, "delete resource "+rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())

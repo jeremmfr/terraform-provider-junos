@@ -642,7 +642,7 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_security_screen")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_security_screen")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -725,7 +725,7 @@ func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_security_screen")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_security_screen")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -761,7 +761,7 @@ func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_security_screen")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_screen")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

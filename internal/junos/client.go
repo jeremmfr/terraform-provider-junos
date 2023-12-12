@@ -6,48 +6,52 @@ const directoryPermission = 0o755
 
 // Client information to connect on Junos Device and more.
 type Client struct {
-	fakeUpdateAlso         bool
-	fakeDeleteAlso         bool
-	junosPort              int
-	junosSSHTimeoutToEstab int
-	junosSSHRetryToEstab   int
-	sleepLock              int
-	sleepShort             int
-	sleepSSHClosed         int
-	filePermission         int64
-	junosIP                string
-	junosUserName          string
-	junosPassword          string
-	junosSSHKeyPEM         string
-	junosSSHKeyFile        string
-	junosSSHKeyPass        string
-	groupIntDel            string
-	logFileDst             string
-	fakeCreateSetFile      string
-	junosSSHCiphers        []string
+	fakeUpdateAlso                  bool
+	fakeDeleteAlso                  bool
+	junosCommitConfirmed            int
+	junosCommitConfirmedWaitPercent int
+	junosPort                       int
+	junosSSHTimeoutToEstab          int
+	junosSSHRetryToEstab            int
+	sleepLock                       int
+	sleepShort                      int
+	sleepSSHClosed                  int
+	filePermission                  int64
+	junosIP                         string
+	junosUserName                   string
+	junosPassword                   string
+	junosSSHKeyPEM                  string
+	junosSSHKeyFile                 string
+	junosSSHKeyPass                 string
+	groupIntDel                     string
+	logFileDst                      string
+	fakeCreateSetFile               string
+	junosSSHCiphers                 []string
 }
 
 func NewClient(ip string) *Client {
 	return &Client{
-		junosIP:                ip,
-		junosPort:              830,
-		junosUserName:          "netconf",
-		junosPassword:          "",
-		junosSSHKeyPEM:         "",
-		junosSSHKeyFile:        "",
-		junosSSHKeyPass:        "",
-		groupIntDel:            "",
-		sleepShort:             100,
-		sleepLock:              10,
-		sleepSSHClosed:         0,
-		junosSSHCiphers:        DefaultSSHCiphers(),
-		junosSSHTimeoutToEstab: 0,
-		junosSSHRetryToEstab:   1,
-		filePermission:         0o644,
-		logFileDst:             "",
-		fakeCreateSetFile:      "",
-		fakeUpdateAlso:         false,
-		fakeDeleteAlso:         false,
+		junosIP:                         ip,
+		junosPort:                       830,
+		junosUserName:                   "netconf",
+		junosPassword:                   "",
+		junosSSHKeyPEM:                  "",
+		junosSSHKeyFile:                 "",
+		junosSSHKeyPass:                 "",
+		groupIntDel:                     "",
+		sleepShort:                      100,
+		sleepLock:                       10,
+		junosCommitConfirmed:            0,
+		junosCommitConfirmedWaitPercent: 90,
+		sleepSSHClosed:                  0,
+		junosSSHCiphers:                 DefaultSSHCiphers(),
+		junosSSHTimeoutToEstab:          0,
+		junosSSHRetryToEstab:            1,
+		filePermission:                  0o644,
+		logFileDst:                      "",
+		fakeCreateSetFile:               "",
+		fakeUpdateAlso:                  false,
+		fakeDeleteAlso:                  false,
 	}
 }
 
@@ -105,6 +109,24 @@ func (clt *Client) WithSleepLock(sleep int) *Client {
 	return clt
 }
 
+func (clt *Client) WithCommitConfirmed(timeout int) (*Client, error) {
+	if timeout < 1 || timeout > 65535 {
+		return clt, fmt.Errorf("bad value for timeout of commit confirmed")
+	}
+	clt.junosCommitConfirmed = timeout
+
+	return clt, nil
+}
+
+func (clt *Client) WithCommitConfirmedWaitPercent(percent int) (*Client, error) {
+	if percent < 0 || percent > 99 {
+		return clt, fmt.Errorf("bad value for wait percent of timeout before the commit confirm")
+	}
+	clt.junosCommitConfirmedWaitPercent = percent
+
+	return clt, nil
+}
+
 func (clt *Client) WithSleepSSHClosed(sleep int) *Client {
 	clt.sleepSSHClosed = sleep
 
@@ -125,7 +147,7 @@ func (clt *Client) WithSSHTimeoutToEstablish(timeout int) *Client {
 
 func (clt *Client) WithSSHRetryToEstablish(retry int) (*Client, error) {
 	if retry < 1 || retry > 10 {
-		return clt, fmt.Errorf("bad value to number of retry to establishing SSH connection")
+		return clt, fmt.Errorf("bad value for number of retry to establishing SSH connection")
 	}
 	clt.junosSSHRetryToEstab = retry
 

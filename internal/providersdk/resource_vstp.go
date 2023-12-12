@@ -125,7 +125,7 @@ func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_vstp")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_vstp")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -208,7 +208,7 @@ func resourceVstpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_vstp")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_vstp")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -244,7 +244,7 @@ func resourceVstpDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_vstp")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_vstp")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

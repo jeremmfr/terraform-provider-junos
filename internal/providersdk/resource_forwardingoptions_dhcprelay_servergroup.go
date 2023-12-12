@@ -129,7 +129,7 @@ func resourceForwardingOptionsDhcpRelayServerGroupCreate(ctx context.Context, d 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	warns, err := junSess.CommitConf("create resource junos_forwardingoptions_dhcprelay_servergroup")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_forwardingoptions_dhcprelay_servergroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -236,7 +236,7 @@ func resourceForwardingOptionsDhcpRelayServerGroupUpdate(ctx context.Context, d 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	warns, err := junSess.CommitConf("update resource junos_forwardingoptions_dhcprelay_servergroup")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_forwardingoptions_dhcprelay_servergroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -276,7 +276,7 @@ func resourceForwardingOptionsDhcpRelayServerGroupDelete(ctx context.Context, d 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_forwardingoptions_dhcprelay_servergroup")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_forwardingoptions_dhcprelay_servergroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

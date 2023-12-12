@@ -192,7 +192,7 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_vlan")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_vlan")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -286,7 +286,7 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_vlan")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_vlan")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -322,7 +322,7 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_vlan")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_vlan")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
