@@ -901,6 +901,22 @@ func (rsc *system) Schema(
 			},
 			"services": schema.SingleNestedBlock{
 				Description: "Declare `services` configuration.",
+				Attributes: map[string]schema.Attribute{
+					"web_management_session_idle_timeout": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Default timeout of web-management sessions (minutes).",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 1440),
+						},
+					},
+					"web_management_session_limit": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Maximum number of web-management sessions to allow.",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 1024),
+						},
+					},
+				},
 				Blocks: map[string]schema.Block{
 					"netconf_ssh": schema.SingleNestedBlock{
 						Description: "Declare `netconf ssh` configuration.",
@@ -1934,16 +1950,23 @@ func (block *systemBlockPortsConfig) isEmpty() bool {
 	}
 }
 
+//nolint:lll
 type systemBlockServices struct {
-	NetconfSSH          *systemBlockServicesBlockNetconfSSH          `tfsdk:"netconf_ssh"`
-	NetconfTraceoptions *systemBlockServicesBlockNetconfTraceoptions `tfsdk:"netconf_traceoptions"`
-	SSH                 *systemBlockServicesBlockSSH                 `tfsdk:"ssh"`
-	WebManagementHTTP   *systemBlockServicesBlockWebManagementHTTP   `tfsdk:"web_management_http"`
-	WebManagementHTTPS  *systemBlockServicesBlockWebManagementHTTPS  `tfsdk:"web_management_https"`
+	WebManagementSessionIdleTimeout types.Int64                                  `tfsdk:"web_management_session_idle_timeout"`
+	WebManagementSessionLimit       types.Int64                                  `tfsdk:"web_management_session_limit"`
+	NetconfSSH                      *systemBlockServicesBlockNetconfSSH          `tfsdk:"netconf_ssh"`
+	NetconfTraceoptions             *systemBlockServicesBlockNetconfTraceoptions `tfsdk:"netconf_traceoptions"`
+	SSH                             *systemBlockServicesBlockSSH                 `tfsdk:"ssh"`
+	WebManagementHTTP               *systemBlockServicesBlockWebManagementHTTP   `tfsdk:"web_management_http"`
+	WebManagementHTTPS              *systemBlockServicesBlockWebManagementHTTPS  `tfsdk:"web_management_https"`
 }
 
 func (block *systemBlockServices) isEmpty() bool {
 	switch {
+	case !block.WebManagementSessionIdleTimeout.IsNull():
+		return false
+	case !block.WebManagementSessionLimit.IsNull():
+		return false
 	case block.NetconfSSH != nil:
 		return false
 	case block.NetconfTraceoptions != nil:
@@ -1959,16 +1982,23 @@ func (block *systemBlockServices) isEmpty() bool {
 	}
 }
 
+//nolint:lll
 type systemBlockServicesConfig struct {
-	NetconfSSH          *systemBlockServicesBlockNetconfSSH                `tfsdk:"netconf_ssh"`
-	NetconfTraceoptions *systemBlockServicesBlockNetconfTraceoptionsConfig `tfsdk:"netconf_traceoptions"`
-	SSH                 *systemBlockServicesBlockSSHConfig                 `tfsdk:"ssh"`
-	WebManagementHTTP   *systemBlockServicesBlockWebManagementHTTPConfig   `tfsdk:"web_management_http"`
-	WebManagementHTTPS  *systemBlockServicesBlockWebManagementHTTPSConfig  `tfsdk:"web_management_https"`
+	WebManagementSessionIdleTimeout types.Int64                                        `tfsdk:"web_management_session_idle_timeout"`
+	WebManagementSessionLimit       types.Int64                                        `tfsdk:"web_management_session_limit"`
+	NetconfSSH                      *systemBlockServicesBlockNetconfSSH                `tfsdk:"netconf_ssh"`
+	NetconfTraceoptions             *systemBlockServicesBlockNetconfTraceoptionsConfig `tfsdk:"netconf_traceoptions"`
+	SSH                             *systemBlockServicesBlockSSHConfig                 `tfsdk:"ssh"`
+	WebManagementHTTP               *systemBlockServicesBlockWebManagementHTTPConfig   `tfsdk:"web_management_http"`
+	WebManagementHTTPS              *systemBlockServicesBlockWebManagementHTTPSConfig  `tfsdk:"web_management_https"`
 }
 
 func (block *systemBlockServicesConfig) isEmpty() bool {
 	switch {
+	case !block.WebManagementSessionIdleTimeout.IsNull():
+		return false
+	case !block.WebManagementSessionLimit.IsNull():
+		return false
 	case block.NetconfSSH != nil:
 		return false
 	case block.NetconfTraceoptions != nil:
@@ -2684,6 +2714,26 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 							)
 						}
 					}
+				}
+			}
+			if !config.Services.WebManagementSessionIdleTimeout.IsNull() {
+				if config.Services.WebManagementHTTP == nil && config.Services.WebManagementHTTPS == nil {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("services").AtName("web_management_session_idle_timeout"),
+						tfdiag.MissingConfigErrSummary,
+						"web_management_http or web_management_https block must be specified"+
+							" with web_management_session_idle_timeout in services block",
+					)
+				}
+			}
+			if !config.Services.WebManagementSessionLimit.IsNull() {
+				if config.Services.WebManagementHTTP == nil && config.Services.WebManagementHTTPS == nil {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("services").AtName("web_management_session_limit"),
+						tfdiag.MissingConfigErrSummary,
+						"web_management_http or web_management_https block must be specified"+
+							" with web_management_session_limit in services block",
+					)
 				}
 			}
 			if config.Services.WebManagementHTTPS != nil {
@@ -3422,6 +3472,24 @@ func (block *systemBlockServices) configSet() (
 	configSet := make([]string, 0)
 	setPrefix := "set system services "
 
+	if !block.WebManagementSessionIdleTimeout.IsNull() {
+		if block.WebManagementHTTP == nil && block.WebManagementHTTPS == nil {
+			return configSet, path.Root("services").AtName("web_management_session_idle_timeout"),
+				fmt.Errorf("web_management_http or web_management_https block must be specified" +
+					" with web_management_session_idle_timeout in services block")
+		}
+		configSet = append(configSet, setPrefix+"web-management session idle-timeout "+
+			utils.ConvI64toa(block.WebManagementSessionIdleTimeout.ValueInt64()))
+	}
+	if !block.WebManagementSessionLimit.IsNull() {
+		if block.WebManagementHTTP == nil && block.WebManagementHTTPS == nil {
+			return configSet, path.Root("services").AtName("web_management_session_limit"),
+				fmt.Errorf("web_management_http or web_management_https block must be specified" +
+					" with web_management_session_limit in services block")
+		}
+		configSet = append(configSet, setPrefix+"web-management session session-limit "+
+			utils.ConvI64toa(block.WebManagementSessionLimit.ValueInt64()))
+	}
 	if block.NetconfSSH != nil {
 		if block.NetconfSSH.isEmpty() {
 			return configSet, path.Root("services").AtName("netconf_ssh").AtName("*"),
@@ -3815,6 +3883,16 @@ func (rscData *systemData) read(
 					rscData.Services = &systemBlockServices{}
 				}
 				switch {
+				case balt.CutPrefixInString(&itemTrim, "services web-management session idle-timeout "):
+					rscData.Services.WebManagementSessionIdleTimeout, err = tfdata.ConvAtoi64Value(itemTrim)
+					if err != nil {
+						return err
+					}
+				case balt.CutPrefixInString(&itemTrim, "services web-management session session-limit "):
+					rscData.Services.WebManagementSessionLimit, err = tfdata.ConvAtoi64Value(itemTrim)
+					if err != nil {
+						return err
+					}
 				case bchk.StringHasOneOfPrefixes(itemTrim, systemBlockServicesBlockNetconfSSH{}.junosLines()):
 					if rscData.Services.NetconfSSH == nil {
 						rscData.Services.NetconfSSH = &systemBlockServicesBlockNetconfSSH{}
@@ -4215,6 +4293,8 @@ func (block *systemBlockPorts) read(itemTrim string) (err error) {
 
 func (systemBlockServices) junosLines() []string {
 	s := make([]string, 0, 50)
+	s = append(s, "services web-management session idle-timeout")
+	s = append(s, "services web-management session session-limit")
 	s = append(s, systemBlockServicesBlockNetconfSSH{}.junosLines()...)
 	s = append(s, "services netconf traceoptions")
 	s = append(s, systemBlockServicesBlockSSH{}.junosLines()...)
