@@ -1,9 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccResourceSystemSyslogHost_basic(t *testing.T) {
@@ -12,7 +13,7 @@ func TestAccResourceSystemSyslogHost_basic(t *testing.T) {
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSystemSyslogHostConfigCreate(),
+				ConfigDirectory: config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
 						"host", "192.0.2.1"),
@@ -21,21 +22,17 @@ func TestAccResourceSystemSyslogHost_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceSystemSyslogHostConfigUpdate(),
+				ConfigDirectory: config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
-						"structured_data.#", "1"),
-					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
-						"structured_data.0.brief", "true"),
+						"structured_data.brief", "true"),
 				),
 			},
 			{
-				Config: testAccResourceSystemSyslogHostConfigUpdate2(),
+				ConfigDirectory: config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
-						"structured_data.#", "1"),
-					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
-						"structured_data.0.brief", "false"),
+					resource.TestCheckResourceAttrSet("junos_system_syslog_host.testacc_syslogHost",
+						"structured_data.%"),
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
 						"source_address", "192.0.2.2"),
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
@@ -93,56 +90,4 @@ func TestAccResourceSystemSyslogHost_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccResourceSystemSyslogHostConfigCreate() string {
-	return `
-resource "junos_system_syslog_host" "testacc_syslogHost" {
-  host = "192.0.2.1"
-  port = 514
-}
-`
-}
-
-func testAccResourceSystemSyslogHostConfigUpdate() string {
-	return `
-resource "junos_system_syslog_host" "testacc_syslogHost" {
-  host = "192.0.2.1"
-  structured_data {
-    brief = true
-  }
-}
-`
-}
-
-func testAccResourceSystemSyslogHostConfigUpdate2() string {
-	return `
-resource "junos_system_syslog_host" "testacc_syslogHost" {
-  host                         = "192.0.2.1"
-  port                         = 514
-  allow_duplicates             = true
-  exclude_hostname             = true
-  explicit_priority            = true
-  facility_override            = "local3"
-  log_prefix                   = "prefix"
-  match                        = "match testacc"
-  match_strings                = ["match testacc"]
-  any_severity                 = "emergency"
-  changelog_severity           = "critical"
-  conflictlog_severity         = "error"
-  daemon_severity              = "warning"
-  dfc_severity                 = "alert"
-  external_severity            = "any"
-  firewall_severity            = "info"
-  ftp_severity                 = "none"
-  interactivecommands_severity = "notice"
-  kernel_severity              = "emergency"
-  ntp_severity                 = "emergency"
-  pfe_severity                 = "emergency"
-  security_severity            = "emergency"
-  user_severity                = "emergency"
-  structured_data {}
-  source_address = "192.0.2.2"
-}
-`
 }

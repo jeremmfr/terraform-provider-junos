@@ -279,6 +279,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newStaticRouteResource,
 		newSwitchOptionsResource,
 		newSystemResource,
+		newSystemSyslogHostResource,
 	}
 }
 
