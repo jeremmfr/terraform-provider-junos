@@ -281,6 +281,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSystemResource,
 		newSystemSyslogFileResource,
 		newSystemSyslogHostResource,
+		newSystemSyslogUserResource,
 	}
 }
 

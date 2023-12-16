@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 FEATURES:
 
+* add `junos_system_syslog_user` resource (Fix [#593](https://github.com/jeremmfr/terraform-provider-junos/issues/593))
+
 ENHANCEMENTS:
 
 * **resource/junos_system_syslog_file**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
