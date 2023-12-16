@@ -227,7 +227,6 @@ func Provider() *schema.Provider {
 			"junos_system_radius_server":                   resourceSystemRadiusServer(),
 			"junos_system_root_authentication":             resourceSystemRootAuthentication(),
 			"junos_system_services_dhcp_localserver_group": resourceSystemServicesDhcpLocalServerGroup(),
-			"junos_system_syslog_file":                     resourceSystemSyslogFile(),
 			"junos_vlan":                                   resourceVlan(),
 			"junos_vstp":                                   resourceVstp(),
 			"junos_vstp_interface":                         resourceVstpInterface(),

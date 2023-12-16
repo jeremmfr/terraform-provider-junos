@@ -629,7 +629,7 @@ func (rsc *security) Schema(
 					},
 					"automatic_start_time": schema.StringAttribute{
 						Optional:    true,
-						Description: "Automatic start time `YYYY-MM-DD.HH:MM:SS`.",
+						Description: "Automatic start time (YYYY-MM-DD.HH:MM:SS).",
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
 								regexp.MustCompile(`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),

@@ -78,20 +78,8 @@ The following arguments are supported:
 - **no_binary_data** (Optional, Boolean)  
   Don't mark file as if it contains binary data.  
   Conflict with `binary_data`.
-- **world_readable** (Optional, Boolean)  
-  Allow any user to read the log file.  
-  Conflict with `no_world_readable`.
-- **no_world_readable** (Optional, Boolean)  
-  Don't allow any user to read the log file.  
-  Conflict with `world_readable`.
 - **files** (Optional, Number)  
-  Number of files to be archived (1..1000)
-- **size** (Optional, Number)  
-  Size of files to be archived (65536..1073741824 bytes)
-- **start_time** (Optional, String)  
-  Start time for file transmission (yyyy-mm-dd.hh:mm)
-- **transfer_interval** (Optional, Number)  
-  Frequency at which to transfer files to archive sites (5..2880 minutes)
+  Number of files to be archived (1..1000).
 - **sites** (Optional, Block List)  
   For each url, configure an archive site (first declaration is primary URL, failover for others).
   - **url** (Required, String)  
@@ -100,6 +88,18 @@ The following arguments are supported:
     Password for login into the archive site.
   - **routing_instance** (Optional, String)  
     Routing instance.
+- **size** (Optional, Number)  
+  Size of files to be archived (65536..1073741824 bytes).
+- **start_time** (Optional, String)  
+  Start time for file transmission (YYYY-MM-DD.HH:MM:SS).
+- **transfer_interval** (Optional, Number)  
+  Frequency at which to transfer files to archive sites (5..2880 minutes).
+- **world_readable** (Optional, Boolean)  
+  Allow any user to read the log file.  
+  Conflict with `no_world_readable`.
+- **no_world_readable** (Optional, Boolean)  
+  Don't allow any user to read the log file.  
+  Conflict with `world_readable`.
 
 **WARNING** All severities need to be
 `alert`, `any`, `critical`, `emergency`, `error`, `info`, `none`, `notice` or `warning`.

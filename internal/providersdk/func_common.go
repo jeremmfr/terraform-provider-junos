@@ -199,13 +199,6 @@ func copyAndRemoveItemMapList2(
 	return list
 }
 
-func listOfSyslogSeverity() []string {
-	return []string{
-		"alert", "any", "critical",
-		"emergency", "error", "info", "none", "notice", "warning",
-	}
-}
-
 func validateIsIPv6Address(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
