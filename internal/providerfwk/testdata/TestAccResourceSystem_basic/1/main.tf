@@ -141,6 +141,8 @@ resource "junos_system" "testacc_system" {
       root_login                     = "deny"
       tcp_forwarding                 = true
     }
+    web_management_session_idle_timeout = 600
+    web_management_session_limit        = 100
     web_management_http {
       interface = ["fxp0.0"]
       port      = 80
