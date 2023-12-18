@@ -533,7 +533,7 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_access_address_assignment_pool")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_access_address_assignment_pool")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -634,7 +634,7 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_access_address_assignment_pool")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_access_address_assignment_pool")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -679,7 +679,7 @@ func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_access_address_assignment_pool")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_access_address_assignment_pool")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

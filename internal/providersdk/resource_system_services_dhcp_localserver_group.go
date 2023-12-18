@@ -813,7 +813,7 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_system_services_dhcp_localserver_group")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -930,7 +930,7 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context, d *sc
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_system_services_dhcp_localserver_group")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -977,7 +977,7 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_system_services_dhcp_localserver_group")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

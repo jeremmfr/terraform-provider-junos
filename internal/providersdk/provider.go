@@ -81,6 +81,28 @@ func Provider() *schema.Provider {
 					"to lock candidate configuration on a Junos device." +
 					" May also be provided via " + junos.EnvSleepLock + " environment variable.",
 			},
+			"commit_confirmed": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Description: "Number of minutes until automatic rollback." +
+					" May also be provided via " + junos.EnvCommitConfirmed + " environment variable." +
+					" For each resource action with commit, commit with `confirmed` option and" +
+					" with the value ot this argument as `confirm-timeout`, " +
+					" wait for `<commit_confirmed_wait_percent>`% of the minutes defined in the value of this argument," +
+					" and confirm commit to avoid rollback with the `commit check` command.",
+				ValidateFunc: validation.IntBetween(1, 65535),
+			},
+			"commit_confirmed_wait_percent": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Description: "Percentage of `<commit_confirmed>` minute(s) to wait between" +
+					" `commit confirmed` (commit with automatic rollback) and" +
+					" `commit check` (confirmation) commands." +
+					" No effect if `<commit_confirmed>` is not used." +
+					" May also be provided via " + junos.EnvCommitConfirmedWaitPercent + " environment variable." +
+					" Defaults to 90.",
+				ValidateFunc: validation.IntBetween(0, 99),
+			},
 			"ssh_sleep_closed": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -341,6 +363,67 @@ func configureProvider(_ context.Context, d *schema.ResourceData) (interface{}, 
 			})
 		} else {
 			client.WithSleepLock(d)
+		}
+	}
+
+	if v, ok := d.GetOk("commit_confirmed"); ok {
+		if _, err := client.WithCommitConfirmed(v.(int)); err != nil {
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Bad value in commit_confirmed",
+				Detail: fmt.Sprintf("Error to use value in commit_confirmed attribute: %s\n"+
+					"So the attribute is not used", err),
+			})
+		}
+	} else if v := os.Getenv(junos.EnvCommitConfirmed); v != "" {
+		d, err := strconv.Atoi(v)
+		if err != nil {
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Error to parse " + junos.EnvCommitConfirmed,
+				Detail: fmt.Sprintf("Error to parse value in "+junos.EnvCommitConfirmed+" environment variable: %s\n"+
+					"So the variable is not used", err),
+			})
+		} else {
+			if _, err := client.WithCommitConfirmed(d); err != nil {
+				diagWarns = append(diagWarns, diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "Bad value in " + junos.EnvCommitConfirmed,
+					Detail: fmt.Sprintf("Error to use value in "+junos.EnvCommitConfirmed+" environment variable: %s\n"+
+						"So the variable is not used", err),
+				})
+			}
+		}
+	}
+
+	_, _ = client.WithCommitConfirmedWaitPercent(90) // default value for commit_confirmed_wait_percent
+	if v, ok := d.GetOk("commit_confirmed_wait_percent"); ok {
+		if _, err := client.WithCommitConfirmedWaitPercent(v.(int)); err != nil {
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Bad value in commit_confirmed_wait_percent",
+				Detail: fmt.Sprintf("Error to use value in commit_confirmed_wait_percent attribute: %s\n"+
+					"So the attribute is not used", err),
+			})
+		}
+	} else if v := os.Getenv(junos.EnvCommitConfirmedWaitPercent); v != "" {
+		d, err := strconv.Atoi(v)
+		if err != nil {
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Error to parse " + junos.EnvCommitConfirmedWaitPercent,
+				Detail: fmt.Sprintf("Error to parse value in "+junos.EnvCommitConfirmedWaitPercent+" environment variable: %s\n"+
+					"So the variable is not used", err),
+			})
+		} else {
+			if _, err := client.WithCommitConfirmedWaitPercent(d); err != nil {
+				diagWarns = append(diagWarns, diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "Bad value in " + junos.EnvCommitConfirmedWaitPercent,
+					Detail: fmt.Sprintf("Error to use value in "+junos.EnvCommitConfirmedWaitPercent+" environment variable: %s\n"+
+						"So the variable is not used", err),
+				})
+			}
 		}
 	}
 

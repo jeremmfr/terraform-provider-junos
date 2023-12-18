@@ -166,7 +166,7 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_security_log_stream")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_security_log_stream")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -249,7 +249,7 @@ func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_security_log_stream")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_security_log_stream")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -285,7 +285,7 @@ func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_security_log_stream")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_log_stream")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

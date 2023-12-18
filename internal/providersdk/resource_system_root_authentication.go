@@ -100,7 +100,7 @@ func resourceSystemRootAuthenticationCreate(ctx context.Context, d *schema.Resou
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_system_root_authentication")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_system_root_authentication")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -171,7 +171,7 @@ func resourceSystemRootAuthenticationUpdate(ctx context.Context, d *schema.Resou
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_system_root_authentication")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_system_root_authentication")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

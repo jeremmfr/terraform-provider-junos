@@ -360,7 +360,7 @@ func resourceServicesRpmProbeCreate(ctx context.Context, d *schema.ResourceData,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_services_rpm_probe")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_services_rpm_probe")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -445,7 +445,7 @@ func resourceServicesRpmProbeUpdate(ctx context.Context, d *schema.ResourceData,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_services_rpm_probe")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_services_rpm_probe")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -482,7 +482,7 @@ func resourceServicesRpmProbeDelete(ctx context.Context, d *schema.ResourceData,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_services_rpm_probe")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_services_rpm_probe")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

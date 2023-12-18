@@ -71,7 +71,7 @@ func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("commit a file with resource junos_null_commit_file")
+	warns, err := junSess.CommitConf(ctx, "commit a file with resource junos_null_commit_file")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

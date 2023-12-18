@@ -99,7 +99,7 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_system_ntp_server")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_system_ntp_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -182,7 +182,7 @@ func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_system_ntp_server")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_system_ntp_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -219,7 +219,7 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_system_ntp_server")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_system_ntp_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
