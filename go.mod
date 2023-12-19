@@ -14,7 +14,7 @@ require (
 	github.com/jeremmfr/go-netconf v0.4.14
 	github.com/jeremmfr/go-utils v0.11.0
 	github.com/jeremmfr/junosdecode v1.1.1
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 )
 
 require (
