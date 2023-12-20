@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/terraform-plugin-mux v0.13.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.31.0
 	github.com/hashicorp/terraform-plugin-testing v1.6.0
-	github.com/jeremmfr/go-netconf v0.4.14
+	github.com/jeremmfr/go-netconf v0.4.15
 	github.com/jeremmfr/go-utils v0.11.0
 	github.com/jeremmfr/junosdecode v1.1.1
 	golang.org/x/crypto v0.17.0
