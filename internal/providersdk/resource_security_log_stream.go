@@ -119,7 +119,7 @@ func resourceSecurityLogStream() *schema.Resource {
 			"severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+				ValidateFunc: validation.StringInSlice(junos.SyslogSeverity(), false),
 			},
 		},
 	}
