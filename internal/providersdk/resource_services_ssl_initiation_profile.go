@@ -143,7 +143,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_services_ssl_initiation_profile")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_services_ssl_initiation_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -229,7 +229,7 @@ func resourceServicesSSLInitiationProfileUpdate(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_services_ssl_initiation_profile")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_services_ssl_initiation_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -266,7 +266,7 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_services_ssl_initiation_profile")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_services_ssl_initiation_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

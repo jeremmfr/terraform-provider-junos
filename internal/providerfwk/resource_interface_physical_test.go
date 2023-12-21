@@ -155,6 +155,20 @@ func TestAccResourceInterfacePhysical_router(t *testing.T) {
 					ImportState:       true,
 					ImportStateVerify: true,
 				},
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface":   config.StringVariable(testaccInterface),
+						"interfaceAE": config.StringVariable(testaccInterfaceAE),
+					},
+				},
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface":   config.StringVariable(testaccInterface),
+						"interfaceAE": config.StringVariable(testaccInterfaceAE),
+					},
+				},
 			},
 		})
 	}

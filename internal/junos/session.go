@@ -17,15 +17,17 @@ import (
 
 // Session : store Junos device info and session.
 type Session struct {
-	SystemInformation sysInfo
-	netconf           *netconf.Session
-	localAddress      string
-	remoteAddress     string
-	logFile           func(string)
-	fakeSetFile       func([]string) error
-	sleepShort        int
-	sleepLock         int
-	sleepSSHClosed    int
+	SystemInformation      sysInfo
+	netconf                *netconf.Session
+	localAddress           string
+	remoteAddress          string
+	logFile                func(string)
+	fakeSetFile            func([]string) error
+	sleepShort             int
+	sleepLock              int
+	commitConfirmedTimeout int
+	commitConfirmedWait    time.Duration
+	sleepSSHClosed         int
 }
 
 type sshAuthMethod struct {
@@ -288,22 +290,30 @@ func (sess *Session) ConfigClear() (errs []error) {
 }
 
 // CommitConf commit the configuration with message via netconf.
-func (sess *Session) CommitConf(logMessage string) (_warnings []error, _err error) {
-	sess.logFile(fmt.Sprintf("[CommitConf] commit %q", logMessage))
-	warns, err := sess.netconfCommit(logMessage)
+func (sess *Session) CommitConf(ctx context.Context, logMessage string) (warnings []error, err error) {
+	if sess.commitConfirmedTimeout > 0 {
+		sess.logFile(fmt.Sprintf(
+			"[CommitConf] commit confirmed %d (wait %s) %q",
+			sess.commitConfirmedTimeout, sess.commitConfirmedWait, logMessage,
+		))
+		warnings, err = sess.netconfCommitConfirmed(ctx, logMessage)
+	} else {
+		sess.logFile(fmt.Sprintf("[CommitConf] commit %q", logMessage))
+		warnings, err = sess.netconfCommit(logMessage)
+	}
 	utils.SleepShort(sess.sleepShort)
-	if len(warns) > 0 {
-		for _, w := range warns {
+	if len(warnings) > 0 {
+		for _, w := range warnings {
 			sess.logFile(fmt.Sprintf("[CommitConf] commit warning: %q", w))
 		}
 	}
 	if err != nil {
 		sess.logFile(fmt.Sprintf("[CommitConf] commit error: %q", err))
 
-		return warns, err
+		return warnings, err
 	}
 
-	return warns, nil
+	return warnings, nil
 }
 
 func (sess *Session) Close() {

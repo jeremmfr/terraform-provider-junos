@@ -146,26 +146,6 @@ func validateNameObjectJunos(exclude []string, length int, format formatName) sc
 	}
 }
 
-func validateAddress() schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-		v := i.(string)
-
-		f := func(r rune) bool {
-			return (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' && r != '.'
-		}
-		if strings.IndexFunc(v, f) != -1 {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       fmt.Sprintf("%s invalid address (bad character)", v),
-				AttributePath: path,
-			})
-		}
-
-		return diags
-	}
-}
-
 func sortSetOfString(list []interface{}) []string {
 	s := make([]string, len(list))
 	for k, e := range list {
@@ -217,13 +197,6 @@ func copyAndRemoveItemMapList2(
 	}
 
 	return list
-}
-
-func listOfSyslogSeverity() []string {
-	return []string{
-		"alert", "any", "critical",
-		"emergency", "error", "info", "none", "notice", "warning",
-	}
 }
 
 func validateIsIPv6Address(i interface{}, k string) (warnings []string, errors []error) {

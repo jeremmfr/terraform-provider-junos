@@ -94,7 +94,7 @@ func resourceSnmpV3CommunityCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_snmp_v3_community")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_snmp_v3_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -177,7 +177,7 @@ func resourceSnmpV3CommunityUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_snmp_v3_community")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_snmp_v3_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -213,7 +213,7 @@ func resourceSnmpV3CommunityDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_snmp_v3_community")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_snmp_v3_community")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

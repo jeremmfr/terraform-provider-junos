@@ -323,7 +323,7 @@ func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_ospf")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_ospf")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -406,7 +406,7 @@ func resourceOspfUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_ospf")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_ospf")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -443,7 +443,7 @@ func resourceOspfDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_ospf")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_ospf")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

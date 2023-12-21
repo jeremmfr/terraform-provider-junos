@@ -86,7 +86,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_security_utm_custom_url_category")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_security_utm_custom_url_category")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -171,7 +171,7 @@ func resourceSecurityUtmCustomURLCategoryUpdate(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_security_utm_custom_url_category")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_security_utm_custom_url_category")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -208,7 +208,7 @@ func resourceSecurityUtmCustomURLCategoryDelete(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_security_utm_custom_url_category")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_utm_custom_url_category")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

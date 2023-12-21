@@ -104,7 +104,7 @@ func resourceEventoptionsDestinationCreate(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_eventoptions_destination")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_eventoptions_destination")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -188,7 +188,7 @@ func resourceEventoptionsDestinationUpdate(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_eventoptions_destination")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_eventoptions_destination")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -225,7 +225,7 @@ func resourceEventoptionsDestinationDelete(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_eventoptions_destination")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_eventoptions_destination")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

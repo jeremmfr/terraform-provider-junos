@@ -110,6 +110,8 @@ The following arguments are supported:
 - **speed** (Optional, String)  
   Link speed.  
   Must be a valid speed (10m | 100m | 1g ...)
+- **storm_control** (Optional, String)  
+  Storm control profile name to bind.
 - **trunk** (Optional, Boolean)  
   Interface mode is trunk.
 - **trunk_non_els** (Optional, Boolean)  
@@ -174,6 +176,9 @@ The following arguments are supported:
   Don't enable loopback.
 - **link_speed** (Optional, String)  
   Link speed of individual interface that joins the AE.
+- **mc_ae** (Optional, Block)  
+  Multi-chassis aggregation (MC-AE) network device configuration.  
+  See [below for nested schema](#mc_ae-arguments-in-parent_ether_opts).
 - **minimum_bandwidth** (Optional, String)  
   Minimum bandwidth configured for aggregated bundle.  
   Need to be `N (k|g|m)?bps` format.
@@ -218,6 +223,38 @@ The following arguments are supported:
   High transmit interval triggering a trap (milliseconds).
 - **version** (Optional, String)  
   BFD protocol version number.
+
+---
+
+### mc_ae arguments in parent_ether_opts
+
+- **chassis_id** (Required, Number)  
+  Chassis id of MC-AE network device (0..1).
+- **mc_ae_id** (Required, Number)  
+  MC-AE group id (1..65535).
+- **mode** (Required, String)  
+  Mode of the MC-AE.  
+  Need to be `active-active` or `active-standby`.
+- **status_control** (Required, String)  
+  Status of the MC-AE chassis.  
+  Need to be `active` or `standby`.
+- **enhanced_convergence** (Optional, Boolean)  
+  Optimized convergence time for MC-AE.
+- **events_iccp_peer_down** (Optional, Block)  
+  Define behavior in the event of ICCP peer down.  
+  - **force_icl_down** (Optional, Boolean)  
+    Bring down ICL logical interface.
+  - **prefer_status_control_active** (Optional, Boolean)  
+    Keep this node up (recommended only on status-control active).
+- **init_delay_time** (Optional, Number)  
+  Init delay timer for mcae sm for min traffic loss (1..6000 seconds).
+- **redundancy_group** (Optional, Number)  
+  Redundancy group id (1..4294967294).
+- **revert_time** (Optional, Number)  
+  Wait interval before performing switchover (1..10 minute).
+- **switchover_mode** (Optional, String)  
+  Switchover mode.  
+  Need to be `revertive` or `non-revertive`.
 
 ## Attributes Reference
 

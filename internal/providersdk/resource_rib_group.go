@@ -95,7 +95,7 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_rib_group")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_rib_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -208,7 +208,7 @@ func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_rib_group")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_rib_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -244,7 +244,7 @@ func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_rib_group")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_rib_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

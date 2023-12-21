@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"time"
 )
 
 func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
@@ -43,6 +44,12 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 
 		return nil, err
 	}
+	sess.commitConfirmedTimeout = clt.junosCommitConfirmed
+	sess.commitConfirmedWait = time.Duration(
+		int(
+			(time.Duration(clt.junosCommitConfirmed)*time.Minute).Microseconds(),
+		)*clt.junosCommitConfirmedWaitPercent/100,
+	) * time.Microsecond
 	sess.logFile = func(message string) {
 		message = "[" + sess.localAddress + "->" + sess.remoteAddress + "]" + message
 		clt.logFile(message)

@@ -161,7 +161,7 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context, d *sche
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_security_dynamic_address_feed_server")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_security_dynamic_address_feed_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -250,7 +250,7 @@ func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context, d *sche
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_security_dynamic_address_feed_server")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_security_dynamic_address_feed_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -287,7 +287,7 @@ func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context, d *sche
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_security_dynamic_address_feed_server")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_dynamic_address_feed_server")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

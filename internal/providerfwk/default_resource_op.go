@@ -124,7 +124,7 @@ func defaultResourceCreate(
 
 		return
 	}
-	warns, err := junSess.CommitConf("create resource " + rsc.typeName())
+	warns, err := junSess.CommitConf(ctx, "create resource "+rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
@@ -268,7 +268,7 @@ func defaultResourceUpdate(
 
 		return
 	}
-	warns, err := junSess.CommitConf("update resource " + rsc.typeName())
+	warns, err := junSess.CommitConf(ctx, "update resource "+rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
@@ -318,7 +318,7 @@ func defaultResourceDelete(
 
 		return
 	}
-	warns, err := junSess.CommitConf("delete resource " + rsc.typeName())
+	warns, err := junSess.CommitConf(ctx, "delete resource "+rsc.typeName())
 	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())

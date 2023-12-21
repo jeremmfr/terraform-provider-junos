@@ -33,25 +33,27 @@ var _ provider.Provider = &junosProvider{}
 type junosProvider struct{}
 
 type junosProviderModel struct {
-	IP                  types.String `tfsdk:"ip"`
-	Port                types.Int64  `tfsdk:"port"`
-	Username            types.String `tfsdk:"username"`
-	Password            types.String `tfsdk:"password"`
-	SSHKeyPem           types.String `tfsdk:"sshkey_pem"`
-	SSHKeyFile          types.String `tfsdk:"sshkeyfile"`
-	SSHKeyPass          types.String `tfsdk:"keypass"`
-	GroupIntDel         types.String `tfsdk:"group_interface_delete"`
-	CmdSleepShort       types.Int64  `tfsdk:"cmd_sleep_short"`
-	CmdSleepLock        types.Int64  `tfsdk:"cmd_sleep_lock"`
-	SleepSSHClosed      types.Int64  `tfsdk:"ssh_sleep_closed"`
-	SSHCiphers          types.List   `tfsdk:"ssh_ciphers"`
-	SSHTimeoutToEstab   types.Int64  `tfsdk:"ssh_timeout_to_establish"`
-	SSHRetryToEstab     types.Int64  `tfsdk:"ssh_retry_to_establish"`
-	FilePermission      types.String `tfsdk:"file_permission"`
-	DebugNetconfLogPath types.String `tfsdk:"debug_netconf_log_path"`
-	FakeCreateSetFile   types.String `tfsdk:"fake_create_with_setfile"`
-	FakeUpdateAlso      types.Bool   `tfsdk:"fake_update_also"`
-	FakeDeleteAlso      types.Bool   `tfsdk:"fake_delete_also"`
+	IP                         types.String `tfsdk:"ip"`
+	Port                       types.Int64  `tfsdk:"port"`
+	Username                   types.String `tfsdk:"username"`
+	Password                   types.String `tfsdk:"password"`
+	SSHKeyPem                  types.String `tfsdk:"sshkey_pem"`
+	SSHKeyFile                 types.String `tfsdk:"sshkeyfile"`
+	SSHKeyPass                 types.String `tfsdk:"keypass"`
+	GroupIntDel                types.String `tfsdk:"group_interface_delete"`
+	CmdSleepShort              types.Int64  `tfsdk:"cmd_sleep_short"`
+	CmdSleepLock               types.Int64  `tfsdk:"cmd_sleep_lock"`
+	CommitConfirmed            types.Int64  `tfsdk:"commit_confirmed"`
+	CommitConfirmedWaitPercent types.Int64  `tfsdk:"commit_confirmed_wait_percent"`
+	SleepSSHClosed             types.Int64  `tfsdk:"ssh_sleep_closed"`
+	SSHCiphers                 types.List   `tfsdk:"ssh_ciphers"`
+	SSHTimeoutToEstab          types.Int64  `tfsdk:"ssh_timeout_to_establish"`
+	SSHRetryToEstab            types.Int64  `tfsdk:"ssh_retry_to_establish"`
+	FilePermission             types.String `tfsdk:"file_permission"`
+	DebugNetconfLogPath        types.String `tfsdk:"debug_netconf_log_path"`
+	FakeCreateSetFile          types.String `tfsdk:"fake_create_with_setfile"`
+	FakeUpdateAlso             types.Bool   `tfsdk:"fake_update_also"`
+	FakeDeleteAlso             types.Bool   `tfsdk:"fake_delete_also"`
 }
 
 const (
@@ -124,6 +126,30 @@ func (p *junosProvider) Schema(
 				Description: "Seconds of standby while waiting for Terraform provider " +
 					"to lock candidate configuration on a Junos device." +
 					" May also be provided via " + junos.EnvSleepLock + " environment variable.",
+			},
+			"commit_confirmed": schema.Int64Attribute{
+				Optional: true,
+				Description: "Number of minutes until automatic rollback." +
+					" May also be provided via " + junos.EnvCommitConfirmed + " environment variable." +
+					" For each resource action with commit, commit with `confirmed` option and" +
+					" with the value ot this argument as `confirm-timeout`, " +
+					" wait for `<commit_confirmed_wait_percent>`% of the minutes defined in the value of this argument," +
+					" and confirm commit to avoid rollback with the `commit check` command.",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 65535),
+				},
+			},
+			"commit_confirmed_wait_percent": schema.Int64Attribute{
+				Optional: true,
+				Description: "Percentage of `<commit_confirmed>` minute(s) to wait between" +
+					" `commit confirmed` (commit with automatic rollback) and" +
+					" `commit check` (confirmation) commands." +
+					" No effect if `<commit_confirmed>` is not used." +
+					" May also be provided via " + junos.EnvCommitConfirmedWaitPercent + " environment variable." +
+					" Defaults to 90.",
+				Validators: []validator.Int64{
+					int64validator.Between(0, 99),
+				},
 			},
 			"ssh_sleep_closed": schema.Int64Attribute{
 				Optional: true,
@@ -211,11 +237,16 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newFirewallPolicerResource,
 		newForwardingoptionsSamplingResource,
 		newForwardingoptionsSamplingInstanceResource,
+		newForwardingoptionsStormControlProfileResource,
 		newGenerateRouteResource,
+		newIccpResource,
+		newIccpPeerResource,
 		newInterfaceLogicalResource,
 		newInterfacePhysicalDisableResource,
 		newInterfacePhysicalResource,
 		newInterfaceSt0UnitResource,
+		newMultichassisResource,
+		newMultichassisProtectionPeerResource,
 		newOamGretunnelInterfaceResource,
 		newPolicyoptionsASPathResource,
 		newPolicyoptionsASPathGroupResource,
@@ -246,7 +277,11 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newServicesFlowMonitoringV9TemplateResource,
 		newServicesFlowMonitoringVIPFixTemplateResource,
 		newStaticRouteResource,
+		newSwitchOptionsResource,
 		newSystemResource,
+		newSystemSyslogFileResource,
+		newSystemSyslogHostResource,
+		newSystemSyslogUserResource,
 	}
 }
 
@@ -341,6 +376,22 @@ func (p *junosProvider) Configure(
 			tfdiag.UnknownJunosAttrErrSummary,
 			unknownValueErrorMessage+"for 'cmd_sleep_lock' attribute."+
 				fmt.Sprintf(instructionUnknownMessage, junos.EnvSleepLock),
+		)
+	}
+	if config.CommitConfirmed.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("commit_confirmed"),
+			tfdiag.UnknownJunosAttrErrSummary,
+			unknownValueErrorMessage+"for 'commit_confirmed' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvCommitConfirmed),
+		)
+	}
+	if config.CommitConfirmedWaitPercent.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("commit_confirmed_wait_percent"),
+			tfdiag.UnknownJunosAttrErrSummary,
+			unknownValueErrorMessage+"for 'commit_confirmed_wait_percent' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvCommitConfirmedWaitPercent),
 		)
 	}
 	if config.SleepSSHClosed.IsUnknown() {
@@ -551,6 +602,67 @@ func (p *junosProvider) Configure(
 			)
 		} else {
 			client.WithSleepLock(d)
+		}
+	}
+
+	if !config.CommitConfirmed.IsNull() {
+		if _, err := client.WithCommitConfirmed(int(config.CommitConfirmed.ValueInt64())); err != nil {
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("commit_confirmed"),
+				"Bad value in commit_confirmed",
+				fmt.Sprintf("Error to use value in commit_confirmed attribute: %s\n"+
+					"So the attribute is not used", err),
+			)
+		}
+	} else if v := os.Getenv(junos.EnvCommitConfirmed); v != "" {
+		d, err := strconv.Atoi(v)
+		if err != nil {
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("commit_confirmed"),
+				"Error to parse "+junos.EnvCommitConfirmed,
+				fmt.Sprintf("Error to parse value in "+junos.EnvCommitConfirmed+" environment variable: %s\n"+
+					"So the variable is not used", err),
+			)
+		} else {
+			if _, err := client.WithCommitConfirmed(d); err != nil {
+				resp.Diagnostics.AddAttributeWarning(
+					path.Root("commit_confirmed"),
+					"Bad value in "+junos.EnvCommitConfirmed,
+					fmt.Sprintf("Error to use value in "+junos.EnvCommitConfirmed+" environment variable: %s\n"+
+						"So the variable is not used", err),
+				)
+			}
+		}
+	}
+
+	_, _ = client.WithCommitConfirmedWaitPercent(90) // default value for commit_confirmed_wait_percent
+	if !config.CommitConfirmedWaitPercent.IsNull() {
+		if _, err := client.WithCommitConfirmedWaitPercent(int(config.CommitConfirmedWaitPercent.ValueInt64())); err != nil {
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("commit_confirmed_wait_percent"),
+				"Bad value in commit_confirmed_wait_percent",
+				fmt.Sprintf("Error to use value in commit_confirmed_wait_percent attribute: %s\n"+
+					"So the attribute is not used", err),
+			)
+		}
+	} else if v := os.Getenv(junos.EnvCommitConfirmedWaitPercent); v != "" {
+		d, err := strconv.Atoi(v)
+		if err != nil {
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("commit_confirmed_wait_percent"),
+				"Error to parse "+junos.EnvCommitConfirmedWaitPercent,
+				fmt.Sprintf("Error to parse value in "+junos.EnvCommitConfirmedWaitPercent+" environment variable: %s\n"+
+					"So the variable is not used", err),
+			)
+		} else {
+			if _, err := client.WithCommitConfirmedWaitPercent(d); err != nil {
+				resp.Diagnostics.AddAttributeWarning(
+					path.Root("commit_confirmed_wait_percent"),
+					"Bad value in "+junos.EnvCommitConfirmedWaitPercent,
+					fmt.Sprintf("Error to use value in "+junos.EnvCommitConfirmedWaitPercent+" environment variable: %s\n"+
+						"So the variable is not used", err),
+				)
+			}
 		}
 	}
 

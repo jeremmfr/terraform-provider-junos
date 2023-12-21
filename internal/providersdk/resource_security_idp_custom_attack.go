@@ -860,7 +860,7 @@ func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_security_idp_custom_attack")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_security_idp_custom_attack")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -944,7 +944,7 @@ func resourceSecurityIdpCustomAttackUpdate(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_security_idp_custom_attack")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_security_idp_custom_attack")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -981,7 +981,7 @@ func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_security_idp_custom_attack")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_idp_custom_attack")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

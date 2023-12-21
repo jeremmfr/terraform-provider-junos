@@ -140,7 +140,7 @@ func resourceLayer2ControlCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("create resource junos_layer2_control")
+	warns, err := junSess.CommitConf(ctx, "create resource junos_layer2_control")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -210,7 +210,7 @@ func resourceLayer2ControlUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("update resource junos_layer2_control")
+	warns, err := junSess.CommitConf(ctx, "update resource junos_layer2_control")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())
@@ -246,7 +246,7 @@ func resourceLayer2ControlDelete(ctx context.Context, _ *schema.ResourceData, m 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := junSess.CommitConf("delete resource junos_layer2_control")
+	warns, err := junSess.CommitConf(ctx, "delete resource junos_layer2_control")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, junSess.ConfigClear())

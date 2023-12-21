@@ -170,6 +170,10 @@ The following arguments are supported:
   - **web_management_https** (Optional, Block)  
     Declare `web-management https` configuration.  
     See [below for nested schema](#web_management_https-arguments-for-services).
+  - **web_management_session_idle_timeout** (Optional, Number)  
+    Default timeout of web-management sessions (1..1440 minutes).
+  - **web_management_session_limit** (Optional, Number)  
+    Maximum number of web-management sessions to allow (1..1024).
 - **syslog** (Optional, Block)  
   Declare `syslog` configuration.
   - **archive** (Optional, Block)  

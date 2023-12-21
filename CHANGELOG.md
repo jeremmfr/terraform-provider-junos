@@ -1,6 +1,47 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.4.0 (December 21, 2023)
+
+FEATURES:
+
+* add **junos_forwardingoptions_storm_control_profile** resource (Partial fix [#574](https://github.com/jeremmfr/terraform-provider-junos/issues/574))
+* add **junos_iccp** resource (Partial fix [#573](https://github.com/jeremmfr/terraform-provider-junos/issues/573))
+* add **junos_iccp_peer** resource (Partial fix [#573](https://github.com/jeremmfr/terraform-provider-junos/issues/573))
+* add **junos_multichassis** resource (Partial fix [#576](https://github.com/jeremmfr/terraform-provider-junos/issues/576))
+* add **junos_multichassis_protection_peer** resource (Partial fix [#576](https://github.com/jeremmfr/terraform-provider-junos/issues/576))
+* add **junos_system_syslog_user** resource (Fix [#593](https://github.com/jeremmfr/terraform-provider-junos/issues/593))
+* **provider**: add `commit_confirmed` and `commit_confirmed_wait_percent` argument to be able use `commit confirmed` feature to commit the resource actions (Fix [#585](https://github.com/jeremmfr/terraform-provider-junos/issues/585))
+
+ENHANCEMENTS:
+
+* **resource/junos_interface_physical**:
+  * add `mc_ae` block argument in `parent_ether_opts` block (Fix [#572](https://github.com/jeremmfr/terraform-provider-junos/issues/572))
+  * add `storm_control` argument (Partial fix [#574](https://github.com/jeremmfr/terraform-provider-junos/issues/574))
+* **data-source/junos_interface_physical**:
+  * add `mc_ae` block attribute in `parent_ether_opts` block like resource
+  * add `storm_control` attribute like resource
+* **resource/junos_switch_options**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional string attributes doesn't accept *empty* value  
+  * add `service_id` argument (Fix [#575](https://github.com/jeremmfr/terraform-provider-junos/issues/575))
+* **resource/junos_system**: add `web_management_session_idle_timeout` and `web_management_session_limit` arguments in `services` block (Fix [#594](https://github.com/jeremmfr/terraform-provider-junos/issues/594))
+* **resource/junos_system_syslog_file**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_system_syslog_host**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **provider**: display all errors when configuration commit generate multiple errors
+
+BUG FIXES:
+
+* **data-source/junos_interface_physical**: fix reading `link_speed` and `minimum_bandwidth` attributes in `parent_ether_opts` block
+* **resource/junos_system_syslog_file**: fix reading `archive size` when value is a multiple of 1024 (k,m,g)
+
 ## v2.3.3 (December 07, 2023)
 
 BUG FIXES:
