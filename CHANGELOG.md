@@ -1,5 +1,5 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
-## 1.33.0 (February 07, 2023)
+## 1.33.0 (2023-02-07)
 
 ENHANCEMENTS:
 
@@ -7,7 +7,7 @@ ENHANCEMENTS:
 * data-source/`junos_interface_physical`: add `mtu` attribute (like resource)
 * release now with golang 1.20
 
-## 1.32.0 (December 22, 2022)
+## 1.32.0 (2022-12-22)
 
 ENHANCEMENTS:
 
@@ -21,20 +21,20 @@ BUG FIXES:
 * resource/`junos_security_address_book`: fix `description` not set correctly in `wildcard_address`, `dns_name`, `range_address` and `address_set` block arguments
 * resource/`junos_forwardingoptions_dhcprelay`, `junos_forwardingoptions_dhcprelay_group`, `junos_system_services_dhcp_localserver_group`: fix reading `value` argument with special chars
 
-## 1.31.2 (November 16, 2022)
+## 1.31.2 (2022-11-16)
 
 BUG FIXES:
 
 * no expected changes in provider behavior, contains updates to dependencies such as `github.com/hashicorp/terraform-plugin-sdk` which prevent go-plugin goroutine leak per Terraform command
 
-## 1.31.1 (October 14, 2022)
+## 1.31.1 (2022-10-14)
 
 BUG FIXES:
 
 * resource/`junos_security_global_policy`: fix error reading config when an element of `permit_application_services` have the suffix `permit`, `deny` or `reject` (Fixes [#430](https://github.com/jeremmfr/terraform-provider-junos/issues/430))
 * resource/`junos_security_policy`: fix error reading config when an element of `permit_application_services` have the suffix `permit`, `deny` or `reject`
 
-## 1.31.0 (October 12, 2022)
+## 1.31.0 (2022-10-12)
 
 FEATURES:
 
@@ -52,14 +52,14 @@ BUG FIXES:
 * resource/`junos_system_services_dhcp_localserver_group`: fix crash with empty `overrides_v4` or `overrides_v6` block and accept `all` in `interface.*.name`
 * resource/`junos_rip_neighbor`: accept `all` in `name`
 
-## 1.30.1 (September 09, 2022)
+## 1.30.1 (2022-09-09)
 
 BUG FIXES:
 
 * resource/`junos_security_nat_static`: remove the need to set `routing_instance` argument with `type` = `inet` inside `then` block of `rule` block (`then static-nat inet` without `routing-instance` is correct to do NAT64) (Fixes [#420](https://github.com/jeremmfr/terraform-provider-junos/issues/420))
 * resource/`junos_security_nat_static_rule`: remove the need to set `routing_instance` argument with `type` = `inet` inside `then` block (`then static-nat inet` without `routing-instance` is correct to do NAT64)
 
-## 1.30.0 (September 07, 2022)
+## 1.30.0 (2022-09-07)
 
 FEATURES:
 
@@ -76,13 +76,13 @@ BUG FIXES:
 * do not crash if unable to write log in `debug_netconf_log_path` due to a path error
 * fix duplicate timestamp and incorrect level in logs
 
-## 1.29.0 (July 13, 2022)
+## 1.29.0 (2022-07-13)
 
 ENHANCEMENTS:
 
 * resource/`junos_routing_instance`: add `router_id` argument (Fixes [#405](https://github.com/jeremmfr/terraform-provider-junos/issues/405))
 
-## 1.28.0 (May 30, 2022)
+## 1.28.0 (2022-05-30)
 
 FEATURES:
 
@@ -104,7 +104,7 @@ BUG FIXES:
 
 * provider: correctly set address to connect to Junos host when an IPv6 is used for provider `ip` argument (enclose IPv6 in square brackets)
 
-## 1.27.0 (May 06, 2022)
+## 1.27.0 (2022-05-06)
 
 ENHANCEMENTS:
 
@@ -117,7 +117,7 @@ BUG FIXES:
 
 * resource/`junos_security_nat_source_pool`: fix crash and set correctly with a single port in `port_range`, add format precision in docs (Fixes [#382](https://github.com/jeremmfr/terraform-provider-junos/issues/382))
 
-## 1.26.0 (April 13, 2022)
+## 1.26.0 (2022-04-13)
 
 ENHANCEMENTS:
 
@@ -146,7 +146,7 @@ ENHANCEMENTS:
   and cancel the TCP connection attempt to establish SSH session if it's not yet complete
 * release now with golang 1.18
 
-## 1.25.0 (March 18, 2022)
+## 1.25.0 (2022-03-18)
 
 FEATURES:
 
@@ -182,13 +182,13 @@ BUG FIXES:
 * resource/`junos_ospf`: fix read config from the device with an empty resource
 * resource/`junos_system_syslog_file`: fix reading `start_time` in `archive` block argument to remove timezone in value
 
-## 1.24.1 (February 11, 2022)
+## 1.24.1 (2022-02-11)
 
 BUG FIXES:
 
 * bump package github.com/jeremmfr/go-netconf to v0.4.2 to correctly detect protection on a private key in `sshkey_pem` or `sshkeyfile` and use passphrase from `keypass` argument (Fixes [#337](https://github.com/jeremmfr/terraform-provider-junos/issues/337))
 
-## 1.24.0 (January 31, 2022)
+## 1.24.0 (2022-01-31)
 
 FEATURES:
 
@@ -200,14 +200,14 @@ BUG FIXES:
 
 * resource/`junos_security_policy`: read the config lines with `then allow tunnel pair-policy` to add them when updating the resource and thus avoid modifying the `junos_security_policy_tunnel_pair_policy` resource lines
 
-## 1.23.0 (December 17, 2021)
+## 1.23.0 (2021-12-17)
 
 ENHANCEMENTS:
 
 * resource/`junos_security_address_book`: `network_address`, `wildcard_address`, `dns_name`, `range_address` and `address_set` block arguments are now unordered blocks. (Fixes [#316](https://github.com/jeremmfr/terraform-provider-junos/issues/316))
 * resource/`junos_security_zone`: `address_book`, `address_book_dns`, `address_book_range`, `address_book_set` and `address_book_wildcard` block arguments are now unordered blocks. (Fixes [#169](https://github.com/jeremmfr/terraform-provider-junos/issues/169))
 
-## 1.22.2 (December 07, 2021)
+## 1.22.2 (2021-12-07)
 
 BUG FIXES:
 
@@ -215,14 +215,14 @@ BUG FIXES:
 * resource/`junos_security_ike_gateway`: fix bad value used when adding Junos config with `wildcard` argument inside `distinguished_name` block inside `dynamic_remote` block
 * resource/`junos_system_login_user`: fix validation of `name` with a dot that is acceptable for Junos (Fixes [#318](https://github.com/jeremmfr/terraform-provider-junos/issues/318))
 
-## 1.22.1 (November 30, 2021)
+## 1.22.1 (2021-11-30)
 
 BUG FIXES:
 
 * resource/`junos_interface_logical`: add `srx_old_option_name` argument inside `dhcp` block argument to be able to fix the configuration of DHCP client on SRX devices with an old version of Junos (use option name `dhcp-client` instead of `dhcp` in `family inet`) (Fixes [#313](https://github.com/jeremmfr/terraform-provider-junos/issues/313))
 * data-source/`junos_interface_logical`: add `srx_old_option_name` argument inside `dhcp` block argument (like resource)
 
-## 1.22.0 (November 19, 2021)
+## 1.22.0 (2021-11-19)
 
 FEATURES:
 
@@ -245,14 +245,14 @@ BUG FIXES:
 * resource/`junos_security_idp_custom_attack`: fix validation of IPv6 address for `destination_value`, `extension_header_destination_option_home_address_value` and `source_value` inside `protocol_ipv6` block
 * resource/`junos_services_rpm_probe`: fix validation of IPv6 address for `inet6_source_address`, `rpm_scale.0.source_inet6_address_base`, `rpm_scale.0.source_inet6_step`, `rpm_scale.0.target_inet6_address_base` and `rpm_scale.0.target_inet6_step` inside `test` block
 
-## 1.21.1 (October 22, 2021)
+## 1.21.1 (2021-10-22)
 
 BUG FIXES:
 
 * module go-netconf updated to enhance RPCError display with the `error-path` and `error-info>bad-element` values if set (Fixes parts of [#292](https://github.com/jeremmfr/terraform-provider-junos/issues/292))
 * r/`*`: fix missing identifier value in the errors `multiple blocks with the same identifier` (Fixes parts of [#292](https://github.com/jeremmfr/terraform-provider-junos/issues/292))
 
-## 1.21.0 (October 12, 2021)
+## 1.21.0 (2021-10-12)
 
 FEATURES:
 
@@ -278,7 +278,7 @@ BUG FIXES:
 * resource/`junos_ospf_area`: fix missing set interface when `interface` block have only `name` set
 * resource/`junos_security_nat_source`: fix panic when `match` block inside `rule` block is empty
 
-## 1.20.0 (September 07, 2021)
+## 1.20.0 (2021-09-07)
 
 FEATURES:
 
@@ -317,7 +317,7 @@ BUG FIXES:
 * resource/`junos_chassis_cluster`: fix possible crash in certain conditions when import this resource
 * resource/`*`: add validation to some arguments which cannot contain a space character and thus avoid bugs when reading these arguments
 
-## 1.19.0 (July 30, 2021)
+## 1.19.0 (2021-07-30)
 
 FEATURES:
 
@@ -328,7 +328,7 @@ ENHANCEMENTS:
 
 * resource/`junos_application`: add `application_protocol`, `description`, `ether_type`, `rpc_program_number` and `uuid` arguments (Fixes [#255](https://github.com/jeremmfr/terraform-provider-junos/issues/255))
 
-## 1.18.0 (July 09, 2021)
+## 1.18.0 (2021-07-09)
 
 FEATURES:
 
@@ -359,7 +359,7 @@ BUG FIXES:
 * resource/`junos_system`: remove the potential double quotes for `ciphers` argument inside `services.0.ssh` argument (Fixes parts of [#251](https://github.com/jeremmfr/terraform-provider-junos/issues/251))
 * resource/`junos_vlan`: fix order issue on `community_vlans` and `vlan_id_list` lists
 
-## 1.17.0 (June 18, 2021)
+## 1.17.0 (2021-06-18)
 
 FEATURES:
 
@@ -385,7 +385,7 @@ ENHANCEMENTS:
 * resource/`junos_services_flowmonitoring_vipfix_template`: add `ip_template_export_extension` argument (Fixes [#229](https://github.com/jeremmfr/terraform-provider-junos/issues/229))
 * resource/`junos_system`: add `radius_options_attributes_nas_ipaddress`, `radius_options_enhanced_accounting` and `radius_options_password_protocol_mschapv2` arguments (Fixes [#210](https://github.com/jeremmfr/terraform-provider-junos/issues/210)), add `archival_configuration` argument (Fixes [#231](https://github.com/jeremmfr/terraform-provider-junos/issues/231))
 
-## 1.16.2 (May 28, 2021)
+## 1.16.2 (2021-05-28)
 
 BUG FIXES:
 
@@ -393,13 +393,13 @@ BUG FIXES:
 * resource/`junos_interface_logical`: disable set vlan-id on 'vlan.*' interface (Fixes parts of [#222](https://github.com/jeremmfr/terraform-provider-junos/issues/222))
 * resource/`junos_vlan`: allow 'vlan.*' interface in `l3_interface` argument (Fixes parts of [#222](https://github.com/jeremmfr/terraform-provider-junos/issues/222))
 
-## 1.16.1 (May 26, 2021)
+## 1.16.1 (2021-05-26)
 
 BUG FIXES:
 
 * resource/`junos_interface_logical`: disable set vlan-id on 'irb.*' interface (Fixes [#217](https://github.com/jeremmfr/terraform-provider-junos/issues/217))
 
-## 1.16.0 (May 17, 2021)
+## 1.16.0 (2021-05-17)
 
 FEATURES:
 
@@ -437,14 +437,14 @@ BUG FIXES:
 * fix errors not generated with certain nested blocks empty and default integer argument = -1 in these blocks
 * resource/`junos_services`: fix set/read/delete empty `application_identification` block to enable 'application-identification'
 
-## 1.15.1 (April 23, 2021)
+## 1.15.1 (2021-04-23)
 
 BUG FIXES:
 
 * resource/`junos_security_global_policy`: fix `match_application` argument not required if `match_dynamic_application` is set and Junos version is > 19.1R1 (Fixes [#188](https://github.com/jeremmfr/terraform-provider-junos/issues/188))
 * resource/`junos_security_policy`: fix `match_application` argument not required if `match_dynamic_application` is set and Junos version is > 19.1R1 (Fixes [#188](https://github.com/jeremmfr/terraform-provider-junos/issues/188))
 
-## 1.15.0 (April 20, 2021)
+## 1.15.0 (2021-04-20)
 
 FEATURES:
 
@@ -484,7 +484,7 @@ BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)
 * fix missing MinItems=1 on a part of required `ListOfString` arguments
 
-## 1.14.0 (March 19, 2021)
+## 1.14.0 (2021-03-19)
 
 FEATURES:
 
@@ -513,13 +513,13 @@ BUG FIXES:
 * fix `prefix` list order issue in `junos_policyoptions_prefix_list` resource (Fixes [#150](https://github.com/jeremmfr/terraform-provider-junos/issues/150))
 * fix validation for `name` of `address_book` and `address_boob_set` in `junos_security_zone` resource (Fixes [#153](https://github.com/jeremmfr/terraform-provider-junos/issues/153))
 
-## 1.13.1 (February 18, 2021)
+## 1.13.1 (2021-02-18)
 
 BUG FIXES:
 
 * fix source nat pool network address not allowed (Fixes [#128](https://github.com/jeremmfr/terraform-provider-junos/issues/128))
 
-## 1.13.0 (February 11, 2021)
+## 1.13.0 (2021-02-11)
 
 FEATURES:
 
@@ -543,26 +543,26 @@ BUG FIXES:
 * fix IP/Mask validation for point to point IPs
 * clean code: remove useless else when read a empty config
 
-## 1.12.3 (February 05, 2021)
+## 1.12.3 (2021-02-05)
 
 BUG FIXES:
 
 * fix crash when `bind_interface` change in `junos_security_ipsec_vpn` resource
 
-## 1.12.2 (February 03, 2021)
+## 1.12.2 (2021-02-03)
 
 BUG FIXES:
 
 * allow the name length of some objects > 32 for part of the resources (Fixes [#101](https://github.com/jeremmfr/terraform-provider-junos/issues/101))
 
-## 1.12.1 (February 01, 2021)
+## 1.12.1 (2021-02-01)
 
 BUG FIXES:
 
 * possible mismatch for routing_instance in junos_interface_logical resource (Fixes [#98](https://github.com/jeremmfr/terraform-provider-junos/issues/98))
 * can't create empty junos_policyoptions_prefix_list resource (Fixes [#99](https://github.com/jeremmfr/terraform-provider-junos/issues/99))
 
-## 1.12.0 (January 20, 2021)
+## 1.12.0 (2021-01-20)
 
 FEATURES:
 
@@ -580,7 +580,7 @@ BUG FIXES:
 * add missing lock in data source to reduce netconf commands parallelism
 * use only one ssh connection per action and per resource (Fixes part of [#87](https://github.com/jeremmfr/terraform-provider-junos/issues/87))
 
-## 1.11.0 (January 05, 2021)
+## 1.11.0 (2021-01-05)
 
 FEATURES:
 
@@ -601,7 +601,7 @@ BUG FIXES:
 
 * generate errors on apply if `syslog`, `services` or `services.0.ssh` block is set but empty in `junos_system` resource
 
-## 1.10.0 (December 15, 2020)
+## 1.10.0 (2020-12-15)
 
 ENHANCEMENTS:
 
@@ -614,7 +614,7 @@ BUG FIXES:
 * fix missing compatibility argument checks when apply `junos_interface` resource (unit interface or not)
 * fix `advertisements_threshold` argument missing for vrrp in family inet6 address in `junos_interface` resource
 
-## 1.9.0 (December 03, 2020)
+## 1.9.0 (2020-12-03)
 
 FEATURES:
 
@@ -630,7 +630,7 @@ BUG FIXES:
 
 * fix inconsistent result after creating `junos_interface` resource with only `name` argument (Fixes [#65](https://github.com/jeremmfr/terraform-provider-junos/issues/65))
 
-## 1.8.0 (November 20, 2020)
+## 1.8.0 (2020-11-20)
 
 FEATURES:
 
@@ -653,7 +653,7 @@ BUG FIXES:
 
 * remove useless ForceNew for `bind_interface_auto` argument in `junos_security_ipsec_vpn` resource
 
-## 1.7.0 (November 03, 2020)
+## 1.7.0 (2020-11-03)
 
 ENHANCEMENTS:
 
@@ -664,13 +664,13 @@ BUG FIXES:
 
 * fix lint errors from latest golangci-lint
 
-## 1.6.1 (October 22, 2020)
+## 1.6.1 (2020-10-22)
 
 BUG FIXES:
 
 * fix compile libraries into release (for alpine linux like hashicorp/terraform docker image)
 
-## 1.6.0 (October 21, 2020)
+## 1.6.0 (2020-10-21)
 
 FEATURES:
 
@@ -690,13 +690,13 @@ BUG FIXES:
 
 * fix sess.configLock return already nil
 
-## 1.5.1 (October 02, 2020)
+## 1.5.1 (2020-10-02)
 
 BUG FIXES:
 
 * add missing `password` field in provider configuration for ssh authentication (Fixes [#41](https://github.com/jeremmfr/terraform-provider-junos/issues/41))
 
-## 1.5.0 (September 14, 2020)
+## 1.5.0 (2020-09-14)
 
 FEATURES:
 
@@ -706,7 +706,7 @@ ENHANCEMENTS:
 
 * add `vlan_tagging_id` argument in `junos_interface` resource
 
-## 1.4.0 (September 04, 2020)
+## 1.4.0 (2020-09-04)
 
 FEATURES:
 
@@ -724,7 +724,7 @@ BUG FIXES:
 
 * fix message validateIntRange
 
-## 1.3.0 (August 24, 2020)
+## 1.3.0 (2020-08-24)
 
 FEATURES:
 
@@ -745,7 +745,7 @@ BUG FIXES:
 * fix rule/policy with space in name for application-services in `junos_security_policy` resource
 * fix no empty List if Required for many resource
 
-## 1.2.1 (August 17, 2020)
+## 1.2.1 (2020-08-17)
 
 ENHANCEMENTS:
 
@@ -759,7 +759,7 @@ BUG FIXES:
 
 * [workflows] no tar.gz incompatible with registry
 
-## 1.2.0 (July 21, 2020)
+## 1.2.0 (2020-07-21)
 
 FEATURES:
 
@@ -773,31 +773,31 @@ BUG FIXES:
 
 * fix go lint error
 
-## 1.1.1 (June 28, 2020)
+## 1.1.1 (2020-06-28)
 
 BUG FIXES:
 
 * allow usage of ~ in sshkeyfile path (Fixes [#22](https://github.com/jeremmfr/terraform-provider-junos/issues/22))
 
-## 1.1.0 (June 17, 2020)
+## 1.1.0 (2020-06-17)
 
 ENHANCEMENTS:
 
 * add `application-services` argument in `junos_security_policy` resource (Fixes [#20](https://github.com/jeremmfr/terraform-provider-junos/issues/20))
 
-## 1.0.6 (May 28, 2020)
+## 1.0.6 (2020-05-28)
 
 BUG FIXES:
 
 * update module go-netconf : Close ssh socket even if we get an error
 
-## 1.0.5 (March 26, 2020)
+## 1.0.5 (2020-03-26)
 
 BUG FIXES:
 
 * fix `junos_interface` resource : crash on closeSession Netconf after error on startNewSession
 
-## 1.0.4 (January 03, 2020)
+## 1.0.4 (2020-01-03)
 
 BUG FIXES:
 
@@ -805,24 +805,24 @@ BUG FIXES:
 * remove commit-check before commit which gives the same error if there is
 * fix check interface disable and NC
 
-## 1.0.3 (January 03, 2020)
+## 1.0.3 (2020-01-03)
 
 BUG FIXES:
 
 * fix terraform crash with an empty blocks-mode (no one required)
 
-## 1.0.2 (January 03, 2020)
+## 1.0.2 (2020-01-03)
 
 ENHANCEMENTS:
 
 * move cmd/debug environnement variables to provider config
 
-## 1.0.1 (December 18, 2019)
+## 1.0.1 (2019-12-18)
 
 BUG FIXES:
 
 * fix readInterface with empty/disappeared interface
 
-## 1.0.0 (November 27, 2019)
+## 1.0.0 (2019-11-27)
 
 First release
