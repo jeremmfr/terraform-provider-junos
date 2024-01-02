@@ -192,12 +192,12 @@ func (dscData *interfacesPhysicalPresentDataSourceData) read(
 	if err != nil {
 		return err
 	}
-	var iface junos.GetPhysicalInterfaceTerseReply
-	err = xml.Unmarshal([]byte(replyData), &iface.InterfaceInfo)
+	var reply junos.RPCGetPhysicalInterfaceTerseReply
+	err = xml.Unmarshal([]byte(replyData), &reply)
 	if err != nil {
 		return fmt.Errorf("unmarshaling xml reply %q: %w", replyData, err)
 	}
-	for _, iFace := range iface.InterfaceInfo.PhysicalInterface {
+	for _, iFace := range reply.PhysicalInterface {
 		if mName := config.MatchName.ValueString(); mName != "" {
 			matched, err := regexp.MatchString(mName, strings.TrimSpace(iFace.Name))
 			if err != nil {

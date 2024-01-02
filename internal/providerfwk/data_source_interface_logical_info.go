@@ -162,15 +162,15 @@ func (dscData *interfaceLogicalInfoDataSourceeData) read(
 	if err != nil {
 		return err
 	}
-	var iface junos.GetLogicalInterfaceTerseReply
-	err = xml.Unmarshal([]byte(replyData), &iface.InterfaceInfo)
+	var reply junos.RPCGetLogicalInterfaceTerseReply
+	err = xml.Unmarshal([]byte(replyData), &reply)
 	if err != nil {
 		return fmt.Errorf("unmarshaling xml reply %q: %w", replyData, err)
 	}
-	if len(iface.InterfaceInfo.LogicalInterface) == 0 {
+	if len(reply.LogicalInterface) == 0 {
 		return fmt.Errorf("logical-interface not found in xml: %v", replyData)
 	}
-	ifaceInfo := iface.InterfaceInfo.LogicalInterface[0]
+	ifaceInfo := reply.LogicalInterface[0]
 	dscData.Name = types.StringValue(strings.TrimSpace(ifaceInfo.Name))
 	dscData.AdminStatus = types.StringValue(strings.TrimSpace(ifaceInfo.AdminStatus))
 	dscData.OperStatus = types.StringValue(strings.TrimSpace(ifaceInfo.OperStatus))

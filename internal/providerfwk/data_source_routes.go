@@ -188,13 +188,13 @@ func (dscData *routesDataSourceData) read(
 	if err != nil {
 		return err
 	}
-	var routeTable junos.GetRouteInformationReply
-	err = xml.Unmarshal([]byte(replyData), &routeTable.RouteInfo)
+	var reply junos.RPCGetRouteInformationReply
+	err = xml.Unmarshal([]byte(replyData), &reply)
 	if err != nil {
 		return fmt.Errorf("unmarshaling xml reply '%s': %w", replyData, err)
 	}
 
-	for _, tableInfo := range routeTable.RouteInfo.RouteTable {
+	for _, tableInfo := range reply.RouteTable {
 		table := routesDataSourceBlockTable{
 			Name: types.StringValue(tableInfo.TableName),
 		}
