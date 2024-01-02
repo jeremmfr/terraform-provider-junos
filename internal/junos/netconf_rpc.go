@@ -33,6 +33,7 @@ const (
 	rpcCloseSession = "<close-session/>"
 
 	rpcGetSystemInformation                 = "<get-system-information/>"
+	RPCGetChassisInventory                  = `<get-chassis-inventory></get-chassis-inventory>`
 	RPCGetInterfaceInformationInterfaceName = "<get-interface-information><interface-name>%s</interface-name></get-interface-information>" //nolint:lll
 	RPCGetInterfacesInformationTerse        = `<get-interface-information><terse/></get-interface-information>`
 	RPCGetInterfaceInformationTerse         = `<get-interface-information>%s<terse/></get-interface-information>`
@@ -113,4 +114,28 @@ type RPCGetRouteInformationReply struct {
 			} `xml:"rt-entry"`
 		} `xml:"rt"`
 	} `xml:"route-table"`
+}
+
+type RPCGetChassisInventoryReply struct {
+	XMLName xml.Name `xml:"chassis-inventory"`
+	Chassis struct {
+		RPCGetChassisInventoryReplyComponent
+		Module []struct {
+			RPCGetChassisInventoryReplyComponent
+			SubModule []struct {
+				RPCGetChassisInventoryReplyComponent
+				SubSubModule []RPCGetChassisInventoryReplyComponent `xml:"chassis-sub-sub-module"`
+			} `xml:"chassis-sub-module"`
+		} `xml:"chassis-module"`
+	} `xml:"chassis"`
+}
+
+type RPCGetChassisInventoryReplyComponent struct {
+	Name         *string `xml:"name"`
+	Version      *string `xml:"version"`
+	PartNumber   *string `xml:"part-number"`
+	SerialNumber *string `xml:"serial-number"`
+	ModelNumber  *string `xml:"model-number"`
+	CleiCode     *string `xml:"clei-code"`
+	Description  *string `xml:"description"`
 }

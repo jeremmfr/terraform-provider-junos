@@ -214,6 +214,7 @@ func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataS
 	return []func() datasource.DataSource{
 		newApplicationSetsDataSource,
 		newApplicationsDataSource,
+		newChassisInventoryDataSource,
 		newInterfaceLogicalDataSource,
 		newInterfaceLogicalInfoDataSource,
 		newInterfacePhysicalDataSource,
