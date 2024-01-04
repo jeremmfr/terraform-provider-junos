@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -35,6 +34,10 @@ func (dsc *interfaceLogicalInfoDataSource) typeName() string {
 
 func (dsc *interfaceLogicalInfoDataSource) junosName() string {
 	return "summary information about a logical interface"
+}
+
+func (dsc *interfaceLogicalInfoDataSource) junosClient() *junos.Client {
+	return dsc.client
 }
 
 func newInterfaceLogicalInfoDataSource() datasource.DataSource {
@@ -129,26 +132,19 @@ func (dsc *interfaceLogicalInfoDataSource) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := dsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
-
-		return
-	}
-	defer junSess.Close()
 
 	var data interfaceLogicalInfoDataSourceeData
-	junos.MutexLock()
-	err = data.read(ctx, name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
 
-		return
-	}
-
-	data.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ dataSourceDataReadWith1String = &data
+	defaultDataSourceRead(
+		ctx,
+		dsc,
+		[]interface{}{
+			name.ValueString(),
+		},
+		&data,
+		resp,
+	)
 }
 
 func (dscData *interfaceLogicalInfoDataSourceeData) fillID() {

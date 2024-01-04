@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -31,6 +30,10 @@ func (dsc *chassisInventoryDataSource) typeName() string {
 
 func (dsc *chassisInventoryDataSource) junosName() string {
 	return "chassis hardware"
+}
+
+func (dsc *chassisInventoryDataSource) junosClient() *junos.Client {
+	return dsc.client
 }
 
 func newChassisInventoryDataSource() datasource.DataSource {
@@ -167,26 +170,16 @@ type chassisInventoryDataSourceBlockChassisBlockModuleBlockSubModuleBlockSubSubM
 func (dsc *chassisInventoryDataSource) Read(
 	ctx context.Context, _ datasource.ReadRequest, resp *datasource.ReadResponse,
 ) {
-	junSess, err := dsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
 	var data chassisInventoryDataSourceData
-	junos.MutexLock()
-	err = data.read(ctx, junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
 
-		return
-	}
-
-	data.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ dataSourceDataReadWithoutArg = &data
+	defaultDataSourceRead(
+		ctx,
+		dsc,
+		nil,
+		&data,
+		resp,
+	)
 }
 
 func (dscData *chassisInventoryDataSourceData) fillID() {

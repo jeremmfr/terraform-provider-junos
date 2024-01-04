@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -32,6 +31,10 @@ func (dsc *routesDataSource) typeName() string {
 
 func (dsc *routesDataSource) junosName() string {
 	return "present routes"
+}
+
+func (dsc *routesDataSource) junosClient() *junos.Client {
+	return dsc.client
 }
 
 func newRoutesDataSource() datasource.DataSource {
@@ -140,33 +143,25 @@ type routesDataSourceBlockTableBlockRouteBlockEntryBlockNextHop struct {
 func (dsc *routesDataSource) Read(
 	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse,
 ) {
-	var data routesDataSourceData
 	var tableName types.String
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("table_name"), &tableName)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	var data routesDataSourceData
 	data.TableName = tableName
 
-	junSess, err := dsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
-	junos.MutexLock()
-	err = data.read(tableName.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
-
-		return
-	}
-
-	data.fillID()
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ dataSourceDataReadWith1String = &data
+	defaultDataSourceRead(
+		ctx,
+		dsc,
+		[]interface{}{
+			tableName.ValueString(),
+		},
+		&data,
+		resp,
+	)
 }
 
 func (dscData *routesDataSourceData) fillID() {
@@ -178,7 +173,7 @@ func (dscData *routesDataSourceData) fillID() {
 }
 
 func (dscData *routesDataSourceData) read(
-	tableName string, junSess *junos.Session,
+	_ context.Context, tableName string, junSess *junos.Session,
 ) error {
 	rpcReq := junos.RPCGetRouteAllInformation
 	if tableName != "" {
