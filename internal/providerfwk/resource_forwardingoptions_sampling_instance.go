@@ -661,6 +661,10 @@ func (block *forwardingoptionsSamplingInstanceBlockInput) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(block)
 }
 
+func (block *forwardingoptionsSamplingInstanceBlockInput) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 //nolint:lll
 type forwardingoptionsSamplingInstanceBlockFamilyInetOutput struct {
 	AggregateExportInterval  types.Int64                                                             `tfsdk:"aggregate_export_interval"`
@@ -682,6 +686,10 @@ type forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig struct {
 	InlineJflowSourceAddress types.String `tfsdk:"inline_jflow_source_address"`
 	FlowServer               types.Set    `tfsdk:"flow_server"`
 	Interface                types.List   `tfsdk:"interface"`
+}
+
+func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 //nolint:lll
@@ -739,6 +747,10 @@ type forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig struct {
 	Interface                types.List   `tfsdk:"interface"`
 }
 
+func (block *forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
 //nolint:lll
 type forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer struct {
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
@@ -783,27 +795,28 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				tfdiag.MissingConfigErrSummary,
 				"input block is empty",
 			)
-		}
-		if config.FamilyInetInput != nil {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("family_inet_input").AtName("*"),
-				tfdiag.ConflictConfigErrSummary,
-				"cannot set family_inet_input block if input block is used",
-			)
-		}
-		if config.FamilyInet6Input != nil {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("family_inet6_input").AtName("*"),
-				tfdiag.ConflictConfigErrSummary,
-				"cannot set family_inet6_input block if input block is used",
-			)
-		}
-		if config.FamilyMplsInput != nil {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("family_mpls_input").AtName("*"),
-				tfdiag.ConflictConfigErrSummary,
-				"cannot set family_mpls_input block if input block is used",
-			)
+		} else if config.Input.hasKnownValue() {
+			if config.FamilyInetInput != nil && config.FamilyInetInput.hasKnownValue() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("family_inet_input").AtName("*"),
+					tfdiag.ConflictConfigErrSummary,
+					"cannot set family_inet_input block if input block is used",
+				)
+			}
+			if config.FamilyInet6Input != nil && config.FamilyInet6Input.hasKnownValue() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("family_inet6_input").AtName("*"),
+					tfdiag.ConflictConfigErrSummary,
+					"cannot set family_inet6_input block if input block is used",
+				)
+			}
+			if config.FamilyMplsInput != nil && config.FamilyMplsInput.hasKnownValue() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("family_mpls_input").AtName("*"),
+					tfdiag.ConflictConfigErrSummary,
+					"cannot set family_mpls_input block if input block is used",
+				)
+			}
 		}
 	} else if config.FamilyInetInput == nil &&
 		config.FamilyInet6Input == nil &&
@@ -851,14 +864,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 	}
 
 	if config.FamilyInetOutput != nil {
-		if config.FamilyInetOutput.AggregateExportInterval.IsNull() &&
-			config.FamilyInetOutput.ExtensionService.IsNull() &&
-			config.FamilyInetOutput.FlowActiveTimeout.IsNull() &&
-			config.FamilyInetOutput.FlowInactiveTimeout.IsNull() &&
-			config.FamilyInetOutput.FlowServer.IsNull() &&
-			config.FamilyInetOutput.InlineJflowExportRate.IsNull() &&
-			config.FamilyInetOutput.InlineJflowSourceAddress.IsNull() &&
-			config.FamilyInetOutput.Interface.IsNull() {
+		if config.FamilyInetOutput.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet_output").AtName("*"),
 				tfdiag.MissingConfigErrSummary,
@@ -930,14 +936,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		}
 	}
 	if config.FamilyInet6Output != nil {
-		if config.FamilyInet6Output.AggregateExportInterval.IsNull() &&
-			config.FamilyInet6Output.ExtensionService.IsNull() &&
-			config.FamilyInet6Output.FlowActiveTimeout.IsNull() &&
-			config.FamilyInet6Output.FlowInactiveTimeout.IsNull() &&
-			config.FamilyInet6Output.FlowServer.IsNull() &&
-			config.FamilyInet6Output.InlineJflowExportRate.IsNull() &&
-			config.FamilyInet6Output.InlineJflowSourceAddress.IsNull() &&
-			config.FamilyInet6Output.Interface.IsNull() {
+		if config.FamilyInet6Output.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_inet6_output").AtName("*"),
 				tfdiag.MissingConfigErrSummary,
@@ -1009,13 +1008,7 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		}
 	}
 	if config.FamilyMplsOutput != nil {
-		if config.FamilyMplsOutput.AggregateExportInterval.IsNull() &&
-			config.FamilyMplsOutput.FlowActiveTimeout.IsNull() &&
-			config.FamilyMplsOutput.FlowInactiveTimeout.IsNull() &&
-			config.FamilyMplsOutput.FlowServer.IsNull() &&
-			config.FamilyMplsOutput.InlineJflowExportRate.IsNull() &&
-			config.FamilyMplsOutput.InlineJflowSourceAddress.IsNull() &&
-			config.FamilyMplsOutput.Interface.IsNull() {
+		if config.FamilyMplsOutput.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("family_mpls_output").AtName("*"),
 				tfdiag.MissingConfigErrSummary,
