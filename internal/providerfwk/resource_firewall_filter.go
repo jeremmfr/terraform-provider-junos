@@ -934,7 +934,7 @@ func (rsc *firewallFilter) ValidateConfig(
 
 		termName := make(map[string]struct{})
 		for i, block := range configTerm {
-			if !block.Name.IsNull() && !block.Name.IsUnknown() {
+			if !block.Name.IsUnknown() {
 				name := block.Name.ValueString()
 				if _, ok := termName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
@@ -968,8 +968,8 @@ func (rsc *firewallFilter) ValidateConfig(
 						resp,
 					)
 				}
-				if !block.From.DestinationPort.IsNull() &&
-					!block.From.DestinationPortExcept.IsNull() {
+				if !block.From.DestinationPort.IsNull() && !block.From.DestinationPort.IsUnknown() &&
+					!block.From.DestinationPortExcept.IsNull() && !block.From.DestinationPortExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("destination_port"),
 						tfdiag.ConflictConfigErrSummary,
@@ -977,8 +977,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.IcmpCode.IsNull() &&
-					!block.From.IcmpCodeExcept.IsNull() {
+				if !block.From.IcmpCode.IsNull() && !block.From.IcmpCode.IsUnknown() &&
+					!block.From.IcmpCodeExcept.IsNull() && !block.From.IcmpCodeExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("icmp_code"),
 						tfdiag.ConflictConfigErrSummary,
@@ -986,8 +986,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.IcmpType.IsNull() &&
-					!block.From.IcmpTypeExcept.IsNull() {
+				if !block.From.IcmpType.IsNull() && !block.From.IcmpType.IsUnknown() &&
+					!block.From.IcmpTypeExcept.IsNull() && !block.From.IcmpTypeExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("icmp_type"),
 						tfdiag.ConflictConfigErrSummary,
@@ -995,8 +995,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.ForwardingClass.IsNull() &&
-					!block.From.ForwardingClassExcept.IsNull() {
+				if !block.From.ForwardingClass.IsNull() && !block.From.ForwardingClass.IsUnknown() &&
+					!block.From.ForwardingClassExcept.IsNull() && !block.From.ForwardingClassExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("forwarding_class"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1004,8 +1004,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.LossPriority.IsNull() &&
-					!block.From.LossPriorityExcept.IsNull() {
+				if !block.From.LossPriority.IsNull() && !block.From.LossPriority.IsUnknown() &&
+					!block.From.LossPriorityExcept.IsNull() && !block.From.LossPriorityExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("loss_priority"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1013,8 +1013,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.NextHeader.IsNull() &&
-					!block.From.NextHeaderExcept.IsNull() {
+				if !block.From.NextHeader.IsNull() && !block.From.NextHeader.IsUnknown() &&
+					!block.From.NextHeaderExcept.IsNull() && !block.From.NextHeaderExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("next_header"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1022,8 +1022,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.PacketLength.IsNull() &&
-					!block.From.PacketLengthExcept.IsNull() {
+				if !block.From.PacketLength.IsNull() && !block.From.PacketLength.IsUnknown() &&
+					!block.From.PacketLengthExcept.IsNull() && !block.From.PacketLengthExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("packet_length"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1031,8 +1031,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.PolicyMap.IsNull() &&
-					!block.From.PolicyMapExcept.IsNull() {
+				if !block.From.PolicyMap.IsNull() && !block.From.PolicyMap.IsUnknown() &&
+					!block.From.PolicyMapExcept.IsNull() && !block.From.PolicyMapExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("policy_map"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1040,8 +1040,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.Port.IsNull() &&
-					!block.From.PortExcept.IsNull() {
+				if !block.From.Port.IsNull() && !block.From.Port.IsUnknown() &&
+					!block.From.PortExcept.IsNull() && !block.From.PortExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("port"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1049,8 +1049,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.Protocol.IsNull() &&
-					!block.From.ProtocolExcept.IsNull() {
+				if !block.From.Protocol.IsNull() && !block.From.Protocol.IsUnknown() &&
+					!block.From.ProtocolExcept.IsNull() && !block.From.ProtocolExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("protocol"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1058,8 +1058,8 @@ func (rsc *firewallFilter) ValidateConfig(
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
-				if !block.From.SourcePort.IsNull() &&
-					!block.From.SourcePortExcept.IsNull() {
+				if !block.From.SourcePort.IsNull() && !block.From.SourcePort.IsUnknown() &&
+					!block.From.SourcePortExcept.IsNull() && !block.From.SourcePortExcept.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("source_port"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1081,391 +1081,435 @@ func (rsc *firewallFilter) ValidateConfig(
 	}
 }
 
+//nolint:gocyclo
 func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 	_ context.Context, family string, pathRoot path.Path, resp *resource.ValidateConfigResponse,
 ) {
 	errorMessageWithFamilySuffix := fmt.Sprintf(" in from block cannot be configured with family %q", family)
-	if !block.Address.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "ethernet-switching",
-	}) {
+	if !block.Address.IsNull() && !block.Address.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("address"),
 			tfdiag.ConflictConfigErrSummary,
 			"address"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.AddressExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "ethernet-switching",
-	}) {
+	if !block.AddressExcept.IsNull() && !block.AddressExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("address_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"address_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.DestinationAddress.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W,
-	}) {
+	if !block.DestinationAddress.IsNull() && !block.DestinationAddress.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W,
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_address"),
 			tfdiag.ConflictConfigErrSummary,
 			"destination_address"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.DestinationAddressExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W,
-	}) {
+	if !block.DestinationAddressExcept.IsNull() && !block.DestinationAddressExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W,
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_address_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"destination_address_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.DestinationMacAddress.IsNull() && !bchk.InSlice(family, []string{
-		"vpls", "ethernet-switching",
-	}) {
+	if !block.DestinationMacAddress.IsNull() && !block.DestinationMacAddress.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			"vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_mac_address"),
 			tfdiag.ConflictConfigErrSummary,
 			"destination_mac_address"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.DestinationMacAddressExcept.IsNull() && !bchk.InSlice(family, []string{
-		"vpls", "ethernet-switching",
-	}) {
+	if !block.DestinationMacAddressExcept.IsNull() && !block.DestinationMacAddressExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			"vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_mac_address_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"destination_mac_address_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.DestinationPort.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.DestinationPort.IsNull() && !block.DestinationPort.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_port"),
 			tfdiag.ConflictConfigErrSummary,
 			"destination_port"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.DestinationPortExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.DestinationPortExcept.IsNull() && !block.DestinationPortExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_port_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"destination_port_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.DestinationPrefixList.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.DestinationPrefixList.IsNull() && !block.DestinationPrefixList.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
 			"destination_prefix_list"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.DestinationPrefixListExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.DestinationPrefixListExcept.IsNull() && !block.DestinationPrefixListExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"destination_prefix_list_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.ForwardingClass.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching",
-	}) {
+	if !block.ForwardingClass.IsNull() && !block.ForwardingClass.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("forwarding_class"),
 			tfdiag.ConflictConfigErrSummary,
 			"forwarding_class"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.ForwardingClassExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching",
-	}) {
+	if !block.ForwardingClassExcept.IsNull() && !block.ForwardingClassExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("forwarding_class_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"forwarding_class_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.IcmpCode.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.IcmpCode.IsNull() && !block.IcmpCode.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_code"),
 			tfdiag.ConflictConfigErrSummary,
 			"icmp_code"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.IcmpCodeExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.IcmpCodeExcept.IsNull() && !block.IcmpCodeExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_code_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"icmp_code_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.IcmpType.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.IcmpType.IsNull() && !block.IcmpType.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_type"),
 			tfdiag.ConflictConfigErrSummary,
 			"icmp_type"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.IcmpTypeExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.IcmpTypeExcept.IsNull() && !block.IcmpTypeExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_type_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"icmp_type_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.Interface.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any", "mpls", "vpls", "ethernet-switching",
-	}) {
+	if !block.Interface.IsNull() && !block.Interface.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any", "mpls", "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("interface"),
 			tfdiag.ConflictConfigErrSummary,
 			"interface"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.IsFragment.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "ethernet-switching",
-	}) {
+	if !block.IsFragment.IsNull() && !block.IsFragment.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("is_fragment"),
 			tfdiag.ConflictConfigErrSummary,
 			"is_fragment"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.LossPriority.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
-	}) {
+	if !block.LossPriority.IsNull() && !block.LossPriority.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("loss_priority"),
 			tfdiag.ConflictConfigErrSummary,
 			"loss_priority"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.LossPriorityExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
-	}) {
+	if !block.LossPriorityExcept.IsNull() && !block.LossPriorityExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("loss_priority_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"loss_priority_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.NextHeader.IsNull() && !bchk.InSlice(family, []string{
-		junos.Inet6W,
-	}) {
+	if !block.NextHeader.IsNull() && !block.NextHeader.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.Inet6W,
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("next_header"),
 			tfdiag.ConflictConfigErrSummary,
 			"next_header"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.NextHeaderExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.Inet6W,
-	}) {
+	if !block.NextHeaderExcept.IsNull() && !block.NextHeaderExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.Inet6W,
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("next_header_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"next_header_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.PacketLength.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any",
-	}) {
+	if !block.PacketLength.IsNull() && !block.PacketLength.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("packet_length"),
 			tfdiag.ConflictConfigErrSummary,
 			"packet_length"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.PacketLengthExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any",
-	}) {
+	if !block.PacketLengthExcept.IsNull() && !block.PacketLengthExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("packet_length_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"packet_length_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.PolicyMap.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
-	}) {
+	if !block.PolicyMap.IsNull() && !block.PolicyMap.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("policy_map"),
 			tfdiag.ConflictConfigErrSummary,
 			"policy_map"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.PolicyMapExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
-	}) {
+	if !block.PolicyMapExcept.IsNull() && !block.PolicyMapExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("policy_map_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"policy_map_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.Port.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.Port.IsNull() && !block.Port.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("port"),
 			tfdiag.ConflictConfigErrSummary,
 			"port"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.PortExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.PortExcept.IsNull() && !block.PortExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("port_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"port_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.PrefixList.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls",
-	}) {
+	if !block.PrefixList.IsNull() && !block.PrefixList.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
 			"prefix_list"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.PrefixListExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls",
-	}) {
+	if !block.PrefixListExcept.IsNull() && !block.PrefixListExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"prefix_list_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.Protocol.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, "ethernet-switching",
-	}) {
+	if !block.Protocol.IsNull() && !block.Protocol.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("protocol"),
 			tfdiag.ConflictConfigErrSummary,
 			"protocol"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.ProtocolExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, "ethernet-switching",
-	}) {
+	if !block.ProtocolExcept.IsNull() && !block.ProtocolExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("protocol_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"protocol_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.SourceAddress.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W,
-	}) {
+	if !block.SourceAddress.IsNull() && !block.SourceAddress.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W,
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_address"),
 			tfdiag.ConflictConfigErrSummary,
 			"source_address"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.SourceAddressExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W,
-	}) {
+	if !block.SourceAddressExcept.IsNull() && !block.SourceAddressExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W,
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_address_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"source_address_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.SourceMacAddress.IsNull() && !bchk.InSlice(family, []string{
-		"vpls", "ethernet-switching",
-	}) {
+	if !block.SourceMacAddress.IsNull() && !block.SourceMacAddress.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			"vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_mac_address"),
 			tfdiag.ConflictConfigErrSummary,
 			"source_mac_address"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.SourceMacAddressExcept.IsNull() && !bchk.InSlice(family, []string{
-		"vpls", "ethernet-switching",
-	}) {
+	if !block.SourceMacAddressExcept.IsNull() && !block.SourceMacAddressExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			"vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_mac_address_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"source_mac_address_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.SourcePort.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.SourcePort.IsNull() && !block.SourcePort.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_port"),
 			tfdiag.ConflictConfigErrSummary,
 			"source_port"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.SourcePortExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.SourcePortExcept.IsNull() && !block.SourcePortExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_port_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"source_port_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.SourcePrefixList.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.SourcePrefixList.IsNull() && !block.SourcePrefixList.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
 			"source_prefix_list"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.SourcePrefixListExcept.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.SourcePrefixListExcept.IsNull() && !block.SourcePrefixListExcept.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
 			"source_prefix_list_except"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.TCPEstablished.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "ethernet-switching",
-	}) {
+	if !block.TCPEstablished.IsNull() && !block.TCPEstablished.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_established"),
 			tfdiag.ConflictConfigErrSummary,
 			"tcp_established"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.TCPFlags.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-	}) {
+	if !block.TCPFlags.IsNull() && !block.TCPFlags.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_flags"),
 			tfdiag.ConflictConfigErrSummary,
 			"tcp_flags"+errorMessageWithFamilySuffix,
 		)
 	}
-	if !block.TCPInitial.IsNull() && !bchk.InSlice(family, []string{
-		junos.InetW, junos.Inet6W, "ethernet-switching",
-	}) {
+	if !block.TCPInitial.IsNull() && !block.TCPInitial.IsUnknown() &&
+		!bchk.InSlice(family, []string{
+			junos.InetW, junos.Inet6W, "ethernet-switching",
+		}) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_initial"),
 			tfdiag.ConflictConfigErrSummary,
