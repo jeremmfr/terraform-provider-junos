@@ -55,3 +55,42 @@ func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 
 	return true
 }
+
+// check if struct has either :
+//   - an framework attribute with known value (not null and not unknown)
+//   - an pointer to an other struct with a known framework attribute value.
+func CheckBlockHasKnownValue[B any](block B) bool {
+	v := reflect.Indirect(reflect.ValueOf(block).Elem())
+
+	for i := 0; i < v.NumField(); i++ {
+		fieldValue := v.Field(i)
+		if !fieldValue.IsValid() {
+			continue
+		}
+
+		if attr, ok := fieldValue.Interface().(attr.Value); ok {
+			if !attr.IsNull() && !attr.IsUnknown() {
+				return true
+			}
+
+			continue
+		}
+
+		if fieldValue.Type().Kind() == reflect.Pointer {
+			if !fieldValue.IsNil() {
+				if CheckBlockHasKnownValue(v.Field(i).Interface()) {
+					return true
+				}
+			}
+
+			continue
+		}
+
+		panic(fmt.Sprintf(
+			"don't know how to determine if field %q (type: %s) is known",
+			v.Type().Field(i).Name, fieldValue.Type().Name(),
+		))
+	}
+
+	return false
+}
