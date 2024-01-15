@@ -342,8 +342,8 @@ func (rsc *bridgeDomain) ValidateConfig(
 		)
 	}
 
-	if !config.VLANID.IsNull() &&
-		!config.VLANIDList.IsNull() {
+	if !config.VLANID.IsNull() && !config.VLANID.IsUnknown() &&
+		!config.VLANIDList.IsNull() && !config.VLANIDList.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("vlan_id"),
 			tfdiag.ConflictConfigErrSummary,
