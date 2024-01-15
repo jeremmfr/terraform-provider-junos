@@ -869,6 +869,7 @@ type bgpNeighborConfig struct {
 	GracefulRestart              *bgpBlockGracefulRestart      `tfsdk:"graceful_restart"`
 }
 
+//nolint:gocognit,gocyclo
 func (rsc *bgpNeighbor) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
@@ -878,31 +879,31 @@ func (rsc *bgpNeighbor) ValidateConfig(
 		return
 	}
 
-	if !config.AdvertisePeerAS.IsNull() &&
-		!config.NoAdvertisePeerAS.IsNull() {
+	if !config.AdvertisePeerAS.IsNull() && !config.AdvertisePeerAS.IsUnknown() &&
+		!config.NoAdvertisePeerAS.IsNull() && !config.NoAdvertisePeerAS.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("advertise_peer_as"),
 			tfdiag.ConflictConfigErrSummary,
 			"advertise_peer_as and no_advertise_peer_as can't be true in same time ",
 		)
 	}
-	if !config.KeepAll.IsNull() &&
-		!config.KeepNone.IsNull() {
+	if !config.KeepAll.IsNull() && !config.KeepAll.IsUnknown() &&
+		!config.KeepNone.IsNull() && !config.KeepNone.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("keep_all"),
 			tfdiag.ConflictConfigErrSummary,
 			"keep_all and keep_none can't be true in same time ",
 		)
 	}
-	if !config.AuthenticationKey.IsNull() {
-		if !config.AuthenticationAlgorithm.IsNull() {
+	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() {
+		if !config.AuthenticationAlgorithm.IsNull() && !config.AuthenticationAlgorithm.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_algorithm"),
 				tfdiag.ConflictConfigErrSummary,
 				"authentication_algorithm and authentication_key cannot be configured together",
 			)
 		}
-		if !config.AuthenticationKeyChain.IsNull() {
+		if !config.AuthenticationKeyChain.IsNull() && !config.AuthenticationKeyChain.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_key_chain"),
 				tfdiag.ConflictConfigErrSummary,
@@ -910,15 +911,15 @@ func (rsc *bgpNeighbor) ValidateConfig(
 			)
 		}
 	}
-	if !config.LocalASAlias.IsNull() {
-		if !config.LocalASPrivate.IsNull() {
+	if !config.LocalASAlias.IsNull() && !config.LocalASAlias.IsUnknown() {
+		if !config.LocalASPrivate.IsNull() && !config.LocalASPrivate.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("local_as_alias"),
 				tfdiag.ConflictConfigErrSummary,
 				"local_as_alias and local_as_private cannot be configured together",
 			)
 		}
-		if !config.LocalASNoPrependGlobalAS.IsNull() {
+		if !config.LocalASNoPrependGlobalAS.IsNull() && !config.LocalASNoPrependGlobalAS.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("local_as_alias"),
 				tfdiag.ConflictConfigErrSummary,
@@ -926,8 +927,8 @@ func (rsc *bgpNeighbor) ValidateConfig(
 			)
 		}
 	}
-	if !config.LocalASPrivate.IsNull() {
-		if !config.LocalASNoPrependGlobalAS.IsNull() {
+	if !config.LocalASPrivate.IsNull() && !config.LocalASPrivate.IsUnknown() {
+		if !config.LocalASNoPrependGlobalAS.IsNull() && !config.LocalASNoPrependGlobalAS.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("local_as_private"),
 				tfdiag.ConflictConfigErrSummary,
@@ -935,36 +936,36 @@ func (rsc *bgpNeighbor) ValidateConfig(
 			)
 		}
 	}
-	if !config.MetricOut.IsNull() {
-		if !config.MetricOutIgp.IsNull() {
+	if !config.MetricOut.IsNull() && !config.MetricOut.IsUnknown() {
+		if !config.MetricOutIgp.IsNull() && !config.MetricOutIgp.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_igp"),
 				tfdiag.ConflictConfigErrSummary,
 				"metric_out and metric_out_igp cannot be configured together",
 			)
 		}
-		if !config.MetricOutIgpDelayMedUpdate.IsNull() {
+		if !config.MetricOutIgpDelayMedUpdate.IsNull() && !config.MetricOutIgpDelayMedUpdate.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_igp_delay_med_update"),
 				tfdiag.ConflictConfigErrSummary,
 				"metric_out and metric_out_igp_delay_med_update cannot be configured together",
 			)
 		}
-		if !config.MetricOutIgpOffset.IsNull() {
+		if !config.MetricOutIgpOffset.IsNull() && !config.MetricOutIgpOffset.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_igp_offset"),
 				tfdiag.ConflictConfigErrSummary,
 				"metric_out and metric_out_igp_offset cannot be configured together",
 			)
 		}
-		if !config.MetricOutMinimumIgp.IsNull() {
+		if !config.MetricOutMinimumIgp.IsNull() && !config.MetricOutMinimumIgp.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_minimum_igp"),
 				tfdiag.ConflictConfigErrSummary,
 				"metric_out and metric_out_minimum_igp cannot be configured together",
 			)
 		}
-		if !config.MetricOutMinimumIgpOffset.IsNull() {
+		if !config.MetricOutMinimumIgpOffset.IsNull() && !config.MetricOutMinimumIgpOffset.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_minimum_igp_offset"),
 				tfdiag.ConflictConfigErrSummary,
@@ -972,15 +973,15 @@ func (rsc *bgpNeighbor) ValidateConfig(
 			)
 		}
 	}
-	if !config.MetricOutIgp.IsNull() {
-		if !config.MetricOutMinimumIgp.IsNull() {
+	if !config.MetricOutIgp.IsNull() && !config.MetricOutIgp.IsUnknown() {
+		if !config.MetricOutMinimumIgp.IsNull() && !config.MetricOutMinimumIgp.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_minimum_igp"),
 				tfdiag.ConflictConfigErrSummary,
 				"metric_out_igp and metric_out_minimum_igp cannot be configured together",
 			)
 		}
-		if !config.MetricOutMinimumIgpOffset.IsNull() {
+		if !config.MetricOutMinimumIgpOffset.IsNull() && !config.MetricOutMinimumIgpOffset.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_minimum_igp_offset"),
 				tfdiag.ConflictConfigErrSummary,
@@ -988,15 +989,15 @@ func (rsc *bgpNeighbor) ValidateConfig(
 			)
 		}
 	}
-	if !config.MetricOutIgpDelayMedUpdate.IsNull() {
-		if !config.MetricOutMinimumIgp.IsNull() {
+	if !config.MetricOutIgpDelayMedUpdate.IsNull() && !config.MetricOutIgpDelayMedUpdate.IsUnknown() {
+		if !config.MetricOutMinimumIgp.IsNull() && !config.MetricOutMinimumIgp.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_minimum_igp"),
 				tfdiag.ConflictConfigErrSummary,
 				"metric_out_igp_delay_med_update and metric_out_minimum_igp cannot be configured together",
 			)
 		}
-		if !config.MetricOutMinimumIgpOffset.IsNull() {
+		if !config.MetricOutMinimumIgpOffset.IsNull() && !config.MetricOutMinimumIgpOffset.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_minimum_igp_offset"),
 				tfdiag.ConflictConfigErrSummary,
@@ -1004,15 +1005,15 @@ func (rsc *bgpNeighbor) ValidateConfig(
 			)
 		}
 	}
-	if !config.MetricOutIgpOffset.IsNull() {
-		if !config.MetricOutMinimumIgp.IsNull() {
+	if !config.MetricOutIgpOffset.IsNull() && !config.MetricOutIgpOffset.IsUnknown() {
+		if !config.MetricOutMinimumIgp.IsNull() && !config.MetricOutMinimumIgp.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_minimum_igp"),
 				tfdiag.ConflictConfigErrSummary,
 				"metric_out_igp_offset and metric_out_minimum_igp cannot be configured together",
 			)
 		}
-		if !config.MetricOutMinimumIgpOffset.IsNull() {
+		if !config.MetricOutMinimumIgpOffset.IsNull() && !config.MetricOutMinimumIgpOffset.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("metric_out_minimum_igp_offset"),
 				tfdiag.ConflictConfigErrSummary,
@@ -1031,7 +1032,9 @@ func (rsc *bgpNeighbor) ValidateConfig(
 	}
 	if config.BgpErrorTolerance != nil {
 		if !config.BgpErrorTolerance.MalformedRouteLimit.IsNull() &&
-			!config.BgpErrorTolerance.NoMalformedRouteLimit.IsNull() {
+			!config.BgpErrorTolerance.MalformedRouteLimit.IsUnknown() &&
+			!config.BgpErrorTolerance.NoMalformedRouteLimit.IsNull() &&
+			!config.BgpErrorTolerance.NoMalformedRouteLimit.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("bgp_error_tolerance").AtName("no_malformed_route_limit"),
 				tfdiag.ConflictConfigErrSummary,
@@ -1071,7 +1074,9 @@ func (rsc *bgpNeighbor) ValidateConfig(
 					)
 				}
 				if !block.AcceptedPrefixLimit.TeardownIdleTimeout.IsNull() &&
-					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsNull() {
+					!block.AcceptedPrefixLimit.TeardownIdleTimeout.IsUnknown() &&
+					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsNull() &&
+					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_evpn").AtListIndex(i).AtName("accepted_prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1089,7 +1094,9 @@ func (rsc *bgpNeighbor) ValidateConfig(
 					)
 				}
 				if !block.PrefixLimit.TeardownIdleTimeout.IsNull() &&
-					!block.PrefixLimit.TeardownIdleTimeoutForever.IsNull() {
+					!block.PrefixLimit.TeardownIdleTimeout.IsUnknown() &&
+					!block.PrefixLimit.TeardownIdleTimeoutForever.IsNull() &&
+					!block.PrefixLimit.TeardownIdleTimeoutForever.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_evpn").AtListIndex(i).AtName("prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1131,7 +1138,9 @@ func (rsc *bgpNeighbor) ValidateConfig(
 					)
 				}
 				if !block.AcceptedPrefixLimit.TeardownIdleTimeout.IsNull() &&
-					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsNull() {
+					!block.AcceptedPrefixLimit.TeardownIdleTimeout.IsUnknown() &&
+					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsNull() &&
+					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet").AtListIndex(i).AtName("accepted_prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1149,7 +1158,9 @@ func (rsc *bgpNeighbor) ValidateConfig(
 					)
 				}
 				if !block.PrefixLimit.TeardownIdleTimeout.IsNull() &&
-					!block.PrefixLimit.TeardownIdleTimeoutForever.IsNull() {
+					!block.PrefixLimit.TeardownIdleTimeout.IsUnknown() &&
+					!block.PrefixLimit.TeardownIdleTimeoutForever.IsNull() &&
+					!block.PrefixLimit.TeardownIdleTimeoutForever.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet").AtListIndex(i).AtName("prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1191,7 +1202,9 @@ func (rsc *bgpNeighbor) ValidateConfig(
 					)
 				}
 				if !block.AcceptedPrefixLimit.TeardownIdleTimeout.IsNull() &&
-					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsNull() {
+					!block.AcceptedPrefixLimit.TeardownIdleTimeout.IsUnknown() &&
+					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsNull() &&
+					!block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet6").AtListIndex(i).AtName("accepted_prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1209,7 +1222,9 @@ func (rsc *bgpNeighbor) ValidateConfig(
 					)
 				}
 				if !block.PrefixLimit.TeardownIdleTimeout.IsNull() &&
-					!block.PrefixLimit.TeardownIdleTimeoutForever.IsNull() {
+					!block.PrefixLimit.TeardownIdleTimeout.IsUnknown() &&
+					!block.PrefixLimit.TeardownIdleTimeoutForever.IsNull() &&
+					!block.PrefixLimit.TeardownIdleTimeoutForever.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet6").AtListIndex(i).AtName("prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1221,8 +1236,8 @@ func (rsc *bgpNeighbor) ValidateConfig(
 		}
 	}
 	if config.GracefulRestart != nil {
-		if !config.GracefulRestart.Disable.IsNull() {
-			if !config.GracefulRestart.RestartTime.IsNull() {
+		if !config.GracefulRestart.Disable.IsNull() && !config.GracefulRestart.Disable.IsUnknown() {
+			if !config.GracefulRestart.RestartTime.IsNull() && !config.GracefulRestart.RestartTime.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("graceful_restart").AtName("restart_time"),
 					tfdiag.ConflictConfigErrSummary,
@@ -1230,7 +1245,7 @@ func (rsc *bgpNeighbor) ValidateConfig(
 						" in graceful_restart block",
 				)
 			}
-			if !config.GracefulRestart.StaleRouteTime.IsNull() {
+			if !config.GracefulRestart.StaleRouteTime.IsNull() && !config.GracefulRestart.StaleRouteTime.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("graceful_restart").AtName("stale_route_time"),
 					tfdiag.ConflictConfigErrSummary,
