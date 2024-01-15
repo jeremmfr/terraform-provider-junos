@@ -275,16 +275,7 @@ type evpnBlockDuplicateMACDetection struct {
 }
 
 func (block *evpnBlockDuplicateMACDetection) isEmpty() bool {
-	switch {
-	case !block.AutoRecoveryTime.IsNull():
-		return false
-	case !block.DetectionThreshold.IsNull():
-		return false
-	case !block.DetectionWindow.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type evpnBlockSwitchOrRIOptions struct {

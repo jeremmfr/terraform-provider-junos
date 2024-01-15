@@ -807,26 +807,7 @@ type interfacePhysicalBlockEtherOpts struct {
 }
 
 func (block *interfacePhysicalBlockEtherOpts) isEmpty() bool {
-	switch {
-	case !block.AutoNegotiation.IsNull():
-		return false
-	case !block.NoAutoNegotiation.IsNull():
-		return false
-	case !block.FlowControl.IsNull():
-		return false
-	case !block.NoFlowControl.IsNull():
-		return false
-	case !block.Loopback.IsNull():
-		return false
-	case !block.NoLoopback.IsNull():
-		return false
-	case !block.Ae8023ad.IsNull():
-		return false
-	case !block.RedundantParent.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type interfacePhysicalBlockParentEtherOpts struct {
@@ -862,36 +843,7 @@ type interfacePhysicalBlockParentEtherOptsConfig struct {
 }
 
 func (block *interfacePhysicalBlockParentEtherOptsConfig) isEmpty() bool {
-	switch {
-	case !block.FlowControl.IsNull():
-		return false
-	case !block.NoFlowControl.IsNull():
-		return false
-	case !block.Loopback.IsNull():
-		return false
-	case !block.NoLoopback.IsNull():
-		return false
-	case !block.SourceFiltering.IsNull():
-		return false
-	case !block.LinkSpeed.IsNull():
-		return false
-	case !block.MinimumBandwidth.IsNull():
-		return false
-	case !block.MinimumLinks.IsNull():
-		return false
-	case !block.RedundancyGroup.IsNull():
-		return false
-	case !block.SourceAddressFilter.IsNull():
-		return false
-	case block.BFDLivenessDetection != nil:
-		return false
-	case block.LACP != nil:
-		return false
-	case block.MCAE != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection struct {

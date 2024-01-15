@@ -440,36 +440,7 @@ type securityPolicyBlockPolicyBlockPermitApplicationServices struct {
 }
 
 func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) isEmpty() bool {
-	switch {
-	case !block.AdvancedAntiMalwarePolicy.IsNull():
-		return false
-	case !block.ApplicationFirewallRuleSet.IsNull():
-		return false
-	case !block.ApplicationTrafficControlRuleSet.IsNull():
-		return false
-	case !block.GprsGtpProfile.IsNull():
-		return false
-	case !block.GprsSctpProfile.IsNull():
-		return false
-	case !block.Idp.IsNull():
-		return false
-	case !block.IdpPolicy.IsNull():
-		return false
-	case !block.RedirectWx.IsNull():
-		return false
-	case !block.ReverseRedirectWx.IsNull():
-		return false
-	case !block.SecurityIntelligencePolicy.IsNull():
-		return false
-	case block.SSLProxy != nil:
-		return false
-	case block.UacPolicy != nil:
-		return false
-	case !block.UtmPolicy.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 func (rsc *securityPolicy) ValidateConfig(

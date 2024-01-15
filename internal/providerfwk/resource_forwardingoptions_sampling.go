@@ -698,6 +698,10 @@ type forwardingoptionsSamplingBlockInput struct {
 	RunLength           types.Int64 `tfsdk:"run_length"`
 }
 
+func (block *forwardingoptionsSamplingBlockInput) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
 //nolint:lll
 type forwardingoptionsSamplingBlockFamilyInetOutput struct {
 	AggregateExportInterval  types.Int64                                                     `tfsdk:"aggregate_export_interval"`
@@ -818,21 +822,6 @@ type forwardingoptionsSamplingBlockOutputBlockInterface struct {
 	EngineID      types.Int64  `tfsdk:"engine_id"`
 	EngineType    types.Int64  `tfsdk:"engine_type"`
 	SourceAddress types.String `tfsdk:"source_address"`
-}
-
-func (block *forwardingoptionsSamplingBlockInput) isEmpty() bool {
-	switch {
-	case !block.MaxPacketsPerSecond.IsNull():
-		return false
-	case !block.MaximumPacketLength.IsNull():
-		return false
-	case !block.Rate.IsNull():
-		return false
-	case !block.RunLength.IsNull():
-		return false
-	default:
-		return true
-	}
 }
 
 func (rsc *forwardingoptionsSampling) ValidateConfig(

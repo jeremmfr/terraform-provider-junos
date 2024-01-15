@@ -372,26 +372,7 @@ type securityNatSourceBlockRuleBlockMatch struct {
 }
 
 func (block *securityNatSourceBlockRuleBlockMatch) isEmpty() bool {
-	switch {
-	case len(block.Application) != 0:
-		return false
-	case len(block.DestinationAddress) != 0:
-		return false
-	case len(block.DestinationAddressName) != 0:
-		return false
-	case len(block.DestinationPort) != 0:
-		return false
-	case len(block.Protocol) != 0:
-		return false
-	case len(block.SourceAddress) != 0:
-		return false
-	case len(block.SourceAddressName) != 0:
-		return false
-	case len(block.SourcePort) != 0:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type securityNatSourceBlockRuleBlockMatchConfig struct {
@@ -406,26 +387,7 @@ type securityNatSourceBlockRuleBlockMatchConfig struct {
 }
 
 func (block *securityNatSourceBlockRuleBlockMatchConfig) isEmpty() bool {
-	switch {
-	case !block.Application.IsNull():
-		return false
-	case !block.DestinationAddress.IsNull():
-		return false
-	case !block.DestinationAddressName.IsNull():
-		return false
-	case !block.DestinationPort.IsNull():
-		return false
-	case !block.Protocol.IsNull():
-		return false
-	case !block.SourceAddress.IsNull():
-		return false
-	case !block.SourceAddressName.IsNull():
-		return false
-	case !block.SourcePort.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type securityNatSourceBlockRuleBlockThen struct {

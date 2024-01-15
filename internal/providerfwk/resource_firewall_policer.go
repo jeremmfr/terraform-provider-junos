@@ -267,18 +267,7 @@ type firewallPolicerBlockThen struct {
 }
 
 func (block *firewallPolicerBlockThen) isEmpty() bool {
-	switch {
-	case !block.Discard.IsNull():
-		return false
-	case !block.OutOfProfile.IsNull():
-		return false
-	case !block.ForwardingClass.IsNull():
-		return false
-	case !block.LossPriority.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 func (rsc *firewallPolicer) ValidateConfig(

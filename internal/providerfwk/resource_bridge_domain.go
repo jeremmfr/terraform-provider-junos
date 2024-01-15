@@ -311,32 +311,7 @@ type bridgeDomainConfig struct {
 }
 
 func (rscConfig *bridgeDomainConfig) isEmpty() bool {
-	switch {
-	case !rscConfig.DomainTypeBridge.IsNull():
-		return false
-	case !rscConfig.CommunityVlans.IsNull():
-		return false
-	case !rscConfig.Description.IsNull():
-		return false
-	case !rscConfig.DomainID.IsNull():
-		return false
-	case !rscConfig.Interface.IsNull():
-		return false
-	case !rscConfig.IsolatedVLAN.IsNull():
-		return false
-	case !rscConfig.RoutingInterface.IsNull():
-		return false
-	case !rscConfig.ServiceID.IsNull():
-		return false
-	case !rscConfig.VLANID.IsNull():
-		return false
-	case !rscConfig.VLANIDList.IsNull():
-		return false
-	case rscConfig.VXLAN != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(rscConfig, "ID", "Name", "RoutingInstance")
 }
 
 type bridgeDomainBlockVXLAN struct {

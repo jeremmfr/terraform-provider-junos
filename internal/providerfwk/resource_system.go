@@ -1616,54 +1616,7 @@ type systemBlockInternetOptions struct {
 }
 
 func (block *systemBlockInternetOptions) isEmpty() bool {
-	switch {
-	case !block.GrePathMtuDiscovery.IsNull():
-		return false
-	case !block.NoGrePathMtuDiscovery.IsNull():
-		return false
-	case !block.IpipPathMtuDiscovery.IsNull():
-		return false
-	case !block.NoIpipPathMtuDiscovery.IsNull():
-		return false
-	case !block.IPv6PathMtuDiscovery.IsNull():
-		return false
-	case !block.NoIPv6PathMtuDiscovery.IsNull():
-		return false
-	case !block.IPv6RejectZeroHopLimit.IsNull():
-		return false
-	case !block.NoIPv6RejectZeroHopLimit.IsNull():
-		return false
-	case !block.NoTCPRFC1323.IsNull():
-		return false
-	case !block.NoTCPRFC1323Paws.IsNull():
-		return false
-	case !block.PathMtuDiscovery.IsNull():
-		return false
-	case !block.NoPathMtuDiscovery.IsNull():
-		return false
-	case !block.SourceQuench.IsNull():
-		return false
-	case !block.NoSourceQuench.IsNull():
-		return false
-	case !block.TCPDropSynfinSet.IsNull():
-		return false
-	case !block.IPv6DuplicateAddrDetectionTransmits.IsNull():
-		return false
-	case !block.IPv6PathMtuDiscoveryTimeout.IsNull():
-		return false
-	case !block.NoTCPReset.IsNull():
-		return false
-	case !block.SourcePortUpperLimit.IsNull():
-		return false
-	case !block.TCPMss.IsNull():
-		return false
-	case block.IcmpV4RateLimit != nil:
-		return false
-	case block.IcmpV6RateLimit != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockInternetOptionsBlockIcmpRateLimit struct {
@@ -1672,14 +1625,7 @@ type systemBlockInternetOptionsBlockIcmpRateLimit struct {
 }
 
 func (block *systemBlockInternetOptionsBlockIcmpRateLimit) isEmpty() bool {
-	switch {
-	case !block.BucketSize.IsNull():
-		return false
-	case !block.PacketRate.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockLicense struct {
@@ -1691,20 +1637,7 @@ type systemBlockLicense struct {
 }
 
 func (block *systemBlockLicense) isEmpty() bool {
-	switch {
-	case !block.Autoupdate.IsNull():
-		return false
-	case !block.AutoupdatePassword.IsNull():
-		return false
-	case !block.AutoupdateURL.IsNull():
-		return false
-	case !block.RenewBeforeExpiration.IsNull():
-		return false
-	case !block.RenewInterval.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockLogin struct {
@@ -1717,22 +1650,7 @@ type systemBlockLogin struct {
 }
 
 func (block *systemBlockLogin) isEmpty() bool {
-	switch {
-	case !block.Announcement.IsNull():
-		return false
-	case len(block.DenySourcesAddress) != 0:
-		return false
-	case !block.IdleTimeout.IsNull():
-		return false
-	case !block.Message.IsNull():
-		return false
-	case block.Password != nil:
-		return false
-	case block.RetryOptions != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockLoginConfig struct {
@@ -1745,22 +1663,7 @@ type systemBlockLoginConfig struct {
 }
 
 func (block *systemBlockLoginConfig) isEmpty() bool {
-	switch {
-	case !block.Announcement.IsNull():
-		return false
-	case !block.DenySourcesAddress.IsNull():
-		return false
-	case !block.IdleTimeout.IsNull():
-		return false
-	case !block.Message.IsNull():
-		return false
-	case block.Password != nil:
-		return false
-	case block.RetryOptions != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockNameServerOpts struct {
@@ -1783,32 +1686,7 @@ type systemBlockLoginBlockPassword struct {
 }
 
 func (block *systemBlockLoginBlockPassword) isEmpty() bool {
-	switch {
-	case !block.ChangeType.IsNull():
-		return false
-	case !block.Format.IsNull():
-		return false
-	case !block.MaximumLength.IsNull():
-		return false
-	case !block.MinimumChanges.IsNull():
-		return false
-	case !block.MinimumCharacterChanges.IsNull():
-		return false
-	case !block.MinimumLength.IsNull():
-		return false
-	case !block.MinimumLowerCases.IsNull():
-		return false
-	case !block.MinimumNumerics.IsNull():
-		return false
-	case !block.MinimumPunctuations.IsNull():
-		return false
-	case !block.MinimumReuse.IsNull():
-		return false
-	case !block.MinimumUpperCases.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockLoginBlockRetryOptions struct {
@@ -1821,22 +1699,7 @@ type systemBlockLoginBlockRetryOptions struct {
 }
 
 func (block *systemBlockLoginBlockRetryOptions) isEmpty() bool {
-	switch {
-	case !block.BackoffFactor.IsNull():
-		return false
-	case !block.BackoffThreshold.IsNull():
-		return false
-	case !block.LockoutPeriod.IsNull():
-		return false
-	case !block.MaximumTime.IsNull():
-		return false
-	case !block.MinimumTime.IsNull():
-		return false
-	case !block.TriesBeforeDisconnect.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockNtp struct {
@@ -1850,24 +1713,7 @@ type systemBlockNtp struct {
 }
 
 func (block *systemBlockNtp) isEmpty() bool {
-	switch {
-	case !block.BroadcastClient.IsNull():
-		return false
-	case !block.MulticastClient.IsNull():
-		return false
-	case !block.BootServer.IsNull():
-		return false
-	case !block.IntervalRange.IsNull():
-		return false
-	case !block.MulticastClientAddress.IsNull():
-		return false
-	case !block.ThresholdAction.IsNull():
-		return false
-	case !block.ThresholdValue.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockPorts struct {
@@ -1884,30 +1730,7 @@ type systemBlockPorts struct {
 }
 
 func (block *systemBlockPorts) isEmpty() bool {
-	switch {
-	case !block.AuxiliaryDisable.IsNull():
-		return false
-	case !block.AuxiliaryInsecure.IsNull():
-		return false
-	case !block.AuxiliaryLogoutOnDisconnect.IsNull():
-		return false
-	case !block.ConsoleDisable.IsNull():
-		return false
-	case !block.ConsoleInsecure.IsNull():
-		return false
-	case !block.ConsoleLogoutOnDisconnect.IsNull():
-		return false
-	case len(block.AuxiliaryAuthenticationOrder) != 0:
-		return false
-	case !block.AuxiliaryType.IsNull():
-		return false
-	case len(block.ConsoleAuthenticationOrder) != 0:
-		return false
-	case !block.ConsoleType.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockPortsConfig struct {
@@ -1924,30 +1747,7 @@ type systemBlockPortsConfig struct {
 }
 
 func (block *systemBlockPortsConfig) isEmpty() bool {
-	switch {
-	case !block.AuxiliaryDisable.IsNull():
-		return false
-	case !block.AuxiliaryInsecure.IsNull():
-		return false
-	case !block.AuxiliaryLogoutOnDisconnect.IsNull():
-		return false
-	case !block.ConsoleDisable.IsNull():
-		return false
-	case !block.ConsoleInsecure.IsNull():
-		return false
-	case !block.ConsoleLogoutOnDisconnect.IsNull():
-		return false
-	case !block.AuxiliaryAuthenticationOrder.IsNull():
-		return false
-	case !block.AuxiliaryType.IsNull():
-		return false
-	case !block.ConsoleAuthenticationOrder.IsNull():
-		return false
-	case !block.ConsoleType.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 //nolint:lll
@@ -1962,24 +1762,7 @@ type systemBlockServices struct {
 }
 
 func (block *systemBlockServices) isEmpty() bool {
-	switch {
-	case !block.WebManagementSessionIdleTimeout.IsNull():
-		return false
-	case !block.WebManagementSessionLimit.IsNull():
-		return false
-	case block.NetconfSSH != nil:
-		return false
-	case block.NetconfTraceoptions != nil:
-		return false
-	case block.SSH != nil:
-		return false
-	case block.WebManagementHTTP != nil:
-		return false
-	case block.WebManagementHTTPS != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 //nolint:lll
@@ -1994,24 +1777,7 @@ type systemBlockServicesConfig struct {
 }
 
 func (block *systemBlockServicesConfig) isEmpty() bool {
-	switch {
-	case !block.WebManagementSessionIdleTimeout.IsNull():
-		return false
-	case !block.WebManagementSessionLimit.IsNull():
-		return false
-	case block.NetconfSSH != nil:
-		return false
-	case block.NetconfTraceoptions != nil:
-		return false
-	case block.SSH != nil:
-		return false
-	case block.WebManagementHTTP != nil:
-		return false
-	case block.WebManagementHTTPS != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockServicesBlockNetconfSSH struct {
@@ -2022,18 +1788,7 @@ type systemBlockServicesBlockNetconfSSH struct {
 }
 
 func (block *systemBlockServicesBlockNetconfSSH) isEmpty() bool {
-	switch {
-	case !block.ClientAliveCountMax.IsNull():
-		return false
-	case !block.ClientAliveInterval.IsNull():
-		return false
-	case !block.ConnectionLimit.IsNull():
-		return false
-	case !block.RateLimit.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockServicesBlockNetconfTraceoptions struct {
@@ -2049,28 +1804,7 @@ type systemBlockServicesBlockNetconfTraceoptions struct {
 }
 
 func (block *systemBlockServicesBlockNetconfTraceoptions) isEmpty() bool {
-	switch {
-	case !block.FileWorldReadable.IsNull():
-		return false
-	case !block.FileNoWorldReadable.IsNull():
-		return false
-	case !block.NoRemoteTrace.IsNull():
-		return false
-	case !block.OnDemand.IsNull():
-		return false
-	case !block.FileName.IsNull():
-		return false
-	case !block.FileFiles.IsNull():
-		return false
-	case !block.FileMatch.IsNull():
-		return false
-	case !block.FileSize.IsNull():
-		return false
-	case len(block.Flag) != 0:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockServicesBlockNetconfTraceoptionsConfig struct {
@@ -2086,28 +1820,7 @@ type systemBlockServicesBlockNetconfTraceoptionsConfig struct {
 }
 
 func (block *systemBlockServicesBlockNetconfTraceoptionsConfig) isEmpty() bool {
-	switch {
-	case !block.FileWorldReadable.IsNull():
-		return false
-	case !block.FileNoWorldReadable.IsNull():
-		return false
-	case !block.NoRemoteTrace.IsNull():
-		return false
-	case !block.OnDemand.IsNull():
-		return false
-	case !block.FileName.IsNull():
-		return false
-	case !block.FileFiles.IsNull():
-		return false
-	case !block.FileMatch.IsNull():
-		return false
-	case !block.FileSize.IsNull():
-		return false
-	case !block.Flag.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockServicesBlockSSH struct {
@@ -2134,50 +1847,7 @@ type systemBlockServicesBlockSSH struct {
 }
 
 func (block *systemBlockServicesBlockSSH) isEmpty() bool {
-	switch {
-	case !block.LogKeyChanges.IsNull():
-		return false
-	case !block.NoPasswords.IsNull():
-		return false
-	case !block.NoPublicKeys.IsNull():
-		return false
-	case !block.TCPForwarding.IsNull():
-		return false
-	case !block.NoTCPForwarding.IsNull():
-		return false
-	case len(block.AuthenticationOrder) != 0:
-		return false
-	case len(block.Ciphers) != 0:
-		return false
-	case !block.ClientAliveCountMax.IsNull():
-		return false
-	case !block.ClientAliveInterval.IsNull():
-		return false
-	case !block.ConnectionLimit.IsNull():
-		return false
-	case !block.FingerprintHash.IsNull():
-		return false
-	case len(block.HostkeyAlgorithm) != 0:
-		return false
-	case len(block.KeyExchange) != 0:
-		return false
-	case len(block.Macs) != 0:
-		return false
-	case !block.MaxPreAuthenticationPackets.IsNull():
-		return false
-	case !block.MaxSessionsPerConnection.IsNull():
-		return false
-	case !block.Port.IsNull():
-		return false
-	case len(block.ProtocolVersion) != 0:
-		return false
-	case !block.RateLimit.IsNull():
-		return false
-	case !block.RootLogin.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockServicesBlockSSHConfig struct {
@@ -2204,50 +1874,7 @@ type systemBlockServicesBlockSSHConfig struct {
 }
 
 func (block *systemBlockServicesBlockSSHConfig) isEmpty() bool {
-	switch {
-	case !block.LogKeyChanges.IsNull():
-		return false
-	case !block.NoPasswords.IsNull():
-		return false
-	case !block.NoPublicKeys.IsNull():
-		return false
-	case !block.TCPForwarding.IsNull():
-		return false
-	case !block.NoTCPForwarding.IsNull():
-		return false
-	case !block.AuthenticationOrder.IsNull():
-		return false
-	case !block.Ciphers.IsNull():
-		return false
-	case !block.ClientAliveCountMax.IsNull():
-		return false
-	case !block.ClientAliveInterval.IsNull():
-		return false
-	case !block.ConnectionLimit.IsNull():
-		return false
-	case !block.FingerprintHash.IsNull():
-		return false
-	case !block.HostkeyAlgorithm.IsNull():
-		return false
-	case !block.KeyExchange.IsNull():
-		return false
-	case !block.Macs.IsNull():
-		return false
-	case !block.MaxPreAuthenticationPackets.IsNull():
-		return false
-	case !block.MaxSessionsPerConnection.IsNull():
-		return false
-	case !block.Port.IsNull():
-		return false
-	case !block.ProtocolVersion.IsNull():
-		return false
-	case !block.RateLimit.IsNull():
-		return false
-	case !block.RootLogin.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockServicesBlockWebManagementHTTP struct {
@@ -2286,22 +1913,7 @@ type systemBlockSyslog struct {
 }
 
 func (block *systemBlockSyslog) isEmpty() bool {
-	switch {
-	case !block.TimeFormatMillisecond.IsNull():
-		return false
-	case !block.TimeFormatYear.IsNull():
-		return false
-	case !block.LogRotateFrequency.IsNull():
-		return false
-	case !block.SourceAddress.IsNull():
-		return false
-	case block.Archive != nil:
-		return false
-	case block.Console != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type systemBlockSyslogBlockArchive struct {
@@ -2332,40 +1944,7 @@ type systemBlockSyslogBlockConsole struct {
 }
 
 func (block *systemBlockSyslogBlockConsole) isEmpty() bool {
-	switch {
-	case !block.AnySeverity.IsNull():
-		return false
-	case !block.AuthorizationSeverity.IsNull():
-		return false
-	case !block.ChangelogSeverity.IsNull():
-		return false
-	case !block.ConflictlogSeverity.IsNull():
-		return false
-	case !block.DaemonSeverity.IsNull():
-		return false
-	case !block.DfcSeverity.IsNull():
-		return false
-	case !block.ExternalSeverity.IsNull():
-		return false
-	case !block.FirewallSeverity.IsNull():
-		return false
-	case !block.FtpSeverity.IsNull():
-		return false
-	case !block.InteractivecommandsSeverity.IsNull():
-		return false
-	case !block.KernelSeverity.IsNull():
-		return false
-	case !block.NtpSeverity.IsNull():
-		return false
-	case !block.PfeSeverity.IsNull():
-		return false
-	case !block.SecuritySeverity.IsNull():
-		return false
-	case !block.UserSeverity.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 func (rsc *system) ValidateConfig( //nolint:gocognit

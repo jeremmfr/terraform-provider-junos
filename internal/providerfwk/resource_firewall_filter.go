@@ -790,16 +790,7 @@ type firewallFilterBlockTermConfig struct {
 }
 
 func (block *firewallFilterBlockTermConfig) isEmpty() bool {
-	switch {
-	case !block.Filter.IsNull():
-		return false
-	case block.From != nil:
-		return false
-	case block.Then != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block, "Name")
 }
 
 type firewallFilterBlockTermBlockFrom struct {
@@ -895,96 +886,7 @@ type firewallFilterBlockTermBlockFromConfig struct {
 }
 
 func (block *firewallFilterBlockTermBlockFromConfig) isEmpty() bool {
-	switch {
-	case !block.IsFragment.IsNull():
-		return false
-	case !block.TCPEstablished.IsNull():
-		return false
-	case !block.TCPInitial.IsNull():
-		return false
-	case !block.Address.IsNull():
-		return false
-	case !block.AddressExcept.IsNull():
-		return false
-	case !block.DestinationAddress.IsNull():
-		return false
-	case !block.DestinationAddressExcept.IsNull():
-		return false
-	case !block.DestinationMacAddress.IsNull():
-		return false
-	case !block.DestinationMacAddressExcept.IsNull():
-		return false
-	case !block.DestinationPort.IsNull():
-		return false
-	case !block.DestinationPortExcept.IsNull():
-		return false
-	case !block.DestinationPrefixList.IsNull():
-		return false
-	case !block.DestinationPrefixListExcept.IsNull():
-		return false
-	case !block.ForwardingClass.IsNull():
-		return false
-	case !block.ForwardingClassExcept.IsNull():
-		return false
-	case !block.IcmpCode.IsNull():
-		return false
-	case !block.IcmpCodeExcept.IsNull():
-		return false
-	case !block.IcmpType.IsNull():
-		return false
-	case !block.IcmpTypeExcept.IsNull():
-		return false
-	case !block.Interface.IsNull():
-		return false
-	case !block.LossPriority.IsNull():
-		return false
-	case !block.LossPriorityExcept.IsNull():
-		return false
-	case !block.NextHeader.IsNull():
-		return false
-	case !block.NextHeaderExcept.IsNull():
-		return false
-	case !block.PacketLength.IsNull():
-		return false
-	case !block.PacketLengthExcept.IsNull():
-		return false
-	case !block.PolicyMap.IsNull():
-		return false
-	case !block.PolicyMapExcept.IsNull():
-		return false
-	case !block.Port.IsNull():
-		return false
-	case !block.PortExcept.IsNull():
-		return false
-	case !block.PrefixList.IsNull():
-		return false
-	case !block.PrefixListExcept.IsNull():
-		return false
-	case !block.Protocol.IsNull():
-		return false
-	case !block.ProtocolExcept.IsNull():
-		return false
-	case !block.SourceAddress.IsNull():
-		return false
-	case !block.SourceAddressExcept.IsNull():
-		return false
-	case !block.SourceMacAddress.IsNull():
-		return false
-	case !block.SourceMacAddressExcept.IsNull():
-		return false
-	case !block.SourcePort.IsNull():
-		return false
-	case !block.SourcePortExcept.IsNull():
-		return false
-	case !block.SourcePrefixList.IsNull():
-		return false
-	case !block.SourcePrefixListExcept.IsNull():
-		return false
-	case !block.TCPFlags.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type firewallFilterBlockTermBlockThen struct {
@@ -1003,34 +905,7 @@ type firewallFilterBlockTermBlockThen struct {
 }
 
 func (block *firewallFilterBlockTermBlockThen) isEmpty() bool {
-	switch {
-	case !block.Log.IsNull():
-		return false
-	case !block.PacketMode.IsNull():
-		return false
-	case !block.PortMirror.IsNull():
-		return false
-	case !block.Sample.IsNull():
-		return false
-	case !block.ServiceAccounting.IsNull():
-		return false
-	case !block.Syslog.IsNull():
-		return false
-	case !block.Action.IsNull():
-		return false
-	case !block.Count.IsNull():
-		return false
-	case !block.ForwardingClass.IsNull():
-		return false
-	case !block.LossPriority.IsNull():
-		return false
-	case !block.Policer.IsNull():
-		return false
-	case !block.RoutingInstance.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 func (rsc *firewallFilter) ValidateConfig(

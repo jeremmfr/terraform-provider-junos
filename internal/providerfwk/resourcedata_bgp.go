@@ -29,34 +29,7 @@ type bgpBlockBfdLivenessDetection struct {
 }
 
 func (block *bgpBlockBfdLivenessDetection) isEmpty() bool {
-	switch {
-	case !block.AuthenticationLooseCheck.IsNull():
-		return false
-	case !block.AuthenticationAlgorithm.IsNull():
-		return false
-	case !block.AuthenticationKeyChain.IsNull():
-		return false
-	case !block.DetectionTimeThreshold.IsNull():
-		return false
-	case !block.HolddownInterval.IsNull():
-		return false
-	case !block.MinimumInterval.IsNull():
-		return false
-	case !block.MinimumReceiveInterval.IsNull():
-		return false
-	case !block.Multiplier.IsNull():
-		return false
-	case !block.SessionMode.IsNull():
-		return false
-	case !block.TransmitIntervalMinimumInterval.IsNull():
-		return false
-	case !block.TransmitIntervalThreshold.IsNull():
-		return false
-	case !block.Version.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type bgpBlockBgpErrorTolerance struct {
