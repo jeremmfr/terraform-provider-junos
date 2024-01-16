@@ -215,24 +215,24 @@ func (rsc *securityNatSourcePool) ValidateConfig(
 			"pool_utilization_alarm_raise_threshold must be specified with pool_utilization_alarm_clear_threshold",
 		)
 	}
-	if !config.PortNoTranslation.IsNull() &&
-		!config.PortOverloadingFactor.IsNull() {
+	if !config.PortNoTranslation.IsNull() && !config.PortNoTranslation.IsUnknown() &&
+		!config.PortOverloadingFactor.IsNull() && !config.PortOverloadingFactor.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("port_no_translation"),
 			tfdiag.ConflictConfigErrSummary,
 			"port_no_translation and port_overloading_factor cannot be configured together",
 		)
 	}
-	if !config.PortNoTranslation.IsNull() &&
-		!config.PortRange.IsNull() {
+	if !config.PortNoTranslation.IsNull() && !config.PortNoTranslation.IsUnknown() &&
+		!config.PortRange.IsNull() && !config.PortRange.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("port_no_translation"),
 			tfdiag.ConflictConfigErrSummary,
 			"port_no_translation and port_range cannot be configured together",
 		)
 	}
-	if !config.PortOverloadingFactor.IsNull() &&
-		!config.PortRange.IsNull() {
+	if !config.PortOverloadingFactor.IsNull() && !config.PortOverloadingFactor.IsUnknown() &&
+		!config.PortRange.IsNull() && !config.PortRange.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("port_overloading_factor"),
 			tfdiag.ConflictConfigErrSummary,
