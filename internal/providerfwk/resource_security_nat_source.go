@@ -440,14 +440,15 @@ func (rsc *securityNatSource) ValidateConfig(
 					fmt.Sprintf("match block must be specified"+
 						" in rule block %q", block.Name.ValueString()),
 				)
-			} else if block.Match.isEmpty() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("rule").AtListIndex(i).AtName("match"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("match block is empty"+
-						" in rule block %q", block.Name.ValueString()),
-				)
-				if block.Match.DestinationAddress.IsNull() &&
+			} else {
+				if block.Match.isEmpty() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("rule").AtListIndex(i).AtName("match"),
+						tfdiag.MissingConfigErrSummary,
+						fmt.Sprintf("match block is empty"+
+							" in rule block %q", block.Name.ValueString()),
+					)
+				} else if block.Match.DestinationAddress.IsNull() &&
 					block.Match.DestinationAddressName.IsNull() &&
 					block.Match.SourceAddress.IsNull() &&
 					block.Match.SourceAddressName.IsNull() {
@@ -461,17 +462,15 @@ func (rsc *securityNatSource) ValidateConfig(
 				}
 			}
 			if block.Then != nil {
-				if !block.Then.Type.IsUnknown() && !block.Then.Pool.IsUnknown() {
-					if block.Then.Type.ValueString() == "pool" {
-						if block.Then.Pool.ValueString() == "" {
-							resp.Diagnostics.AddAttributeError(
-								path.Root("rule").AtListIndex(i).AtName("then").AtName("type"),
-								tfdiag.MissingConfigErrSummary,
-								fmt.Sprintf("missing pool value to source-nat pool"+
-									" in rule block %q", block.Name.ValueString()),
-							)
-						}
-					}
+				if !block.Then.Type.IsUnknown() && block.Then.Type.ValueString() == "pool" &&
+					block.Then.Pool.IsNull() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("rule").AtListIndex(i).AtName("then").AtName("type"),
+						tfdiag.MissingConfigErrSummary,
+						fmt.Sprintf("pool must be specified when type is set to %q"+
+							" in then block in rule block %q",
+							block.Then.Type.ValueString(), block.Name.ValueString()),
+					)
 				}
 			}
 		}
