@@ -1,5 +1,5 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 BUG FIXES:
 
-* **resource/junos_aggregate_route, junos_application, junos_bgp_group, junos_bgp_neighbor, junos_bridge_domain, junos_evpn, junos_firewall_filter, junos_firewall_policer, junos_forwardingoptions_sampling_instance, junos_forwardingoptions_sampling, junos_forwardingoptions_storm_control_profile, junos_generate_route, junos_interface_logical, junos_interface_physical, junos_policyoptions_community**:  
+* **resource/junos_aggregate_route, junos_application, junos_bgp_group, junos_bgp_neighbor, junos_bridge_domain, junos_evpn, junos_firewall_filter, junos_firewall_policer, junos_forwardingoptions_sampling_instance, junos_forwardingoptions_sampling, junos_forwardingoptions_storm_control_profile, junos_generate_route, junos_interface_logical, junos_interface_physical, junos_policyoptions_community, junos_routing_instance**:  
 avoid trigger the conflict errors when Terraform call resource config validate and value for potential conflict is unknown (can be null afterwards) (Fix [#611](https://github.com/jeremmfr/terraform-provider-junos/issues/611))
