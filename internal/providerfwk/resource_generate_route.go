@@ -286,8 +286,8 @@ func (rsc *generateRoute) ValidateConfig(
 		return
 	}
 
-	if !config.Active.IsNull() &&
-		!config.Passive.IsNull() {
+	if !config.Active.IsNull() && !config.Active.IsUnknown() &&
+		!config.Passive.IsNull() && !config.Passive.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("active"),
 			tfdiag.ConflictConfigErrSummary,
@@ -310,16 +310,16 @@ func (rsc *generateRoute) ValidateConfig(
 			"as_path_aggregator_as_number must be specified with as_path_aggregator_address",
 		)
 	}
-	if !config.Brief.IsNull() &&
-		!config.Full.IsNull() {
+	if !config.Brief.IsNull() && !config.Brief.IsUnknown() &&
+		!config.Full.IsNull() && !config.Full.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("brief"),
 			tfdiag.ConflictConfigErrSummary,
 			"brief and full cannot be configured together",
 		)
 	}
-	if !config.Discard.IsNull() &&
-		!config.NextTable.IsNull() {
+	if !config.Discard.IsNull() && !config.Discard.IsUnknown() &&
+		!config.NextTable.IsNull() && !config.NextTable.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("discard"),
 			tfdiag.ConflictConfigErrSummary,
