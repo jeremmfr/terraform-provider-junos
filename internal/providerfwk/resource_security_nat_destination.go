@@ -361,8 +361,8 @@ func (rsc *securityNatDestination) ValidateConfig(
 						" in rule block %q", block.Name.ValueString()),
 				)
 			}
-			if !block.DestinationAddress.IsNull() &&
-				!block.DestinationAddressName.IsNull() {
+			if !block.DestinationAddress.IsNull() && !block.DestinationAddress.IsUnknown() &&
+				!block.DestinationAddressName.IsNull() && !block.DestinationAddressName.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("rule").AtListIndex(i).AtName("destination_address"),
 					tfdiag.ConflictConfigErrSummary,
@@ -371,17 +371,15 @@ func (rsc *securityNatDestination) ValidateConfig(
 				)
 			}
 			if block.Then != nil {
-				if !block.Then.Type.IsUnknown() && !block.Then.Pool.IsUnknown() {
-					if block.Then.Type.ValueString() == "pool" {
-						if block.Then.Pool.ValueString() == "" {
-							resp.Diagnostics.AddAttributeError(
-								path.Root("rule").AtListIndex(i).AtName("then").AtName("type"),
-								tfdiag.MissingConfigErrSummary,
-								fmt.Sprintf("missing pool value to destination-nat pool"+
-									" in rule block %q", block.Name.ValueString()),
-							)
-						}
-					}
+				if !block.Then.Type.IsUnknown() && block.Then.Type.ValueString() == "pool" &&
+					block.Then.Pool.IsNull() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("rule").AtListIndex(i).AtName("then").AtName("type"),
+						tfdiag.MissingConfigErrSummary,
+						fmt.Sprintf("pool must be specified when type is set to %q"+
+							" in then block in rule block %q",
+							block.Then.Type.ValueString(), block.Name.ValueString()),
+					)
 				}
 			}
 		}
