@@ -208,8 +208,8 @@ func (rsc *forwardingoptionsStormControlProfile) ValidateConfig(
 			"all block must be specified",
 		)
 	} else {
-		if !config.All.BandwidthLevel.IsNull() &&
-			!config.All.BandwidthPercentage.IsNull() {
+		if !config.All.BandwidthLevel.IsNull() && !config.All.BandwidthLevel.IsUnknown() &&
+			!config.All.BandwidthPercentage.IsNull() && !config.All.BandwidthPercentage.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("all").AtName("bandwidth_level"),
 				tfdiag.ConflictConfigErrSummary,
@@ -217,8 +217,8 @@ func (rsc *forwardingoptionsStormControlProfile) ValidateConfig(
 					" in all block",
 			)
 		}
-		if !config.All.NoMulticast.IsNull() {
-			if !config.All.NoRegisteredMulticast.IsNull() {
+		if !config.All.NoMulticast.IsNull() && !config.All.NoMulticast.IsUnknown() {
+			if !config.All.NoRegisteredMulticast.IsNull() && !config.All.NoRegisteredMulticast.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("all").AtName("no_multicast"),
 					tfdiag.ConflictConfigErrSummary,
@@ -226,7 +226,7 @@ func (rsc *forwardingoptionsStormControlProfile) ValidateConfig(
 						" in all block",
 				)
 			}
-			if !config.All.NoUnregisteredMulticast.IsNull() {
+			if !config.All.NoUnregisteredMulticast.IsNull() && !config.All.NoUnregisteredMulticast.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("all").AtName("no_multicast"),
 					tfdiag.ConflictConfigErrSummary,
@@ -234,8 +234,9 @@ func (rsc *forwardingoptionsStormControlProfile) ValidateConfig(
 						" in all block",
 				)
 			}
-		} else if !config.All.NoRegisteredMulticast.IsNull() &&
-			!config.All.NoUnregisteredMulticast.IsNull() {
+		}
+		if !config.All.NoRegisteredMulticast.IsNull() && !config.All.NoRegisteredMulticast.IsUnknown() &&
+			!config.All.NoUnregisteredMulticast.IsNull() && !config.All.NoUnregisteredMulticast.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("all").AtName("no_registered_multicast"),
 				tfdiag.ConflictConfigErrSummary,
