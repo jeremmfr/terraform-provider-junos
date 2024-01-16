@@ -443,6 +443,10 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) isEmpty() 
 	return tfdata.CheckBlockIsEmpty(block)
 }
 
+func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 func (rsc *securityPolicy) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
