@@ -1124,7 +1124,8 @@ type policyoptionsPolicyStatementBlockThenBlockActionValueInt64 struct {
 	Value  types.Int64  `tfsdk:"value"`
 }
 
-func (rsc *policyoptionsPolicyStatement) ValidateConfig( //nolint:gocognit,gocyclo
+//nolint:gocognit,gocyclo
+func (rsc *policyoptionsPolicyStatement) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
 	var config policyoptionsPolicyStatementConfig
