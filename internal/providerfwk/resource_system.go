@@ -1947,7 +1947,8 @@ func (block *systemBlockSyslogBlockConsole) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(block)
 }
 
-func (rsc *system) ValidateConfig( //nolint:gocognit
+//nolint:gocyclo,gocognit
+func (rsc *system) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
 	var config systemConfig
@@ -1956,8 +1957,8 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 		return
 	}
 
-	if !config.NameServer.IsNull() &&
-		!config.NameServerOpts.IsNull() {
+	if !config.NameServer.IsNull() && !config.NameServer.IsUnknown() &&
+		!config.NameServerOpts.IsNull() && !config.NameServerOpts.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name_server"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1971,7 +1972,7 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 				tfdiag.MissingConfigErrSummary,
 				"archive_site must be specified in archival_configuration block",
 			)
-		} else {
+		} else if !config.ArchivalConfiguration.ArchiveSite.IsUnknown() {
 			var configArchiveSite []systemBlockArchivalConfigurationBlockArchiveSite
 			asDiags := config.ArchivalConfiguration.ArchiveSite.ElementsAs(ctx, &configArchiveSite, false)
 			if asDiags.HasError() {
@@ -2006,7 +2007,9 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 			)
 		}
 		if !config.ArchivalConfiguration.TransferInterval.IsNull() &&
-			!config.ArchivalConfiguration.TransferOnCommit.IsNull() {
+			!config.ArchivalConfiguration.TransferInterval.IsUnknown() &&
+			!config.ArchivalConfiguration.TransferOnCommit.IsNull() &&
+			!config.ArchivalConfiguration.TransferOnCommit.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("archival_configuration").AtName("transfer_on_commit"),
 				tfdiag.ConflictConfigErrSummary,
@@ -2038,78 +2041,89 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 				tfdiag.MissingConfigErrSummary,
 				"internet_options block is empty",
 			)
-		} else {
-			if !config.InternetOptions.GrePathMtuDiscovery.IsNull() &&
-				!config.InternetOptions.NoGrePathMtuDiscovery.IsNull() {
+		}
+		if !config.InternetOptions.GrePathMtuDiscovery.IsNull() &&
+			!config.InternetOptions.GrePathMtuDiscovery.IsUnknown() &&
+			!config.InternetOptions.NoGrePathMtuDiscovery.IsNull() &&
+			!config.InternetOptions.NoGrePathMtuDiscovery.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("internet_options").AtName("gre_path_mtu_discovery"),
+				tfdiag.ConflictConfigErrSummary,
+				"gre_path_mtu_discovery and no_gre_path_mtu_discovery cannot be configured together"+
+					" in internet_options block",
+			)
+		}
+		if !config.InternetOptions.IpipPathMtuDiscovery.IsNull() &&
+			!config.InternetOptions.IpipPathMtuDiscovery.IsUnknown() &&
+			!config.InternetOptions.NoIpipPathMtuDiscovery.IsNull() &&
+			!config.InternetOptions.NoIpipPathMtuDiscovery.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("internet_options").AtName("ipip_path_mtu_discovery"),
+				tfdiag.ConflictConfigErrSummary,
+				"ipip_path_mtu_discovery and no_ipip_path_mtu_discovery cannot be configured together"+
+					" in internet_options block",
+			)
+		}
+		if !config.InternetOptions.IPv6PathMtuDiscovery.IsNull() &&
+			!config.InternetOptions.IPv6PathMtuDiscovery.IsUnknown() &&
+			!config.InternetOptions.NoIPv6PathMtuDiscovery.IsNull() &&
+			!config.InternetOptions.NoIPv6PathMtuDiscovery.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("internet_options").AtName("ipv6_path_mtu_discovery"),
+				tfdiag.ConflictConfigErrSummary,
+				"ipv6_path_mtu_discovery and no_ipv6_path_mtu_discovery cannot be configured together"+
+					" in internet_options block",
+			)
+		}
+		if !config.InternetOptions.IPv6RejectZeroHopLimit.IsNull() &&
+			!config.InternetOptions.IPv6RejectZeroHopLimit.IsUnknown() &&
+			!config.InternetOptions.NoIPv6RejectZeroHopLimit.IsNull() &&
+			!config.InternetOptions.NoIPv6RejectZeroHopLimit.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("internet_options").AtName("ipv6_reject_zero_hop_limit"),
+				tfdiag.ConflictConfigErrSummary,
+				"ipv6_reject_zero_hop_limit and no_ipv6_reject_zero_hop_limit cannot be configured together"+
+					" in internet_options block",
+			)
+		}
+		if !config.InternetOptions.PathMtuDiscovery.IsNull() &&
+			!config.InternetOptions.PathMtuDiscovery.IsUnknown() &&
+			!config.InternetOptions.NoPathMtuDiscovery.IsNull() &&
+			!config.InternetOptions.NoPathMtuDiscovery.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("internet_options").AtName("path_mtu_discovery"),
+				tfdiag.ConflictConfigErrSummary,
+				"path_mtu_discovery and no_path_mtu_discovery cannot be configured together"+
+					" in internet_options block",
+			)
+		}
+		if !config.InternetOptions.SourceQuench.IsNull() &&
+			!config.InternetOptions.SourceQuench.IsUnknown() &&
+			!config.InternetOptions.NoSourceQuench.IsNull() &&
+			!config.InternetOptions.NoSourceQuench.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("internet_options").AtName("source_quench"),
+				tfdiag.ConflictConfigErrSummary,
+				"source_quench and no_source_quench cannot be configured together"+
+					" in internet_options block",
+			)
+		}
+		if config.InternetOptions.IcmpV4RateLimit != nil {
+			if config.InternetOptions.IcmpV4RateLimit.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
-					path.Root("internet_options").AtName("gre_path_mtu_discovery"),
-					tfdiag.ConflictConfigErrSummary,
-					"gre_path_mtu_discovery and no_gre_path_mtu_discovery cannot be configured together"+
-						" in internet_options block",
+					path.Root("internet_options").AtName("icmpv4_rate_limit").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"icmpv4_rate_limit block in internet_options block is empty",
 				)
 			}
-			if !config.InternetOptions.IpipPathMtuDiscovery.IsNull() &&
-				!config.InternetOptions.NoIpipPathMtuDiscovery.IsNull() {
+		}
+		if config.InternetOptions.IcmpV6RateLimit != nil {
+			if config.InternetOptions.IcmpV6RateLimit.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
-					path.Root("internet_options").AtName("ipip_path_mtu_discovery"),
-					tfdiag.ConflictConfigErrSummary,
-					"ipip_path_mtu_discovery and no_ipip_path_mtu_discovery cannot be configured together"+
-						" in internet_options block",
+					path.Root("internet_options").AtName("icmpv6_rate_limit").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"icmpv6_rate_limit block in internet_options block is empty",
 				)
-			}
-			if !config.InternetOptions.IPv6PathMtuDiscovery.IsNull() &&
-				!config.InternetOptions.NoIPv6PathMtuDiscovery.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("internet_options").AtName("ipv6_path_mtu_discovery"),
-					tfdiag.ConflictConfigErrSummary,
-					"ipv6_path_mtu_discovery and no_ipv6_path_mtu_discovery cannot be configured together"+
-						" in internet_options block",
-				)
-			}
-			if !config.InternetOptions.IPv6RejectZeroHopLimit.IsNull() &&
-				!config.InternetOptions.NoIPv6RejectZeroHopLimit.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("internet_options").AtName("ipv6_reject_zero_hop_limit"),
-					tfdiag.ConflictConfigErrSummary,
-					"ipv6_reject_zero_hop_limit and no_ipv6_reject_zero_hop_limit cannot be configured together"+
-						" in internet_options block",
-				)
-			}
-			if !config.InternetOptions.PathMtuDiscovery.IsNull() &&
-				!config.InternetOptions.NoPathMtuDiscovery.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("internet_options").AtName("path_mtu_discovery"),
-					tfdiag.ConflictConfigErrSummary,
-					"path_mtu_discovery and no_path_mtu_discovery cannot be configured together"+
-						" in internet_options block",
-				)
-			}
-			if !config.InternetOptions.SourceQuench.IsNull() &&
-				!config.InternetOptions.NoSourceQuench.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("internet_options").AtName("source_quench"),
-					tfdiag.ConflictConfigErrSummary,
-					"source_quench and no_source_quench cannot be configured together"+
-						" in internet_options block",
-				)
-			}
-			if config.InternetOptions.IcmpV4RateLimit != nil {
-				if config.InternetOptions.IcmpV4RateLimit.isEmpty() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("internet_options").AtName("icmpv4_rate_limit").AtName("*"),
-						tfdiag.MissingConfigErrSummary,
-						"icmpv4_rate_limit block in internet_options block is empty",
-					)
-				}
-			}
-			if config.InternetOptions.IcmpV6RateLimit != nil {
-				if config.InternetOptions.IcmpV6RateLimit.isEmpty() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("internet_options").AtName("icmpv6_rate_limit").AtName("*"),
-						tfdiag.MissingConfigErrSummary,
-						"icmpv6_rate_limit block in internet_options block is empty",
-					)
-				}
 			}
 		}
 	}
@@ -2120,41 +2134,40 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 				tfdiag.MissingConfigErrSummary,
 				"license block is empty",
 			)
-		} else {
-			if !config.License.AutoupdateURL.IsNull() &&
-				config.License.Autoupdate.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("license").AtName("autoupdate_url"),
-					tfdiag.MissingConfigErrSummary,
-					"autoupdate must be specified with autoupdate_url in license block",
-				)
-			}
-			if !config.License.AutoupdatePassword.IsNull() &&
-				config.License.AutoupdateURL.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("license").AtName("autoupdate_password"),
-					tfdiag.MissingConfigErrSummary,
-					"autoupdate_url must be specified with autoupdate_password in license block",
-				)
-			}
-			if !config.License.RenewInterval.IsNull() &&
-				config.License.RenewBeforeExpiration.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("license").AtName("renew_interval"),
-					tfdiag.MissingConfigErrSummary,
-					"renew_before_expiration and renew_interval must be configured together"+
-						" in license block",
-				)
-			}
-			if !config.License.RenewBeforeExpiration.IsNull() &&
-				config.License.RenewInterval.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("license").AtName("renew_before_expiration"),
-					tfdiag.MissingConfigErrSummary,
-					"renew_before_expiration and renew_interval must be configured together"+
-						" in license block",
-				)
-			}
+		}
+		if !config.License.AutoupdateURL.IsNull() &&
+			config.License.Autoupdate.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("license").AtName("autoupdate_url"),
+				tfdiag.MissingConfigErrSummary,
+				"autoupdate must be specified with autoupdate_url in license block",
+			)
+		}
+		if !config.License.AutoupdatePassword.IsNull() &&
+			config.License.AutoupdateURL.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("license").AtName("autoupdate_password"),
+				tfdiag.MissingConfigErrSummary,
+				"autoupdate_url must be specified with autoupdate_password in license block",
+			)
+		}
+		if !config.License.RenewInterval.IsNull() &&
+			config.License.RenewBeforeExpiration.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("license").AtName("renew_interval"),
+				tfdiag.MissingConfigErrSummary,
+				"renew_before_expiration and renew_interval must be configured together"+
+					" in license block",
+			)
+		}
+		if !config.License.RenewBeforeExpiration.IsNull() &&
+			config.License.RenewInterval.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("license").AtName("renew_before_expiration"),
+				tfdiag.MissingConfigErrSummary,
+				"renew_before_expiration and renew_interval must be configured together"+
+					" in license block",
+			)
 		}
 	}
 	if config.Login != nil {
@@ -2164,24 +2177,23 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 				tfdiag.MissingConfigErrSummary,
 				"login block is empty",
 			)
-		} else {
-			if config.Login.Password != nil {
-				if config.Login.Password.isEmpty() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("login").AtName("password").AtName("*"),
-						tfdiag.MissingConfigErrSummary,
-						"password block in login block is empty",
-					)
-				}
+		}
+		if config.Login.Password != nil {
+			if config.Login.Password.isEmpty() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("login").AtName("password").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"password block in login block is empty",
+				)
 			}
-			if config.Login.RetryOptions != nil {
-				if config.Login.RetryOptions.isEmpty() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("login").AtName("retry_options").AtName("*"),
-						tfdiag.MissingConfigErrSummary,
-						"retry_options block in login block is empty",
-					)
-				}
+		}
+		if config.Login.RetryOptions != nil {
+			if config.Login.RetryOptions.isEmpty() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("login").AtName("retry_options").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"retry_options block in login block is empty",
+				)
 			}
 		}
 	}
@@ -2192,34 +2204,33 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 				tfdiag.MissingConfigErrSummary,
 				"ntp block is empty",
 			)
-		} else {
-			if !config.Ntp.MulticastClientAddress.IsNull() &&
-				config.Ntp.MulticastClient.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("ntp").AtName("multicast_client_address"),
-					tfdiag.MissingConfigErrSummary,
-					"multicast_client must be specified with multicast_client_address"+
-						" in ntp block",
-				)
-			}
-			if !config.Ntp.ThresholdAction.IsNull() &&
-				config.Ntp.ThresholdValue.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("ntp").AtName("threshold_action"),
-					tfdiag.MissingConfigErrSummary,
-					"threshold_action and threshold_value must be configured together"+
-						" in ntp block",
-				)
-			}
-			if !config.Ntp.ThresholdValue.IsNull() &&
-				config.Ntp.ThresholdAction.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("ntp").AtName("threshold_value"),
-					tfdiag.MissingConfigErrSummary,
-					"threshold_action and threshold_value must be configured together"+
-						" in ntp block",
-				)
-			}
+		}
+		if !config.Ntp.MulticastClientAddress.IsNull() &&
+			config.Ntp.MulticastClient.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("ntp").AtName("multicast_client_address"),
+				tfdiag.MissingConfigErrSummary,
+				"multicast_client must be specified with multicast_client_address"+
+					" in ntp block",
+			)
+		}
+		if !config.Ntp.ThresholdAction.IsNull() &&
+			config.Ntp.ThresholdValue.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("ntp").AtName("threshold_action"),
+				tfdiag.MissingConfigErrSummary,
+				"threshold_action and threshold_value must be configured together"+
+					" in ntp block",
+			)
+		}
+		if !config.Ntp.ThresholdValue.IsNull() &&
+			config.Ntp.ThresholdAction.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("ntp").AtName("threshold_value"),
+				tfdiag.MissingConfigErrSummary,
+				"threshold_action and threshold_value must be configured together"+
+					" in ntp block",
+			)
 		}
 	}
 	if config.Ports != nil {
@@ -2238,115 +2249,122 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 				tfdiag.MissingConfigErrSummary,
 				"services block is empty",
 			)
-		} else {
-			if config.Services.NetconfSSH != nil {
-				if config.Services.NetconfSSH.isEmpty() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("services").AtName("netconf_ssh").AtName("*"),
-						tfdiag.MissingConfigErrSummary,
-						"netconf_ssh block in services block is empty",
-					)
-				}
+		}
+		if config.Services.NetconfSSH != nil {
+			if config.Services.NetconfSSH.isEmpty() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("netconf_ssh").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"netconf_ssh block in services block is empty",
+				)
 			}
-			if config.Services.NetconfTraceoptions != nil {
-				if config.Services.NetconfTraceoptions.isEmpty() {
+		}
+		if config.Services.NetconfTraceoptions != nil {
+			if config.Services.NetconfTraceoptions.isEmpty() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("netconf_traceoptions").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"netconf_traceoptions block in services block is empty",
+				)
+			}
+			if !config.Services.NetconfTraceoptions.FileWorldReadable.IsNull() &&
+				!config.Services.NetconfTraceoptions.FileWorldReadable.IsUnknown() &&
+				!config.Services.NetconfTraceoptions.FileNoWorldReadable.IsNull() &&
+				!config.Services.NetconfTraceoptions.FileNoWorldReadable.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("netconf_traceoptions").AtName("file_world_readable"),
+					tfdiag.ConflictConfigErrSummary,
+					"file_world_readable and file_no_world_readable cannot be configured together"+
+						" in netconf_traceoptions block in services block",
+				)
+			}
+		}
+		if config.Services.SSH != nil {
+			if config.Services.SSH.isEmpty() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("ssh").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"ssh block in services block is empty",
+				)
+			}
+			if !config.Services.SSH.NoPasswords.IsNull() &&
+				!config.Services.SSH.NoPasswords.IsUnknown() &&
+				!config.Services.SSH.NoPublicKeys.IsNull() &&
+				!config.Services.SSH.NoPublicKeys.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("ssh").AtName("no_passwords"),
+					tfdiag.ConflictConfigErrSummary,
+					"no_passwords and no_public_keys cannot be configured together"+
+						" in ssh block in services block",
+				)
+			}
+			if !config.Services.SSH.TCPForwarding.IsNull() &&
+				!config.Services.SSH.TCPForwarding.IsUnknown() &&
+				!config.Services.SSH.NoTCPForwarding.IsNull() &&
+				!config.Services.SSH.NoTCPForwarding.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("ssh").AtName("tcp_forwarding"),
+					tfdiag.ConflictConfigErrSummary,
+					"tcp_forwarding and no_tcp_forwarding cannot be configured together"+
+						" in ssh block in services block",
+				)
+			}
+		}
+		if !config.Services.WebManagementSessionIdleTimeout.IsNull() {
+			if config.Services.WebManagementHTTP == nil && config.Services.WebManagementHTTPS == nil {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("web_management_session_idle_timeout"),
+					tfdiag.MissingConfigErrSummary,
+					"web_management_http or web_management_https block must be specified"+
+						" with web_management_session_idle_timeout in services block",
+				)
+			}
+		}
+		if !config.Services.WebManagementSessionLimit.IsNull() {
+			if config.Services.WebManagementHTTP == nil && config.Services.WebManagementHTTPS == nil {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("web_management_session_limit"),
+					tfdiag.MissingConfigErrSummary,
+					"web_management_http or web_management_https block must be specified"+
+						" with web_management_session_limit in services block",
+				)
+			}
+		}
+		if config.Services.WebManagementHTTPS != nil {
+			if config.Services.WebManagementHTTPS.LocalCertificate.IsNull() &&
+				config.Services.WebManagementHTTPS.PkiLocalCertificate.IsNull() &&
+				config.Services.WebManagementHTTPS.SystemGeneratedCertificate.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("web_management_https").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"one of local_certificate, pki_local_certificate or system_generated_certificate must be specified"+
+						" in web_management_https block in services block",
+				)
+			}
+			if !config.Services.WebManagementHTTPS.LocalCertificate.IsNull() &&
+				!config.Services.WebManagementHTTPS.LocalCertificate.IsUnknown() {
+				if (!config.Services.WebManagementHTTPS.PkiLocalCertificate.IsNull() &&
+					!config.Services.WebManagementHTTPS.PkiLocalCertificate.IsUnknown()) ||
+					(!config.Services.WebManagementHTTPS.SystemGeneratedCertificate.IsNull() &&
+						!config.Services.WebManagementHTTPS.SystemGeneratedCertificate.IsUnknown()) {
 					resp.Diagnostics.AddAttributeError(
-						path.Root("services").AtName("netconf_traceoptions").AtName("*"),
-						tfdiag.MissingConfigErrSummary,
-						"netconf_traceoptions block in services block is empty",
-					)
-				} else if !config.Services.NetconfTraceoptions.FileWorldReadable.IsNull() &&
-					!config.Services.NetconfTraceoptions.FileNoWorldReadable.IsNull() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("services").AtName("netconf_traceoptions").AtName("file_world_readable"),
+						path.Root("services").AtName("web_management_https").AtName("local_certificate"),
 						tfdiag.ConflictConfigErrSummary,
-						"file_world_readable and file_no_world_readable cannot be configured together"+
-							" in netconf_traceoptions block in services block",
-					)
-				}
-			}
-			if config.Services.SSH != nil {
-				if config.Services.SSH.isEmpty() {
-					if config.Services.SSH.isEmpty() {
-						resp.Diagnostics.AddAttributeError(
-							path.Root("services").AtName("ssh").AtName("*"),
-							tfdiag.MissingConfigErrSummary,
-							"ssh block in services block is empty",
-						)
-					} else {
-						if !config.Services.SSH.NoPasswords.IsNull() &&
-							!config.Services.SSH.NoPublicKeys.IsNull() {
-							resp.Diagnostics.AddAttributeError(
-								path.Root("services").AtName("ssh").AtName("no_passwords"),
-								tfdiag.ConflictConfigErrSummary,
-								"no_passwords and no_public_keys cannot be configured together"+
-									" in ssh block in services block",
-							)
-						}
-						if !config.Services.SSH.TCPForwarding.IsNull() &&
-							!config.Services.SSH.NoTCPForwarding.IsNull() {
-							resp.Diagnostics.AddAttributeError(
-								path.Root("services").AtName("ssh").AtName("tcp_forwarding"),
-								tfdiag.ConflictConfigErrSummary,
-								"tcp_forwarding and no_tcp_forwarding cannot be configured together"+
-									" in ssh block in services block",
-							)
-						}
-					}
-				}
-			}
-			if !config.Services.WebManagementSessionIdleTimeout.IsNull() {
-				if config.Services.WebManagementHTTP == nil && config.Services.WebManagementHTTPS == nil {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("services").AtName("web_management_session_idle_timeout"),
-						tfdiag.MissingConfigErrSummary,
-						"web_management_http or web_management_https block must be specified"+
-							" with web_management_session_idle_timeout in services block",
-					)
-				}
-			}
-			if !config.Services.WebManagementSessionLimit.IsNull() {
-				if config.Services.WebManagementHTTP == nil && config.Services.WebManagementHTTPS == nil {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("services").AtName("web_management_session_limit"),
-						tfdiag.MissingConfigErrSummary,
-						"web_management_http or web_management_https block must be specified"+
-							" with web_management_session_limit in services block",
-					)
-				}
-			}
-			if config.Services.WebManagementHTTPS != nil {
-				if config.Services.WebManagementHTTPS.LocalCertificate.IsNull() &&
-					config.Services.WebManagementHTTPS.PkiLocalCertificate.IsNull() &&
-					config.Services.WebManagementHTTPS.SystemGeneratedCertificate.IsNull() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("services").AtName("web_management_https").AtName("*"),
-						tfdiag.MissingConfigErrSummary,
-						"one of local_certificate, pki_local_certificate or system_generated_certificate must be specified"+
+						"only one of local_certificate, pki_local_certificate or system_generated_certificate must be specified"+
 							" in web_management_https block in services block",
 					)
 				}
-				if !config.Services.WebManagementHTTPS.LocalCertificate.IsNull() {
-					if !config.Services.WebManagementHTTPS.PkiLocalCertificate.IsNull() ||
-						!config.Services.WebManagementHTTPS.SystemGeneratedCertificate.IsNull() {
-						resp.Diagnostics.AddAttributeError(
-							path.Root("services").AtName("web_management_https").AtName("local_certificate"),
-							tfdiag.ConflictConfigErrSummary,
-							"only one of local_certificate, pki_local_certificate or system_generated_certificate must be specified"+
-								" in web_management_https block in services block",
-						)
-					}
-				}
-				if !config.Services.WebManagementHTTPS.PkiLocalCertificate.IsNull() {
-					if !config.Services.WebManagementHTTPS.SystemGeneratedCertificate.IsNull() {
-						resp.Diagnostics.AddAttributeError(
-							path.Root("services").AtName("web_management_https").AtName("pki_local_certificate"),
-							tfdiag.ConflictConfigErrSummary,
-							"only one of local_certificate, pki_local_certificate or system_generated_certificate must be specified"+
-								" in web_management_https block in services block",
-						)
-					}
-				}
+			}
+			if !config.Services.WebManagementHTTPS.PkiLocalCertificate.IsNull() &&
+				!config.Services.WebManagementHTTPS.PkiLocalCertificate.IsUnknown() &&
+				!config.Services.WebManagementHTTPS.SystemGeneratedCertificate.IsNull() &&
+				!config.Services.WebManagementHTTPS.SystemGeneratedCertificate.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("services").AtName("web_management_https").AtName("pki_local_certificate"),
+					tfdiag.ConflictConfigErrSummary,
+					"only one of local_certificate, pki_local_certificate or system_generated_certificate must be specified"+
+						" in web_management_https block in services block",
+				)
 			}
 		}
 	}
@@ -2357,35 +2375,34 @@ func (rsc *system) ValidateConfig( //nolint:gocognit
 				tfdiag.MissingConfigErrSummary,
 				"syslog block is empty",
 			)
-		} else {
-			if config.Syslog.Archive != nil {
-				if !config.Syslog.Archive.BinaryData.IsNull() &&
-					!config.Syslog.Archive.NoBinaryData.IsNull() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("syslog").AtName("archive").AtName("binary_data"),
-						tfdiag.ConflictConfigErrSummary,
-						"binary_data and no_binary_data cannot be configured together"+
-							" in archive block in syslog block",
-					)
-				}
-				if !config.Syslog.Archive.WorldReadable.IsNull() &&
-					!config.Syslog.Archive.NoWorldReadable.IsNull() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("syslog").AtName("archive").AtName("world_readable"),
-						tfdiag.ConflictConfigErrSummary,
-						"world_readable and no_world_readable cannot be configured together"+
-							" in archive block in syslog block",
-					)
-				}
+		}
+		if config.Syslog.Archive != nil {
+			if !config.Syslog.Archive.BinaryData.IsNull() && !config.Syslog.Archive.BinaryData.IsUnknown() &&
+				!config.Syslog.Archive.NoBinaryData.IsNull() && !config.Syslog.Archive.NoBinaryData.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("syslog").AtName("archive").AtName("binary_data"),
+					tfdiag.ConflictConfigErrSummary,
+					"binary_data and no_binary_data cannot be configured together"+
+						" in archive block in syslog block",
+				)
 			}
-			if config.Syslog.Console != nil {
-				if config.Syslog.Console.isEmpty() {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("syslog").AtName("console").AtName("*"),
-						tfdiag.MissingConfigErrSummary,
-						"console block in syslog block is empty",
-					)
-				}
+			if !config.Syslog.Archive.WorldReadable.IsNull() && !config.Syslog.Archive.WorldReadable.IsUnknown() &&
+				!config.Syslog.Archive.NoWorldReadable.IsNull() && !config.Syslog.Archive.NoWorldReadable.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("syslog").AtName("archive").AtName("world_readable"),
+					tfdiag.ConflictConfigErrSummary,
+					"world_readable and no_world_readable cannot be configured together"+
+						" in archive block in syslog block",
+				)
+			}
+		}
+		if config.Syslog.Console != nil {
+			if config.Syslog.Console.isEmpty() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("syslog").AtName("console").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					"console block in syslog block is empty",
+				)
 			}
 		}
 	}
