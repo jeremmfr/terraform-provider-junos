@@ -1670,7 +1670,9 @@ func (rsc *security) ValidateConfig(
 				)
 			}
 			if !config.Flow.EthernetSwitching.BlockNonIPAll.IsNull() &&
-				!config.Flow.EthernetSwitching.BypassNonIPUnicast.IsNull() {
+				!config.Flow.EthernetSwitching.BlockNonIPAll.IsUnknown() &&
+				!config.Flow.EthernetSwitching.BypassNonIPUnicast.IsNull() &&
+				!config.Flow.EthernetSwitching.BypassNonIPUnicast.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("flow").AtName("ethernet_switching").AtName("block_non_ip_all"),
 					tfdiag.ConflictConfigErrSummary,
@@ -1696,8 +1698,8 @@ func (rsc *security) ValidateConfig(
 					"tcp_session block is empty in flow block",
 				)
 			}
-			if !config.Flow.TCPSession.StrictSynCheck.IsNull() {
-				if !config.Flow.TCPSession.NoSynCheck.IsNull() {
+			if !config.Flow.TCPSession.StrictSynCheck.IsNull() && !config.Flow.TCPSession.StrictSynCheck.IsUnknown() {
+				if !config.Flow.TCPSession.NoSynCheck.IsNull() && !config.Flow.TCPSession.NoSynCheck.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("flow").AtName("tcp_session").AtName("no_syn_check"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1705,7 +1707,7 @@ func (rsc *security) ValidateConfig(
 							"in tcp_session block in flow block",
 					)
 				}
-				if !config.Flow.TCPSession.NoSynCheckInTunnel.IsNull() {
+				if !config.Flow.TCPSession.NoSynCheckInTunnel.IsNull() && !config.Flow.TCPSession.NoSynCheckInTunnel.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("flow").AtName("tcp_session").AtName("no_syn_check_in_tunnel"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1716,7 +1718,9 @@ func (rsc *security) ValidateConfig(
 			}
 			if config.Flow.TCPSession.TimeWaitState != nil {
 				if !config.Flow.TCPSession.TimeWaitState.SessionAgeout.IsNull() &&
-					!config.Flow.TCPSession.TimeWaitState.SessionTimeout.IsNull() {
+					!config.Flow.TCPSession.TimeWaitState.SessionAgeout.IsUnknown() &&
+					!config.Flow.TCPSession.TimeWaitState.SessionTimeout.IsNull() &&
+					!config.Flow.TCPSession.TimeWaitState.SessionTimeout.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("flow").AtName("tcp_session").AtName("time_wait_state").AtName("session_ageout"),
 						tfdiag.ConflictConfigErrSummary,
@@ -1768,7 +1772,9 @@ func (rsc *security) ValidateConfig(
 		}
 		if config.IdpSensorConfiguration.LogSuppression != nil {
 			if !config.IdpSensorConfiguration.LogSuppression.IncludeDestinationAddress.IsNull() &&
-				!config.IdpSensorConfiguration.LogSuppression.NoIncludeDestinationAddress.IsNull() {
+				!config.IdpSensorConfiguration.LogSuppression.IncludeDestinationAddress.IsUnknown() &&
+				!config.IdpSensorConfiguration.LogSuppression.NoIncludeDestinationAddress.IsNull() &&
+				!config.IdpSensorConfiguration.LogSuppression.NoIncludeDestinationAddress.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("idp_sensor_configuration").AtName("log_suppression").AtName("include_destination_address"),
 					tfdiag.ConflictConfigErrSummary,
@@ -1813,8 +1819,8 @@ func (rsc *security) ValidateConfig(
 					"file block is empty in ike_traceoptions block",
 				)
 			}
-			if !config.IkeTraceoptions.File.WorldReadable.IsNull() &&
-				!config.IkeTraceoptions.File.NoWorldReadable.IsNull() {
+			if !config.IkeTraceoptions.File.WorldReadable.IsNull() && !config.IkeTraceoptions.File.WorldReadable.IsUnknown() &&
+				!config.IkeTraceoptions.File.NoWorldReadable.IsNull() && !config.IkeTraceoptions.File.NoWorldReadable.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike_traceoptions").AtName("file").AtName("world_readable"),
 					tfdiag.ConflictConfigErrSummary,
@@ -1842,8 +1848,8 @@ func (rsc *security) ValidateConfig(
 				)
 			}
 		}
-		if !config.Log.SourceAddress.IsNull() &&
-			!config.Log.SourceInterface.IsNull() {
+		if !config.Log.SourceAddress.IsNull() && !config.Log.SourceAddress.IsUnknown() &&
+			!config.Log.SourceInterface.IsNull() && !config.Log.SourceInterface.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("log").AtName("source_address"),
 				tfdiag.ConflictConfigErrSummary,
@@ -1861,7 +1867,9 @@ func (rsc *security) ValidateConfig(
 			)
 		}
 		if !config.NatSource.InterfacePortOverloadingFactor.IsNull() &&
-			!config.NatSource.InterfacePortOverloadingOff.IsNull() {
+			!config.NatSource.InterfacePortOverloadingFactor.IsUnknown() &&
+			!config.NatSource.InterfacePortOverloadingOff.IsNull() &&
+			!config.NatSource.InterfacePortOverloadingOff.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("nat_source").AtName("interface_port_overloading_off"),
 				tfdiag.ConflictConfigErrSummary,
@@ -1934,8 +1942,8 @@ func (rsc *security) ValidateConfig(
 				"policies block is empty",
 			)
 		}
-		if !config.Policies.PolicyRematch.IsNull() &&
-			!config.Policies.PolicyRematchExtensive.IsNull() {
+		if !config.Policies.PolicyRematch.IsNull() && !config.Policies.PolicyRematch.IsUnknown() &&
+			!config.Policies.PolicyRematchExtensive.IsNull() && !config.Policies.PolicyRematchExtensive.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("policies").AtName("policy_rematch"),
 				tfdiag.ConflictConfigErrSummary,
