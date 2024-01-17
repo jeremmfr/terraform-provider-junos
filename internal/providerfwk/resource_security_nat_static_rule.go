@@ -288,11 +288,11 @@ func (rsc *securityNatStaticRule) ValidateConfig(
 			"one of destination_address or destination_address_name must be specified",
 		)
 	}
-	if !config.DestinationAddress.IsNull() &&
-		!config.DestinationAddressName.IsNull() {
+	if !config.DestinationAddress.IsNull() && !config.DestinationAddress.IsUnknown() &&
+		!config.DestinationAddressName.IsNull() && !config.DestinationAddressName.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("destination_address"),
-			tfdiag.MissingConfigErrSummary,
+			tfdiag.ConflictConfigErrSummary,
 			"only one of destination_address or destination_address_name must be specified",
 		)
 	}
@@ -308,7 +308,7 @@ func (rsc *securityNatStaticRule) ValidateConfig(
 		if !config.Then.Type.IsUnknown() {
 			switch config.Then.Type.ValueString() {
 			case junos.InetW:
-				if !config.Then.Prefix.IsNull() {
+				if !config.Then.Prefix.IsNull() && !config.Then.Prefix.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("then").AtName("prefix"),
 						tfdiag.ConflictConfigErrSummary,
@@ -316,7 +316,7 @@ func (rsc *securityNatStaticRule) ValidateConfig(
 							" in then block",
 					)
 				}
-				if !config.Then.MappedPort.IsNull() {
+				if !config.Then.MappedPort.IsNull() && !config.Then.MappedPort.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("then").AtName("mapped_port"),
 						tfdiag.ConflictConfigErrSummary,
@@ -324,7 +324,7 @@ func (rsc *securityNatStaticRule) ValidateConfig(
 							" in then block",
 					)
 				}
-				if !config.Then.MappedPortTo.IsNull() {
+				if !config.Then.MappedPortTo.IsNull() && !config.Then.MappedPortTo.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("then").AtName("mapped_port_to"),
 						tfdiag.ConflictConfigErrSummary,
