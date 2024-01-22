@@ -164,7 +164,7 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if resp := tfdata.CheckBlockIsEmpty(&test.val, test.excludeFields...); resp != test.expectResponse {
+			if resp := tfdata.CheckBlockIsEmpty(test.val, test.excludeFields...); resp != test.expectResponse {
 				t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
 			}
 		})
@@ -316,7 +316,7 @@ func TestCheckBlockHasKnownValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if resp := tfdata.CheckBlockHasKnownValue(&test.val); resp != test.expectResponse {
+			if resp := tfdata.CheckBlockHasKnownValue(test.val); resp != test.expectResponse {
 				t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
 			}
 		})
