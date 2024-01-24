@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -33,6 +32,10 @@ func (dsc *securityZoneDataSource) typeName() string {
 
 func (dsc *securityZoneDataSource) junosName() string {
 	return "security zone"
+}
+
+func (dsc *securityZoneDataSource) junosClient() *junos.Client {
+	return dsc.client
 }
 
 func newSecurityZoneDataSource() datasource.DataSource {
@@ -225,38 +228,26 @@ func (dsc *securityZoneDataSource) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := dsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
-	var rscData securityZoneData
-	junos.MutexLock()
-	err = rscData.read(ctx, name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
-
-		return
-	}
-	if rscData.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			tfdiag.NotFoundErrSummary,
-			fmt.Sprintf(dsc.junosName()+" %q doesn't exist", name.ValueString()),
-		)
-
-		return
-	}
 
 	var data securityZoneDataSourceData
-	data.copyFromResourceData(rscData)
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var rscData securityZoneData
+
+	var _ resourceDataReadFrom1String = &rscData
+	defaultDataSourceReadFromResource(
+		ctx,
+		dsc,
+		[]string{
+			name.ValueString(),
+		},
+		&data,
+		&rscData,
+		resp,
+		fmt.Sprintf(dsc.junosName()+" %q doesn't exist", name.ValueString()),
+	)
 }
 
-func (dscData *securityZoneDataSourceData) copyFromResourceData(rscData securityZoneData) {
+func (dscData *securityZoneDataSourceData) copyFromResourceData(data any) {
+	rscData := data.(*securityZoneData)
 	dscData.ID = rscData.ID
 	dscData.Name = rscData.Name
 	dscData.AdvancePolicyBasedRoutingProfile = rscData.AdvancePolicyBasedRoutingProfile

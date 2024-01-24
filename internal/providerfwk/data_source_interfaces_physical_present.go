@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -34,6 +33,10 @@ func (dsc *interfacesPhysicalPresentDataSource) typeName() string {
 
 func (dsc *interfacesPhysicalPresentDataSource) junosName() string {
 	return "physical interfaces present on device"
+}
+
+func (dsc *interfacesPhysicalPresentDataSource) junosClient() *junos.Client {
+	return dsc.client
 }
 
 func newInterfacesPhysicalPresentDataSource() datasource.DataSource {
@@ -145,39 +148,32 @@ func (dsc *interfacesPhysicalPresentDataSource) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := dsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
-
-		return
-	}
-	defer junSess.Close()
 
 	var data interfacesPhysicalPresentDataSourceData
-	junos.MutexLock()
-	err = data.read(ctx, config, junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
+	data.MatchName = config.MatchName
+	data.MatchAdminUp = config.MatchAdminUp
+	data.MatchOperUp = config.MatchOperUp
 
-		return
-	}
-
-	data.fillIDAndConfigArgument(config)
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var _ dataSourceDataReadWith1String2Bool = &data
+	defaultDataSourceRead(
+		ctx,
+		dsc,
+		[]interface{}{
+			config.MatchName.ValueString(),
+			config.MatchAdminUp.ValueBool(),
+			config.MatchOperUp.ValueBool(),
+		},
+		&data,
+		resp,
+	)
 }
 
-func (dscData *interfacesPhysicalPresentDataSourceData) fillIDAndConfigArgument(
-	config interfacesPhysicalPresentDataSourceConfig,
-) {
-	dscData.MatchName = config.MatchName
-	dscData.MatchAdminUp = config.MatchAdminUp
-	dscData.MatchOperUp = config.MatchOperUp
-	idString := "match=" + config.MatchName.ValueString()
-	if config.MatchAdminUp.ValueBool() {
+func (dscData *interfacesPhysicalPresentDataSourceData) fillID() {
+	idString := "match=" + dscData.MatchName.ValueString()
+	if dscData.MatchAdminUp.ValueBool() {
 		idString += junos.IDSeparator + "admin_up=true"
 	}
-	if config.MatchOperUp.ValueBool() {
+	if dscData.MatchOperUp.ValueBool() {
 		idString += junos.IDSeparator + "oper_up=true"
 	}
 	dscData.ID = types.StringValue(idString)
@@ -185,32 +181,34 @@ func (dscData *interfacesPhysicalPresentDataSourceData) fillIDAndConfigArgument(
 
 func (dscData *interfacesPhysicalPresentDataSourceData) read(
 	_ context.Context,
-	config interfacesPhysicalPresentDataSourceConfig,
+	matchName string,
+	matchAdminUp bool,
+	matchOperUp bool,
 	junSess *junos.Session,
 ) error {
 	replyData, err := junSess.CommandXML(junos.RPCGetInterfacesInformationTerse)
 	if err != nil {
 		return err
 	}
-	var iface junos.GetPhysicalInterfaceTerseReply
-	err = xml.Unmarshal([]byte(replyData), &iface.InterfaceInfo)
+	var reply junos.RPCGetPhysicalInterfaceTerseReply
+	err = xml.Unmarshal([]byte(replyData), &reply)
 	if err != nil {
 		return fmt.Errorf("unmarshaling xml reply %q: %w", replyData, err)
 	}
-	for _, iFace := range iface.InterfaceInfo.PhysicalInterface {
-		if mName := config.MatchName.ValueString(); mName != "" {
-			matched, err := regexp.MatchString(mName, strings.TrimSpace(iFace.Name))
+	for _, iFace := range reply.PhysicalInterface {
+		if matchName != "" {
+			matched, err := regexp.MatchString(matchName, strings.TrimSpace(iFace.Name))
 			if err != nil {
-				return fmt.Errorf("matching with regexp %q: %w", mName, err)
+				return fmt.Errorf("matching with regexp %q: %w", matchName, err)
 			}
 			if !matched {
 				continue
 			}
 		}
-		if config.MatchAdminUp.ValueBool() && strings.TrimSpace(iFace.AdminStatus) != "up" {
+		if matchAdminUp && strings.TrimSpace(iFace.AdminStatus) != "up" {
 			continue
 		}
-		if config.MatchOperUp.ValueBool() && strings.TrimSpace(iFace.OperStatus) != "up" {
+		if matchOperUp && strings.TrimSpace(iFace.OperStatus) != "up" {
 			continue
 		}
 		dscData.InterfaceNames = append(dscData.InterfaceNames, types.StringValue(strings.TrimSpace(iFace.Name)))

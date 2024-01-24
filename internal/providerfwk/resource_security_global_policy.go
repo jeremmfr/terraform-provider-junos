@@ -529,7 +529,7 @@ func (rsc *securityGlobalPolicy) Read(
 ) {
 	var data securityGlobalPolicyData
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceRead(
 		ctx,
 		rsc,
@@ -576,7 +576,7 @@ func (rsc *securityGlobalPolicy) ImportState(
 ) {
 	var data securityGlobalPolicyData
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceImportState(
 		ctx,
 		rsc,

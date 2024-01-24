@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -32,6 +31,10 @@ func (dsc *routingInstanceDataSource) typeName() string {
 
 func (dsc *routingInstanceDataSource) junosName() string {
 	return "routing instance"
+}
+
+func (dsc *routingInstanceDataSource) junosClient() *junos.Client {
+	return dsc.client
 }
 
 func newRoutingInstanceDataSource() datasource.DataSource {
@@ -176,38 +179,26 @@ func (dsc *routingInstanceDataSource) Read(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	junSess, err := dsc.client.StartNewSession(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
-
-		return
-	}
-	defer junSess.Close()
-
-	var rscData routingInstanceData
-	junos.MutexLock()
-	err = rscData.read(ctx, name.ValueString(), junSess)
-	junos.MutexUnlock()
-	if err != nil {
-		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
-
-		return
-	}
-	if rscData.ID.IsNull() {
-		resp.Diagnostics.AddError(
-			tfdiag.NotFoundErrSummary,
-			fmt.Sprintf(dsc.junosName()+" %q doesn't exist", name.ValueString()),
-		)
-
-		return
-	}
 
 	var data routingInstanceDataSourceData
-	data.copyFromResourceData(rscData)
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	var rscData routingInstanceData
+
+	var _ resourceDataReadFrom1String = &rscData
+	defaultDataSourceReadFromResource(
+		ctx,
+		dsc,
+		[]string{
+			name.ValueString(),
+		},
+		&data,
+		&rscData,
+		resp,
+		fmt.Sprintf(dsc.junosName()+" %q doesn't exist", name.ValueString()),
+	)
 }
 
-func (dscData *routingInstanceDataSourceData) copyFromResourceData(rscData routingInstanceData) {
+func (dscData *routingInstanceDataSourceData) copyFromResourceData(data any) {
+	rscData := data.(*routingInstanceData)
 	dscData.ID = rscData.ID
 	dscData.Name = rscData.Name
 	dscData.Type = rscData.Type

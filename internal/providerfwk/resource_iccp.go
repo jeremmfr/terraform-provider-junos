@@ -146,7 +146,7 @@ func (rsc *iccp) Read(
 		return
 	}
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceRead(
 		ctx,
 		rsc,
@@ -198,7 +198,7 @@ func (rsc *iccp) ImportState(
 ) {
 	var data iccpData
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceImportState(
 		ctx,
 		rsc,

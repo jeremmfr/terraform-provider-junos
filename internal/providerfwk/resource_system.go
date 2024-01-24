@@ -2840,7 +2840,7 @@ func (rsc *system) Read(
 		return
 	}
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceRead(
 		ctx,
 		rsc,

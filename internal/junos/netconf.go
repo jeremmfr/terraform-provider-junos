@@ -16,118 +16,14 @@ import (
 const (
 	errorSeverity string = "error"
 
-	rpcCommand         = "<command format=\"text\">%s</command>"
-	rpcConfigStringSet = "<load-configuration action=\"set\" format=\"text\">" +
-		"<configuration-set>%s</configuration-set>" +
-		"</load-configuration>"
-	rpcSystemInfo = "<get-system-information/>"
-	rpcCommit     = "<commit-configuration>" +
-		"<log>%s</log>" +
-		"</commit-configuration>"
-	rpcCommitConfirmed = "<commit-configuration>" +
-		"<log>%s</log>" +
-		"<confirmed/><confirm-timeout>%d</confirm-timeout>" +
-		"</commit-configuration>"
-	rpcCommitCheck = "<commit-configuration>" +
-		"<check/>" +
-		"</commit-configuration>"
-	rpcCandidateLock   = "<lock><target><candidate/></target></lock>"
-	rpcCandidateUnlock = "<unlock><target><candidate/></target></unlock>"
-	rpcClearCandidate  = "<delete-config><target><candidate/></target></delete-config>"
-	rpcClose           = "<close-session/>"
-
-	RPCGetInterfaceInformationInterfaceName = "<get-interface-information><interface-name>%s</interface-name></get-interface-information>" //nolint:lll
-	RPCGetInterfacesInformationTerse        = `<get-interface-information><terse/></get-interface-information>`
-	RPCGetInterfaceInformationTerse         = `<get-interface-information>%s<terse/></get-interface-information>`
-	RPCGetRouteAllInformation               = `<get-route-information><all/></get-route-information>`
-	RPCGetRouteAllTableInformation          = `<get-route-information><all/><table>%s</table></get-route-information>`
-
 	XMLStartTagConfigOut = "<configuration-output>"
 	XMLEndTagConfigOut   = "</configuration-output>"
 )
 
-type sysInfoReply struct {
-	SystemInformation sysInfo `xml:"system-information"`
-}
-
-type sysInfo struct {
-	HardwareModel string `xml:"hardware-model"`
-	OsName        string `xml:"os-name"`
-	OsVersion     string `xml:"os-version"`
-	SerialNumber  string `xml:"serial-number"`
-	HostName      string `xml:"host-name"`
-	ClusterNode   *bool  `xml:"cluster-node"`
-}
-
-func (i sysInfo) NotCompatibleMsg() string {
-	return fmt.Sprintf(" not compatible with Junos device %q", i.HardwareModel)
-}
-
-type commandXMLConfig struct {
-	Config string `xml:",innerxml"`
-}
-
-type commitResults struct {
-	XMLName xml.Name           `xml:"commit-results"`
-	Errors  []netconf.RPCError `xml:"rpc-error"`
-}
-
-type GetPhysicalInterfaceTerseReply struct {
-	InterfaceInfo struct {
-		PhysicalInterface []struct {
-			Name        string `xml:"name"`
-			AdminStatus string `xml:"admin-status"`
-			OperStatus  string `xml:"oper-status"`
-		} `xml:"physical-interface"`
-	} `xml:"interface-information"`
-}
-
-type GetLogicalInterfaceTerseReply struct {
-	InterfaceInfo struct {
-		LogicalInterface []struct {
-			Name          string `xml:"name"`
-			AdminStatus   string `xml:"admin-status"`
-			OperStatus    string `xml:"oper-status"`
-			AddressFamily []struct {
-				Name    string `xml:"address-family-name"`
-				Address []struct {
-					Local string `xml:"ifa-local"`
-				} `xml:"interface-address"`
-			} `xml:"address-family"`
-		} `xml:"logical-interface"`
-	} `xml:"interface-information"`
-}
-
-type GetRouteInformationReply struct {
-	RouteInfo struct {
-		RouteTable []struct {
-			TableName string `xml:"table-name"`
-			Route     []struct {
-				Destination string `xml:"rt-destination"`
-				Entry       []struct {
-					ASPath          *string   `xml:"as-path"`
-					CurrentActive   *struct{} `xml:"current-active"`
-					LocalPreference *int      `xml:"local-preference"`
-					Metric          *int      `xml:"metric"`
-					NextHop         []struct {
-						SelectedNextHop *struct{} `xml:"selected-next-hop"`
-						LocalInterface  *string   `xml:"nh-local-interface"`
-						To              *string   `xml:"to"`
-						Via             *string   `xml:"via"`
-					} `xml:"nh"`
-					NextHopType *string `xml:"nh-type"`
-					Preference  *int    `xml:"preference"`
-					Protocol    *string `xml:"protocol-name"`
-				} `xml:"rt-entry"`
-			} `xml:"rt"`
-		} `xml:"route-table"`
-	} `xml:"route-information"`
-}
-
 // gatherFacts gathers basic information about the device.
 func (sess *Session) gatherFacts() error {
 	// Get info for get-system-information and populate SystemInformation Struct
-	val, err := sess.netconf.Exec(netconf.RawMethod(rpcSystemInfo))
+	val, err := sess.netconf.Exec(netconf.RawMethod(rpcGetSystemInformation))
 	if err != nil {
 		return fmt.Errorf("executing netconf get-system-information: %w", err)
 	}
@@ -140,7 +36,7 @@ func (sess *Session) gatherFacts() error {
 
 		return fmt.Errorf(strings.Join(errorsMsg, "\n"))
 	}
-	var reply sysInfoReply
+	var reply rpcGetSystemInformationReply
 	if err := xml.Unmarshal([]byte(val.RawReply), &reply); err != nil {
 		return fmt.Errorf("unmarshaling xml reply %q of get-system-information: %w", val.RawReply, err)
 	}
@@ -151,7 +47,7 @@ func (sess *Session) gatherFacts() error {
 
 // netconfCommand (show, execute) on Junos device.
 func (sess *Session) netconfCommand(cmd string) (string, error) {
-	command := fmt.Sprintf(rpcCommand, cmd)
+	command := fmt.Sprintf(rpcCommandText, cmd)
 	reply, err := sess.netconf.Exec(netconf.RawMethod(command))
 	if err != nil {
 		return "", fmt.Errorf("executing netconf command: %w", err)
@@ -194,7 +90,7 @@ func (sess *Session) netconfCommandXML(cmd string) (string, error) {
 }
 
 func (sess *Session) netconfConfigSet(cmd []string) (string, error) {
-	command := fmt.Sprintf(rpcConfigStringSet, strings.Join(cmd, "\n"))
+	command := fmt.Sprintf(rpcLoadConfigSetText, strings.Join(cmd, "\n"))
 	reply, err := sess.netconf.Exec(netconf.RawMethod(command))
 	if err != nil {
 		return "", fmt.Errorf("executing netconf apply of set/delete command: %w", err)
@@ -211,7 +107,7 @@ func (sess *Session) netconfConfigSet(cmd []string) (string, error) {
 
 // netConfConfigLock locks the candidate configuration.
 func (sess *Session) netconfConfigLock() bool {
-	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcCandidateLock))
+	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcLockCandidate))
 	if err != nil {
 		return false
 	}
@@ -223,7 +119,7 @@ func (sess *Session) netconfConfigLock() bool {
 }
 
 func (sess *Session) netconfConfigClear() (errs []error) {
-	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcClearCandidate))
+	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcDeleteConfigCandidate))
 	if err != nil {
 		return []error{fmt.Errorf("executing netconf config clear: %w", err)}
 	}
@@ -237,7 +133,7 @@ func (sess *Session) netconfConfigClear() (errs []error) {
 
 // Unlock unlocks the candidate configuration.
 func (sess *Session) netconfConfigUnlock() (errs []error) {
-	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcCandidateUnlock))
+	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcUnlockCandidate))
 	if err != nil {
 		return []error{fmt.Errorf("executing netconf config unlock: %w", err)}
 	}
@@ -253,7 +149,7 @@ func (sess *Session) netconfConfigUnlock() (errs []error) {
 //
 // return potential warnings and/or error.
 func (sess *Session) netconfCommit(logMessage string) (_ []error, _ error) {
-	reply, err := sess.netconf.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
+	reply, err := sess.netconf.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommitConfig, logMessage)))
 	if err != nil {
 		return nil, fmt.Errorf("executing netconf commit: %w", err)
 	}
@@ -267,7 +163,7 @@ func (sess *Session) netconfCommit(logMessage string) (_ []error, _ error) {
 // return potential warnings and/or error.
 func (sess *Session) netconfCommitConfirmed(ctx context.Context, logMessage string) (warnings []error, _ error) {
 	reply, err := sess.netconf.Exec(
-		netconf.RawMethod(fmt.Sprintf(rpcCommitConfirmed, logMessage, sess.commitConfirmedTimeout)),
+		netconf.RawMethod(fmt.Sprintf(rpcCommitConfigConfirmed, logMessage, sess.commitConfirmedTimeout)),
 	)
 	if err != nil {
 		return warnings, fmt.Errorf("executing netconf commit (confirmed %d): %w", sess.commitConfirmedTimeout, err)
@@ -285,7 +181,7 @@ func (sess *Session) netconfCommitConfirmed(ctx context.Context, logMessage stri
 	case <-time.After(sess.commitConfirmedWait):
 	}
 
-	replyConfirm, err := sess.netconf.Exec(netconf.RawMethod(rpcCommitCheck))
+	replyConfirm, err := sess.netconf.Exec(netconf.RawMethod(rpcCommitConfigCheck))
 	if err != nil {
 		return warnings, fmt.Errorf("executing netconf commit check (to confirm): %w", err)
 	}
@@ -336,7 +232,7 @@ func readNetconfCommitReply(reply *netconf.RPCReply, commitType string) (warning
 
 // Close disconnects our session to the device.
 func (sess *Session) closeNetconf(sleepClosed int) error {
-	_, err := sess.netconf.Exec(netconf.RawMethod(rpcClose))
+	_, err := sess.netconf.Exec(netconf.RawMethod(rpcCloseSession))
 	sess.netconf.Transport.Close()
 	if err != nil {
 		utils.Sleep(sleepClosed)
