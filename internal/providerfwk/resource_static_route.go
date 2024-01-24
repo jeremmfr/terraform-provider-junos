@@ -412,8 +412,8 @@ func (rsc *staticRoute) ValidateConfig(
 		return
 	}
 
-	if !config.Active.IsNull() &&
-		!config.Passive.IsNull() {
+	if !config.Active.IsNull() && !config.Active.IsUnknown() &&
+		!config.Passive.IsNull() && !config.Passive.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("active"),
 			tfdiag.ConflictConfigErrSummary,
@@ -436,36 +436,36 @@ func (rsc *staticRoute) ValidateConfig(
 			"as_path_aggregator_as_number must be specified with as_path_aggregator_address",
 		)
 	}
-	if !config.Discard.IsNull() {
-		if !config.NextHop.IsNull() {
+	if !config.Discard.IsNull() && !config.Discard.IsUnknown() {
+		if !config.NextHop.IsNull() && !config.NextHop.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("discard"),
 				tfdiag.ConflictConfigErrSummary,
 				"discard and next_hop cannot be configured together",
 			)
 		}
-		if !config.NextTable.IsNull() {
+		if !config.NextTable.IsNull() && !config.NextTable.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("discard"),
 				tfdiag.ConflictConfigErrSummary,
 				"discard and next_table cannot be configured together",
 			)
 		}
-		if !config.QualifiedNextHop.IsNull() {
+		if !config.QualifiedNextHop.IsNull() && !config.QualifiedNextHop.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("discard"),
 				tfdiag.ConflictConfigErrSummary,
 				"discard and qualified_next_hop cannot be configured together",
 			)
 		}
-		if !config.Receive.IsNull() {
+		if !config.Receive.IsNull() && !config.Receive.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("discard"),
 				tfdiag.ConflictConfigErrSummary,
 				"discard and receive cannot be configured together",
 			)
 		}
-		if !config.Reject.IsNull() {
+		if !config.Reject.IsNull() && !config.Reject.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("discard"),
 				tfdiag.ConflictConfigErrSummary,
@@ -473,30 +473,30 @@ func (rsc *staticRoute) ValidateConfig(
 			)
 		}
 	}
-	if !config.Install.IsNull() &&
-		!config.NoInstall.IsNull() {
+	if !config.Install.IsNull() && !config.Install.IsUnknown() &&
+		!config.NoInstall.IsNull() && !config.NoInstall.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("install"),
 			tfdiag.ConflictConfigErrSummary,
 			"install and no_install cannot be configured together",
 		)
 	}
-	if !config.NextHop.IsNull() {
-		if !config.NextTable.IsNull() {
+	if !config.NextHop.IsNull() && !config.NextHop.IsUnknown() {
+		if !config.NextTable.IsNull() && !config.NextTable.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("next_hop"),
 				tfdiag.ConflictConfigErrSummary,
 				"next_hop and next_table cannot be configured together",
 			)
 		}
-		if !config.Receive.IsNull() {
+		if !config.Receive.IsNull() && !config.Receive.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("next_hop"),
 				tfdiag.ConflictConfigErrSummary,
 				"next_hop and receive cannot be configured together",
 			)
 		}
-		if !config.Reject.IsNull() {
+		if !config.Reject.IsNull() && !config.Reject.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("next_hop"),
 				tfdiag.ConflictConfigErrSummary,
@@ -504,22 +504,22 @@ func (rsc *staticRoute) ValidateConfig(
 			)
 		}
 	}
-	if !config.NextTable.IsNull() {
-		if !config.QualifiedNextHop.IsNull() {
+	if !config.NextTable.IsNull() && !config.NextTable.IsUnknown() {
+		if !config.QualifiedNextHop.IsNull() && !config.QualifiedNextHop.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("next_table"),
 				tfdiag.ConflictConfigErrSummary,
 				"next_table and qualified_next_hop cannot be configured together",
 			)
 		}
-		if !config.Receive.IsNull() {
+		if !config.Receive.IsNull() && !config.Receive.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("next_table"),
 				tfdiag.ConflictConfigErrSummary,
 				"next_table and receive cannot be configured together",
 			)
 		}
-		if !config.Reject.IsNull() {
+		if !config.Reject.IsNull() && !config.Reject.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("next_hop"),
 				tfdiag.ConflictConfigErrSummary,
@@ -527,23 +527,23 @@ func (rsc *staticRoute) ValidateConfig(
 			)
 		}
 	}
-	if !config.Readvertise.IsNull() &&
-		!config.NoReadvertise.IsNull() {
+	if !config.Readvertise.IsNull() && !config.Readvertise.IsUnknown() &&
+		!config.NoReadvertise.IsNull() && !config.NoReadvertise.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("readvertise"),
 			tfdiag.ConflictConfigErrSummary,
 			"readvertise and no_readvertise cannot be configured together",
 		)
 	}
-	if !config.Receive.IsNull() {
-		if !config.QualifiedNextHop.IsNull() {
+	if !config.Receive.IsNull() && !config.Receive.IsUnknown() {
+		if !config.QualifiedNextHop.IsNull() && !config.QualifiedNextHop.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("receive"),
 				tfdiag.ConflictConfigErrSummary,
 				"receive and qualified_next_hop cannot be configured together",
 			)
 		}
-		if !config.Reject.IsNull() {
+		if !config.Reject.IsNull() && !config.Reject.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("receive"),
 				tfdiag.ConflictConfigErrSummary,
@@ -551,8 +551,8 @@ func (rsc *staticRoute) ValidateConfig(
 			)
 		}
 	}
-	if !config.Reject.IsNull() {
-		if !config.QualifiedNextHop.IsNull() {
+	if !config.Reject.IsNull() && !config.Reject.IsUnknown() {
+		if !config.QualifiedNextHop.IsNull() && !config.QualifiedNextHop.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("reject"),
 				tfdiag.ConflictConfigErrSummary,
@@ -560,22 +560,22 @@ func (rsc *staticRoute) ValidateConfig(
 			)
 		}
 	}
-	if !config.Resolve.IsNull() {
-		if !config.NoResolve.IsNull() {
+	if !config.Resolve.IsNull() && !config.Resolve.IsUnknown() {
+		if !config.NoResolve.IsNull() && !config.NoResolve.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("resolve"),
 				tfdiag.ConflictConfigErrSummary,
 				"resolve and no_resolve cannot be configured together",
 			)
 		}
-		if !config.Retain.IsNull() {
+		if !config.Retain.IsNull() && !config.Retain.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("resolve"),
 				tfdiag.ConflictConfigErrSummary,
 				"resolve and retain cannot be configured together",
 			)
 		}
-		if !config.NoRetain.IsNull() {
+		if !config.NoRetain.IsNull() && !config.NoRetain.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("resolve"),
 				tfdiag.ConflictConfigErrSummary,
@@ -583,8 +583,8 @@ func (rsc *staticRoute) ValidateConfig(
 			)
 		}
 	}
-	if !config.Retain.IsNull() &&
-		!config.NoRetain.IsNull() {
+	if !config.Retain.IsNull() && !config.Retain.IsUnknown() &&
+		!config.NoRetain.IsNull() && !config.NoRetain.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("retain"),
 			tfdiag.ConflictConfigErrSummary,

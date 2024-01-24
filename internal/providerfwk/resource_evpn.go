@@ -275,16 +275,7 @@ type evpnBlockDuplicateMACDetection struct {
 }
 
 func (block *evpnBlockDuplicateMACDetection) isEmpty() bool {
-	switch {
-	case !block.AutoRecoveryTime.IsNull():
-		return false
-	case !block.DetectionThreshold.IsNull():
-		return false
-	case !block.DetectionWindow.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type evpnBlockSwitchOrRIOptions struct {
@@ -325,14 +316,14 @@ func (rsc *evpn) ValidateConfig(
 				fmt.Sprintf("switch_or_ri_options must be specified when routing_instance = %q", junos.DefaultW),
 			)
 		}
-		if !config.RoutingInstanceEvpn.IsNull() {
+		if !config.RoutingInstanceEvpn.IsNull() && !config.RoutingInstanceEvpn.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("routing_instance_evpn"),
 				tfdiag.ConflictConfigErrSummary,
 				fmt.Sprintf("routing_instance_evpn cannot be configured when routing_instance = %q", junos.DefaultW),
 			)
 		}
-		if !config.DefaultGateway.IsNull() {
+		if !config.DefaultGateway.IsNull() && !config.DefaultGateway.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("default_gateway"),
 				tfdiag.ConflictConfigErrSummary,
@@ -349,7 +340,7 @@ func (rsc *evpn) ValidateConfig(
 			)
 		}
 	}
-	if !config.RoutingInstanceEvpn.IsNull() {
+	if !config.RoutingInstanceEvpn.IsNull() && !config.RoutingInstanceEvpn.IsUnknown() {
 		if config.RoutingInstance.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("routing_instance_evpn"),

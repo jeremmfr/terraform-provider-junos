@@ -354,8 +354,8 @@ func (rsc *application) ValidateConfig(
 		return
 	}
 
-	if !config.InactivityTimeout.IsNull() &&
-		!config.InactivityTimeoutNever.IsNull() {
+	if !config.InactivityTimeout.IsNull() && !config.InactivityTimeout.IsUnknown() &&
+		!config.InactivityTimeoutNever.IsNull() && !config.InactivityTimeoutNever.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("inactivity_timeout"),
 			tfdiag.ConflictConfigErrSummary,
@@ -363,57 +363,57 @@ func (rsc *application) ValidateConfig(
 		)
 	}
 
-	if !config.Term.IsNull() {
-		if !config.ApplicationProtocol.IsNull() {
+	if !config.Term.IsNull() && !config.Term.IsUnknown() {
+		if !config.ApplicationProtocol.IsNull() && !config.ApplicationProtocol.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("application_protocol"),
 				tfdiag.ConflictConfigErrSummary,
 				"application_protocol and term cannot be configured together",
 			)
 		}
-		if !config.DestinationPort.IsNull() {
+		if !config.DestinationPort.IsNull() && !config.DestinationPort.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("destination_port"),
 				tfdiag.ConflictConfigErrSummary,
 				"destination_port and term cannot be configured together",
 			)
 		}
-		if !config.InactivityTimeout.IsNull() {
+		if !config.InactivityTimeout.IsNull() && !config.InactivityTimeout.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("inactivity_timeout"),
 				tfdiag.ConflictConfigErrSummary,
 				"inactivity_timeout and term cannot be configured together",
 			)
 		}
-		if !config.InactivityTimeoutNever.IsNull() {
+		if !config.InactivityTimeoutNever.IsNull() && !config.InactivityTimeoutNever.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("inactivity_timeout_never"),
 				tfdiag.ConflictConfigErrSummary,
 				"inactivity_timeout_never and term cannot be configured together",
 			)
 		}
-		if !config.Protocol.IsNull() {
+		if !config.Protocol.IsNull() && !config.Protocol.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("protocol"),
 				tfdiag.ConflictConfigErrSummary,
 				"protocol and term cannot be configured together",
 			)
 		}
-		if !config.RPCProgramNumber.IsNull() {
+		if !config.RPCProgramNumber.IsNull() && !config.RPCProgramNumber.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("rpc_program_number"),
 				tfdiag.ConflictConfigErrSummary,
 				"rpc_program_number and term cannot be configured together",
 			)
 		}
-		if !config.SourcePort.IsNull() {
+		if !config.SourcePort.IsNull() && !config.SourcePort.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("source_port"),
 				tfdiag.ConflictConfigErrSummary,
 				"source_port and term cannot be configured together",
 			)
 		}
-		if !config.UUID.IsNull() {
+		if !config.UUID.IsNull() && !config.UUID.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("uuid"),
 				tfdiag.ConflictConfigErrSummary,
@@ -421,38 +421,36 @@ func (rsc *application) ValidateConfig(
 			)
 		}
 
-		if !config.Term.IsUnknown() {
-			var term []applicationBlockTerm
-			asDiags := config.Term.ElementsAs(ctx, &term, false)
-			if asDiags.HasError() {
-				resp.Diagnostics.Append(asDiags...)
+		var term []applicationBlockTerm
+		asDiags := config.Term.ElementsAs(ctx, &term, false)
+		if asDiags.HasError() {
+			resp.Diagnostics.Append(asDiags...)
 
-				return
-			}
+			return
+		}
 
-			termName := make(map[string]struct{})
-			for i, block := range term {
-				if !block.Name.IsUnknown() {
-					name := block.Name.ValueString()
-					if _, ok := termName[name]; ok {
-						resp.Diagnostics.AddAttributeError(
-							path.Root("term").AtListIndex(i).AtName("name"),
-							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple term blocks with the same name %q", name),
-						)
-					}
-					termName[name] = struct{}{}
-				}
-
-				if !block.InactivityTimeout.IsNull() &&
-					!block.InactivityTimeoutNever.IsNull() {
+		termName := make(map[string]struct{})
+		for i, block := range term {
+			if !block.Name.IsUnknown() {
+				name := block.Name.ValueString()
+				if _, ok := termName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
-						path.Root("term").AtListIndex(i).AtName("inactivity_timeout"),
-						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("inactivity_timeout and inactivity_timeout_never cannot be configured together"+
-							" in term block %q", block.Name.ValueString()),
+						path.Root("term").AtListIndex(i).AtName("name"),
+						tfdiag.DuplicateConfigErrSummary,
+						fmt.Sprintf("multiple term blocks with the same name %q", name),
 					)
 				}
+				termName[name] = struct{}{}
+			}
+
+			if !block.InactivityTimeout.IsNull() && !block.InactivityTimeout.IsUnknown() &&
+				!block.InactivityTimeoutNever.IsNull() && !block.InactivityTimeoutNever.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("term").AtListIndex(i).AtName("inactivity_timeout"),
+					tfdiag.ConflictConfigErrSummary,
+					fmt.Sprintf("inactivity_timeout and inactivity_timeout_never cannot be configured together"+
+						" in term block %q", block.Name.ValueString()),
+				)
 			}
 		}
 	}

@@ -418,9 +418,17 @@ type securityIkeGatewayBlockDynamicRemote struct {
 	DistinguishedName         *securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName `tfsdk:"distinguished_name"`
 }
 
+func (block *securityIkeGatewayBlockDynamicRemote) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 type securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName struct {
 	Container types.String `tfsdk:"container"`
 	Wildcard  types.String `tfsdk:"wildcard"`
+}
+
+func (block *securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
 }
 
 type securityIkeGatewayBlockAaa struct {
@@ -462,14 +470,16 @@ func (rsc *securityIkeGateway) ValidateConfig(
 			"one of address or dynamic_remote must be specified",
 		)
 	}
-	if !config.Address.IsNull() && config.DynamicRemote != nil {
+	if !config.Address.IsNull() && !config.Address.IsUnknown() &&
+		config.DynamicRemote != nil && config.DynamicRemote.hasKnownValue() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("address"),
 			tfdiag.ConflictConfigErrSummary,
 			"only one of address or dynamic_remote must be specified",
 		)
 	}
-	if config.DynamicRemote != nil && !config.GeneralIkeID.IsNull() {
+	if config.DynamicRemote != nil && config.DynamicRemote.hasKnownValue() &&
+		!config.GeneralIkeID.IsNull() && !config.GeneralIkeID.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("general_ike_id"),
 			tfdiag.ConflictConfigErrSummary,
@@ -478,11 +488,11 @@ func (rsc *securityIkeGateway) ValidateConfig(
 	}
 	if config.DynamicRemote != nil {
 		switch {
-		case config.DynamicRemote.DistinguishedName != nil:
-			if !config.DynamicRemote.Hostname.IsNull() ||
-				!config.DynamicRemote.Inet.IsNull() ||
-				!config.DynamicRemote.Inet6.IsNull() ||
-				!config.DynamicRemote.UserAtHostname.IsNull() {
+		case config.DynamicRemote.DistinguishedName != nil && config.DynamicRemote.DistinguishedName.hasKnownValue():
+			if (!config.DynamicRemote.Hostname.IsNull() && !config.DynamicRemote.Hostname.IsUnknown()) ||
+				(!config.DynamicRemote.Inet.IsNull() && !config.DynamicRemote.Inet.IsUnknown()) ||
+				(!config.DynamicRemote.Inet6.IsNull() && !config.DynamicRemote.Inet6.IsUnknown()) ||
+				(!config.DynamicRemote.UserAtHostname.IsNull() && !config.DynamicRemote.UserAtHostname.IsUnknown()) {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("distinguished_name"),
 					tfdiag.ConflictConfigErrSummary,
@@ -490,11 +500,11 @@ func (rsc *securityIkeGateway) ValidateConfig(
 						"can be specified in dynamic_remote block",
 				)
 			}
-		case !config.DynamicRemote.Hostname.IsNull():
-			if config.DynamicRemote.DistinguishedName != nil ||
-				!config.DynamicRemote.Inet.IsNull() ||
-				!config.DynamicRemote.Inet6.IsNull() ||
-				!config.DynamicRemote.UserAtHostname.IsNull() {
+		case !config.DynamicRemote.Hostname.IsNull() && !config.DynamicRemote.Hostname.IsUnknown():
+			if (config.DynamicRemote.DistinguishedName != nil && config.DynamicRemote.DistinguishedName.hasKnownValue()) ||
+				(!config.DynamicRemote.Inet.IsNull() && !config.DynamicRemote.Inet.IsUnknown()) ||
+				(!config.DynamicRemote.Inet6.IsNull() && !config.DynamicRemote.Inet6.IsUnknown()) ||
+				(!config.DynamicRemote.UserAtHostname.IsNull() && !config.DynamicRemote.UserAtHostname.IsUnknown()) {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("hostname"),
 					tfdiag.ConflictConfigErrSummary,
@@ -502,11 +512,11 @@ func (rsc *securityIkeGateway) ValidateConfig(
 						"can be specified in dynamic_remote block",
 				)
 			}
-		case !config.DynamicRemote.Inet.IsNull():
-			if config.DynamicRemote.DistinguishedName != nil ||
-				!config.DynamicRemote.Hostname.IsNull() ||
-				!config.DynamicRemote.Inet6.IsNull() ||
-				!config.DynamicRemote.UserAtHostname.IsNull() {
+		case !config.DynamicRemote.Inet.IsNull() && !config.DynamicRemote.Inet.IsUnknown():
+			if (config.DynamicRemote.DistinguishedName != nil && config.DynamicRemote.DistinguishedName.hasKnownValue()) ||
+				(!config.DynamicRemote.Hostname.IsNull() && !config.DynamicRemote.Hostname.IsUnknown()) ||
+				(!config.DynamicRemote.Inet6.IsNull() && !config.DynamicRemote.Inet6.IsUnknown()) ||
+				(!config.DynamicRemote.UserAtHostname.IsNull() && !config.DynamicRemote.UserAtHostname.IsUnknown()) {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("inet"),
 					tfdiag.ConflictConfigErrSummary,
@@ -514,11 +524,11 @@ func (rsc *securityIkeGateway) ValidateConfig(
 						"can be specified in dynamic_remote block",
 				)
 			}
-		case !config.DynamicRemote.Inet6.IsNull():
-			if config.DynamicRemote.DistinguishedName != nil ||
-				!config.DynamicRemote.Hostname.IsNull() ||
-				!config.DynamicRemote.Inet.IsNull() ||
-				!config.DynamicRemote.UserAtHostname.IsNull() {
+		case !config.DynamicRemote.Inet6.IsNull() && !config.DynamicRemote.Inet6.IsUnknown():
+			if (config.DynamicRemote.DistinguishedName != nil && config.DynamicRemote.DistinguishedName.hasKnownValue()) ||
+				(!config.DynamicRemote.Hostname.IsNull() && !config.DynamicRemote.Hostname.IsUnknown()) ||
+				(!config.DynamicRemote.Inet.IsNull() && !config.DynamicRemote.Inet.IsUnknown()) ||
+				(!config.DynamicRemote.UserAtHostname.IsNull() && !config.DynamicRemote.UserAtHostname.IsUnknown()) {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("inet6"),
 					tfdiag.ConflictConfigErrSummary,
@@ -526,11 +536,11 @@ func (rsc *securityIkeGateway) ValidateConfig(
 						"can be specified in dynamic_remote block",
 				)
 			}
-		case !config.DynamicRemote.UserAtHostname.IsNull():
-			if config.DynamicRemote.DistinguishedName != nil ||
-				!config.DynamicRemote.Hostname.IsNull() ||
-				!config.DynamicRemote.Inet.IsNull() ||
-				!config.DynamicRemote.Inet6.IsNull() {
+		case !config.DynamicRemote.UserAtHostname.IsNull() && !config.DynamicRemote.UserAtHostname.IsUnknown():
+			if (config.DynamicRemote.DistinguishedName != nil && config.DynamicRemote.DistinguishedName.hasKnownValue()) ||
+				(!config.DynamicRemote.Hostname.IsNull() && !config.DynamicRemote.Hostname.IsUnknown()) ||
+				(!config.DynamicRemote.Inet.IsNull() && !config.DynamicRemote.Inet.IsUnknown()) ||
+				(!config.DynamicRemote.Inet6.IsNull() && !config.DynamicRemote.Inet6.IsUnknown()) {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dynamic_remote").AtName("user_at_hostname"),
 					tfdiag.ConflictConfigErrSummary,
@@ -548,8 +558,9 @@ func (rsc *securityIkeGateway) ValidateConfig(
 				"one of access_profile or client_username/client_password must be specified in aaa block",
 			)
 		}
-		if !config.Aaa.AccessProfile.IsNull() &&
-			(!config.Aaa.ClientUsername.IsNull() || !config.Aaa.ClientPassword.IsNull()) {
+		if !config.Aaa.AccessProfile.IsNull() && !config.Aaa.AccessProfile.IsUnknown() &&
+			((!config.Aaa.ClientUsername.IsNull() && !config.Aaa.ClientUsername.IsUnknown()) ||
+				(!config.Aaa.ClientPassword.IsNull() && !config.Aaa.ClientPassword.IsUnknown())) {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("access_profile"),
 				tfdiag.ConflictConfigErrSummary,
@@ -581,7 +592,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		}
 		if !config.LocalIdentity.Type.IsNull() && !config.LocalIdentity.Type.IsUnknown() {
 			if v := config.LocalIdentity.Type.ValueString(); v == "distinguished-name" {
-				if !config.LocalIdentity.Value.IsNull() {
+				if !config.LocalIdentity.Value.IsNull() && !config.LocalIdentity.Value.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("local_identity").AtName("value"),
 						tfdiag.ConflictConfigErrSummary,
@@ -609,7 +620,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		}
 		if !config.RemoteIdentity.Type.IsNull() && !config.RemoteIdentity.Type.IsUnknown() {
 			if v := config.RemoteIdentity.Type.ValueString(); v == "distinguished-name" {
-				if !config.RemoteIdentity.Value.IsNull() {
+				if !config.RemoteIdentity.Value.IsNull() && !config.RemoteIdentity.Value.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("remote_identity").AtName("value"),
 						tfdiag.ConflictConfigErrSummary,
@@ -624,8 +635,10 @@ func (rsc *securityIkeGateway) ValidateConfig(
 						fmt.Sprintf("value must be specified when type is set to %q in remote_identity block", v),
 					)
 				}
-				if !config.RemoteIdentity.DistinguishedNameContainer.IsNull() ||
-					!config.RemoteIdentity.DistinguishedNameWildcard.IsNull() {
+				if (!config.RemoteIdentity.DistinguishedNameContainer.IsNull() &&
+					!config.RemoteIdentity.DistinguishedNameContainer.IsUnknown()) ||
+					(!config.RemoteIdentity.DistinguishedNameWildcard.IsNull() &&
+						!config.RemoteIdentity.DistinguishedNameWildcard.IsUnknown()) {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("remote_identity").AtName("type"),
 						tfdiag.ConflictConfigErrSummary,

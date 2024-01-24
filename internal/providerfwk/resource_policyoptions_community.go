@@ -157,11 +157,11 @@ func (rsc *policyoptionsCommunity) ValidateConfig(
 			"one of members or dynamic_db must be specified",
 		)
 	}
-	if !config.Members.IsNull() &&
-		!config.DynamicDB.IsNull() {
+	if !config.Members.IsNull() && !config.Members.IsUnknown() &&
+		!config.DynamicDB.IsNull() && !config.DynamicDB.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
-			tfdiag.MissingConfigErrSummary,
+			tfdiag.ConflictConfigErrSummary,
 			"only one of members or dynamic_db must be specified",
 		)
 	}

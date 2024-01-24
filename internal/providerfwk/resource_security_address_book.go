@@ -389,7 +389,8 @@ func (rsc *securityAddressBook) ValidateConfig(
 		return
 	}
 
-	if (config.Name.IsNull() || config.Name.ValueString() == "global") && !config.AttachZone.IsNull() {
+	if (config.Name.IsNull() || config.Name.ValueString() == "global") &&
+		!config.AttachZone.IsNull() && !config.AttachZone.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("attach_zone"),
 			tfdiag.ConflictConfigErrSummary,
@@ -430,7 +431,8 @@ func (rsc *securityAddressBook) ValidateConfig(
 			return
 		}
 		for _, block := range configDNSName {
-			if block.IPv4Only.ValueBool() && block.IPv6Only.ValueBool() {
+			if !block.IPv4Only.IsNull() && !block.IPv4Only.IsUnknown() &&
+				!block.IPv6Only.IsNull() && !block.IPv6Only.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dns_name"),
 					tfdiag.ConflictConfigErrSummary,

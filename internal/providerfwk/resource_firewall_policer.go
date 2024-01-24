@@ -254,9 +254,17 @@ type firewallPolicerBlockIfExceeding struct {
 	BandwidthLimit   types.String `tfsdk:"bandwidth_limit"`
 }
 
+func (block *firewallPolicerBlockIfExceeding) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 type firewallPolicerBlockIfExceedingPPS struct {
 	PacketBurst types.String `tfsdk:"packet_burst"`
 	PPSLimit    types.String `tfsdk:"pps_limit"`
+}
+
+func (block *firewallPolicerBlockIfExceedingPPS) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
 }
 
 type firewallPolicerBlockThen struct {
@@ -267,18 +275,7 @@ type firewallPolicerBlockThen struct {
 }
 
 func (block *firewallPolicerBlockThen) isEmpty() bool {
-	switch {
-	case !block.Discard.IsNull():
-		return false
-	case !block.OutOfProfile.IsNull():
-		return false
-	case !block.ForwardingClass.IsNull():
-		return false
-	case !block.LossPriority.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 func (rsc *firewallPolicer) ValidateConfig(
@@ -290,22 +287,22 @@ func (rsc *firewallPolicer) ValidateConfig(
 		return
 	}
 
-	if !config.PhysicalInterfacePolicer.IsNull() {
-		if !config.FilterSpecific.IsNull() {
+	if !config.PhysicalInterfacePolicer.IsNull() && !config.PhysicalInterfacePolicer.IsUnknown() {
+		if !config.FilterSpecific.IsNull() && !config.FilterSpecific.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("logical_bandwidth_policer"),
 				tfdiag.ConflictConfigErrSummary,
 				"filter_specific and physical_interface_policer cannot be configured together",
 			)
 		}
-		if !config.LogicalBandwidthPolicer.IsNull() {
+		if !config.LogicalBandwidthPolicer.IsNull() && !config.LogicalBandwidthPolicer.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("logical_bandwidth_policer"),
 				tfdiag.ConflictConfigErrSummary,
 				"logical_bandwidth_policer and physical_interface_policer cannot be configured together",
 			)
 		}
-		if !config.LogicalInterfacePolicer.IsNull() {
+		if !config.LogicalInterfacePolicer.IsNull() && !config.LogicalInterfacePolicer.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("logical_interface_policer"),
 				tfdiag.ConflictConfigErrSummary,
@@ -322,8 +319,8 @@ func (rsc *firewallPolicer) ValidateConfig(
 			"one of if_exceeding or if_exceeding_pps block must be specified",
 		)
 	}
-	if config.IfExceeding != nil &&
-		config.IfExceedingPPS != nil {
+	if config.IfExceeding != nil && config.IfExceeding.hasKnownValue() &&
+		config.IfExceedingPPS != nil && config.IfExceedingPPS.hasKnownValue() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("if_exceeding").AtName("*"),
 			tfdiag.ConflictConfigErrSummary,
@@ -338,8 +335,8 @@ func (rsc *firewallPolicer) ValidateConfig(
 				"burst_size_limit must be specified in if_exceeding block",
 			)
 		}
-		if !config.IfExceeding.BandwidthLimit.IsNull() &&
-			!config.IfExceeding.BandwidthPercent.IsNull() {
+		if !config.IfExceeding.BandwidthLimit.IsNull() && !config.IfExceeding.BandwidthLimit.IsUnknown() &&
+			!config.IfExceeding.BandwidthPercent.IsNull() && !config.IfExceeding.BandwidthPercent.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("if_exceeding").AtName("bandwidth_percent"),
 				tfdiag.ConflictConfigErrSummary,
@@ -372,8 +369,8 @@ func (rsc *firewallPolicer) ValidateConfig(
 				"then block is empty",
 			)
 		}
-		if !config.Then.Discard.IsNull() {
-			if !config.Then.ForwardingClass.IsNull() {
+		if !config.Then.Discard.IsNull() && !config.Then.Discard.IsUnknown() {
+			if !config.Then.ForwardingClass.IsNull() && !config.Then.ForwardingClass.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("then").AtName("forwarding_class"),
 					tfdiag.ConflictConfigErrSummary,
@@ -381,7 +378,7 @@ func (rsc *firewallPolicer) ValidateConfig(
 						"in then block",
 				)
 			}
-			if !config.Then.LossPriority.IsNull() {
+			if !config.Then.LossPriority.IsNull() && !config.Then.LossPriority.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("then").AtName("loss_priority"),
 					tfdiag.ConflictConfigErrSummary,
@@ -389,7 +386,7 @@ func (rsc *firewallPolicer) ValidateConfig(
 						"in then block",
 				)
 			}
-			if !config.Then.OutOfProfile.IsNull() {
+			if !config.Then.OutOfProfile.IsNull() && !config.Then.OutOfProfile.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("then").AtName("out_of_profile"),
 					tfdiag.ConflictConfigErrSummary,

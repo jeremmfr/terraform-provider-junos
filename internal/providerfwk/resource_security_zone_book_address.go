@@ -204,7 +204,8 @@ func (rsc *securityZoneBookAddress) ValidateConfig(
 			"cannot have dns_ipv6_only without dns_name",
 		)
 	}
-	if !config.DNSIPv4Only.IsNull() && !config.DNSIPv6Only.IsNull() {
+	if !config.DNSIPv4Only.IsNull() && !config.DNSIPv4Only.IsUnknown() &&
+		!config.DNSIPv6Only.IsNull() && !config.DNSIPv6Only.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("dns_ipv4_only"),
 			tfdiag.ConflictConfigErrSummary,
@@ -226,47 +227,47 @@ func (rsc *securityZoneBookAddress) ValidateConfig(
 		)
 	}
 	switch {
-	case !config.CIDR.IsNull():
-		if !config.DNSName.IsNull() ||
-			!config.RangeFrom.IsNull() ||
-			!config.Wildcard.IsNull() {
+	case !config.CIDR.IsNull() && !config.CIDR.IsUnknown():
+		if (!config.DNSName.IsNull() && !config.DNSName.IsUnknown()) ||
+			(!config.RangeFrom.IsNull() && !config.RangeFrom.IsUnknown()) ||
+			(!config.Wildcard.IsNull() && !config.Wildcard.IsUnknown()) {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("cidr"),
 				tfdiag.ConflictConfigErrSummary,
 				"only one of cidr, dns_name, range_from or wildcard must be specified",
 			)
 		}
-	case !config.DNSName.IsNull():
-		if !config.CIDR.IsNull() ||
-			!config.RangeFrom.IsNull() ||
-			!config.Wildcard.IsNull() {
+	case !config.DNSName.IsNull() && !config.DNSName.IsUnknown():
+		if (!config.CIDR.IsNull() && !config.CIDR.IsUnknown()) ||
+			(!config.RangeFrom.IsNull() && !config.RangeFrom.IsUnknown()) ||
+			(!config.Wildcard.IsNull() && !config.Wildcard.IsUnknown()) {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("dns_name"),
 				tfdiag.ConflictConfigErrSummary,
 				"only one of cidr, dns_name, range_from or wildcard must be specified",
 			)
 		}
-	case !config.RangeFrom.IsNull():
-		if !config.CIDR.IsNull() ||
-			!config.DNSName.IsNull() ||
-			!config.Wildcard.IsNull() {
+	case !config.RangeFrom.IsNull() && !config.RangeFrom.IsUnknown():
+		if (!config.CIDR.IsNull() && !config.CIDR.IsUnknown()) ||
+			(!config.DNSName.IsNull() && !config.DNSName.IsUnknown()) ||
+			(!config.Wildcard.IsNull() && !config.Wildcard.IsUnknown()) {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("range_from"),
 				tfdiag.ConflictConfigErrSummary,
 				"only one of cidr, dns_name, range_from or wildcard must be specified",
 			)
 		}
-	case !config.Wildcard.IsNull():
-		if !config.CIDR.IsNull() ||
-			!config.DNSName.IsNull() ||
-			!config.RangeFrom.IsNull() {
+	case !config.Wildcard.IsNull() && !config.Wildcard.IsUnknown():
+		if (!config.CIDR.IsNull() && !config.CIDR.IsUnknown()) ||
+			(!config.DNSName.IsNull() && !config.DNSName.IsUnknown()) ||
+			(!config.RangeFrom.IsNull() && !config.RangeFrom.IsUnknown()) {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("range_from"),
+				path.Root("wildcard"),
 				tfdiag.ConflictConfigErrSummary,
 				"only one of cidr, dns_name, range_from or wildcard must be specified",
 			)
 		}
-	default:
+	case config.CIDR.IsNull() && config.DNSName.IsNull() && config.RangeFrom.IsNull() && config.Wildcard.IsNull():
 		resp.Diagnostics.AddError(
 			tfdiag.MissingConfigErrSummary,
 			"one of cidr, dns_name, range_from or wildcard must be specified",

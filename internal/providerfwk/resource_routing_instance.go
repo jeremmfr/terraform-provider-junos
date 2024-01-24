@@ -307,14 +307,14 @@ func (rsc *routingInstance) ValidateConfig(
 		return
 	}
 
-	if !config.ConfigureRDVrfOptSingly.IsNull() &&
-		(!config.RouteDistinguisher.IsNull() ||
-			!config.VRFExport.IsNull() ||
-			!config.VRFImport.IsNull() ||
-			!config.VRFTarget.IsNull() ||
-			!config.VRFTargetAuto.IsNull() ||
-			!config.VRFTargetExport.IsNull() ||
-			!config.VRFTargetImport.IsNull()) {
+	if config.ConfigureRDVrfOptSingly.ValueBool() &&
+		((!config.RouteDistinguisher.IsNull() && !config.RouteDistinguisher.IsUnknown()) ||
+			(!config.VRFExport.IsNull() && !config.VRFExport.IsUnknown()) ||
+			(!config.VRFImport.IsNull() && !config.VRFImport.IsUnknown()) ||
+			(!config.VRFTarget.IsNull() && !config.VRFTarget.IsUnknown()) ||
+			(!config.VRFTargetAuto.IsNull() && !config.VRFTargetAuto.IsUnknown()) ||
+			(!config.VRFTargetExport.IsNull() && !config.VRFTargetExport.IsUnknown()) ||
+			(!config.VRFTargetImport.IsNull() && !config.VRFTargetImport.IsUnknown())) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("configure_rd_vrfopts_singly"),
 			tfdiag.ConflictConfigErrSummary,
@@ -328,7 +328,8 @@ func (rsc *routingInstance) ValidateConfig(
 				tfdiag.MissingConfigErrSummary,
 				"type must specified with empty string when configure_type_singly is enabled",
 			)
-		} else if !config.Type.IsUnknown() && config.Type.ValueString() != "" {
+		} else if !config.ConfigureTypeSingly.IsUnknown() &&
+			!config.Type.IsUnknown() && config.Type.ValueString() != "" {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("type"),
 				tfdiag.ConflictConfigErrSummary,

@@ -205,14 +205,16 @@ func (rsc *securityIkePolicy) ValidateConfig(
 		return
 	}
 
-	if !config.Proposals.IsNull() && !config.ProposalSet.IsNull() {
+	if !config.Proposals.IsNull() && !config.Proposals.IsUnknown() &&
+		!config.ProposalSet.IsNull() && !config.ProposalSet.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("proposals"),
 			tfdiag.ConflictConfigErrSummary,
 			"only one of proposals or proposal_set must be specified",
 		)
 	}
-	if !config.PreSharedKeyText.IsNull() && !config.PreSharedKeyHexa.IsNull() {
+	if !config.PreSharedKeyText.IsNull() && !config.PreSharedKeyText.IsUnknown() &&
+		!config.PreSharedKeyHexa.IsNull() && !config.PreSharedKeyHexa.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("pre_shared_key_text"),
 			tfdiag.ConflictConfigErrSummary,

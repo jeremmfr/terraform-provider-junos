@@ -156,8 +156,8 @@ func (rsc *securityNatDestinationPool) ValidateConfig(
 		return
 	}
 
-	if !config.AddressPort.IsNull() &&
-		!config.AddressTo.IsNull() {
+	if !config.AddressPort.IsNull() && !config.AddressPort.IsUnknown() &&
+		!config.AddressTo.IsNull() && !config.AddressTo.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("address_port"),
 			tfdiag.ConflictConfigErrSummary,

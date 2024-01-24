@@ -440,36 +440,11 @@ type securityPolicyBlockPolicyBlockPermitApplicationServices struct {
 }
 
 func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) isEmpty() bool {
-	switch {
-	case !block.AdvancedAntiMalwarePolicy.IsNull():
-		return false
-	case !block.ApplicationFirewallRuleSet.IsNull():
-		return false
-	case !block.ApplicationTrafficControlRuleSet.IsNull():
-		return false
-	case !block.GprsGtpProfile.IsNull():
-		return false
-	case !block.GprsSctpProfile.IsNull():
-		return false
-	case !block.Idp.IsNull():
-		return false
-	case !block.IdpPolicy.IsNull():
-		return false
-	case !block.RedirectWx.IsNull():
-		return false
-	case !block.ReverseRedirectWx.IsNull():
-		return false
-	case !block.SecurityIntelligencePolicy.IsNull():
-		return false
-	case block.SSLProxy != nil:
-		return false
-	case block.UacPolicy != nil:
-		return false
-	case !block.UtmPolicy.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
 }
 
 func (rsc *securityPolicy) ValidateConfig(
@@ -497,15 +472,7 @@ func (rsc *securityPolicy) ValidateConfig(
 		}
 		policyName := make(map[string]struct{})
 		for i, block := range configPolicy {
-			if block.MatchApplication.IsNull() && block.MatchDynamicApplication.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("policy").AtListIndex(i).AtName("name"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("at least one of match_application or match_dynamic_application "+
-						"must be specified in policy %q", block.Name.ValueString()),
-				)
-			}
-			if block.Name.ValueString() != "" {
+			if !block.Name.IsUnknown() {
 				if _, ok := policyName[block.Name.ValueString()]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("name"),
@@ -515,15 +482,22 @@ func (rsc *securityPolicy) ValidateConfig(
 				}
 				policyName[block.Name.ValueString()] = struct{}{}
 			}
-			if block.Then.ValueString() != "" && !block.PermitTunnelIpsecVpn.IsNull() {
-				if block.Then.ValueString() != junos.PermitW {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("policy").AtListIndex(i).AtName("then"),
-						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("then is not %q (%q) and permit_tunnel_ipsec_vpn is set in policy %q",
-							junos.PermitW, block.Then.ValueString(), block.Name.ValueString()),
-					)
-				}
+			if block.MatchApplication.IsNull() && block.MatchDynamicApplication.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("policy").AtListIndex(i).AtName("name"),
+					tfdiag.MissingConfigErrSummary,
+					fmt.Sprintf("at least one of match_application or match_dynamic_application "+
+						"must be specified in policy %q", block.Name.ValueString()),
+				)
+			}
+			if !block.PermitTunnelIpsecVpn.IsNull() && !block.PermitTunnelIpsecVpn.IsUnknown() &&
+				!block.Then.IsNull() && !block.Then.IsUnknown() && block.Then.ValueString() != junos.PermitW {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("policy").AtListIndex(i).AtName("then"),
+					tfdiag.ConflictConfigErrSummary,
+					fmt.Sprintf("then is not %q (got %q) and permit_tunnel_ipsec_vpn is set in policy %q",
+						junos.PermitW, block.Then.ValueString(), block.Name.ValueString()),
+				)
 			}
 			if block.PermitApplicationServices != nil {
 				if block.PermitApplicationServices.isEmpty() {
@@ -532,17 +506,19 @@ func (rsc *securityPolicy) ValidateConfig(
 						tfdiag.MissingConfigErrSummary,
 						fmt.Sprintf("permit_application_services block is empty in policy %q", block.Name.ValueString()),
 					)
-				}
-				if block.Then.ValueString() != "" && block.Then.ValueString() != junos.PermitW {
+				} else if block.PermitApplicationServices.hasKnownValue() &&
+					!block.Then.IsNull() && !block.Then.IsUnknown() && block.Then.ValueString() != junos.PermitW {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("then"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("then is not %q (%q) and permit_application_services is set in policy %q",
+						fmt.Sprintf("then is not %q (got %q) and permit_application_services is set in policy %q",
 							junos.PermitW, block.Then.ValueString(), block.Name.ValueString()),
 					)
 				}
-				if block.PermitApplicationServices.RedirectWx.ValueBool() &&
-					block.PermitApplicationServices.ReverseRedirectWx.ValueBool() {
+				if !block.PermitApplicationServices.RedirectWx.IsNull() &&
+					!block.PermitApplicationServices.RedirectWx.IsUnknown() &&
+					!block.PermitApplicationServices.ReverseRedirectWx.IsNull() &&
+					!block.PermitApplicationServices.ReverseRedirectWx.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("redirect_wx"),
 						tfdiag.ConflictConfigErrSummary,
@@ -867,7 +843,7 @@ func (rscData *securityPolicyData) set(
 		if v := block.PermitTunnelIpsecVpn.ValueString(); v != "" {
 			if block.Then.ValueString() != junos.PermitW {
 				return path.Root("policy").AtListIndex(i).AtName("then"), fmt.Errorf(
-					"conflict: then is not %q (%q) and permit_tunnel_ipsec_vpn is set in policy %q",
+					"conflict: then is not %q (got %q) and permit_tunnel_ipsec_vpn is set in policy %q",
 					junos.PermitW, block.Then.ValueString(), block.Name.ValueString(),
 				)
 			}
@@ -883,7 +859,7 @@ func (rscData *securityPolicyData) set(
 			}
 			if block.Then.ValueString() != junos.PermitW {
 				return path.Root("policy").AtListIndex(i).AtName("then"), fmt.Errorf(
-					"conflict: then is not %q (%q) and permit_application_services is set in policy %q",
+					"conflict: then is not %q (got %q) and permit_application_services is set in policy %q",
 					junos.PermitW, block.Then.ValueString(), block.Name.ValueString(),
 				)
 			}

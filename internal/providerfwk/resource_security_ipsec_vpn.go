@@ -412,6 +412,10 @@ type securityIpsecVpnBlockIke struct {
 	IdentityService types.String `tfsdk:"identity_service"`
 }
 
+func (block *securityIpsecVpnBlockIke) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 type securityIpsecVpnBlockManual struct {
 	ExternalInterface       types.String `tfsdk:"external_interface"`
 	Protocol                types.String `tfsdk:"protocol"`
@@ -423,6 +427,10 @@ type securityIpsecVpnBlockManual struct {
 	EncryptionKeyHexa       types.String `tfsdk:"encryption_key_hexa"`
 	EncryptionKeyText       types.String `tfsdk:"encryption_key_text"`
 	Gateway                 types.String `tfsdk:"gateway"`
+}
+
+func (block *securityIpsecVpnBlockManual) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
 }
 
 type securityIpsecVpnBlockTrafficSelector struct {
@@ -442,6 +450,10 @@ type securityIpsecVpnBlockVpnMonitor struct {
 	SourceInterface     types.String `tfsdk:"source_interface"`
 }
 
+func (block *securityIpsecVpnBlockVpnMonitor) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 func (rsc *securityIpsecVpn) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
@@ -457,7 +469,8 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			"one of ike or manual must be specified",
 		)
 	}
-	if config.Ike != nil && config.Manual != nil {
+	if config.Ike != nil && config.Ike.hasKnownValue() &&
+		config.Manual != nil && config.Manual.hasKnownValue() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("ike").AtName("*"),
 			tfdiag.ConflictConfigErrSummary,
@@ -481,7 +494,8 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 		}
 	}
 	if config.Manual != nil {
-		if !config.EstablishTunnels.IsNull() {
+		if config.Manual.hasKnownValue() &&
+			!config.EstablishTunnels.IsNull() && !config.EstablishTunnels.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("establish_tunnels"),
 				tfdiag.ConflictConfigErrSummary,
@@ -541,8 +555,8 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				)
 			}
 		}
-		if !config.Manual.AuthenticationKeyHexa.IsNull() &&
-			!config.Manual.AuthenticationKeyText.IsNull() {
+		if !config.Manual.AuthenticationKeyHexa.IsNull() && !config.Manual.AuthenticationKeyHexa.IsUnknown() &&
+			!config.Manual.AuthenticationKeyText.IsNull() && !config.Manual.AuthenticationKeyText.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName("authentication_key_text"),
 				tfdiag.ConflictConfigErrSummary,
@@ -560,8 +574,8 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				)
 			}
 		}
-		if !config.Manual.EncryptionKeyHexa.IsNull() &&
-			!config.Manual.EncryptionKeyText.IsNull() {
+		if !config.Manual.EncryptionKeyHexa.IsNull() && !config.Manual.EncryptionKeyHexa.IsUnknown() &&
+			!config.Manual.EncryptionKeyText.IsNull() && !config.Manual.EncryptionKeyText.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName("encryption_key_text"),
 				tfdiag.ConflictConfigErrSummary,
@@ -569,23 +583,23 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			)
 		}
 	}
-	if !config.TrafficSelector.IsNull() {
+	if !config.TrafficSelector.IsNull() && !config.TrafficSelector.IsUnknown() {
 		if config.Ike != nil {
-			if !config.Ike.IdentityLocal.IsNull() {
+			if !config.Ike.IdentityLocal.IsNull() && !config.Ike.IdentityLocal.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike").AtName("identity_local"),
 					tfdiag.ConflictConfigErrSummary,
 					"ike.identity_local should not be specified when traffic_selector is used",
 				)
 			}
-			if !config.Ike.IdentityRemote.IsNull() {
+			if !config.Ike.IdentityRemote.IsNull() && !config.Ike.IdentityRemote.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike").AtName("identity_remote"),
 					tfdiag.ConflictConfigErrSummary,
 					"ike.identity_remote should not be specified when traffic_selector is used",
 				)
 			}
-			if !config.Ike.IdentityService.IsNull() {
+			if !config.Ike.IdentityService.IsNull() && !config.Ike.IdentityService.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("ike").AtName("identity_service"),
 					tfdiag.ConflictConfigErrSummary,
@@ -593,40 +607,39 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				)
 			}
 		}
-		if config.VpnMonitor != nil {
+		if config.VpnMonitor != nil && config.VpnMonitor.hasKnownValue() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("vpn_monitor").AtName("*"),
 				tfdiag.ConflictConfigErrSummary,
 				"vpn_monitor should not be specified when traffic_selector is used",
 			)
 		}
-		if !config.TrafficSelector.IsNull() && !config.TrafficSelector.IsUnknown() {
-			var configTrafficSelector []securityIpsecVpnBlockTrafficSelector
-			asDiags := config.TrafficSelector.ElementsAs(ctx, &configTrafficSelector, false)
-			if asDiags.HasError() {
-				resp.Diagnostics.Append(asDiags...)
 
-				return
+		var configTrafficSelector []securityIpsecVpnBlockTrafficSelector
+		asDiags := config.TrafficSelector.ElementsAs(ctx, &configTrafficSelector, false)
+		if asDiags.HasError() {
+			resp.Diagnostics.Append(asDiags...)
+
+			return
+		}
+		names := make(map[string]struct{})
+		for i, block := range configTrafficSelector {
+			if block.Name.IsUnknown() {
+				continue
 			}
-			names := make(map[string]struct{})
-			for i, block := range configTrafficSelector {
-				if block.Name.IsUnknown() {
-					continue
-				}
-				if _, ok := names[block.Name.ValueString()]; ok {
-					resp.Diagnostics.AddAttributeError(
-						path.Root("traffic_selector").AtListIndex(i).AtName("name"),
-						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple traffic_selector blocks with the same name %q", block.Name.ValueString()),
-					)
-				} else {
-					names[block.Name.ValueString()] = struct{}{}
-				}
+			if _, ok := names[block.Name.ValueString()]; ok {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("traffic_selector").AtListIndex(i).AtName("name"),
+					tfdiag.DuplicateConfigErrSummary,
+					fmt.Sprintf("multiple traffic_selector blocks with the same name %q", block.Name.ValueString()),
+				)
+			} else {
+				names[block.Name.ValueString()] = struct{}{}
 			}
 		}
 	}
-	if !config.MultiSaForwardingClass.IsNull() &&
-		config.VpnMonitor != nil {
+	if !config.MultiSaForwardingClass.IsNull() && !config.MultiSaForwardingClass.IsUnknown() &&
+		config.VpnMonitor != nil && config.VpnMonitor.hasKnownValue() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("vpn_monitor").AtName("*"),
 			tfdiag.ConflictConfigErrSummary,
@@ -634,8 +647,8 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 		)
 	}
 	if config.VpnMonitor != nil {
-		if !config.VpnMonitor.SourceInterface.IsNull() &&
-			!config.VpnMonitor.SourceInterfaceAuto.IsNull() {
+		if !config.VpnMonitor.SourceInterface.IsNull() && !config.VpnMonitor.SourceInterface.IsUnknown() &&
+			!config.VpnMonitor.SourceInterfaceAuto.IsNull() && !config.VpnMonitor.SourceInterfaceAuto.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("vpn_monitor").AtName("source_interface_auto"),
 				tfdiag.ConflictConfigErrSummary,
