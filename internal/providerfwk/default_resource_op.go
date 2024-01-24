@@ -16,7 +16,7 @@ type resourceDataNullID interface {
 	nullID() bool
 }
 
-type resourceDataReadFrom0String interface {
+type resourceDataReadWithoutArg interface {
 	resourceDataNullID
 	read(context.Context, *junos.Session) error
 }
@@ -157,7 +157,7 @@ func defaultResourceRead(
 	defer junSess.Close()
 
 	junos.MutexLock()
-	if data0, ok := data.(resourceDataReadFrom0String); ok {
+	if data0, ok := data.(resourceDataReadWithoutArg); ok {
 		err = data0.read(ctx, junSess)
 	}
 	if data1, ok := data.(resourceDataReadFrom1String); ok {
@@ -343,7 +343,7 @@ func defaultResourceImportState(
 	}
 	defer junSess.Close()
 
-	if data0, ok := data.(resourceDataReadFrom0String); ok {
+	if data0, ok := data.(resourceDataReadWithoutArg); ok {
 		err = data0.read(ctx, junSess)
 	}
 	if data1, ok := data.(resourceDataReadFrom1String); ok {

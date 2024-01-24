@@ -2308,7 +2308,7 @@ func (rsc *security) Read(
 		return
 	}
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceRead(
 		ctx,
 		rsc,
@@ -2364,7 +2364,7 @@ func (rsc *security) ImportState(
 ) {
 	var data securityData
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceImportState(
 		ctx,
 		rsc,

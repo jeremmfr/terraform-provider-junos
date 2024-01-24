@@ -142,7 +142,7 @@ func (rsc *switchOptions) Read(
 		return
 	}
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceRead(
 		ctx,
 		rsc,
@@ -198,7 +198,7 @@ func (rsc *switchOptions) ImportState(
 ) {
 	var data switchOptionsData
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceImportState(
 		ctx,
 		rsc,
