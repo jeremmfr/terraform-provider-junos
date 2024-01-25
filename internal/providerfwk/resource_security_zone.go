@@ -467,11 +467,11 @@ func (rsc *securityZone) ValidateConfig(
 	}
 
 	if config.AddressBookConfigureSingly.ValueBool() &&
-		(!config.AddressBook.IsNull() ||
-			!config.AddressBookDNS.IsNull() ||
-			!config.AddressBookRange.IsNull() ||
-			!config.AddressBookSet.IsNull() ||
-			!config.AddressBookWildcard.IsNull()) {
+		((!config.AddressBook.IsNull() && !config.AddressBook.IsUnknown()) ||
+			(!config.AddressBookDNS.IsNull() && !config.AddressBookDNS.IsUnknown()) ||
+			(!config.AddressBookRange.IsNull() && !config.AddressBookRange.IsUnknown()) ||
+			(!config.AddressBookSet.IsNull() && !config.AddressBookSet.IsUnknown()) ||
+			(!config.AddressBookWildcard.IsNull() && !config.AddressBookWildcard.IsUnknown())) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("address_book_configure_singly"),
 			tfdiag.ConflictConfigErrSummary,

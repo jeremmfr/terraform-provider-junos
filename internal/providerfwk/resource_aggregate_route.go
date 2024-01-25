@@ -276,8 +276,8 @@ func (rsc *aggregateRoute) ValidateConfig(
 		return
 	}
 
-	if !config.Active.IsNull() &&
-		!config.Passive.IsNull() {
+	if !config.Active.IsNull() && !config.Active.IsUnknown() &&
+		!config.Passive.IsNull() && !config.Passive.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("active"),
 			tfdiag.ConflictConfigErrSummary,
@@ -300,8 +300,8 @@ func (rsc *aggregateRoute) ValidateConfig(
 			"as_path_aggregator_as_number must be specified with as_path_aggregator_address",
 		)
 	}
-	if !config.Brief.IsNull() &&
-		!config.Full.IsNull() {
+	if !config.Brief.IsNull() && !config.Brief.IsUnknown() &&
+		!config.Full.IsNull() && !config.Full.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("brief"),
 			tfdiag.ConflictConfigErrSummary,

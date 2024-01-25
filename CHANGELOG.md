@@ -1,7 +1,18 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
-## v2.4.0 (December 21, 2023)
+## v2.5.0 (2024-01-25)
+
+FEATURES:
+
+* add **junos_chassis_inventory** data-source (Fix [#587](https://github.com/jeremmfr/terraform-provider-junos/issues/587))
+
+BUG FIXES:
+
+* **resource/junos_aggregate_route, junos_application, junos_bgp_group, junos_bgp_neighbor, junos_bridge_domain, junos_evpn, junos_firewall_filter, junos_firewall_policer, junos_forwardingoptions_sampling_instance, junos_forwardingoptions_sampling, junos_forwardingoptions_storm_control_profile, junos_generate_route, junos_interface_logical, junos_interface_physical, junos_policyoptions_community, junos_routing_instance, junos_security, junos_security_address_book, junos_security_global_policy, junos_security_ike_gateway, junos_security_ike_policy, junos_security_ipsec_policy, junos_security_ipsec_vpn, junos_security_nat_destination_pool, junos_security_nat_destination, junos_security_nat_source_pool, junos_security_nat_static_rule, junos_security_nat_static, junos_security_policy, junos_security_zone_book_address, junos_security_zone, junos_services_flowmonitoring_v9_template, junos_services_flowmonitoring_vipfix_template, junos_static_route, junos_system_syslog_file, junos_system**:  
+avoid triggering the conflict errors when Terraform calls the resource config validate function and the value for potential conflict is unknown (can be null afterward) (Fix [#611](https://github.com/jeremmfr/terraform-provider-junos/issues/611))
+
+## v2.4.0 (2023-12-21)
 
 FEATURES:
 
@@ -42,25 +53,25 @@ BUG FIXES:
 * **data-source/junos_interface_physical**: fix reading `link_speed` and `minimum_bandwidth` attributes in `parent_ether_opts` block
 * **resource/junos_system_syslog_file**: fix reading `archive size` when value is a multiple of 1024 (k,m,g)
 
-## v2.3.3 (December 07, 2023)
+## v2.3.3 (2023-12-07)
 
 BUG FIXES:
 
 * **resource/junos_system**: fix crash when `web_management_https` is defined and `web_management_http` is not (Fix [#588](https://github.com/jeremmfr/terraform-provider-junos/issues/588))
 
-## v2.3.2 (November 16, 2023)
+## v2.3.2 (2023-11-16)
 
 BUG FIXES:
 
 * **resource/junos_firewall_filter**: allow use `protocol` and `protocol_except` arguments in `from` block in `term` block when `family` is set to `ethernet-switching` (Fix [#577](https://github.com/jeremmfr/terraform-provider-junos/issues/577))
 
-## v2.3.1 (November 10, 2023)
+## v2.3.1 (2023-11-10)
 
 BUG FIXES:
 
 * **resource/junos_system**: fix value validator (also accept `@`, `.`) on `ciphers`, `hostkey_algorithm`, `key_exchange` and `macs` attributes in `ssh` block in `services` block (Fix [#570](https://github.com/jeremmfr/terraform-provider-junos/issues/570))
 
-## v2.3.0 (November 08, 2023)
+## v2.3.0 (2023-11-08)
 
 ENHANCEMENTS:
 
@@ -90,7 +101,7 @@ BUG FIXES:
 
 * **resource/junos_aggregate_route**, **resource/junos_generate_route**, **resource/junos_static_route**: fix missing no-empty value validator on `as_path_path` and `next_table` arguments
 
-## v2.2.0 (September 13, 2023)
+## v2.2.0 (2023-09-13)
 
 ENHANCEMENTS:
 
@@ -130,25 +141,25 @@ ENHANCEMENTS:
   the resource schema has been upgraded to have one-blocks in single mode instead of list
 * release now with golang 1.21
 
-## v2.1.3 (August 30, 2023)
+## v2.1.3 (2023-08-30)
 
 BUG FIXES:
 
 * **resource/junos_forwardingoptions_sampling_instance**: avoid resources replacement when upgrading the provider before `v2.0.0` and without refreshing resource states (`-refresh=false`) (Fix [#536](https://github.com/jeremmfr/terraform-provider-junos/issues/536))
 
-## v2.1.2 (August 28, 2023)
+## v2.1.2 (2023-08-28)
 
 BUG FIXES:
 
 * **resource/junos_security_ike_gateway** : fix `Value Conversion Error` when upgrading the provider before `v2.0.0` to `v2.0.0...v2.1.1` and there are this type of resource with `remote_identity` block set in state (Fix [#533](https://github.com/jeremmfr/terraform-provider-junos/issues/533))
 
-## v2.1.1 (August 21, 2023)
+## v2.1.1 (2023-08-21)
 
 BUG FIXES:
 
 * **resource/junos_policyoptions_policy_statement**: fix potential crash when applying (create/update) resource (Fix [#528](https://github.com/jeremmfr/terraform-provider-junos/issues/528))
 
-## v2.1.0 (July 25, 2023)
+## v2.1.0 (2023-07-25)
 
 ENHANCEMENTS:
 
@@ -229,7 +240,7 @@ BUG FIXES:
 * reduce plan time for resources that have migrated to the new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework) and have block set attributes (multiple unordered blocks) (Partial fix [#498](https://github.com/jeremmfr/terraform-provider-junos/issues/498))
 * **resource/junos_security_ipsec_vpn**: fix length validator (max 31 instead of 32) and remove space exclusion validator of `name` for `traffic_selector` block
 
-## v2.0.0 (May 10, 2023)
+## v2.0.0 (2023-05-10)
 
 BREAKING CHANGES with new `v2`:
 

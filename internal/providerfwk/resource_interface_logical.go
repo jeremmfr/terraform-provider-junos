@@ -1149,6 +1149,10 @@ type interfaceLogicalBlockFamilyInetBlockDhcp struct {
 	VendorID                                  types.String `tfsdk:"vendor_id"`
 }
 
+func (block *interfaceLogicalBlockFamilyInetBlockDhcp) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 type interfaceLogicalBlockFamilyInet6 struct {
 	DadDisable     types.Bool                                         `tfsdk:"dad_disable"`
 	SamplingInput  types.Bool                                         `tfsdk:"sampling_input"`
@@ -1248,6 +1252,10 @@ type interfaceLogicalBlockFamilyInet6BlockDhcpV6ClientConfig struct {
 	UpdateServer                          types.Bool   `tfsdk:"update_server"`
 }
 
+func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6ClientConfig) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 type interfaceLogicalBlockTunnel struct {
 	AllowFragmentation         types.Bool   `tfsdk:"allow_fragmentation"`
 	DoNotFragment              types.Bool   `tfsdk:"do_not_fragment"`
@@ -1289,7 +1297,8 @@ func (rsc *interfaceLogical) ValidateConfig(
 	}
 	if config.FamilyInet != nil {
 		if config.FamilyInet.DHCP != nil {
-			if !config.FamilyInet.Address.IsNull() {
+			if config.FamilyInet.DHCP.hasKnownValue() &&
+				!config.FamilyInet.Address.IsNull() && !config.FamilyInet.Address.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet").AtName("dhcp").AtName("*"),
 					tfdiag.ConflictConfigErrSummary,
@@ -1297,7 +1306,9 @@ func (rsc *interfaceLogical) ValidateConfig(
 				)
 			}
 			if !config.FamilyInet.DHCP.ClientIdentifierASCII.IsNull() &&
-				!config.FamilyInet.DHCP.ClientIdentifierHexadecimal.IsNull() {
+				!config.FamilyInet.DHCP.ClientIdentifierASCII.IsUnknown() &&
+				!config.FamilyInet.DHCP.ClientIdentifierHexadecimal.IsNull() &&
+				!config.FamilyInet.DHCP.ClientIdentifierHexadecimal.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet").AtName("dhcp").AtName("client_identifier_ascii"),
 					tfdiag.ConflictConfigErrSummary,
@@ -1306,7 +1317,9 @@ func (rsc *interfaceLogical) ValidateConfig(
 				)
 			}
 			if !config.FamilyInet.DHCP.ClientIdentifierUseridASCII.IsNull() &&
-				!config.FamilyInet.DHCP.ClientIdentifierUseridHexadecimal.IsNull() {
+				!config.FamilyInet.DHCP.ClientIdentifierUseridASCII.IsUnknown() &&
+				!config.FamilyInet.DHCP.ClientIdentifierUseridHexadecimal.IsNull() &&
+				!config.FamilyInet.DHCP.ClientIdentifierUseridHexadecimal.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet").AtName("dhcp").AtName("client_identifier_userid_ascii"),
 					tfdiag.ConflictConfigErrSummary,
@@ -1315,7 +1328,9 @@ func (rsc *interfaceLogical) ValidateConfig(
 				)
 			}
 			if !config.FamilyInet.DHCP.LeaseTime.IsNull() &&
-				!config.FamilyInet.DHCP.LeaseTimeInfinite.IsNull() {
+				!config.FamilyInet.DHCP.LeaseTime.IsUnknown() &&
+				!config.FamilyInet.DHCP.LeaseTimeInfinite.IsNull() &&
+				!config.FamilyInet.DHCP.LeaseTimeInfinite.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet").AtName("dhcp").AtName("lease_time"),
 					tfdiag.ConflictConfigErrSummary,
@@ -1339,7 +1354,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 					if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("family_inet").AtName("address").AtListIndex(i).AtName("cidr_ip"),
-							tfdiag.ConflictConfigErrSummary,
+							tfdiag.DuplicateConfigErrSummary,
 							fmt.Sprintf("multiple address blocks with the same cidr_ip %q in family_inet block",
 								address.CidrIP.ValueString()),
 						)
@@ -1361,7 +1376,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 								resp.Diagnostics.AddAttributeError(
 									path.Root("family_inet").AtName("address").AtListIndex(i).
 										AtName("vrrp_group").AtListIndex(ii).AtName("identifier"),
-									tfdiag.ConflictConfigErrSummary,
+									tfdiag.DuplicateConfigErrSummary,
 									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet block",
 										vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 								)
@@ -1387,7 +1402,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 										path.Root("family_inet").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_interface").AtListIndex(iii).AtName("interface"),
-										tfdiag.ConflictConfigErrSummary,
+										tfdiag.DuplicateConfigErrSummary,
 										fmt.Sprintf("multiple track_interface blocks with the same interface %q "+
 											"in vrrp_group block %d in address block %q in family_inet block",
 											trackInterface.Interface.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
@@ -1414,7 +1429,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 										path.Root("family_inet").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_route").AtListIndex(iii).AtName("route"),
-										tfdiag.ConflictConfigErrSummary,
+										tfdiag.DuplicateConfigErrSummary,
 										fmt.Sprintf("multiple track_route blocks with the same route %q "+
 											"in vrrp_group block %d in address block %q in family_inet block",
 											trackRoute.Route.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
@@ -1430,6 +1445,14 @@ func (rsc *interfaceLogical) ValidateConfig(
 	}
 	if config.FamilyInet6 != nil {
 		if config.FamilyInet6.DHCPv6Client != nil {
+			if config.FamilyInet6.DHCPv6Client.hasKnownValue() &&
+				!config.FamilyInet6.Address.IsNull() && !config.FamilyInet6.Address.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("family_inet6").AtName("dhcpv6_client").AtName("*"),
+					tfdiag.ConflictConfigErrSummary,
+					"cannot set dhcpv6_client block if address block is used in family_inet6 block",
+				)
+			}
 			if config.FamilyInet6.DHCPv6Client.ClientIdentifierDuidType.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet6").AtName("dhcpv6_client").AtName("client_identifier_duid_type"),
@@ -1442,13 +1465,6 @@ func (rsc *interfaceLogical) ValidateConfig(
 					path.Root("family_inet6").AtName("dhcpv6_client").AtName("client_type"),
 					tfdiag.MissingConfigErrSummary,
 					"client_type must be specified in dhcpv6_client block in family_inet6 block",
-				)
-			}
-			if !config.FamilyInet6.Address.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("family_inet6").AtName("dhcpv6_client").AtName("*"),
-					tfdiag.ConflictConfigErrSummary,
-					"cannot set dhcpv6_client block if address block is used in family_inet6 block",
 				)
 			}
 			if config.FamilyInet6.DHCPv6Client.ClientIATypeNA.IsNull() &&
@@ -1475,7 +1491,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 					if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("family_inet6").AtName("address").AtListIndex(i).AtName("cidr_ip"),
-							tfdiag.ConflictConfigErrSummary,
+							tfdiag.DuplicateConfigErrSummary,
 							fmt.Sprintf("multiple address blocks with the same cidr_ip %q in family_inet6 block",
 								address.CidrIP.ValueString()),
 						)
@@ -1497,7 +1513,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 								resp.Diagnostics.AddAttributeError(
 									path.Root("family_inet6").AtName("address").AtListIndex(i).
 										AtName("vrrp_group").AtListIndex(ii).AtName("identifier"),
-									tfdiag.ConflictConfigErrSummary,
+									tfdiag.DuplicateConfigErrSummary,
 									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet6 block",
 										vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 								)
@@ -1523,7 +1539,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 										path.Root("family_inet6").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_interface").AtListIndex(iii).AtName("interface"),
-										tfdiag.ConflictConfigErrSummary,
+										tfdiag.DuplicateConfigErrSummary,
 										fmt.Sprintf("multiple track_interface blocks with the same interface %q "+
 											"in vrrp_group block %d in address block %q in family_inet6 block",
 											trackInterface.Interface.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
@@ -1550,7 +1566,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 										path.Root("family_inet6").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_route").AtListIndex(iii).AtName("route"),
-										tfdiag.ConflictConfigErrSummary,
+										tfdiag.DuplicateConfigErrSummary,
 										fmt.Sprintf("multiple track_route blocks with the same route %q "+
 											"in vrrp_group block %d in address block %q in family_inet6 block",
 											trackRoute.Route.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
@@ -1580,8 +1596,8 @@ func (rsc *interfaceLogical) ValidateConfig(
 				"source must be specified in tunnel block",
 			)
 		}
-		if !config.Tunnel.AllowFragmentation.IsNull() &&
-			!config.Tunnel.DoNotFragment.IsNull() {
+		if !config.Tunnel.AllowFragmentation.IsNull() && !config.Tunnel.AllowFragmentation.IsUnknown() &&
+			!config.Tunnel.DoNotFragment.IsNull() && !config.Tunnel.DoNotFragment.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("tunnel").AtName("allow_fragmentation"),
 				tfdiag.ConflictConfigErrSummary,
@@ -1589,8 +1605,8 @@ func (rsc *interfaceLogical) ValidateConfig(
 					"in tunnel block",
 			)
 		}
-		if !config.Tunnel.PathMtuDiscovery.IsNull() &&
-			!config.Tunnel.NoPathMtuDiscovery.IsNull() {
+		if !config.Tunnel.PathMtuDiscovery.IsNull() && !config.Tunnel.PathMtuDiscovery.IsUnknown() &&
+			!config.Tunnel.NoPathMtuDiscovery.IsNull() && !config.Tunnel.NoPathMtuDiscovery.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("tunnel").AtName("path_mtu_discovery"),
 				tfdiag.ConflictConfigErrSummary,

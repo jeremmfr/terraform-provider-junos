@@ -807,26 +807,11 @@ type interfacePhysicalBlockEtherOpts struct {
 }
 
 func (block *interfacePhysicalBlockEtherOpts) isEmpty() bool {
-	switch {
-	case !block.AutoNegotiation.IsNull():
-		return false
-	case !block.NoAutoNegotiation.IsNull():
-		return false
-	case !block.FlowControl.IsNull():
-		return false
-	case !block.NoFlowControl.IsNull():
-		return false
-	case !block.Loopback.IsNull():
-		return false
-	case !block.NoLoopback.IsNull():
-		return false
-	case !block.Ae8023ad.IsNull():
-		return false
-	case !block.RedundantParent.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+func (block *interfacePhysicalBlockEtherOpts) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
 }
 
 type interfacePhysicalBlockParentEtherOpts struct {
@@ -862,36 +847,11 @@ type interfacePhysicalBlockParentEtherOptsConfig struct {
 }
 
 func (block *interfacePhysicalBlockParentEtherOptsConfig) isEmpty() bool {
-	switch {
-	case !block.FlowControl.IsNull():
-		return false
-	case !block.NoFlowControl.IsNull():
-		return false
-	case !block.Loopback.IsNull():
-		return false
-	case !block.NoLoopback.IsNull():
-		return false
-	case !block.SourceFiltering.IsNull():
-		return false
-	case !block.LinkSpeed.IsNull():
-		return false
-	case !block.MinimumBandwidth.IsNull():
-		return false
-	case !block.MinimumLinks.IsNull():
-		return false
-	case !block.RedundancyGroup.IsNull():
-		return false
-	case !block.SourceAddressFilter.IsNull():
-		return false
-	case block.BFDLivenessDetection != nil:
-		return false
-	case block.LACP != nil:
-		return false
-	case block.MCAE != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+func (block *interfacePhysicalBlockParentEtherOptsConfig) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
 }
 
 type interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection struct {
@@ -934,11 +894,16 @@ type interfacePhysicalBlockParentEtherOptsBlockMCAE struct {
 	EventsIccpPeerDown  *interfacePhysicalBlockParentEtherOptsBlockMCAEBlockEventsIccpPeerDown `tfsdk:"events_iccp_peer_down"`
 }
 
+func (block *interfacePhysicalBlockParentEtherOptsBlockMCAE) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
 type interfacePhysicalBlockParentEtherOptsBlockMCAEBlockEventsIccpPeerDown struct {
 	ForceIclDown              types.Bool `tfsdk:"force_icl_down"`
 	PreferStatusControlActive types.Bool `tfsdk:"prefer_status_control_active"`
 }
 
+//nolint:gocyclo
 func (rsc *interfacePhysical) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
@@ -956,7 +921,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 				"mode must be specified in esi block",
 			)
 		}
-		if !config.ESI.AutoDeriveLACP.IsNull() && !config.ESI.Identifier.IsNull() {
+		if !config.ESI.AutoDeriveLACP.IsNull() && !config.ESI.AutoDeriveLACP.IsUnknown() &&
+			!config.ESI.Identifier.IsNull() && !config.ESI.Identifier.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("esi").AtName("auto_derive_lacp"),
 				tfdiag.ConflictConfigErrSummary,
@@ -965,128 +931,148 @@ func (rsc *interfacePhysical) ValidateConfig(
 		}
 	}
 	if config.EtherOpts != nil {
-		if config.GigetherOpts != nil || config.ParentEtherOpts != nil {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("ether_opts").AtName("*"),
-				tfdiag.ConflictConfigErrSummary,
-				"only one of ether_opts, gigether_opts or parent_ether_opts block can be specified",
-			)
-		}
-		if !config.EtherOpts.Ae8023ad.IsNull() && !config.EtherOpts.RedundantParent.IsNull() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("ether_opts").AtName("ae_8023ad"),
-				tfdiag.ConflictConfigErrSummary,
-				"ae_8023ad and redundant_parent cannot be configured together in ether_opts block",
-			)
-		}
-		if !config.EtherOpts.AutoNegotiation.IsNull() && !config.EtherOpts.NoAutoNegotiation.IsNull() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("ether_opts").AtName("auto_negotiation"),
-				tfdiag.ConflictConfigErrSummary,
-				"auto_negotiation and no_auto_negotiation cannot be configured together in ether_opts block",
-			)
-		}
-		if !config.EtherOpts.FlowControl.IsNull() && !config.EtherOpts.NoFlowControl.IsNull() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("ether_opts").AtName("flow_control"),
-				tfdiag.ConflictConfigErrSummary,
-				"flow_control and no_flow_control cannot be configured together in ether_opts block",
-			)
-		}
-		if !config.EtherOpts.Loopback.IsNull() && !config.EtherOpts.NoLoopback.IsNull() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("ether_opts").AtName("loopback"),
-				tfdiag.ConflictConfigErrSummary,
-				"loopback and no_loopback cannot be configured together in ether_opts block",
-			)
-		}
-
 		if config.EtherOpts.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("ether_opts").AtName("*"),
 				tfdiag.MissingConfigErrSummary,
 				"ether_opts block is empty",
 			)
-		}
-	}
-	if config.GigetherOpts != nil {
-		if config.EtherOpts != nil || config.ParentEtherOpts != nil {
+		} else if config.EtherOpts.hasKnownValue() &&
+			((config.GigetherOpts != nil && config.GigetherOpts.hasKnownValue()) ||
+				(config.ParentEtherOpts != nil && config.ParentEtherOpts.hasKnownValue())) {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("gigether_opts").AtName("*"),
+				path.Root("ether_opts").AtName("*"),
 				tfdiag.ConflictConfigErrSummary,
 				"only one of ether_opts, gigether_opts or parent_ether_opts block can be specified",
 			)
 		}
-		if !config.GigetherOpts.Ae8023ad.IsNull() && !config.GigetherOpts.RedundantParent.IsNull() {
+		if !config.EtherOpts.Ae8023ad.IsNull() && !config.EtherOpts.Ae8023ad.IsUnknown() &&
+			!config.EtherOpts.RedundantParent.IsNull() && !config.EtherOpts.RedundantParent.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("gigether_opts").AtName("ae_8023ad"),
+				path.Root("ether_opts").AtName("ae_8023ad"),
 				tfdiag.ConflictConfigErrSummary,
-				"ae_8023ad and redundant_parent cannot be configured together in gigether_opts block",
+				"ae_8023ad and redundant_parent cannot be configured together in ether_opts block",
 			)
 		}
-		if !config.GigetherOpts.AutoNegotiation.IsNull() && !config.GigetherOpts.NoAutoNegotiation.IsNull() {
+		if !config.EtherOpts.AutoNegotiation.IsNull() && !config.EtherOpts.AutoNegotiation.IsUnknown() &&
+			!config.EtherOpts.NoAutoNegotiation.IsNull() && !config.EtherOpts.NoAutoNegotiation.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("gigether_opts").AtName("auto_negotiation"),
+				path.Root("ether_opts").AtName("auto_negotiation"),
 				tfdiag.ConflictConfigErrSummary,
-				"auto_negotiation and no_auto_negotiation cannot be configured together in gigether_opts block",
+				"auto_negotiation and no_auto_negotiation cannot be configured together in ether_opts block",
 			)
 		}
-		if !config.GigetherOpts.FlowControl.IsNull() && !config.GigetherOpts.NoFlowControl.IsNull() {
+		if !config.EtherOpts.FlowControl.IsNull() && !config.EtherOpts.FlowControl.IsUnknown() &&
+			!config.EtherOpts.NoFlowControl.IsNull() && !config.EtherOpts.NoFlowControl.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("gigether_opts").AtName("flow_control"),
+				path.Root("ether_opts").AtName("flow_control"),
 				tfdiag.ConflictConfigErrSummary,
-				"flow_control and no_flow_control cannot be configured together in gigether_opts block",
+				"flow_control and no_flow_control cannot be configured together in ether_opts block",
 			)
 		}
-		if !config.GigetherOpts.Loopback.IsNull() && !config.GigetherOpts.NoLoopback.IsNull() {
+		if !config.EtherOpts.Loopback.IsNull() && !config.EtherOpts.Loopback.IsUnknown() &&
+			!config.EtherOpts.NoLoopback.IsNull() && !config.EtherOpts.NoLoopback.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("gigether_opts").AtName("loopback"),
+				path.Root("ether_opts").AtName("loopback"),
 				tfdiag.ConflictConfigErrSummary,
-				"loopback and no_loopback cannot be configured together in gigether_opts block",
+				"loopback and no_loopback cannot be configured together in ether_opts block",
 			)
 		}
-
+	}
+	if config.GigetherOpts != nil {
 		if config.GigetherOpts.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("gigether_opts").AtName("*"),
 				tfdiag.MissingConfigErrSummary,
 				"gigether_opts block is empty",
 			)
-		}
-	}
-	if config.ParentEtherOpts != nil {
-		if !config.Name.IsUnknown() {
-			if v := config.Name.ValueString(); !strings.HasPrefix(v, "ae") && !strings.HasPrefix(v, "reth") {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("parent_ether_opts").AtName("*"),
-					tfdiag.ConflictConfigErrSummary,
-					fmt.Sprintf("parent_ether_opts not compatible with this interface %q "+
-						"(need to be ae* or reth* interface)", v),
-				)
-			}
-		}
-		if config.EtherOpts != nil || config.GigetherOpts != nil {
+		} else if config.GigetherOpts.hasKnownValue() &&
+			((config.EtherOpts != nil && config.EtherOpts.hasKnownValue()) ||
+				(config.ParentEtherOpts != nil && config.ParentEtherOpts.hasKnownValue())) {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("parent_ether_opts").AtName("*"),
+				path.Root("gigether_opts").AtName("*"),
 				tfdiag.ConflictConfigErrSummary,
 				"only one of ether_opts, gigether_opts or parent_ether_opts block can be specified",
 			)
 		}
-		if !config.ParentEtherOpts.FlowControl.IsNull() && !config.ParentEtherOpts.NoFlowControl.IsNull() {
+		if !config.GigetherOpts.Ae8023ad.IsNull() && !config.GigetherOpts.Ae8023ad.IsUnknown() &&
+			!config.GigetherOpts.RedundantParent.IsNull() && !config.GigetherOpts.RedundantParent.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("gigether_opts").AtName("ae_8023ad"),
+				tfdiag.ConflictConfigErrSummary,
+				"ae_8023ad and redundant_parent cannot be configured together in gigether_opts block",
+			)
+		}
+		if !config.GigetherOpts.AutoNegotiation.IsNull() && !config.GigetherOpts.AutoNegotiation.IsUnknown() &&
+			!config.GigetherOpts.NoAutoNegotiation.IsNull() && !config.GigetherOpts.NoAutoNegotiation.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("gigether_opts").AtName("auto_negotiation"),
+				tfdiag.ConflictConfigErrSummary,
+				"auto_negotiation and no_auto_negotiation cannot be configured together in gigether_opts block",
+			)
+		}
+		if !config.GigetherOpts.FlowControl.IsNull() && !config.GigetherOpts.FlowControl.IsUnknown() &&
+			!config.GigetherOpts.NoFlowControl.IsNull() && !config.GigetherOpts.NoFlowControl.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("gigether_opts").AtName("flow_control"),
+				tfdiag.ConflictConfigErrSummary,
+				"flow_control and no_flow_control cannot be configured together in gigether_opts block",
+			)
+		}
+		if !config.GigetherOpts.Loopback.IsNull() && !config.GigetherOpts.Loopback.IsUnknown() &&
+			!config.GigetherOpts.NoLoopback.IsNull() && !config.GigetherOpts.NoLoopback.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("gigether_opts").AtName("loopback"),
+				tfdiag.ConflictConfigErrSummary,
+				"loopback and no_loopback cannot be configured together in gigether_opts block",
+			)
+		}
+	}
+	if config.ParentEtherOpts != nil {
+		if config.ParentEtherOpts.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("parent_ether_opts").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"parent_ether_opts block is empty",
+			)
+		} else if config.ParentEtherOpts.hasKnownValue() {
+			if !config.Name.IsUnknown() {
+				if v := config.Name.ValueString(); !strings.HasPrefix(v, "ae") && !strings.HasPrefix(v, "reth") {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("parent_ether_opts").AtName("*"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("parent_ether_opts not compatible with this interface %q "+
+							"(need to be ae* or reth* interface)", v),
+					)
+				}
+			}
+			if (config.EtherOpts != nil && config.EtherOpts.hasKnownValue()) ||
+				(config.GigetherOpts != nil && config.GigetherOpts.hasKnownValue()) {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("parent_ether_opts").AtName("*"),
+					tfdiag.ConflictConfigErrSummary,
+					"only one of ether_opts, gigether_opts or parent_ether_opts block can be specified",
+				)
+			}
+		}
+		if !config.ParentEtherOpts.FlowControl.IsNull() && !config.ParentEtherOpts.FlowControl.IsUnknown() &&
+			!config.ParentEtherOpts.NoFlowControl.IsNull() && !config.ParentEtherOpts.NoFlowControl.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("flow_control"),
 				tfdiag.ConflictConfigErrSummary,
 				"flow_control and no_flow_control cannot be configured together in parent_ether_opts block",
 			)
 		}
-		if !config.ParentEtherOpts.Loopback.IsNull() && !config.ParentEtherOpts.NoLoopback.IsNull() {
+		if !config.ParentEtherOpts.Loopback.IsNull() && !config.ParentEtherOpts.Loopback.IsUnknown() &&
+			!config.ParentEtherOpts.NoLoopback.IsNull() && !config.ParentEtherOpts.NoLoopback.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("loopback"),
 				tfdiag.ConflictConfigErrSummary,
 				"loopback and no_loopback cannot be configured together in parent_ether_opts block",
 			)
 		}
-		if !config.ParentEtherOpts.MinimumBandwidth.IsNull() && !config.ParentEtherOpts.MinimumLinks.IsNull() {
+		if !config.ParentEtherOpts.MinimumBandwidth.IsNull() && !config.ParentEtherOpts.MinimumBandwidth.IsUnknown() &&
+			!config.ParentEtherOpts.MinimumLinks.IsNull() && !config.ParentEtherOpts.MinimumLinks.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("parent_ether_opts").AtName("minimum_bandwidth"),
 				tfdiag.ConflictConfigErrSummary,
@@ -1112,7 +1098,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 			}
 		}
 		if config.ParentEtherOpts.MCAE != nil {
-			if !config.Name.IsUnknown() {
+			if config.ParentEtherOpts.MCAE.hasKnownValue() && !config.Name.IsUnknown() {
 				if v := config.Name.ValueString(); !strings.HasPrefix(v, "ae") {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("parent_ether_opts").AtName("mc_ae").AtName("*"),
@@ -1151,7 +1137,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 				)
 			}
 		}
-		if !config.ParentEtherOpts.RedundancyGroup.IsNull() {
+		if !config.ParentEtherOpts.RedundancyGroup.IsNull() && !config.ParentEtherOpts.RedundancyGroup.IsUnknown() {
 			if !config.Name.IsUnknown() {
 				if v := config.Name.ValueString(); !strings.HasPrefix(v, "reth") {
 					resp.Diagnostics.AddAttributeError(
@@ -1162,14 +1148,6 @@ func (rsc *interfacePhysical) ValidateConfig(
 					)
 				}
 			}
-		}
-
-		if config.ParentEtherOpts.isEmpty() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("parent_ether_opts").AtName("*"),
-				tfdiag.MissingConfigErrSummary,
-				"parent_ether_opts block is empty",
-			)
 		}
 	}
 
@@ -1182,7 +1160,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 		)
 	}
 
-	if !config.GratuitousArpReply.IsNull() && !config.NoGratuitousArpReply.IsNull() {
+	if !config.GratuitousArpReply.IsNull() && !config.GratuitousArpReply.IsUnknown() &&
+		!config.NoGratuitousArpReply.IsNull() && !config.NoGratuitousArpReply.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("gratuitous_arp_reply"),
 			tfdiag.ConflictConfigErrSummary,

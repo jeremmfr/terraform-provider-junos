@@ -922,16 +922,7 @@ type policyoptionsPolicyStatementBlockTerm struct {
 }
 
 func (block *policyoptionsPolicyStatementBlockTerm) isEmpty() bool {
-	switch {
-	case block.From != nil:
-		return false
-	case block.Then != nil:
-		return false
-	case block.To != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block, "Name")
 }
 
 type policyoptionsPolicyStatementBlockTermConfig struct {
@@ -942,16 +933,7 @@ type policyoptionsPolicyStatementBlockTermConfig struct {
 }
 
 func (block *policyoptionsPolicyStatementBlockTermConfig) isEmpty() bool {
-	switch {
-	case block.From != nil:
-		return false
-	case block.Then != nil:
-		return false
-	case block.To != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block, "Name")
 }
 
 type policyoptionsPolicyStatementBlockFrom struct {
@@ -991,76 +973,7 @@ type policyoptionsPolicyStatementBlockFrom struct {
 }
 
 func (block *policyoptionsPolicyStatementBlockFrom) isEmpty() bool {
-	switch {
-	case !block.AggregateContributor.IsNull():
-		return false
-	case !block.NextHopTypeMerged.IsNull():
-		return false
-	case len(block.BgpASPath) != 0:
-		return false
-	case len(block.BgpASPathGroup) != 0:
-		return false
-	case len(block.BgpCommunity) != 0:
-		return false
-	case !block.BgpOrigin.IsNull():
-		return false
-	case !block.BgpSrteDiscriminator.IsNull():
-		return false
-	case !block.Color.IsNull():
-		return false
-	case len(block.EvpnESI) != 0:
-		return false
-	case !block.EvpnMACRoute.IsNull():
-		return false
-	case len(block.EvpnTag) != 0:
-		return false
-	case !block.Family.IsNull():
-		return false
-	case !block.LocalPreference.IsNull():
-		return false
-	case len(block.Interface) != 0:
-		return false
-	case !block.Metric.IsNull():
-		return false
-	case len(block.Neighbor) != 0:
-		return false
-	case len(block.NextHop) != 0:
-		return false
-	case !block.OspfArea.IsNull():
-		return false
-	case len(block.Policy) != 0:
-		return false
-	case !block.Preference.IsNull():
-		return false
-	case len(block.PrefixList) != 0:
-		return false
-	case len(block.Protocol) != 0:
-		return false
-	case !block.RouteType.IsNull():
-		return false
-	case !block.RoutingInstance.IsNull():
-		return false
-	case !block.SrteColor.IsNull():
-		return false
-	case !block.State.IsNull():
-		return false
-	case len(block.TunnelType) != 0:
-		return false
-	case !block.ValidationDatabase.IsNull():
-		return false
-	case len(block.BgpASPathCalcLength) != 0:
-		return false
-	case len(block.BgpASPathUniqueCount) != 0:
-		return false
-	case len(block.BgpCommunityCount) != 0:
-		return false
-	case len(block.NextHopWeight) != 0:
-		return false
-	case len(block.RouteFilter) != 0:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type policyoptionsPolicyStatementBlockFromConfig struct {
@@ -1100,76 +1013,7 @@ type policyoptionsPolicyStatementBlockFromConfig struct {
 }
 
 func (block *policyoptionsPolicyStatementBlockFromConfig) isEmpty() bool {
-	switch {
-	case !block.AggregateContributor.IsNull():
-		return false
-	case !block.NextHopTypeMerged.IsNull():
-		return false
-	case !block.BgpASPath.IsNull():
-		return false
-	case !block.BgpASPathGroup.IsNull():
-		return false
-	case !block.BgpCommunity.IsNull():
-		return false
-	case !block.BgpOrigin.IsNull():
-		return false
-	case !block.BgpSrteDiscriminator.IsNull():
-		return false
-	case !block.Color.IsNull():
-		return false
-	case !block.EvpnESI.IsNull():
-		return false
-	case !block.EvpnMACRoute.IsNull():
-		return false
-	case !block.EvpnTag.IsNull():
-		return false
-	case !block.Family.IsNull():
-		return false
-	case !block.LocalPreference.IsNull():
-		return false
-	case !block.Interface.IsNull():
-		return false
-	case !block.Metric.IsNull():
-		return false
-	case !block.Neighbor.IsNull():
-		return false
-	case !block.NextHop.IsNull():
-		return false
-	case !block.OspfArea.IsNull():
-		return false
-	case !block.Policy.IsNull():
-		return false
-	case !block.Preference.IsNull():
-		return false
-	case !block.PrefixList.IsNull():
-		return false
-	case !block.Protocol.IsNull():
-		return false
-	case !block.RouteType.IsNull():
-		return false
-	case !block.RoutingInstance.IsNull():
-		return false
-	case !block.SrteColor.IsNull():
-		return false
-	case !block.State.IsNull():
-		return false
-	case !block.TunnelType.IsNull():
-		return false
-	case !block.ValidationDatabase.IsNull():
-		return false
-	case !block.BgpASPathCalcLength.IsNull():
-		return false
-	case !block.BgpASPathUniqueCount.IsNull():
-		return false
-	case !block.BgpCommunityCount.IsNull():
-		return false
-	case !block.NextHopWeight.IsNull():
-		return false
-	case !block.RouteFilter.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type policyoptionsPolicyStatementBlockFromBlockCountMatch struct {
@@ -1207,40 +1051,7 @@ type policyoptionsPolicyStatementBlockTo struct {
 }
 
 func (block *policyoptionsPolicyStatementBlockTo) isEmpty() bool {
-	switch {
-	case len(block.BgpASPath) != 0:
-		return false
-	case len(block.BgpASPathGroup) != 0:
-		return false
-	case len(block.BgpCommunity) != 0:
-		return false
-	case !block.BgpOrigin.IsNull():
-		return false
-	case !block.Family.IsNull():
-		return false
-	case !block.LocalPreference.IsNull():
-		return false
-	case len(block.Interface) != 0:
-		return false
-	case !block.Metric.IsNull():
-		return false
-	case len(block.Neighbor) != 0:
-		return false
-	case len(block.NextHop) != 0:
-		return false
-	case !block.OspfArea.IsNull():
-		return false
-	case len(block.Policy) != 0:
-		return false
-	case !block.Preference.IsNull():
-		return false
-	case len(block.Protocol) != 0:
-		return false
-	case !block.RoutingInstance.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type policyoptionsPolicyStatementBlockToConfig struct {
@@ -1262,40 +1073,7 @@ type policyoptionsPolicyStatementBlockToConfig struct {
 }
 
 func (block *policyoptionsPolicyStatementBlockToConfig) isEmpty() bool {
-	switch {
-	case !block.BgpASPath.IsNull():
-		return false
-	case !block.BgpASPathGroup.IsNull():
-		return false
-	case !block.BgpCommunity.IsNull():
-		return false
-	case !block.BgpOrigin.IsNull():
-		return false
-	case !block.Family.IsNull():
-		return false
-	case !block.LocalPreference.IsNull():
-		return false
-	case !block.Interface.IsNull():
-		return false
-	case !block.Metric.IsNull():
-		return false
-	case !block.Neighbor.IsNull():
-		return false
-	case !block.NextHop.IsNull():
-		return false
-	case !block.OspfArea.IsNull():
-		return false
-	case !block.Policy.IsNull():
-		return false
-	case !block.Preference.IsNull():
-		return false
-	case !block.Protocol.IsNull():
-		return false
-	case !block.RoutingInstance.IsNull():
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type policyoptionsPolicyStatementBlockThen struct {
@@ -1314,34 +1092,7 @@ type policyoptionsPolicyStatementBlockThen struct {
 }
 
 func (block *policyoptionsPolicyStatementBlockThen) isEmpty() bool {
-	switch {
-	case !block.Action.IsNull():
-		return false
-	case !block.ASPathExpand.IsNull():
-		return false
-	case !block.ASPathPrepend.IsNull():
-		return false
-	case !block.DefaultAction.IsNull():
-		return false
-	case !block.LoadBalance.IsNull():
-		return false
-	case !block.Next.IsNull():
-		return false
-	case !block.NextHop.IsNull():
-		return false
-	case !block.Origin.IsNull():
-		return false
-	case len(block.Community) != 0:
-		return false
-	case block.LocalPreference != nil:
-		return false
-	case block.Metric != nil:
-		return false
-	case block.Preference != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type policyoptionsPolicyStatementBlockThenConfig struct {
@@ -1360,34 +1111,7 @@ type policyoptionsPolicyStatementBlockThenConfig struct {
 }
 
 func (block *policyoptionsPolicyStatementBlockThenConfig) isEmpty() bool {
-	switch {
-	case !block.Action.IsNull():
-		return false
-	case !block.ASPathExpand.IsNull():
-		return false
-	case !block.ASPathPrepend.IsNull():
-		return false
-	case !block.DefaultAction.IsNull():
-		return false
-	case !block.LoadBalance.IsNull():
-		return false
-	case !block.Next.IsNull():
-		return false
-	case !block.NextHop.IsNull():
-		return false
-	case !block.Origin.IsNull():
-		return false
-	case !block.Community.IsNull():
-		return false
-	case block.LocalPreference != nil:
-		return false
-	case block.Metric != nil:
-		return false
-	case block.Preference != nil:
-		return false
-	default:
-		return true
-	}
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type policyoptionsPolicyStatementBlockThenBlockActionValue struct {
@@ -1400,7 +1124,8 @@ type policyoptionsPolicyStatementBlockThenBlockActionValueInt64 struct {
 	Value  types.Int64  `tfsdk:"value"`
 }
 
-func (rsc *policyoptionsPolicyStatement) ValidateConfig( //nolint:gocognit,gocyclo
+//nolint:gocognit,gocyclo
+func (rsc *policyoptionsPolicyStatement) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
 	var config policyoptionsPolicyStatementConfig

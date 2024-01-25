@@ -17,7 +17,7 @@ import (
 
 // Session : store Junos device info and session.
 type Session struct {
-	SystemInformation      sysInfo
+	SystemInformation      rpcSystemInformation
 	netconf                *netconf.Session
 	localAddress           string
 	remoteAddress          string

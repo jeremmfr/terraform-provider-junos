@@ -328,14 +328,15 @@ func (rsc *servicesFlowMonitoringV9Template) ValidateConfig(
 		return
 	}
 
-	if !config.NexthopLearningEnable.IsNull() && !config.NexthopLearningDisable.IsNull() {
+	if !config.NexthopLearningEnable.IsNull() && !config.NexthopLearningEnable.IsUnknown() &&
+		!config.NexthopLearningDisable.IsNull() && !config.NexthopLearningDisable.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("nexthop_learning_enable"),
 			tfdiag.ConflictConfigErrSummary,
 			"cannot have nexthop_learning_enable and nexthop_learning_disable at the same time",
 		)
 	}
-	if !config.IPTemplateExportExtension.IsNull() &&
+	if !config.IPTemplateExportExtension.IsNull() && !config.IPTemplateExportExtension.IsUnknown() &&
 		!config.Type.IsNull() && !config.Type.IsUnknown() {
 		if v := config.Type.ValueString(); v != "ipv4-template" && v != "ipv6-template" {
 			resp.Diagnostics.AddAttributeError(
@@ -345,7 +346,7 @@ func (rsc *servicesFlowMonitoringV9Template) ValidateConfig(
 			)
 		}
 	}
-	if !config.MPLSTemplateLabelPosition.IsNull() &&
+	if !config.MPLSTemplateLabelPosition.IsNull() && !config.MPLSTemplateLabelPosition.IsUnknown() &&
 		!config.Type.IsNull() && !config.Type.IsUnknown() {
 		if v := config.Type.ValueString(); v != "mpls-template" {
 			resp.Diagnostics.AddAttributeError(

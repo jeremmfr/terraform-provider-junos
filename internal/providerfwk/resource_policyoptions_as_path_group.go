@@ -184,7 +184,7 @@ func (rsc *policyoptionsASPathGroup) ValidateConfig(
 			if _, ok := asPathName[asPath.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("as_path").AtListIndex(i).AtName("name"),
-					tfdiag.ConflictConfigErrSummary,
+					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple as_path blocks with the same name %q",
 						asPath.Name.ValueString()),
 				)

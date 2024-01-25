@@ -168,7 +168,8 @@ func (rsc *securityIpsecPolicy) ValidateConfig(
 		return
 	}
 
-	if !config.Proposals.IsNull() && !config.ProposalSet.IsNull() {
+	if !config.Proposals.IsNull() && !config.Proposals.IsUnknown() &&
+		!config.ProposalSet.IsNull() && !config.ProposalSet.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("proposals"),
 			tfdiag.ConflictConfigErrSummary,

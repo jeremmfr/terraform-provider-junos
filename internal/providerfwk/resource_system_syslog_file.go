@@ -461,8 +461,8 @@ func (rsc *systemSyslogFile) ValidateConfig(
 	}
 
 	if config.Archive != nil {
-		if !config.Archive.BinaryData.IsNull() &&
-			!config.Archive.NoBinaryData.IsNull() {
+		if !config.Archive.BinaryData.IsNull() && !config.Archive.BinaryData.IsUnknown() &&
+			!config.Archive.NoBinaryData.IsNull() && !config.Archive.NoBinaryData.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("archive").AtName("binary_data"),
 				tfdiag.ConflictConfigErrSummary,
@@ -470,8 +470,8 @@ func (rsc *systemSyslogFile) ValidateConfig(
 					" in archive block",
 			)
 		}
-		if !config.Archive.WorldReadable.IsNull() &&
-			!config.Archive.NoWorldReadable.IsNull() {
+		if !config.Archive.WorldReadable.IsNull() && !config.Archive.WorldReadable.IsUnknown() &&
+			!config.Archive.NoWorldReadable.IsNull() && !config.Archive.NoWorldReadable.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("archive").AtName("world_readable"),
 				tfdiag.ConflictConfigErrSummary,

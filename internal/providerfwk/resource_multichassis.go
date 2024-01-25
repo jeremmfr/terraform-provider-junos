@@ -175,7 +175,7 @@ func (rsc *multichassis) Read(
 		return
 	}
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceRead(
 		ctx,
 		rsc,
@@ -239,7 +239,7 @@ func (rsc *multichassis) ImportState(
 ) {
 	var data multichassisData
 
-	var _ resourceDataReadFrom0String = &data
+	var _ resourceDataReadWithoutArg = &data
 	defaultResourceImportState(
 		ctx,
 		rsc,

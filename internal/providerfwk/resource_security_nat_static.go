@@ -355,11 +355,11 @@ func (rsc *securityNatStatic) ValidateConfig(
 			"one of configure_rules_singly or rule must be specified",
 		)
 	}
-	if !config.ConfigureRulesSingly.IsNull() &&
-		!config.Rule.IsNull() {
+	if config.ConfigureRulesSingly.ValueBool() &&
+		!config.Rule.IsNull() && !config.Rule.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("configure_rules_singly"),
-			tfdiag.MissingConfigErrSummary,
+			tfdiag.ConflictConfigErrSummary,
 			"only one of configure_rules_singly or rule must be specified",
 		)
 	}
@@ -396,8 +396,8 @@ func (rsc *securityNatStatic) ValidateConfig(
 						" in rule block %q", block.Name.ValueString()),
 				)
 			}
-			if !block.DestinationAddress.IsNull() &&
-				!block.DestinationAddressName.IsNull() {
+			if !block.DestinationAddress.IsNull() && !block.DestinationAddress.IsUnknown() &&
+				!block.DestinationAddressName.IsNull() && !block.DestinationAddressName.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("rule").AtListIndex(i).AtName("destination_address"),
 					tfdiag.ConflictConfigErrSummary,
@@ -418,7 +418,7 @@ func (rsc *securityNatStatic) ValidateConfig(
 				if !block.Then.Type.IsUnknown() {
 					switch block.Then.Type.ValueString() {
 					case junos.InetW:
-						if !block.Then.Prefix.IsNull() {
+						if !block.Then.Prefix.IsNull() && !block.Then.Prefix.IsUnknown() {
 							resp.Diagnostics.AddAttributeError(
 								path.Root("rule").AtListIndex(i).AtName("then").AtName("prefix"),
 								tfdiag.ConflictConfigErrSummary,
@@ -426,7 +426,7 @@ func (rsc *securityNatStatic) ValidateConfig(
 									" in then block in rule block %q", block.Name.ValueString()),
 							)
 						}
-						if !block.Then.MappedPort.IsNull() {
+						if !block.Then.MappedPort.IsNull() && !block.Then.MappedPort.IsUnknown() {
 							resp.Diagnostics.AddAttributeError(
 								path.Root("rule").AtListIndex(i).AtName("then").AtName("mapped_port"),
 								tfdiag.ConflictConfigErrSummary,
@@ -434,7 +434,7 @@ func (rsc *securityNatStatic) ValidateConfig(
 									" in then block in rule block %q", block.Name.ValueString()),
 							)
 						}
-						if !block.Then.MappedPortTo.IsNull() {
+						if !block.Then.MappedPortTo.IsNull() && !block.Then.MappedPortTo.IsUnknown() {
 							resp.Diagnostics.AddAttributeError(
 								path.Root("rule").AtListIndex(i).AtName("then").AtName("mapped_port_to"),
 								tfdiag.ConflictConfigErrSummary,
