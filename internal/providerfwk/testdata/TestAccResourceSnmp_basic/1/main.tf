@@ -1,33 +1,3 @@
-package providersdk_test
-
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-)
-
-func TestAccResourceSnmp_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceSnmpConfigCreate(),
-			},
-			{
-				ResourceName:      "junos_snmp.testacc_snmp",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccResourceSnmpConfigUpdate(),
-			},
-		},
-	})
-}
-
-func testAccResourceSnmpConfigCreate() string {
-	return `
 resource "junos_snmp" "testacc_snmp" {
   arp                        = true
   contact                    = "contact@example.com"
@@ -51,24 +21,10 @@ resource "junos_snmp" "testacc_snmp" {
   routing_instance_access         = true
   routing_instance_access_list    = [junos_routing_instance.testacc_snmp.name]
 }
+
 resource "junos_routing_instance" "testacc_snmp" {
   lifecycle {
     create_before_destroy = true
   }
   name = "testacc_snmp"
-}
-`
-}
-
-func testAccResourceSnmpConfigUpdate() string {
-	return `
-resource "junos_snmp" "testacc_snmp" {
-  clean_on_destroy         = true
-  arp                      = true
-  arp_host_name_resolution = true
-  engine_id                = "local \"test#123\""
-  health_monitor {}
-  routing_instance_access = true
-}
-`
 }
