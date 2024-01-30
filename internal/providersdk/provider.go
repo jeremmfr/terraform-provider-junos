@@ -213,7 +213,6 @@ func Provider() *schema.Provider {
 			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_services_user_identification_ad_access_domain":        resourceServicesUserIdentAdAccessDomain(),
 			"junos_services_user_identification_device_identity_profile": resourceServicesUserIdentDeviceIdentityProfile(),
-			"junos_snmp_clientlist":                                      resourceSnmpClientlist(),
 			"junos_snmp_community":                                       resourceSnmpCommunity(),
 			"junos_snmp_v3_community":                                    resourceSnmpV3Community(),
 			"junos_snmp_v3_usm_user":                                     resourceSnmpV3UsmUser(),
