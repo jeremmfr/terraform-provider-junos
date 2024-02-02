@@ -19,5 +19,8 @@ ENHANCEMENTS:
   some of config errors are now sent during Plan instead of during Apply  
   optional string attributes doesn't accept *empty* value  
   * `authentication_type` argument accept new value: `authentication-sha224`, `authentication-sha256`, `authentication-sha384` and `authentication-sha512`
+* **resource/junos_snmp_v3_vacm_accessgroup**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
 
 BUG FIXES:
