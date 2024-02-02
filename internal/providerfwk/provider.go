@@ -283,6 +283,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSnmpV3CommunityResource,
 		newSnmpV3UsmUserResource,
 		newSnmpV3VacmAccessgroupResource,
+		newSnmpV3VacmSecuritytogroupResource,
 		newStaticRouteResource,
 		newSwitchOptionsResource,
 		newSystemResource,

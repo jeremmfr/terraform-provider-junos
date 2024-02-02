@@ -22,5 +22,7 @@ ENHANCEMENTS:
 * **resource/junos_snmp_v3_vacm_accessgroup**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
   optional string attributes doesn't accept *empty* value  
+* **resource/junos_snmp_v3_vacm_securitytogroup**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
 
 BUG FIXES:
