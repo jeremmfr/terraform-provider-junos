@@ -2598,7 +2598,8 @@ func findInterfaceAggregatedCountMax(
 	if err != nil {
 		return "", fmt.Errorf("converting ae interaface '%v' to integer: %w", newAE, err)
 	}
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"interfaces" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return "", err
 	}

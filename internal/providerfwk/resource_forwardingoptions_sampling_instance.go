@@ -1275,7 +1275,8 @@ func checkForwardingoptionsSamplingInstanceExists(
 ) {
 	var showConfig string
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			junos.RoutingInstancesWS + routingInstance + " " +
 			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
 	} else {
 		showConfig, err = junSess.Command(junos.CmdShowConfig +
@@ -1735,7 +1736,8 @@ func (rscData *forwardingoptionsSamplingInstanceData) read(
 ) {
 	var showConfig string
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			junos.RoutingInstancesWS + routingInstance + " " +
 			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	} else {
 		showConfig, err = junSess.Command(junos.CmdShowConfig +

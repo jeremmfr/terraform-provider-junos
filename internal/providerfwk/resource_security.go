@@ -2808,7 +2808,8 @@ func (rscData *securityData) read(
 ) (
 	err error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "security" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}

@@ -2986,7 +2986,8 @@ func (rscData *interfaceLogicalData) read(
 		}
 	}
 	if junSess.CheckCompatibilitySecurity() {
-		showConfigSecurityZones, err := junSess.Command(junos.CmdShowConfig + "security zones" + junos.PipeDisplaySetRelative)
+		showConfigSecurityZones, err := junSess.Command(junos.CmdShowConfig +
+			"security zones" + junos.PipeDisplaySetRelative)
 		if err != nil {
 			return err
 		}

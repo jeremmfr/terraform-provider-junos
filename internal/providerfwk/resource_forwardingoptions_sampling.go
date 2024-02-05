@@ -1812,7 +1812,8 @@ func (rscData *forwardingoptionsSamplingData) read(
 ) {
 	var showConfig string
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			junos.RoutingInstancesWS + routingInstance + " " +
 			"forwarding-options sampling" + junos.PipeDisplaySetRelative)
 	} else {
 		showConfig, err = junSess.Command(junos.CmdShowConfig +

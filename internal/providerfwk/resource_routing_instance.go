@@ -505,7 +505,8 @@ func checkRoutingInstanceExists(
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		junos.RoutingInstancesWS + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}

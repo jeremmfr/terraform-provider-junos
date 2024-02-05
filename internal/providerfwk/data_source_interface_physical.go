@@ -382,7 +382,8 @@ func (dsc *interfacePhysicalDataSource) searchName(
 	_ context.Context, configInterface, match string, junSess *junos.Session,
 ) (string, error) {
 	intConfigList := make([]string, 0)
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces " + configInterface + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"interfaces " + configInterface + junos.PipeDisplaySet)
 	if err != nil {
 		return "", err
 	}
