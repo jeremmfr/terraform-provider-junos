@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -468,7 +469,7 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, junSess *junos.Session) error {
 			configSet = append(configSet, setPrefix+"proxy source-address "+v)
 		}
 	} else if d.Get("proxy_source_address").(string) != "" {
-		return fmt.Errorf("proxy need to be true with proxy_source_address")
+		return errors.New("proxy need to be true with proxy_source_address")
 	}
 	if v := d.Get("query_interval").(int); v != 0 {
 		configSet = append(configSet, setPrefix+"query-interval "+strconv.Itoa(v))

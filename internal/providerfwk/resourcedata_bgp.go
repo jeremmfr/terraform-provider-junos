@@ -1,7 +1,7 @@
 package providerfwk
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -179,7 +179,7 @@ func (block *bgpBlockFamily) configSet(
 			if block.AcceptedPrefixLimit.TeardownIdleTimeoutForever.ValueBool() {
 				return configSet,
 					pathRoot.AtName("accepted_prefix_limit").AtName("teardown_idle_timeout_forever"),
-					fmt.Errorf("conflict between teardown_idle_timeout and teardown_idle_timeout_forever")
+					errors.New("conflict between teardown_idle_timeout and teardown_idle_timeout_forever")
 			}
 			configSet = append(configSet, setPrefix+"accepted-prefix-limit teardown idle-timeout "+
 				utils.ConvI64toa(block.AcceptedPrefixLimit.TeardownIdleTimeout.ValueInt64()))
@@ -201,7 +201,7 @@ func (block *bgpBlockFamily) configSet(
 			if block.PrefixLimit.TeardownIdleTimeoutForever.ValueBool() {
 				return configSet,
 					pathRoot.AtName("prefix_limit").AtName("teardown_idle_timeout_forever"),
-					fmt.Errorf("conflict between teardown_idle_timeout and teardown_idle_timeout_forever")
+					errors.New("conflict between teardown_idle_timeout and teardown_idle_timeout_forever")
 			}
 			configSet = append(configSet, setPrefix+"prefix-limit teardown idle-timeout "+
 				utils.ConvI64toa(block.PrefixLimit.TeardownIdleTimeout.ValueInt64()))

@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -598,7 +599,7 @@ func (rscData *evpnData) set(
 	if rscData.RoutingInstanceEvpn.ValueBool() {
 		if rscData.SwitchOrRIOptions == nil {
 			return path.Root("switch_or_ri_options"),
-				fmt.Errorf("switch_or_ri_options must be specified with routing_instance_evpn")
+				errors.New("switch_or_ri_options must be specified with routing_instance_evpn")
 		}
 		configSet = append(configSet, setSwitchRIPrefix+"instance-type evpn")
 	}
@@ -611,7 +612,7 @@ func (rscData *evpnData) set(
 	if rscData.DuplicateMacDetection != nil {
 		if rscData.DuplicateMacDetection.isEmpty() {
 			return path.Root("duplicate_mac_detection"),
-				fmt.Errorf("duplicate_mac_detection block is empty")
+				errors.New("duplicate_mac_detection block is empty")
 		}
 		if !rscData.DuplicateMacDetection.AutoRecoveryTime.IsNull() {
 			configSet = append(configSet, setPrefix+"duplicate-mac-detection auto-recovery-time "+

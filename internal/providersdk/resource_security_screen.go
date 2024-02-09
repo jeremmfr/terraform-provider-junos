@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -825,7 +826,7 @@ func setSecurityScreen(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, v := range d.Get("icmp").([]interface{}) {
 		if v == nil {
-			return fmt.Errorf("icmp block is empty")
+			return errors.New("icmp block is empty")
 		}
 		icmp := v.(map[string]interface{})
 		configSet = append(configSet, setSecurityScreenIcmp(icmp, setPrefix)...)
@@ -839,7 +840,7 @@ func setSecurityScreen(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, v := range d.Get("limit_session").([]interface{}) {
 		if v == nil {
-			return fmt.Errorf("limit_session block is empty")
+			return errors.New("limit_session block is empty")
 		}
 		limitSession := v.(map[string]interface{})
 		if limitSession["destination_ip_based"].(int) != 0 {
@@ -853,7 +854,7 @@ func setSecurityScreen(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, v := range d.Get("tcp").([]interface{}) {
 		if v == nil {
-			return fmt.Errorf("tcp block is empty")
+			return errors.New("tcp block is empty")
 		}
 		tcp := v.(map[string]interface{})
 		configSetTCP, err := setSecurityScreenTCP(tcp, setPrefix)
@@ -864,7 +865,7 @@ func setSecurityScreen(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, v := range d.Get("udp").([]interface{}) {
 		if v == nil {
-			return fmt.Errorf("udp block is empty")
+			return errors.New("udp block is empty")
 		}
 		udp := v.(map[string]interface{})
 		configSet = append(configSet, setSecurityScreenUDP(udp, setPrefix)...)
@@ -923,7 +924,7 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 	}
 	for _, v := range ip["ipv6_extension_header"].([]interface{}) {
 		if v == nil {
-			return configSet, fmt.Errorf("ip.0.ipv6_extension_header block is empty")
+			return configSet, errors.New("ip.0.ipv6_extension_header block is empty")
 		}
 		ipIPv6ExtHeader := v.(map[string]interface{})
 		if ipIPv6ExtHeader["ah_header"].(bool) {
@@ -1041,7 +1042,7 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 	}
 	for _, v := range ip["tunnel"].([]interface{}) {
 		if v == nil {
-			return configSet, fmt.Errorf("ip.0.tunnel block is empty")
+			return configSet, errors.New("ip.0.tunnel block is empty")
 		}
 		ipTunnel := v.(map[string]interface{})
 		if ipTunnel["bad_inner_header"].(bool) {
@@ -1049,7 +1050,7 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 		}
 		for _, v2 := range ipTunnel["gre"].([]interface{}) {
 			if v2 == nil {
-				return configSet, fmt.Errorf("ip.0.tunnel.0.gre block is empty")
+				return configSet, errors.New("ip.0.tunnel.0.gre block is empty")
 			}
 			ipTunnelGre := v2.(map[string]interface{})
 			if ipTunnelGre["gre_4in4"].(bool) {
@@ -1070,7 +1071,7 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 		}
 		for _, v2 := range ipTunnel["ipip"].([]interface{}) {
 			if v2 == nil {
-				return configSet, fmt.Errorf("ip.0.tunnel.0.ipip block is empty")
+				return configSet, errors.New("ip.0.tunnel.0.ipip block is empty")
 			}
 			ipTunnelIPIP := v2.(map[string]interface{})
 			if ipTunnelIPIP["ipip_4in4"].(bool) {
@@ -1103,7 +1104,7 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 		configSet = append(configSet, setPrefix+"unknown-protocol")
 	}
 	if len(configSet) == 0 {
-		return configSet, fmt.Errorf("ip block is empty")
+		return configSet, errors.New("ip block is empty")
 	}
 
 	return configSet, nil

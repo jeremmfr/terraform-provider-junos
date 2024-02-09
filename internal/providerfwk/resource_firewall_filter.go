@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -1752,7 +1753,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.DestinationPort) > 0 && len(block.DestinationPortExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("destination_port"),
-			fmt.Errorf("destination_port and destination_port_except cannot be configured together" +
+			errors.New("destination_port and destination_port_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.DestinationPort {
@@ -1770,7 +1771,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.ForwardingClass) > 0 && len(block.ForwardingClassExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("forwarding_class"),
-			fmt.Errorf("forwarding_class and forwarding_class_except cannot be configured together" +
+			errors.New("forwarding_class and forwarding_class_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.ForwardingClass {
@@ -1782,7 +1783,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.IcmpCode) > 0 && len(block.IcmpCodeExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("icmp_code"),
-			fmt.Errorf("icmp_code and icmp_code_except cannot be configured together" +
+			errors.New("icmp_code and icmp_code_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.IcmpCode {
@@ -1794,7 +1795,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.IcmpType) > 0 && len(block.IcmpTypeExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("icmp_type"),
-			fmt.Errorf("icmp_type and icmp_type_except cannot be configured together" +
+			errors.New("icmp_type and icmp_type_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.IcmpType {
@@ -1812,7 +1813,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.LossPriority) > 0 && len(block.LossPriorityExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("loss_priority"),
-			fmt.Errorf("loss_priority and loss_priority_except cannot be configured together" +
+			errors.New("loss_priority and loss_priority_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.LossPriority {
@@ -1824,7 +1825,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.NextHeader) > 0 && len(block.NextHeaderExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("next_header"),
-			fmt.Errorf("next_header and next_header_except cannot be configured together" +
+			errors.New("next_header and next_header_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.NextHeader {
@@ -1836,7 +1837,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.PacketLength) > 0 && len(block.PacketLengthExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("packet_length"),
-			fmt.Errorf("packet_length and packet_length_except cannot be configured together" +
+			errors.New("packet_length and packet_length_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.PacketLength {
@@ -1848,7 +1849,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.PolicyMap) > 0 && len(block.PolicyMapExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("policy_map"),
-			fmt.Errorf("policy_map and policy_map_except cannot be configured together" +
+			errors.New("policy_map and policy_map_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.PolicyMap {
@@ -1860,7 +1861,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.Port) > 0 && len(block.PortExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("port"),
-			fmt.Errorf("port and port_except cannot be configured together" +
+			errors.New("port and port_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.Port {
@@ -1878,7 +1879,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.Protocol) > 0 && len(block.ProtocolExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("protocol"),
-			fmt.Errorf("protocol and protocol_except cannot be configured together" +
+			errors.New("protocol and protocol_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.Protocol {
@@ -1902,7 +1903,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.SourcePort) > 0 && len(block.SourcePortExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("source_port"),
-			fmt.Errorf("source_port and source_port_except cannot be configured together" +
+			errors.New("source_port and source_port_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.SourcePort {
@@ -1921,13 +1922,13 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 		if block.TCPFlags.ValueString() != "" {
 			return configSet,
 				pathRoot.AtName("tcp_established"),
-				fmt.Errorf("tcp_established and tcp_flags cannot be configured together" +
+				errors.New("tcp_established and tcp_flags cannot be configured together" +
 					" in from block")
 		}
 		if block.TCPInitial.ValueBool() {
 			return configSet,
 				pathRoot.AtName("tcp_established"),
-				fmt.Errorf("tcp_established and tcp_initial cannot be configured together" +
+				errors.New("tcp_established and tcp_initial cannot be configured together" +
 					" in from block")
 		}
 		configSet = append(configSet, setPrefix+"tcp-established")

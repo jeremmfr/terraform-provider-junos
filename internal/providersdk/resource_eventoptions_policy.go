@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -698,7 +699,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 					configSet = append(configSet, setPrefix+"then change-configuration commit-options check synchronize")
 				}
 			} else if changeConfig["commit_options_check_synchronize"].(bool) {
-				return fmt.Errorf("commit_options_check must be set to true if commit_options_check_synchronize is set to true")
+				return errors.New("commit_options_check must be set to true if commit_options_check_synchronize is set to true")
 			}
 			if changeConfig["commit_options_force"].(bool) {
 				configSet = append(configSet, setPrefix+"then change-configuration commit-options force")
@@ -745,10 +746,10 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 						configSet = append(configSet, setPrefixDestination+
 							"retry-count "+strconv.Itoa(retryCount)+" retry-interval "+strconv.Itoa(retryInterval))
 					} else {
-						return fmt.Errorf("retry_interval must be set with retry_count")
+						return errors.New("retry_interval must be set with retry_count")
 					}
 				} else if destination["retry_interval"].(int) != -1 {
-					return fmt.Errorf("retry_count must be set with retry_interval")
+					return errors.New("retry_count must be set with retry_interval")
 				}
 				if transferDelay := destination["transfer_delay"].(int); transferDelay != -1 {
 					configSet = append(configSet, setPrefixDestination+"transfer-delay "+strconv.Itoa(transferDelay))
@@ -778,10 +779,10 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 						configSet = append(configSet, setPrefixDestination+
 							"retry-count "+strconv.Itoa(retryCount)+" retry-interval "+strconv.Itoa(retryInterval))
 					} else {
-						return fmt.Errorf("retry_interval must be set with retry_count")
+						return errors.New("retry_interval must be set with retry_count")
 					}
 				} else if destination["retry_interval"].(int) != -1 {
-					return fmt.Errorf("retry_count must be set with retry_interval")
+					return errors.New("retry_count must be set with retry_interval")
 				}
 				if transferDelay := destination["transfer_delay"].(int); transferDelay != -1 {
 					configSet = append(configSet, setPrefixDestination+"transfer-delay "+strconv.Itoa(transferDelay))
@@ -825,10 +826,10 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 					configSet = append(configSet, setPrefixThenUpload+
 						"retry-count "+strconv.Itoa(retryCount)+" retry-interval "+strconv.Itoa(retryInterval))
 				} else {
-					return fmt.Errorf("retry_interval must be set with retry_count")
+					return errors.New("retry_interval must be set with retry_count")
 				}
 			} else if upload["retry_interval"].(int) != -1 {
-				return fmt.Errorf("retry_count must be set with retry_interval")
+				return errors.New("retry_count must be set with retry_interval")
 			}
 			if transferDelay := upload["transfer_delay"].(int); transferDelay != -1 {
 				configSet = append(configSet, setPrefixThenUpload+"transfer-delay "+strconv.Itoa(transferDelay))
@@ -868,10 +869,10 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 			if c := within["trigger_count"].(int); c != -1 {
 				configSet = append(configSet, setPrefixWithin+"trigger "+v2+" "+strconv.Itoa(c))
 			} else {
-				return fmt.Errorf("trigger_count must be set with trigger_when")
+				return errors.New("trigger_count must be set with trigger_when")
 			}
 		} else if within["trigger_count"].(int) != -1 {
-			return fmt.Errorf("trigger_when must be set with trigger_count")
+			return errors.New("trigger_when must be set with trigger_count")
 		}
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixWithin) {
 			return fmt.Errorf("missing argument for within (time_interval=%d)", within["time_interval"].(int))

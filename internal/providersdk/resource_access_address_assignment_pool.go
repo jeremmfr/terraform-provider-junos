@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -828,7 +829,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	hostNameList := make([]string, 0)
 	for _, v := range family["host"].([]interface{}) {
 		if family["type"].(string) == junos.Inet6W {
-			return configSet, fmt.Errorf("host not compatible when type = inet6")
+			return configSet, errors.New("host not compatible when type = inet6")
 		}
 		host := v.(map[string]interface{})
 		if bchk.InSlice(host["name"].(string), hostNameList) {
@@ -844,7 +845,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	switch family["type"].(string) {
 	case junos.InetW:
 		if len(family["inet6_range"].([]interface{})) > 0 {
-			return configSet, fmt.Errorf("inet6_range not compatible when type = inet")
+			return configSet, errors.New("inet6_range not compatible when type = inet")
 		}
 		for _, v := range family["inet_range"].([]interface{}) {
 			rangeBlck := v.(map[string]interface{})
@@ -859,7 +860,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 		}
 	case junos.Inet6W:
 		if len(family["inet_range"].([]interface{})) > 0 {
-			return configSet, fmt.Errorf("inet_range not compatible when type = inet6")
+			return configSet, errors.New("inet_range not compatible when type = inet6")
 		}
 		for _, v := range family["inet6_range"].([]interface{}) {
 			rangeBlck := v.(map[string]interface{})
@@ -887,7 +888,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	}
 	if v := family["xauth_attributes_primary_dns"].(string); v != "" {
 		if family["type"].(string) == junos.Inet6W {
-			return configSet, fmt.Errorf("xauth_attributes_primary_dns not compatible when type = inet6")
+			return configSet, errors.New("xauth_attributes_primary_dns not compatible when type = inet6")
 		}
 		if _, errs := validation.IsIPv4Address(strings.Split(v, "/")[0], ""); len(errs) > 0 {
 			return configSet, fmt.Errorf("%s is not a IPv4", v)
@@ -896,7 +897,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	}
 	if v := family["xauth_attributes_primary_wins"].(string); v != "" {
 		if family["type"].(string) == junos.Inet6W {
-			return configSet, fmt.Errorf("xauth_attributes_primary_wins not compatible when type = inet6")
+			return configSet, errors.New("xauth_attributes_primary_wins not compatible when type = inet6")
 		}
 		if _, errs := validation.IsIPv4Address(strings.Split(v, "/")[0], ""); len(errs) > 0 {
 			return configSet, fmt.Errorf("%s is not a IPv4", v)
@@ -905,7 +906,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	}
 	if v := family["xauth_attributes_secondary_dns"].(string); v != "" {
 		if family["type"].(string) == junos.Inet6W {
-			return configSet, fmt.Errorf("xauth_attributes_secondary_dns not compatible when type = inet6")
+			return configSet, errors.New("xauth_attributes_secondary_dns not compatible when type = inet6")
 		}
 		if _, errs := validation.IsIPv4Address(strings.Split(v, "/")[0], ""); len(errs) > 0 {
 			return configSet, fmt.Errorf("%s is not a IPv4", v)
@@ -914,7 +915,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	}
 	if v := family["xauth_attributes_secondary_wins"].(string); v != "" {
 		if family["type"].(string) == junos.Inet6W {
-			return configSet, fmt.Errorf("xauth_attributes_secondary_wins not compatible when type = inet6")
+			return configSet, errors.New("xauth_attributes_secondary_wins not compatible when type = inet6")
 		}
 		if _, errs := validation.IsIPv4Address(strings.Split(v, "/")[0], ""); len(errs) > 0 {
 			return configSet, fmt.Errorf("%s is not a IPv4", v)
@@ -937,7 +938,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	}
 	for _, v := range dhcpAttr["dns_server"].([]interface{}) {
 		if familyType == junos.InetW {
-			return configSet, fmt.Errorf("dhcp_attributes.0.dns_server not compatible when type = inet")
+			return configSet, errors.New("dhcp_attributes.0.dns_server not compatible when type = inet")
 		}
 
 		configSet = append(configSet, setPrefix+"dns-server "+v.(string))
@@ -947,7 +948,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	}
 	if v := dhcpAttr["exclude_prefix_len"].(int); v != 0 {
 		if familyType == junos.InetW {
-			return configSet, fmt.Errorf("dhcp_attributes.0.exclude_prefix_len not compatible when type = inet")
+			return configSet, errors.New("dhcp_attributes.0.exclude_prefix_len not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"exclude-prefix-len "+strconv.Itoa(v))
 	}
@@ -998,13 +999,13 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	}
 	if v := dhcpAttr["preferred_lifetime"].(int); v != -1 {
 		if familyType == junos.InetW {
-			return configSet, fmt.Errorf("dhcp_attributes.0.preferred_lifetime not compatible when type = inet")
+			return configSet, errors.New("dhcp_attributes.0.preferred_lifetime not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"preferred-lifetime "+strconv.Itoa(v))
 	}
 	if dhcpAttr["preferred_lifetime_infinite"].(bool) {
 		if familyType == junos.InetW {
-			return configSet, fmt.Errorf("dhcp_attributes.0.preferred_lifetime_infinite not compatible when type = inet")
+			return configSet, errors.New("dhcp_attributes.0.preferred_lifetime_infinite not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"preferred-lifetime infinite")
 	}
@@ -1025,7 +1026,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	}
 	for _, v := range dhcpAttr["sip_server_inet6_address"].([]interface{}) {
 		if familyType == junos.InetW {
-			return configSet, fmt.Errorf("dhcp_attributes.0.sip_server_inet6_address not compatible when type = inet")
+			return configSet, errors.New("dhcp_attributes.0.sip_server_inet6_address not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"sip-server-address "+v.(string))
 	}
@@ -1034,7 +1035,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	}
 	if v := dhcpAttr["sip_server_inet6_domain_name"].(string); v != "" {
 		if familyType == junos.InetW {
-			return configSet, fmt.Errorf("dhcp_attributes.0.sip_server_inet6_domain_name not compatible when type = inet")
+			return configSet, errors.New("dhcp_attributes.0.sip_server_inet6_domain_name not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"sip-server-domain-name \""+v+"\"")
 	}
@@ -1055,13 +1056,13 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	}
 	if v := dhcpAttr["valid_lifetime"].(int); v != -1 {
 		if familyType == junos.InetW {
-			return configSet, fmt.Errorf("dhcp_attributes.0.valid_lifetime not compatible when type = inet")
+			return configSet, errors.New("dhcp_attributes.0.valid_lifetime not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"valid-lifetime "+strconv.Itoa(v))
 	}
 	if dhcpAttr["valid_lifetime_infinite"].(bool) {
 		if familyType == junos.InetW {
-			return configSet, fmt.Errorf("dhcp_attributes.0.valid_lifetime_infinite not compatible when type = inet")
+			return configSet, errors.New("dhcp_attributes.0.valid_lifetime_infinite not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"valid-lifetime infinite")
 	}
@@ -1069,7 +1070,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 		configSet = append(configSet, setPrefix+"wins-server "+v.(string))
 	}
 	if len(configSet) == 0 {
-		return configSet, fmt.Errorf("family.0.dhcp_attributes block is empty")
+		return configSet, errors.New("family.0.dhcp_attributes block is empty")
 	}
 
 	return configSet, nil

@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -598,7 +599,7 @@ func setServicesRpmProbe(d *schema.ResourceData, junSess *junos.Session) error {
 			if v2int, v2cnt := rpmScale["destination_interface"].(string),
 				rpmScale["destination_subunit_cnt"].(int); v2int != "" || v2cnt != 0 {
 				if v2int == "" || v2cnt == 0 {
-					return fmt.Errorf("all of `destination_interface,destination_subunit_cnt` must be specified")
+					return errors.New("all of `destination_interface,destination_subunit_cnt` must be specified")
 				}
 				configSet = append(configSet, setPrefixTest+"rpm-scale destination interface "+v2int)
 				configSet = append(configSet, setPrefixTest+"rpm-scale destination subunit-cnt "+strconv.Itoa(v2cnt))
@@ -606,7 +607,7 @@ func setServicesRpmProbe(d *schema.ResourceData, junSess *junos.Session) error {
 			if v2add, v2cnt, v2step := rpmScale["source_address_base"].(string), rpmScale["source_count"].(int),
 				rpmScale["source_step"].(string); v2add != "" || v2cnt != 0 || v2step != "" {
 				if v2add == "" || v2cnt == 0 || v2step == "" {
-					return fmt.Errorf("all of `source_address_base,source_count,source_step` must be specified")
+					return errors.New("all of `source_address_base,source_count,source_step` must be specified")
 				}
 				configSet = append(configSet, setPrefixTest+"rpm-scale source address-base "+v2add)
 				configSet = append(configSet, setPrefixTest+"rpm-scale source count "+strconv.Itoa(v2cnt))
@@ -615,7 +616,7 @@ func setServicesRpmProbe(d *schema.ResourceData, junSess *junos.Session) error {
 			if v2add, v2cnt, v2step := rpmScale["source_inet6_address_base"].(string), rpmScale["source_inet6_count"].(int),
 				rpmScale["source_inet6_step"].(string); v2add != "" || v2cnt != 0 || v2step != "" {
 				if v2add == "" || v2cnt == 0 || v2step == "" {
-					return fmt.Errorf("all of `source_inet6_address_base,source_inet6_count,source_inet6_step` must be specified")
+					return errors.New("all of `source_inet6_address_base,source_inet6_count,source_inet6_step` must be specified")
 				}
 				configSet = append(configSet, setPrefixTest+"rpm-scale source-inet6 address-base "+v2add)
 				configSet = append(configSet, setPrefixTest+"rpm-scale source-inet6 count "+strconv.Itoa(v2cnt))
@@ -624,7 +625,7 @@ func setServicesRpmProbe(d *schema.ResourceData, junSess *junos.Session) error {
 			if v2add, v2cnt, v2step := rpmScale["target_address_base"].(string), rpmScale["target_count"].(int),
 				rpmScale["target_step"].(string); v2add != "" || v2cnt != 0 || v2step != "" {
 				if v2add == "" || v2cnt == 0 || v2step == "" {
-					return fmt.Errorf("all of `target_address_base,target_count,target_step` must be specified")
+					return errors.New("all of `target_address_base,target_count,target_step` must be specified")
 				}
 				configSet = append(configSet, setPrefixTest+"rpm-scale target address-base "+v2add)
 				configSet = append(configSet, setPrefixTest+"rpm-scale target count "+strconv.Itoa(v2cnt))
@@ -633,7 +634,7 @@ func setServicesRpmProbe(d *schema.ResourceData, junSess *junos.Session) error {
 			if v2add, v2cnt, v2step := rpmScale["target_inet6_address_base"].(string), rpmScale["target_inet6_count"].(int),
 				rpmScale["target_inet6_step"].(string); v2add != "" || v2cnt != 0 || v2step != "" {
 				if v2add == "" || v2cnt == 0 || v2step == "" {
-					return fmt.Errorf("all of `target_inet6_address_base,target_inet6_count,target_inet6_step` must be specified")
+					return errors.New("all of `target_inet6_address_base,target_inet6_count,target_inet6_step` must be specified")
 				}
 				configSet = append(configSet, setPrefixTest+"rpm-scale target-inet6 address-base "+v2add)
 				configSet = append(configSet, setPrefixTest+"rpm-scale target-inet6 count "+strconv.Itoa(v2cnt))
@@ -645,7 +646,7 @@ func setServicesRpmProbe(d *schema.ResourceData, junSess *junos.Session) error {
 		}
 		if v, v2 := test["target_type"].(string), test["target_value"].(string); v != "" || v2 != "" {
 			if v == "" || v2 == "" {
-				return fmt.Errorf("all of `target_type,target_value` must be specified")
+				return errors.New("all of `target_type,target_value` must be specified")
 			}
 			configSet = append(configSet, setPrefixTest+"target "+v+" \""+v2+"\"")
 		}

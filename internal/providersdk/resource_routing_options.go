@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -436,7 +437,7 @@ func setRoutingOptions(d *schema.ResourceData, junSess *junos.Session) error {
 		}
 
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"forwarding-table ") {
-			return fmt.Errorf("forwarding_table block is empty")
+			return errors.New("forwarding_table block is empty")
 		}
 	}
 	for _, grR := range d.Get("graceful_restart").([]interface{}) {

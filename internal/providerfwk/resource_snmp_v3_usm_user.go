@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -647,7 +648,7 @@ func (rscData *snmpV3UsmUserData) set(
 	if authenticationType := rscData.AuthenticationType.ValueString(); authenticationType != "authentication-none" {
 		if rscData.AuthenticationKey.ValueString() == "" && rscData.AuthenticationPassword.ValueString() == "" {
 			return path.Root("authentication_type"),
-				fmt.Errorf("authentication_key or authentication_password must be specified " +
+				errors.New("authentication_key or authentication_password must be specified " +
 					"when authentication_type != authentication-none")
 		}
 		if v := rscData.AuthenticationKey.ValueString(); v != "" {
@@ -659,22 +660,22 @@ func (rscData *snmpV3UsmUserData) set(
 	} else {
 		if rscData.PrivacyType.ValueString() != "privacy-none" {
 			return path.Root("privacy_type"),
-				fmt.Errorf("authentication should be configured before configuring the privacy")
+				errors.New("authentication should be configured before configuring the privacy")
 		}
 		if rscData.AuthenticationKey.ValueString() != "" {
 			return path.Root("authentication_key"),
-				fmt.Errorf("authentication_key not compatible when authentication_type = authentication-none")
+				errors.New("authentication_key not compatible when authentication_type = authentication-none")
 		}
 		if rscData.AuthenticationPassword.ValueString() != "" {
 			return path.Root("authentication_password"),
-				fmt.Errorf("authentication_password not compatible when authentication_type = authentication-none")
+				errors.New("authentication_password not compatible when authentication_type = authentication-none")
 		}
 		configSet = append(configSet, setPrefix+"authentication-none")
 	}
 	if privacyType := rscData.PrivacyType.ValueString(); privacyType != "privacy-none" {
 		if rscData.PrivacyKey.ValueString() == "" && rscData.PrivacyPassword.ValueString() == "" {
 			return path.Root("privacy_type"),
-				fmt.Errorf("privacy_key or privacy_password must be specified when privacy_type != privacy-none")
+				errors.New("privacy_key or privacy_password must be specified when privacy_type != privacy-none")
 		}
 		if v := rscData.PrivacyKey.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+privacyType+" privacy-key \""+v+"\"")
@@ -685,11 +686,11 @@ func (rscData *snmpV3UsmUserData) set(
 	} else {
 		if rscData.PrivacyKey.ValueString() != "" {
 			return path.Root("privacy_key"),
-				fmt.Errorf("privacy_key not compatible when privacy_type = privacy-none")
+				errors.New("privacy_key not compatible when privacy_type = privacy-none")
 		}
 		if rscData.PrivacyPassword.ValueString() != "" {
 			return path.Root("privacy_password"),
-				fmt.Errorf("privacy_password not compatible when privacy_type = privacy-none")
+				errors.New("privacy_password not compatible when privacy_type = privacy-none")
 		}
 		configSet = append(configSet, setPrefix+"privacy-none")
 	}

@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"html"
 	"strings"
@@ -26,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
-	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -2610,7 +2610,7 @@ func (rscData *systemData) set(
 	if rscData.InternetOptions != nil {
 		if rscData.InternetOptions.isEmpty() {
 			return path.Root("internet_options").AtName("*"),
-				fmt.Errorf("internet_options block is empty")
+				errors.New("internet_options block is empty")
 		}
 		blockSet, pathErr, err := rscData.InternetOptions.configSet()
 		if err != nil {
@@ -2621,7 +2621,7 @@ func (rscData *systemData) set(
 	if rscData.License != nil {
 		if rscData.License.isEmpty() {
 			return path.Root("license").AtName("*"),
-				fmt.Errorf("license block is empty")
+				errors.New("license block is empty")
 		}
 		blockSet, pathErr, err := rscData.License.configSet()
 		if err != nil {
@@ -2632,7 +2632,7 @@ func (rscData *systemData) set(
 	if rscData.Login != nil {
 		if rscData.Login.isEmpty() {
 			return path.Root("login").AtName("*"),
-				fmt.Errorf("login block is empty")
+				errors.New("login block is empty")
 		}
 		blockSet, pathErr, err := rscData.Login.configSet()
 		if err != nil {
@@ -2650,7 +2650,7 @@ func (rscData *systemData) set(
 	if rscData.Ntp != nil {
 		if rscData.Ntp.isEmpty() {
 			return path.Root("ntp").AtName("*"),
-				fmt.Errorf("ntp block is empty")
+				errors.New("ntp block is empty")
 		}
 		blockSet, pathErr, err := rscData.Ntp.configSet()
 		if err != nil {
@@ -2661,14 +2661,14 @@ func (rscData *systemData) set(
 	if rscData.Ports != nil {
 		if rscData.Ports.isEmpty() {
 			return path.Root("ports").AtName("*"),
-				fmt.Errorf("ports block is empty")
+				errors.New("ports block is empty")
 		}
 		configSet = append(configSet, rscData.Ports.configSet()...)
 	}
 	if rscData.Services != nil {
 		if rscData.Services.isEmpty() {
 			return path.Root("services").AtName("*"),
-				fmt.Errorf("services block is empty")
+				errors.New("services block is empty")
 		}
 		blockSet, pathErr, err := rscData.Services.configSet()
 		if err != nil {
@@ -2679,7 +2679,7 @@ func (rscData *systemData) set(
 	if rscData.Syslog != nil {
 		if rscData.Syslog.isEmpty() {
 			return path.Root("syslog").AtName("*"),
-				fmt.Errorf("syslog block is empty")
+				errors.New("syslog block is empty")
 		}
 		blockSet, pathErr, err := rscData.Syslog.configSet()
 		if err != nil {
@@ -2722,7 +2722,7 @@ func (block *systemBlockArchivalConfiguration) configSet() (
 		configSet = append(configSet, setPrefix+"transfer-on-commit")
 	default:
 		return configSet, path.Root("archival_configuration").AtName("*"),
-			fmt.Errorf("one of transfer_interval or transfer_on_commit must be specified" +
+			errors.New("one of transfer_interval or transfer_on_commit must be specified" +
 				" in archival_configuration block")
 	}
 
@@ -2805,7 +2805,7 @@ func (block *systemBlockInternetOptions) configSet() (
 	if block.IcmpV4RateLimit != nil {
 		if block.IcmpV4RateLimit.isEmpty() {
 			return configSet, path.Root("internet_options").AtName("icmpv4_rate_limit").AtName("*"),
-				fmt.Errorf("icmpv4_rate_limit block in internet_options block is empty")
+				errors.New("icmpv4_rate_limit block in internet_options block is empty")
 		}
 		if !block.IcmpV4RateLimit.BucketSize.IsNull() {
 			configSet = append(configSet, setPrefix+"icmpv4-rate-limit bucket-size "+
@@ -2819,7 +2819,7 @@ func (block *systemBlockInternetOptions) configSet() (
 	if block.IcmpV6RateLimit != nil {
 		if block.IcmpV6RateLimit.isEmpty() {
 			return configSet, path.Root("internet_options").AtName("icmpv6_rate_limit").AtName("*"),
-				fmt.Errorf("icmpv6_rate_limit block in internet_options block is empty")
+				errors.New("icmpv6_rate_limit block in internet_options block is empty")
 		}
 		if !block.IcmpV6RateLimit.BucketSize.IsNull() {
 			configSet = append(configSet, setPrefix+"icmpv6-rate-limit bucket-size "+
@@ -2851,15 +2851,15 @@ func (block *systemBlockLicense) configSet() (
 			}
 		} else if block.AutoupdatePassword.ValueString() != "" {
 			return configSet, path.Root("license").AtName("autoupdate_password"),
-				fmt.Errorf("autoupdate_url must be specified with autoupdate_password in license block")
+				errors.New("autoupdate_url must be specified with autoupdate_password in license block")
 		}
 	} else {
 		if block.AutoupdateURL.ValueString() != "" {
 			return configSet, path.Root("license").AtName("autoupdate_url"),
-				fmt.Errorf("autoupdate must be specified with autoupdate_url in license block")
+				errors.New("autoupdate must be specified with autoupdate_url in license block")
 		} else if block.AutoupdatePassword.ValueString() != "" {
 			return configSet, path.Root("license").AtName("autoupdate_password"),
-				fmt.Errorf("autoupdate and autoupdate_url must be specified with autoupdate_password in license block")
+				errors.New("autoupdate and autoupdate_url must be specified with autoupdate_password in license block")
 		}
 	}
 	if !block.RenewBeforeExpiration.IsNull() {
@@ -2899,7 +2899,7 @@ func (block *systemBlockLogin) configSet() (
 	if block.Password != nil {
 		if block.Password.isEmpty() {
 			return configSet, path.Root("login").AtName("password").AtName("*"),
-				fmt.Errorf("password block in login block is empty")
+				errors.New("password block in login block is empty")
 		}
 		if v := block.Password.ChangeType.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"password change-type "+v)
@@ -2947,7 +2947,7 @@ func (block *systemBlockLogin) configSet() (
 	if block.RetryOptions != nil {
 		if block.RetryOptions.isEmpty() {
 			return configSet, path.Root("login").AtName("retry_options").AtName("*"),
-				fmt.Errorf("retry_options block in login block is empty")
+				errors.New("retry_options block in login block is empty")
 		}
 		if !block.RetryOptions.BackoffFactor.IsNull() {
 			configSet = append(configSet, setPrefix+"retry-options backoff-factor "+
@@ -3003,7 +3003,7 @@ func (block *systemBlockNtp) configSet() (
 		}
 	} else if block.MulticastClientAddress.ValueString() != "" {
 		return configSet, path.Root("ntp").AtName("multicast_client_address"),
-			fmt.Errorf("multicast_client must be specified with multicast_client_address in ntp block")
+			errors.New("multicast_client must be specified with multicast_client_address in ntp block")
 	}
 	if !block.ThresholdValue.IsNull() {
 		if v := block.ThresholdAction.ValueString(); v != "" {
@@ -3012,11 +3012,11 @@ func (block *systemBlockNtp) configSet() (
 				" action "+v)
 		} else {
 			return configSet, path.Root("ntp").AtName("threshold_value"),
-				fmt.Errorf("threshold_action and threshold_value must be configured together in ntp block")
+				errors.New("threshold_action and threshold_value must be configured together in ntp block")
 		}
 	} else if block.ThresholdAction.ValueString() != "" {
 		return configSet, path.Root("ntp").AtName("threshold_action"),
-			fmt.Errorf("threshold_action and threshold_value must be configured together in ntp block")
+			errors.New("threshold_action and threshold_value must be configured together in ntp block")
 	}
 
 	return configSet, path.Empty(), nil
@@ -3071,7 +3071,7 @@ func (block *systemBlockServices) configSet() (
 	if !block.WebManagementSessionIdleTimeout.IsNull() {
 		if block.WebManagementHTTP == nil && block.WebManagementHTTPS == nil {
 			return configSet, path.Root("services").AtName("web_management_session_idle_timeout"),
-				fmt.Errorf("web_management_http or web_management_https block must be specified" +
+				errors.New("web_management_http or web_management_https block must be specified" +
 					" with web_management_session_idle_timeout in services block")
 		}
 		configSet = append(configSet, setPrefix+"web-management session idle-timeout "+
@@ -3080,7 +3080,7 @@ func (block *systemBlockServices) configSet() (
 	if !block.WebManagementSessionLimit.IsNull() {
 		if block.WebManagementHTTP == nil && block.WebManagementHTTPS == nil {
 			return configSet, path.Root("services").AtName("web_management_session_limit"),
-				fmt.Errorf("web_management_http or web_management_https block must be specified" +
+				errors.New("web_management_http or web_management_https block must be specified" +
 					" with web_management_session_limit in services block")
 		}
 		configSet = append(configSet, setPrefix+"web-management session session-limit "+
@@ -3089,7 +3089,7 @@ func (block *systemBlockServices) configSet() (
 	if block.NetconfSSH != nil {
 		if block.NetconfSSH.isEmpty() {
 			return configSet, path.Root("services").AtName("netconf_ssh").AtName("*"),
-				fmt.Errorf("netconf_ssh block in services block is empty")
+				errors.New("netconf_ssh block in services block is empty")
 		}
 		if !block.NetconfSSH.ClientAliveCountMax.IsNull() {
 			configSet = append(configSet, setPrefix+"netconf ssh client-alive-count-max "+
@@ -3111,7 +3111,7 @@ func (block *systemBlockServices) configSet() (
 	if block.NetconfTraceoptions != nil {
 		if block.NetconfTraceoptions.isEmpty() {
 			return configSet, path.Root("services").AtName("netconf_traceoptions").AtName("*"),
-				fmt.Errorf("netconf_traceoptions block in services block is empty")
+				errors.New("netconf_traceoptions block in services block is empty")
 		}
 		if v := block.NetconfTraceoptions.FileName.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"netconf traceoptions file \""+v+"\"")
@@ -3146,7 +3146,7 @@ func (block *systemBlockServices) configSet() (
 	if block.SSH != nil {
 		if block.SSH.isEmpty() {
 			return configSet, path.Root("services").AtName("ssh").AtName("*"),
-				fmt.Errorf("ssh block in services block is empty")
+				errors.New("ssh block in services block is empty")
 		}
 		for _, v := range block.SSH.AuthenticationOrder {
 			configSet = append(configSet, setPrefix+"ssh authentication-order "+v.ValueString())
@@ -3297,7 +3297,7 @@ func (block *systemBlockSyslog) configSet() (
 	if block.Console != nil {
 		if block.Console.isEmpty() {
 			return configSet, path.Root("syslog").AtName("console").AtName("*"),
-				fmt.Errorf("console block in syslog block is empty")
+				errors.New("console block in syslog block is empty")
 		}
 		if v := block.Console.AnySeverity.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"console any "+v)
@@ -3545,13 +3545,13 @@ func (block *systemBlockArchivalConfiguration) read(itemTrim string) (err error)
 	case balt.CutPrefixInString(&itemTrim, "archive-sites "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		if len(itemTrimFields) > 2 { // <url> password <password>
-			password, err := jdecode.Decode(strings.Trim(itemTrimFields[2], "\""))
+			password, err := tfdata.JunosDecode(strings.Trim(itemTrimFields[2], "\""), "password")
 			if err != nil {
-				return fmt.Errorf("decoding archive-site password: %w", err)
+				return err
 			}
 			block.ArchiveSite = append(block.ArchiveSite, systemBlockArchivalConfigurationBlockArchiveSite{
 				URL:      types.StringValue(strings.Trim(itemTrimFields[0], "\"")),
-				Password: types.StringValue(password),
+				Password: password,
 			})
 		} else { // <url>
 			block.ArchiveSite = append(block.ArchiveSite, systemBlockArchivalConfigurationBlockArchiveSite{
@@ -3679,11 +3679,11 @@ func (block *systemBlockLicense) read(itemTrim string) (err error) {
 		block.AutoupdateURL = types.StringValue(strings.Trim(url, "\""))
 
 		if balt.CutPrefixInString(&itemTrim, url+" password ") {
-			password, err := jdecode.Decode(strings.Trim(itemTrim, "\""))
+			password, err := tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "password")
 			if err != nil {
-				return fmt.Errorf("decoding password: %w", err)
+				return err
 			}
-			block.AutoupdatePassword = types.StringValue(password)
+			block.AutoupdatePassword = password
 		}
 	case balt.CutPrefixInString(&itemTrim, "renew before-expiration "):
 		block.RenewBeforeExpiration, err = tfdata.ConvAtoi64Value(itemTrim)

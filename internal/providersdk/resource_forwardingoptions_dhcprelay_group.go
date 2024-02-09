@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"html"
 	"strconv"
@@ -900,7 +901,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	if d.Get("active_server_group_allow_server_change").(bool) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("active_server_group_allow_server_change not compatible when version = v6")
+			return errors.New("active_server_group_allow_server_change not compatible when version = v6")
 		}
 		configSet = append(configSet, setPrefix+"active-server-group allow-server-change")
 	}
@@ -921,7 +922,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	if v := d.Get("client_response_ttl").(int); v != 0 {
 		if d.Get("version").(string) != "v4" {
-			return fmt.Errorf("client_response_ttl only compatible when version = v4")
+			return errors.New("client_response_ttl only compatible when version = v4")
 		}
 		configSet = append(configSet, setPrefix+"client-response-ttl "+strconv.Itoa(v))
 	}
@@ -936,7 +937,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 				configSet = append(configSet, setPrefix+"dynamic-profile aggregate-clients "+v)
 			}
 		} else if d.Get("dynamic_profile_aggregate_clients_action").(string) != "" {
-			return fmt.Errorf("dynamic_profile_aggregate_clients need to be true with " +
+			return errors.New("dynamic_profile_aggregate_clients need to be true with " +
 				"dynamic_profile_aggregate_clients_action")
 		}
 		if v := d.Get("dynamic_profile_use_primary").(string); v != "" {
@@ -945,7 +946,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	} else if d.Get("dynamic_profile_aggregate_clients").(bool) ||
 		d.Get("dynamic_profile_aggregate_clients_action").(string) != "" ||
 		d.Get("dynamic_profile_use_primary").(string) != "" {
-		return fmt.Errorf("dynamic_profile need to be set with " +
+		return errors.New("dynamic_profile need to be set with " +
 			"dynamic_profile_use_primary, dynamic_profile_aggregate_clients " +
 			"and dynamic_profile_aggregate_clients_action")
 	}
@@ -955,7 +956,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 			configSet = append(configSet, setPrefix+"forward-only routing-instance "+v)
 		}
 	} else if d.Get("forward_only_routing_instance").(string) != "" {
-		return fmt.Errorf("forward_only need to be true with forward_only_routing_instance")
+		return errors.New("forward_only need to be true with forward_only_routing_instance")
 	}
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").(*schema.Set).List() {
@@ -1021,12 +1022,12 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 		}
 
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixLDMBfd) {
-			return fmt.Errorf("liveness_detection_method_bfd block is empty")
+			return errors.New("liveness_detection_method_bfd block is empty")
 		}
 	}
 	for _, ldmLayer2 := range d.Get("liveness_detection_method_layer2").([]interface{}) {
 		if ldmLayer2 == nil {
-			return fmt.Errorf("liveness_detection_method_layer2 block is empty")
+			return errors.New("liveness_detection_method_layer2 block is empty")
 		}
 		liveDetectMethLayer2 := ldmLayer2.(map[string]interface{})
 		setPrefixLDMLayer2 := setPrefix + "liveness-detection method layer2-liveness-detection "
@@ -1039,22 +1040,22 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	if v := d.Get("maximum_hop_count").(int); v != 0 {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("maximum_hop_count not compatible if version = v6")
+			return errors.New("maximum_hop_count not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"maximum-hop-count "+strconv.Itoa(v))
 	}
 	if v := d.Get("minimum_wait_time").(int); v != -1 {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("minimum_wait_time not compatible if version = v6")
+			return errors.New("minimum_wait_time not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"minimum-wait-time "+strconv.Itoa(v))
 	}
 	for _, v := range d.Get("overrides_v4").([]interface{}) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("overrides_v4 not compatible if version = v6")
+			return errors.New("overrides_v4 not compatible if version = v6")
 		}
 		if v == nil {
-			return fmt.Errorf("overrides_v4 block is empty")
+			return errors.New("overrides_v4 block is empty")
 		}
 		configSetOverrides, err := setForwardingOptionsDhcpRelayOverridesV4(
 			v.(map[string]interface{}), setPrefix)
@@ -1065,10 +1066,10 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	for _, v := range d.Get("overrides_v6").([]interface{}) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("overrides_v6 not compatible if version = v4")
+			return errors.New("overrides_v6 not compatible if version = v4")
 		}
 		if v == nil {
-			return fmt.Errorf("overrides_v6 block is empty")
+			return errors.New("overrides_v6 block is empty")
 		}
 		configSetOverrides, err := setForwardingOptionsDhcpRelayOverridesV6(
 			v.(map[string]interface{}), setPrefix)
@@ -1079,7 +1080,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	for _, v := range d.Get("relay_agent_interface_id").([]interface{}) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("relay_agent_interface_id not compatible if version = v4")
+			return errors.New("relay_agent_interface_id not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-interface-id")
 		if v != nil {
@@ -1093,13 +1094,13 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	if d.Get("relay_agent_option_79").(bool) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("relay_agent_interface_id not compatible if version = v4")
+			return errors.New("relay_agent_interface_id not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-option-79")
 	}
 	for _, v := range d.Get("relay_agent_remote_id").([]interface{}) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("relay_agent_interface_id not compatible if version = v4")
+			return errors.New("relay_agent_interface_id not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-remote-id")
 		if v != nil {
@@ -1124,7 +1125,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	for _, v := range d.Get("relay_option_82").([]interface{}) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("relay_option_82 not compatible if version = v6")
+			return errors.New("relay_option_82 not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"relay-option-82")
 		if v != nil {
@@ -1136,7 +1137,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	if d.Get("route_suppression_access").(bool) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("route_suppression_access not compatible if version = v4")
+			return errors.New("route_suppression_access not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"route-suppression access")
 	}
@@ -1145,7 +1146,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	if d.Get("route_suppression_destination").(bool) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("route_suppression_destination not compatible if version = v6")
+			return errors.New("route_suppression_destination not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"route-suppression destination")
 	}
@@ -1166,7 +1167,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	serverMatchDuidList := make([]string, 0)
 	for _, v := range d.Get("server_match_duid").(*schema.Set).List() {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("server_match_duid not compatible if version = v4")
+			return errors.New("server_match_duid not compatible if version = v4")
 		}
 		serverMatchDuid := v.(map[string]interface{})
 		serverMatchDuidCompare := serverMatchDuid["compare"].(string)
@@ -1191,7 +1192,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	if v := d.Get("service_profile").(string); v != "" {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("service_profile not compatible if version = v4")
+			return errors.New("service_profile not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"service-profile \""+v+"\"")
 	}
@@ -1203,19 +1204,19 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	}
 	if d.Get("source_ip_change").(bool) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("source_ip_change not compatible if version = v6")
+			return errors.New("source_ip_change not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"source-ip-change")
 	}
 	if d.Get("vendor_specific_information_host_name").(bool) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("vendor_specific_information_host_name not compatible if version = v4")
+			return errors.New("vendor_specific_information_host_name not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"vendor-specific-information host-name")
 	}
 	if d.Get("vendor_specific_information_location").(bool) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("vendor_specific_information_location not compatible if version = v4")
+			return errors.New("vendor_specific_information_location not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"vendor-specific-information location")
 	}
@@ -1265,7 +1266,7 @@ func setForwardingOptionsDhcpRelayGroupInterface(
 	}
 	for _, v := range interFace["overrides_v4"].([]interface{}) {
 		if version == "v6" {
-			return configSet, fmt.Errorf("overrides_v4 not compatible if version = v6")
+			return configSet, errors.New("overrides_v4 not compatible if version = v6")
 		}
 		if v == nil {
 			return configSet, fmt.Errorf("overrides_v4 block in interface %s is empty", interFace["name"].(string))
@@ -1279,7 +1280,7 @@ func setForwardingOptionsDhcpRelayGroupInterface(
 	}
 	for _, v := range interFace["overrides_v6"].([]interface{}) {
 		if version == "v4" {
-			return configSet, fmt.Errorf("overrides_v6 not compatible if version = v4")
+			return configSet, errors.New("overrides_v6 not compatible if version = v4")
 		}
 		if v == nil {
 			return configSet, fmt.Errorf("overrides_v6 block in interface %s is empty", interFace["name"].(string))

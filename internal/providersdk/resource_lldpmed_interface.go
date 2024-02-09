@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -376,7 +377,7 @@ func setLldpMedInterface(d *schema.ResourceData, junSess *junos.Session) error {
 			}
 		} else if len(location["civic_based_ca_type"].([]interface{})) > 0 ||
 			location["civic_based_what"].(int) != -1 {
-			return fmt.Errorf("civic_based_country_code need to be set with civic_based_ca_type and civic_based_what")
+			return errors.New("civic_based_country_code need to be set with civic_based_ca_type and civic_based_what")
 		}
 		if v := location["co_ordinate_latitude"].(int); v != -1 {
 			configSet = append(configSet, setPrefixLocation+"co-ordinate lattitude "+strconv.Itoa(v)) //nolint:misspell

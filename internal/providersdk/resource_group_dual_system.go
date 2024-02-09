@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -443,7 +444,7 @@ func setGroupDualSystem(d *schema.ResourceData, junSess *junos.Session) error {
 	setPrefix := "set groups " + d.Get("name").(string) + " "
 	for _, v := range d.Get("interface_fxp0").([]interface{}) {
 		if v == nil {
-			return fmt.Errorf("interface_fxp0 block is empty")
+			return errors.New("interface_fxp0 block is empty")
 		}
 		interfaceFxp0 := v.(map[string]interface{})
 		if v2 := interfaceFxp0["description"].(string); v2 != "" {
@@ -519,7 +520,7 @@ func setGroupDualSystem(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, v := range d.Get("system").([]interface{}) {
 		if v == nil {
-			return fmt.Errorf("system block is empty")
+			return errors.New("system block is empty")
 		}
 		system := v.(map[string]interface{})
 		if v2 := system["host_name"].(string); v2 != "" {

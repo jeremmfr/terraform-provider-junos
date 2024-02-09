@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -1724,7 +1725,7 @@ func (rscData *bgpGroupData) set(
 	if rscData.BfdLivenessDetection != nil {
 		if rscData.BfdLivenessDetection.isEmpty() {
 			return path.Root("bfd_liveness_detection").AtName("*"),
-				fmt.Errorf("bfd_liveness_detection block is empty")
+				errors.New("bfd_liveness_detection block is empty")
 		}
 
 		configSet = append(configSet, rscData.BfdLivenessDetection.configSet(setPrefix)...)

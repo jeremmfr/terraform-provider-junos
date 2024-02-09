@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -903,7 +904,7 @@ func setServicesAdvancedAntiMalware(d *schema.ResourceData, advAntiMalware inter
 			}
 		}
 	} else {
-		return configSet, fmt.Errorf("advanced_anti_malware block is empty")
+		return configSet, errors.New("advanced_anti_malware block is empty")
 	}
 
 	return configSet, nil
@@ -951,7 +952,7 @@ func setServicesApplicationIdentification(appID interface{}) ([]string, error) {
 				configSet = append(configSet, setPrefix+"download url \""+v2+"\"")
 			}
 		} else {
-			return configSet, fmt.Errorf("application_identification.0.download block is empty")
+			return configSet, errors.New("application_identification.0.download block is empty")
 		}
 	}
 	for _, v := range appIDM["enable_performance_mode"].([]interface{}) {
@@ -1176,7 +1177,7 @@ func setServicesUserIdentification(userIdentification interface{}) ([]string, er
 			}
 		}
 	} else {
-		return configSet, fmt.Errorf("user_identification block is empty")
+		return configSet, errors.New("user_identification block is empty")
 	}
 
 	return configSet, nil

@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -402,7 +403,7 @@ func (dsc *interfaceLogicalDataSource) searchName(
 		return "", nil
 	}
 	if len(intConfigList) > 1 {
-		return "", fmt.Errorf("too many different logical interfaces found")
+		return "", errors.New("too many different logical interfaces found")
 	}
 
 	return intConfigList[0], nil

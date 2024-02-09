@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -565,7 +566,7 @@ func resourceRipNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 		return result, nil
 	}
 	if idSplit[2] != "ng" {
-		return nil, fmt.Errorf(
+		return nil, errors.New(
 			"id must be <name>" + junos.IDSeparator + "<group>" + junos.IDSeparator + "<routing_instance> or " +
 				"<name>" + junos.IDSeparator + "<group>" + junos.IDSeparator + "ng" + junos.IDSeparator + "<routing_instance>",
 		)
@@ -657,7 +658,7 @@ func setRipNeighbor(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, mBFDLivDet := range d.Get("bfd_liveness_detection").([]interface{}) {
 		if mBFDLivDet == nil {
-			return fmt.Errorf("bfd_liveness_detection block is empty")
+			return errors.New("bfd_liveness_detection block is empty")
 		}
 		setPrefixBfd := setPrefix + "bfd-liveness-detection "
 		bfdLiveDetect := mBFDLivDet.(map[string]interface{})
@@ -697,7 +698,7 @@ func setRipNeighbor(d *schema.ResourceData, junSess *junos.Session) error {
 			configSet = append(configSet, setPrefixBfd+"version "+v)
 		}
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixBfd) {
-			return fmt.Errorf("bfd_liveness_detection block is empty")
+			return errors.New("bfd_liveness_detection block is empty")
 		}
 	}
 	if d.Get("check_zero").(bool) {

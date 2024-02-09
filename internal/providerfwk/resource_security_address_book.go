@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -735,7 +736,7 @@ func (rscData *securityAddressBookData) set(
 	for _, v := range rscData.AttachZone {
 		if rscData.Name.ValueString() == "global" {
 			return path.Root("attach_zone"),
-				fmt.Errorf("cannot attach global address book to a zone")
+				errors.New("cannot attach global address book to a zone")
 		}
 		configSet = append(configSet, setPrefix+"attach zone "+v.ValueString())
 	}

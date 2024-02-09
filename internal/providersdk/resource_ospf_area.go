@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -881,7 +882,7 @@ func checkOspfAreaExists(idArea, version, realm, routingInstance string, junSess
 	if version == "v3" {
 		ospfVersion = junos.OspfV3
 	} else if realm != "" {
-		return false, fmt.Errorf("realm can't set if version != v3")
+		return false, errors.New("realm can't set if version != v3")
 	}
 	switch {
 	case routingInstance == junos.DefaultW && realm == "":
@@ -926,7 +927,7 @@ func setOspfArea(d *schema.ResourceData, junSess *junos.Session) error {
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = junos.OspfV3
 	} else if d.Get("realm").(string) != "" {
-		return fmt.Errorf("realm can't set if version != v3")
+		return errors.New("realm can't set if version != v3")
 	}
 	setPrefix += "protocols " + ospfVersion + " "
 	if realm := d.Get("realm").(string); realm != "" {
@@ -1227,7 +1228,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 			configSet = append(configSet, setPrefix+"ipv4-adjacency-segment protected "+t)
 		}
 	} else if ospfInterface["ipv4_adjacency_segment_protected_value"].(string) != "" {
-		return configSet, fmt.Errorf("ipv4_adjacency_segment_protected_type need to be set with " +
+		return configSet, errors.New("ipv4_adjacency_segment_protected_type need to be set with " +
 			"ipv4_adjacency_segment_protected_value")
 	}
 	if t := ospfInterface["ipv4_adjacency_segment_unprotected_type"].(string); t != "" {
@@ -1237,7 +1238,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 			configSet = append(configSet, setPrefix+"ipv4-adjacency-segment unprotected "+t)
 		}
 	} else if ospfInterface["ipv4_adjacency_segment_unprotected_value"].(string) != "" {
-		return configSet, fmt.Errorf("ipv4_adjacency_segment_unprotected_type need to be set with " +
+		return configSet, errors.New("ipv4_adjacency_segment_unprotected_type need to be set with " +
 			"ipv4_adjacency_segment_unprotected_value")
 	}
 	if ospfInterface["link_protection"].(bool) {
@@ -1290,7 +1291,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 		}
 	} else if ospfInterface["passive_traffic_engineering_remote_node_id"].(string) != "" ||
 		ospfInterface["passive_traffic_engineering_remote_node_router_id"].(string) != "" {
-		return configSet, fmt.Errorf("passive need to be true with " +
+		return configSet, errors.New("passive need to be true with " +
 			"passive_traffic_engineering_remote_node_id and passive_traffic_engineering_remote_node_router_id")
 	}
 	if v := ospfInterface["poll_interval"].(int); v != 0 {
@@ -1325,7 +1326,7 @@ func readOspfArea(idArea, version, realm, routingInstance string, junSess *junos
 	if version == "v3" {
 		ospfVersion = junos.OspfV3
 	} else if realm != "" {
-		return confRead, fmt.Errorf("realm can't set if version != v3")
+		return confRead, errors.New("realm can't set if version != v3")
 	}
 	switch {
 	case routingInstance == junos.DefaultW && realm == "":
@@ -1830,7 +1831,7 @@ func delOspfArea(d *schema.ResourceData, junSess *junos.Session) error {
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = junos.OspfV3
 	} else if d.Get("realm").(string) != "" {
-		return fmt.Errorf("realm can't set if version != v3")
+		return errors.New("realm can't set if version != v3")
 	}
 	switch {
 	case d.Get("routing_instance").(string) == junos.DefaultW && d.Get("realm").(string) == "":

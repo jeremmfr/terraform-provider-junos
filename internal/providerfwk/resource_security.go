@@ -2,7 +2,7 @@ package providerfwk
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"regexp"
 	"strings"
 
@@ -2098,7 +2098,7 @@ func (rscData *securityData) set(
 	if rscData.Alg != nil {
 		if rscData.Alg.isEmpty() {
 			return path.Root("alg").AtName("*"),
-				fmt.Errorf("alg block is empty")
+				errors.New("alg block is empty")
 		}
 
 		configSet = append(configSet, rscData.Alg.configSet()...)
@@ -2106,7 +2106,7 @@ func (rscData *securityData) set(
 	if rscData.Flow != nil {
 		if rscData.Flow.isEmpty() {
 			return path.Root("flow").AtName("*"),
-				fmt.Errorf("flow block is empty")
+				errors.New("flow block is empty")
 		}
 
 		blockSet, pathErr, err := rscData.Flow.configSet()
@@ -2118,7 +2118,7 @@ func (rscData *securityData) set(
 	if rscData.ForwardingOptions != nil {
 		if rscData.ForwardingOptions.isEmpty() {
 			return path.Root("forwarding_options").AtName("*"),
-				fmt.Errorf("forwarding_options block is empty")
+				errors.New("forwarding_options block is empty")
 		}
 
 		configSet = append(configSet, rscData.ForwardingOptions.configSet()...)
@@ -2126,7 +2126,7 @@ func (rscData *securityData) set(
 	if rscData.ForwardingProcess != nil {
 		if rscData.ForwardingProcess.isEmpty() {
 			return path.Root("forwarding_process").AtName("*"),
-				fmt.Errorf("forwarding_process block is empty")
+				errors.New("forwarding_process block is empty")
 		}
 
 		if rscData.ForwardingProcess.EnhancedServicesMode.ValueBool() {
@@ -2136,7 +2136,7 @@ func (rscData *securityData) set(
 	if rscData.IdpSecurityPackage != nil {
 		if rscData.IdpSecurityPackage.isEmpty() {
 			return path.Root("idp_security_package").AtName("*"),
-				fmt.Errorf("idp_security_package block is empty")
+				errors.New("idp_security_package block is empty")
 		}
 
 		configSet = append(configSet, rscData.IdpSecurityPackage.configSet()...)
@@ -2144,7 +2144,7 @@ func (rscData *securityData) set(
 	if rscData.IdpSensorConfiguration != nil {
 		if rscData.IdpSensorConfiguration.isEmpty() {
 			return path.Root("idp_sensor_configuration").AtName("*"),
-				fmt.Errorf("idp_sensor_configuration block is empty")
+				errors.New("idp_sensor_configuration block is empty")
 		}
 
 		configSet = append(configSet, rscData.IdpSensorConfiguration.configSet()...)
@@ -2152,7 +2152,7 @@ func (rscData *securityData) set(
 	if rscData.IkeTraceoptions != nil {
 		if rscData.IkeTraceoptions.isEmpty() {
 			return path.Root("ike_traceoptions").AtName("*"),
-				fmt.Errorf("ike_traceoptions block is empty")
+				errors.New("ike_traceoptions block is empty")
 		}
 
 		blockSet, pathErr, err := rscData.IkeTraceoptions.configSet()
@@ -2164,7 +2164,7 @@ func (rscData *securityData) set(
 	if rscData.Log != nil {
 		if rscData.Log.isEmpty() {
 			return path.Root("log").AtName("*"),
-				fmt.Errorf("log block is empty")
+				errors.New("log block is empty")
 		}
 
 		blockSet, pathErr, err := rscData.Log.configSet()
@@ -2176,7 +2176,7 @@ func (rscData *securityData) set(
 	if rscData.NatSource != nil {
 		if rscData.NatSource.isEmpty() {
 			return path.Root("nat_source").AtName("*"),
-				fmt.Errorf("nat_source block is empty")
+				errors.New("nat_source block is empty")
 		}
 
 		configSet = append(configSet, rscData.NatSource.configSet()...)
@@ -2184,7 +2184,7 @@ func (rscData *securityData) set(
 	if rscData.Policies != nil {
 		if rscData.Policies.isEmpty() {
 			return path.Root("policies").AtName("*"),
-				fmt.Errorf("policies block is empty")
+				errors.New("policies block is empty")
 		}
 
 		if rscData.Policies.PolicyRematch.ValueBool() {
@@ -2197,7 +2197,7 @@ func (rscData *securityData) set(
 	if rscData.UserIdentificationAuthSource != nil {
 		if rscData.UserIdentificationAuthSource.isEmpty() {
 			return path.Root("user_identification_auth_source").AtName("*"),
-				fmt.Errorf("user_identification_auth_source block is empty")
+				errors.New("user_identification_auth_source block is empty")
 		}
 
 		configSet = append(configSet, rscData.UserIdentificationAuthSource.configSet()...)
@@ -2205,7 +2205,7 @@ func (rscData *securityData) set(
 	if rscData.Utm != nil {
 		if rscData.Utm.isEmpty() {
 			return path.Root("utm").AtName("*"),
-				fmt.Errorf("utm block is empty")
+				errors.New("utm block is empty")
 		}
 
 		configSet = append(configSet, rscData.Utm.configSet()...)
@@ -2275,7 +2275,7 @@ func (block *securityBlockFlow) configSet() (
 	if block.AdvancedOptions != nil {
 		if block.AdvancedOptions.isEmpty() {
 			return configSet, path.Root("flow").AtName("advanced_options").AtName("*"),
-				fmt.Errorf("advanced_options block is empty in flow block")
+				errors.New("advanced_options block is empty in flow block")
 		}
 		if block.AdvancedOptions.DropMatchingLinkLocalAddress.ValueBool() {
 			configSet = append(configSet, setPrefix+"advanced-options drop-matching-link-local-address")
@@ -2290,7 +2290,7 @@ func (block *securityBlockFlow) configSet() (
 	if block.Aging != nil {
 		if block.Aging.isEmpty() {
 			return configSet, path.Root("flow").AtName("aging").AtName("*"),
-				fmt.Errorf("aging block is empty in flow block")
+				errors.New("aging block is empty in flow block")
 		}
 		if !block.Aging.EarlyAgeout.IsNull() {
 			configSet = append(configSet, setPrefix+"aging early-ageout "+
@@ -2320,7 +2320,7 @@ func (block *securityBlockFlow) configSet() (
 	if block.EthernetSwitching != nil {
 		if block.EthernetSwitching.isEmpty() {
 			return configSet, path.Root("flow").AtName("ethernet_switching").AtName("*"),
-				fmt.Errorf("ethernet_switching block is empty in flow block")
+				errors.New("ethernet_switching block is empty in flow block")
 		}
 		if block.EthernetSwitching.BlockNonIPAll.ValueBool() {
 			configSet = append(configSet, setPrefix+"ethernet-switching block-non-ip-all")
@@ -2366,7 +2366,7 @@ func (block *securityBlockFlow) configSet() (
 	if block.TCPMss != nil {
 		if block.TCPMss.isEmpty() {
 			return configSet, path.Root("flow").AtName("tcp_mss").AtName("*"),
-				fmt.Errorf("tcp_mss block is empty in flow block")
+				errors.New("tcp_mss block is empty in flow block")
 		}
 		if !block.TCPMss.AllTCPMss.IsNull() {
 			configSet = append(configSet, setPrefix+"tcp-mss all-tcp mss "+
@@ -2397,7 +2397,7 @@ func (block *securityBlockFlow) configSet() (
 	if block.TCPSession != nil {
 		if block.TCPSession.isEmpty() {
 			return configSet, path.Root("flow").AtName("tcp_session").AtName("*"),
-				fmt.Errorf("tcp_session block is empty in flow block")
+				errors.New("tcp_session block is empty in flow block")
 		}
 
 		if block.TCPSession.FinInvalidateSession.ValueBool() {
@@ -2567,7 +2567,7 @@ func (block *securityBlockIkeTraceoptions) configSet() (
 	if block.File != nil {
 		if block.File.isEmpty() {
 			return configSet, path.Root("ike_traceoptions").AtName("file").AtName("*"),
-				fmt.Errorf("file block is empty in ike_traceoptions block")
+				errors.New("file block is empty in ike_traceoptions block")
 		}
 
 		if v := block.File.Name.ValueString(); v != "" {
@@ -2587,7 +2587,7 @@ func (block *securityBlockIkeTraceoptions) configSet() (
 		if block.File.WorldReadable.ValueBool() && block.File.NoWorldReadable.ValueBool() {
 			return configSet,
 				path.Root("ike_traceoptions").AtName("file").AtName("world_readable"),
-				fmt.Errorf("world_readable and no_world_readable can't be true in same time " +
+				errors.New("world_readable and no_world_readable can't be true in same time " +
 					"in file block in ike_traceoptions block")
 		}
 		if block.File.WorldReadable.ValueBool() {
@@ -2632,7 +2632,7 @@ func (block *securityBlockLog) configSet() (
 	if block.File != nil {
 		if block.File.isEmpty() {
 			return configSet, path.Root("log").AtName("file").AtName("*"),
-				fmt.Errorf("file block is empty in log block")
+				errors.New("file block is empty in log block")
 		}
 
 		if !block.File.Files.IsNull() {

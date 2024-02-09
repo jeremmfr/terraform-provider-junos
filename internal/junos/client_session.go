@@ -2,7 +2,7 @@ package junos
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net"
 	"strconv"
 	"time"
@@ -63,7 +63,7 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 	if sess.SystemInformation.HardwareModel == "" {
 		_ = sess.closeNetconf(sess.sleepSSHClosed)
 
-		return nil, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
+		return nil, errors.New("can't read model of device with <get-system-information/> netconf command")
 	}
 	sess.logFile("[StartNewSession] session opened")
 

@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -461,7 +462,7 @@ func setChassisCluster(d *schema.ResourceData, junSess *junos.Session) error {
 		} else if redundancyGroup["preempt_delay"].(int) != 0 ||
 			redundancyGroup["preempt_limit"].(int) != 0 ||
 			redundancyGroup["preempt_period"].(int) != 0 {
-			return fmt.Errorf("preempt need to be true with preempt_(delay|limit|period) arguments")
+			return errors.New("preempt need to be true with preempt_(delay|limit|period) arguments")
 		}
 	}
 	configSet = append(configSet, setChassisluster+"reth-count "+

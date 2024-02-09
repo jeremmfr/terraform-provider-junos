@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -349,5 +350,5 @@ func (rsc *interfaceSt0Unit) searchNewAvailable(junSess *junos.Session) (string,
 		}
 	}
 
-	return "", fmt.Errorf("error for find st0 unit to create")
+	return "", errors.New("error for find st0 unit to create")
 }

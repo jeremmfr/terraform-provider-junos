@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -384,7 +385,7 @@ func setUtmPolicy(d *schema.ResourceData, junSess *junos.Session) error {
 					antiVirus["smtp_profile"].(string)+"\"")
 			}
 		} else {
-			return fmt.Errorf("anti_virus block is empty")
+			return errors.New("anti_virus block is empty")
 		}
 	}
 	for _, v := range d.Get("content_filtering").([]interface{}) {
@@ -416,7 +417,7 @@ func setUtmPolicy(d *schema.ResourceData, junSess *junos.Session) error {
 					contentFiltering["smtp_profile"].(string)+"\"")
 			}
 		} else {
-			return fmt.Errorf("content_filtering block is empty")
+			return errors.New("content_filtering block is empty")
 		}
 	}
 	for _, v := range d.Get("traffic_sessions_per_client").([]interface{}) {
@@ -431,7 +432,7 @@ func setUtmPolicy(d *schema.ResourceData, junSess *junos.Session) error {
 		}
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1],
 			setPrefix+"traffic-options sessions-per-client") {
-			return fmt.Errorf("traffic_sessions_per_client block is empty")
+			return errors.New("traffic_sessions_per_client block is empty")
 		}
 	}
 	if d.Get("web_filtering_profile").(string) != "" {

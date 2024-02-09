@@ -2,7 +2,7 @@ package providerfwk
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"regexp"
 	"strings"
 
@@ -536,7 +536,7 @@ func (rscData *routingInstanceData) set(
 	if rscData.ConfigureTypeSingly.ValueBool() {
 		if rscData.Type.ValueString() != "" {
 			return path.Root("type"),
-				fmt.Errorf("if `configure_type_singly` = true, `type` need to be set to empty value to avoid confusion")
+				errors.New("if `configure_type_singly` = true, `type` need to be set to empty value to avoid confusion")
 		}
 	} else {
 		if v := rscData.Type.ValueString(); v != "" {

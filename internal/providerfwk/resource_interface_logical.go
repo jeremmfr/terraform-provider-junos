@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -2303,7 +2304,7 @@ func (rscData *interfaceLogicalData) set(
 	}
 	if rscData.Disable.ValueBool() {
 		if rscData.Description.ValueString() == "NC" {
-			return path.Root("disable"), fmt.Errorf("disable=true and description=NC is not allowed " +
+			return path.Root("disable"), errors.New("disable=true and description=NC is not allowed " +
 				"because the provider might consider the resource deleted")
 		}
 		configSet = append(configSet, setPrefix+"disable")
@@ -2477,7 +2478,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 	for i, vrrpGroup := range block.VRRPGroup {
 		if strings.HasPrefix(setPrefix, "set interfaces st0.") {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("*"),
-				fmt.Errorf("vrrp not available on st0 interface")
+				errors.New("vrrp not available on st0 interface")
 		}
 
 		if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
@@ -2583,7 +2584,7 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 	for i, vrrpGroup := range block.VRRPGroup {
 		if strings.HasPrefix(setPrefix, "set interfaces st0.") {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("*"),
-				fmt.Errorf("vrrp not available on st0 interface")
+				errors.New("vrrp not available on st0 interface")
 		}
 
 		if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
