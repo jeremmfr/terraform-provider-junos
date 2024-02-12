@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type dynamicAddressFeedServerOptions struct {
@@ -356,7 +356,7 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, junSess *junos.
 	feedNameList := make([]string, 0)
 	for _, fn := range d.Get("feed_name").([]interface{}) {
 		feedName := fn.(map[string]interface{})
-		if bchk.InSlice(feedName["name"].(string), feedNameList) {
+		if slices.Contains(feedNameList, feedName["name"].(string)) {
 			return fmt.Errorf("multiple blocks feed_name with the same name %s", feedName["name"].(string))
 		}
 		feedNameList = append(feedNameList, feedName["name"].(string))

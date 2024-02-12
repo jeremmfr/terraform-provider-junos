@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type fwdOptsDhcpRelGroupOptions struct {
@@ -961,7 +961,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").(*schema.Set).List() {
 		interFace := v.(map[string]interface{})
-		if bchk.InSlice(interFace["name"].(string), interfaceNameList) {
+		if slices.Contains(interfaceNameList, interFace["name"].(string)) {
 			return fmt.Errorf("multiple blocks interface with the same name %s", interFace["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, interFace["name"].(string))
@@ -1153,7 +1153,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 	serverMatchAddressList := make([]string, 0)
 	for _, v := range d.Get("server_match_address").(*schema.Set).List() {
 		serverMatchAddress := v.(map[string]interface{})
-		if bchk.InSlice(serverMatchAddress["address"].(string), serverMatchAddressList) {
+		if slices.Contains(serverMatchAddressList, serverMatchAddress["address"].(string)) {
 			return fmt.Errorf("multiple blocks server_match_address with the same address %s",
 				serverMatchAddress["address"].(string))
 		}
@@ -1173,9 +1173,9 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 		serverMatchDuidCompare := serverMatchDuid["compare"].(string)
 		serverMatchDuidValueType := serverMatchDuid["value_type"].(string)
 		serverMatchDuidValue := serverMatchDuid["value"].(string)
-		if bchk.InSlice(
-			serverMatchDuidCompare+junos.IDSeparator+serverMatchDuidValueType+junos.IDSeparator+serverMatchDuidValue,
+		if slices.Contains(
 			serverMatchDuidList,
+			serverMatchDuidCompare+junos.IDSeparator+serverMatchDuidValueType+junos.IDSeparator+serverMatchDuidValue,
 		) {
 			return fmt.Errorf("multiple blocks server_match_duid with the same compare %s, value_type %s, value %s",
 				serverMatchDuidCompare, serverMatchDuidValueType, serverMatchDuidValue)

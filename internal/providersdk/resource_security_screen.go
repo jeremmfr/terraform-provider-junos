@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 const (
@@ -1187,7 +1187,7 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 					return configSet, fmt.Errorf("white-list %s need to have a source or destination address set",
 						whitelist["name"].(string))
 				}
-				if bchk.InSlice(whitelist["name"].(string), whitelistNameList) {
+				if slices.Contains(whitelistNameList, whitelist["name"].(string)) {
 					return configSet, fmt.Errorf("multiple blocks whitelist with the same name %s", whitelist["name"].(string))
 				}
 				whitelistNameList = append(whitelistNameList, whitelist["name"].(string))

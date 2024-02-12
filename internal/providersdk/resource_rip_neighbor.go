@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -641,7 +641,7 @@ func setRipNeighbor(d *schema.ResourceData, junSess *junos.Session) error {
 	authSimpleMD5List := make([]int, 0)
 	for _, authSimpMd5Block := range d.Get("authentication_selective_md5").([]interface{}) {
 		authSimpMd5 := authSimpMd5Block.(map[string]interface{})
-		if bchk.InSlice(authSimpMd5["key_id"].(int), authSimpleMD5List) {
+		if slices.Contains(authSimpleMD5List, authSimpMd5["key_id"].(int)) {
 			return fmt.Errorf("multiple blocks authentication_selective_md5 "+
 				"with the same key_id %d", authSimpMd5["key_id"].(int))
 		}

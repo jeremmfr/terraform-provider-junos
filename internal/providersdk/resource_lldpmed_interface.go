@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type lldpMedInterfaceOptions struct {
@@ -362,7 +362,7 @@ func setLldpMedInterface(d *schema.ResourceData, junSess *junos.Session) error {
 			civicBasedCaTypeList := make([]int, 0)
 			for _, mCaT := range location["civic_based_ca_type"].([]interface{}) {
 				caType := mCaT.(map[string]interface{})
-				if bchk.InSlice(caType["ca_type"].(int), civicBasedCaTypeList) {
+				if slices.Contains(civicBasedCaTypeList, caType["ca_type"].(int)) {
 					return fmt.Errorf("multiple blocks civic_based_ca_type with the same ca_type '%d'", caType["ca_type"].(int))
 				}
 				civicBasedCaTypeList = append(civicBasedCaTypeList, caType["ca_type"].(int))

@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type utmProfileWebFilteringEnhancedOptions struct {
@@ -430,7 +430,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, junSess *junos.Session) e
 	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
-		if bchk.InSlice(category["name"].(string), categoryNameList) {
+		if slices.Contains(categoryNameList, category["name"].(string)) {
 			return fmt.Errorf("multiple blocks category with the same name %s", category["name"].(string))
 		}
 		categoryNameList = append(categoryNameList, category["name"].(string))
@@ -439,7 +439,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, junSess *junos.Session) e
 		reputationActionSiteList := make([]string, 0)
 		for _, r := range category["reputation_action"].([]interface{}) {
 			reputation := r.(map[string]interface{})
-			if bchk.InSlice(reputation["site_reputation"].(string), reputationActionSiteList) {
+			if slices.Contains(reputationActionSiteList, reputation["site_reputation"].(string)) {
 				return fmt.Errorf("multiple blocks reputation_action with the same site_reputation %s",
 					reputation["site_reputation"].(string))
 			}
@@ -500,7 +500,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, junSess *junos.Session) e
 	siteReputationNameList := make([]string, 0)
 	for _, v := range d.Get("site_reputation_action").([]interface{}) {
 		siteReputation := v.(map[string]interface{})
-		if bchk.InSlice(siteReputation["site_reputation"].(string), siteReputationNameList) {
+		if slices.Contains(siteReputationNameList, siteReputation["site_reputation"].(string)) {
 			return fmt.Errorf("multiple blocks site_reputation_action with the same site_reputation %s",
 				siteReputation["site_reputation"].(string))
 		}

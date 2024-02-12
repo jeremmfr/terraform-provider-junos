@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -360,7 +360,7 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, junSess *junos.S
 	domainControllerNameList := make([]string, 0)
 	for _, v := range d.Get("domain_controller").([]interface{}) {
 		domainController := v.(map[string]interface{})
-		if bchk.InSlice(domainController["name"].(string), domainControllerNameList) {
+		if slices.Contains(domainControllerNameList, domainController["name"].(string)) {
 			return fmt.Errorf("multiple blocks domain_controller with the same name %s", domainController["name"].(string))
 		}
 		domainControllerNameList = append(domainControllerNameList, domainController["name"].(string))

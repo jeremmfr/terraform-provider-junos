@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type systemServicesDhcpLocalServerGroupOptions struct {
@@ -1195,7 +1195,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").(*schema.Set).List() {
 		interFace := v.(map[string]interface{})
-		if bchk.InSlice(interFace["name"].(string), interfaceNameList) {
+		if slices.Contains(interfaceNameList, interFace["name"].(string)) {
 			return fmt.Errorf("multiple blocks interface with the same name %s", interFace["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, interFace["name"].(string))

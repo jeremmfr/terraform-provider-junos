@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type securityIntellPolicyOptions struct {
@@ -279,7 +279,7 @@ func setServicesSecurityIntellPolicy(d *schema.ResourceData, junSess *junos.Sess
 	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
-		if bchk.InSlice(category["name"].(string), categoryNameList) {
+		if slices.Contains(categoryNameList, category["name"].(string)) {
 			return fmt.Errorf("multiple blocks category with the same name %s", category["name"].(string))
 		}
 		categoryNameList = append(categoryNameList, category["name"].(string))

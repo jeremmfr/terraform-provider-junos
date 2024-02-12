@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type groupDualSystemOptions struct {
@@ -398,7 +398,7 @@ func resourceGroupDualSystemImport(ctx context.Context, d *schema.ResourceData, 
 	defer junSess.Close()
 	result := make([]*schema.ResourceData, 1)
 
-	if !bchk.InSlice(d.Id(), []string{"node0", "node1", "re0", "re1"}) {
+	if !slices.Contains([]string{"node0", "node1", "re0", "re1"}, d.Id()) {
 		return nil, fmt.Errorf("invalid group id '%v' (id must be <name>)", d.Id())
 	}
 	groupDualSystemExists, err := checkGroupDualSystemExists(d.Id(), junSess)
@@ -453,7 +453,7 @@ func setGroupDualSystem(d *schema.ResourceData, junSess *junos.Session) error {
 		familyInetAddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet_address"].([]interface{}) {
 			familyInetAddress := v2.(map[string]interface{})
-			if bchk.InSlice(familyInetAddress["cidr_ip"].(string), familyInetAddressCIDRIPList) {
+			if slices.Contains(familyInetAddressCIDRIPList, familyInetAddress["cidr_ip"].(string)) {
 				return fmt.Errorf("multiple blocks family_inet_address with the same cidr_ip %s",
 					familyInetAddress["cidr_ip"].(string))
 			}
@@ -476,7 +476,7 @@ func setGroupDualSystem(d *schema.ResourceData, junSess *junos.Session) error {
 		familyInet6AddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
 			familyInet6Address := v2.(map[string]interface{})
-			if bchk.InSlice(familyInet6Address["cidr_ip"].(string), familyInet6AddressCIDRIPList) {
+			if slices.Contains(familyInet6AddressCIDRIPList, familyInet6Address["cidr_ip"].(string)) {
 				return fmt.Errorf("multiple blocks family_inet6_address with the same cidr_ip %s",
 					familyInet6Address["cidr_ip"].(string))
 			}
@@ -502,7 +502,7 @@ func setGroupDualSystem(d *schema.ResourceData, junSess *junos.Session) error {
 		staticRouteDestList := make([]string, 0)
 		for _, v2 := range routingOptions["static_route"].([]interface{}) {
 			staticRoute := v2.(map[string]interface{})
-			if bchk.InSlice(staticRoute["destination"].(string), staticRouteDestList) {
+			if slices.Contains(staticRouteDestList, staticRoute["destination"].(string)) {
 				return fmt.Errorf("multiple blocks static_route with the same destination %s", staticRoute["destination"].(string))
 			}
 			staticRouteDestList = append(staticRouteDestList, staticRoute["destination"].(string))

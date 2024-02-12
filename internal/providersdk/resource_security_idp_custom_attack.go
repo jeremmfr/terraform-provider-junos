@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type idpCustomAttackOptions struct {
@@ -1056,7 +1056,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, junSess *junos.Session) 
 				len(attackChainMember["attack_type_signature"].([]interface{})) == 0 {
 				return fmt.Errorf("missing one attack type in member %s for attack_type_chain", attackChainMember["name"].(string))
 			}
-			if bchk.InSlice(attackChainMember["name"].(string), memberNameList) {
+			if slices.Contains(memberNameList, attackChainMember["name"].(string)) {
 				return fmt.Errorf("multiple blocks member with the same name %s", attackChainMember["name"].(string))
 			}
 			memberNameList = append(memberNameList, attackChainMember["name"].(string))

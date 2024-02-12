@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type idpPolicyOptions struct {
@@ -500,7 +500,7 @@ func setSecurityIdpPolicy(d *schema.ResourceData, junSess *junos.Session) error 
 	exemptRuleNameList := make([]string, 0)
 	for _, e := range d.Get("exempt_rule").([]interface{}) {
 		eM := e.(map[string]interface{})
-		if bchk.InSlice(eM["name"].(string), exemptRuleNameList) {
+		if slices.Contains(exemptRuleNameList, eM["name"].(string)) {
 			return fmt.Errorf("multiple blocks exempt_rule with the same name %s", eM["name"].(string))
 		}
 		exemptRuleNameList = append(exemptRuleNameList, eM["name"].(string))
@@ -513,7 +513,7 @@ func setSecurityIdpPolicy(d *schema.ResourceData, junSess *junos.Session) error 
 	ipsRuleNameList := make([]string, 0)
 	for _, e := range d.Get("ips_rule").([]interface{}) {
 		eM := e.(map[string]interface{})
-		if bchk.InSlice(eM["name"].(string), ipsRuleNameList) {
+		if slices.Contains(ipsRuleNameList, eM["name"].(string)) {
 			return fmt.Errorf("multiple blocks ips_rule with the same name %s", eM["name"].(string))
 		}
 		ipsRuleNameList = append(ipsRuleNameList, eM["name"].(string))

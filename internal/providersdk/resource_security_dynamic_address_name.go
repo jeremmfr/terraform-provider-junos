@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type dynamicAddressNameOptions struct {
@@ -328,7 +328,7 @@ func setSecurityDynamicAddressName(d *schema.ResourceData, junSess *junos.Sessio
 		propertyNameList := make([]string, 0)
 		for _, pro := range profileCategory["property"].([]interface{}) {
 			property := pro.(map[string]interface{})
-			if bchk.InSlice(property["name"].(string), propertyNameList) {
+			if slices.Contains(propertyNameList, property["name"].(string)) {
 				return fmt.Errorf("multiple blocks property with the same name %s", property["name"].(string))
 			}
 			propertyNameList = append(propertyNameList, property["name"].(string))

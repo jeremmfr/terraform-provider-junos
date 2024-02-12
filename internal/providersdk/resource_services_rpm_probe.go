@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type rpmProbeOptions struct {
@@ -544,7 +544,7 @@ func setServicesRpmProbe(d *schema.ResourceData, junSess *junos.Session) error {
 	testNameList := make([]string, 0)
 	for _, t := range d.Get("test").([]interface{}) {
 		test := t.(map[string]interface{})
-		if bchk.InSlice(test["name"].(string), testNameList) {
+		if slices.Contains(testNameList, test["name"].(string)) {
 			return fmt.Errorf("multiple blocks test with the same name %s", test["name"].(string))
 		}
 		testNameList = append(testNameList, test["name"].(string))

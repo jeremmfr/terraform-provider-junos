@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type svcUserIdentDevIdentProfileOptions struct {
@@ -302,7 +302,7 @@ func setServicesUserIdentDeviceIdentityProfile(
 	attributeNameList := make([]string, 0)
 	for _, v := range d.Get("attribute").([]interface{}) {
 		attribute := v.(map[string]interface{})
-		if bchk.InSlice(attribute["name"].(string), attributeNameList) {
+		if slices.Contains(attributeNameList, attribute["name"].(string)) {
 			return fmt.Errorf("multiple blocks attribute with the same name %s", attribute["name"].(string))
 		}
 		attributeNameList = append(attributeNameList, attribute["name"].(string))
