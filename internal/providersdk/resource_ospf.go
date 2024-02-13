@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -525,7 +526,7 @@ func setOspf(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	if v := d.Get("domain_id").(string); v != "" {
 		if d.Get("routing_instance").(string) == junos.DefaultW {
-			return fmt.Errorf("domain_id not compatible with routing_instance=default")
+			return errors.New("domain_id not compatible with routing_instance=default")
 		}
 		configSet = append(configSet, setPrefix+"domain-id \""+v+"\"")
 	}
@@ -540,7 +541,7 @@ func setOspf(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, grR := range d.Get("graceful_restart").([]interface{}) {
 		if grR == nil {
-			return fmt.Errorf("graceful_restart block is empty")
+			return errors.New("graceful_restart block is empty")
 		}
 		grRM := grR.(map[string]interface{})
 		if grRM["disable"].(bool) {
@@ -552,7 +553,7 @@ func setOspf(d *schema.ResourceData, junSess *junos.Session) error {
 				configSet = append(configSet, setPrefix+"graceful-restart helper-disable "+v)
 			}
 		} else if grRM["helper_disable_type"].(string) != "" {
-			return fmt.Errorf("helper_disable need to be true with helper_disable_type")
+			return errors.New("helper_disable need to be true with helper_disable_type")
 		}
 		if grRM["no_strict_lsa_checking"].(bool) {
 			configSet = append(configSet, setPrefix+"graceful-restart no-strict-lsa-checking")
@@ -615,11 +616,11 @@ func setOspf(d *schema.ResourceData, junSess *junos.Session) error {
 			configSet = append(configSet, setPrefix+"sham-link local "+v)
 		}
 	} else if d.Get("sham_link_local").(string) != "" {
-		return fmt.Errorf("sham_link need to be true with sham_link_local")
+		return errors.New("sham_link need to be true with sham_link_local")
 	}
 	for _, spfO := range d.Get("spf_options").([]interface{}) {
 		if spfO == nil {
-			return fmt.Errorf("spf_options block is empty")
+			return errors.New("spf_options block is empty")
 		}
 		sfpOM := spfO.(map[string]interface{})
 		if v := sfpOM["delay"].(int); v != 0 {

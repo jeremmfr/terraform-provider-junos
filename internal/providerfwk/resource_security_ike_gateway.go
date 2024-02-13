@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -902,7 +903,7 @@ func (rscData *securityIkeGatewayData) set(
 		if v1 := rscData.LocalIdentity.Type.ValueString(); v1 == "distinguished-name" {
 			if !rscData.LocalIdentity.Value.IsNull() {
 				return path.Root("local_identity").AtName("value"),
-					fmt.Errorf("conflict: value should not be specified " +
+					errors.New("conflict: value should not be specified " +
 						"when type is set to distinguished-name in local_identity block")
 			}
 			configSet = append(configSet, setPrefix+"local-identity "+v1)
@@ -932,7 +933,7 @@ func (rscData *securityIkeGatewayData) set(
 			if !rscData.RemoteIdentity.DistinguishedNameContainer.IsNull() ||
 				!rscData.RemoteIdentity.DistinguishedNameWildcard.IsNull() {
 				return path.Root("remote_identity").AtName("type"),
-					fmt.Errorf("conflict: type must be set to distinguished-name " +
+					errors.New("conflict: type must be set to distinguished-name " +
 						"with distinguished_name_container and distinguished_name_wildcard in remote_identity block")
 			}
 			if v2 := rscData.RemoteIdentity.Value.ValueString(); v2 != "" {

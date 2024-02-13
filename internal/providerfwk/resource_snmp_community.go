@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -459,7 +460,7 @@ func (rscData *snmpCommunityData) set(
 	if v := rscData.ClientListName.ValueString(); v != "" {
 		if len(rscData.Clients) > 0 {
 			return path.Root("client_list_name"),
-				fmt.Errorf("client_list_name and clients cannot be configured together")
+				errors.New("client_list_name and clients cannot be configured together")
 		}
 		configSet = append(configSet, setPrefix+"client-list-name \""+v+"\"")
 	}

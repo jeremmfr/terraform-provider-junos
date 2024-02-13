@@ -2,8 +2,10 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -23,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -1087,9 +1088,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 ) {
 	errorMessageWithFamilySuffix := fmt.Sprintf(" in from block cannot be configured with family %q", family)
 	if !block.Address.IsNull() && !block.Address.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("address"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1097,9 +1098,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.AddressExcept.IsNull() && !block.AddressExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("address_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1107,9 +1108,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.DestinationAddress.IsNull() && !block.DestinationAddress.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W,
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_address"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1117,9 +1118,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.DestinationAddressExcept.IsNull() && !block.DestinationAddressExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W,
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_address_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1127,9 +1128,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.DestinationMacAddress.IsNull() && !block.DestinationMacAddress.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			"vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_mac_address"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1137,9 +1138,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.DestinationMacAddressExcept.IsNull() && !block.DestinationMacAddressExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			"vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_mac_address_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1147,9 +1148,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.DestinationPort.IsNull() && !block.DestinationPort.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_port"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1157,9 +1158,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.DestinationPortExcept.IsNull() && !block.DestinationPortExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_port_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1167,9 +1168,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.DestinationPrefixList.IsNull() && !block.DestinationPrefixList.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1177,9 +1178,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.DestinationPrefixListExcept.IsNull() && !block.DestinationPrefixListExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("destination_prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1187,9 +1188,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.ForwardingClass.IsNull() && !block.ForwardingClass.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("forwarding_class"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1197,9 +1198,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.ForwardingClassExcept.IsNull() && !block.ForwardingClassExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("forwarding_class_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1207,9 +1208,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.IcmpCode.IsNull() && !block.IcmpCode.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_code"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1217,9 +1218,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.IcmpCodeExcept.IsNull() && !block.IcmpCodeExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_code_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1227,9 +1228,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.IcmpType.IsNull() && !block.IcmpType.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_type"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1237,9 +1238,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.IcmpTypeExcept.IsNull() && !block.IcmpTypeExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("icmp_type_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1247,9 +1248,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.Interface.IsNull() && !block.Interface.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any", "mpls", "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("interface"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1257,9 +1258,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.IsFragment.IsNull() && !block.IsFragment.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("is_fragment"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1267,9 +1268,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.LossPriority.IsNull() && !block.LossPriority.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("loss_priority"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1277,9 +1278,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.LossPriorityExcept.IsNull() && !block.LossPriorityExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("loss_priority_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1287,9 +1288,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.NextHeader.IsNull() && !block.NextHeader.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.Inet6W,
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("next_header"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1297,9 +1298,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.NextHeaderExcept.IsNull() && !block.NextHeaderExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.Inet6W,
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("next_header_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1307,9 +1308,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.PacketLength.IsNull() && !block.PacketLength.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("packet_length"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1317,9 +1318,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.PacketLengthExcept.IsNull() && !block.PacketLengthExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("packet_length_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1327,9 +1328,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.PolicyMap.IsNull() && !block.PolicyMap.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("policy_map"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1337,9 +1338,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.PolicyMapExcept.IsNull() && !block.PolicyMapExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("policy_map_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1347,9 +1348,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.Port.IsNull() && !block.Port.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("port"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1357,9 +1358,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.PortExcept.IsNull() && !block.PortExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("port_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1367,9 +1368,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.PrefixList.IsNull() && !block.PrefixList.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1377,9 +1378,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.PrefixListExcept.IsNull() && !block.PrefixListExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1387,9 +1388,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.Protocol.IsNull() && !block.Protocol.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("protocol"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1397,9 +1398,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.ProtocolExcept.IsNull() && !block.ProtocolExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("protocol_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1407,9 +1408,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.SourceAddress.IsNull() && !block.SourceAddress.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W,
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_address"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1417,9 +1418,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.SourceAddressExcept.IsNull() && !block.SourceAddressExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W,
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_address_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1427,9 +1428,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.SourceMacAddress.IsNull() && !block.SourceMacAddress.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			"vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_mac_address"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1437,9 +1438,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.SourceMacAddressExcept.IsNull() && !block.SourceMacAddressExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			"vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_mac_address_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1447,9 +1448,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.SourcePort.IsNull() && !block.SourcePort.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_port"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1457,9 +1458,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.SourcePortExcept.IsNull() && !block.SourcePortExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_port_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1467,9 +1468,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.SourcePrefixList.IsNull() && !block.SourcePrefixList.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_prefix_list"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1477,9 +1478,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.SourcePrefixListExcept.IsNull() && !block.SourcePrefixListExcept.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("source_prefix_list_except"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1487,9 +1488,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.TCPEstablished.IsNull() && !block.TCPEstablished.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_established"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1497,9 +1498,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.TCPFlags.IsNull() && !block.TCPFlags.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "vpls", "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_flags"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1507,9 +1508,9 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 		)
 	}
 	if !block.TCPInitial.IsNull() && !block.TCPInitial.IsUnknown() &&
-		!bchk.InSlice(family, []string{
+		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "ethernet-switching",
-		}) {
+		}, family) {
 		resp.Diagnostics.AddAttributeError(
 			pathRoot.AtName("tcp_initial"),
 			tfdiag.ConflictConfigErrSummary,
@@ -1752,7 +1753,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.DestinationPort) > 0 && len(block.DestinationPortExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("destination_port"),
-			fmt.Errorf("destination_port and destination_port_except cannot be configured together" +
+			errors.New("destination_port and destination_port_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.DestinationPort {
@@ -1770,7 +1771,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.ForwardingClass) > 0 && len(block.ForwardingClassExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("forwarding_class"),
-			fmt.Errorf("forwarding_class and forwarding_class_except cannot be configured together" +
+			errors.New("forwarding_class and forwarding_class_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.ForwardingClass {
@@ -1782,7 +1783,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.IcmpCode) > 0 && len(block.IcmpCodeExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("icmp_code"),
-			fmt.Errorf("icmp_code and icmp_code_except cannot be configured together" +
+			errors.New("icmp_code and icmp_code_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.IcmpCode {
@@ -1794,7 +1795,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.IcmpType) > 0 && len(block.IcmpTypeExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("icmp_type"),
-			fmt.Errorf("icmp_type and icmp_type_except cannot be configured together" +
+			errors.New("icmp_type and icmp_type_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.IcmpType {
@@ -1812,7 +1813,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.LossPriority) > 0 && len(block.LossPriorityExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("loss_priority"),
-			fmt.Errorf("loss_priority and loss_priority_except cannot be configured together" +
+			errors.New("loss_priority and loss_priority_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.LossPriority {
@@ -1824,7 +1825,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.NextHeader) > 0 && len(block.NextHeaderExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("next_header"),
-			fmt.Errorf("next_header and next_header_except cannot be configured together" +
+			errors.New("next_header and next_header_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.NextHeader {
@@ -1836,7 +1837,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.PacketLength) > 0 && len(block.PacketLengthExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("packet_length"),
-			fmt.Errorf("packet_length and packet_length_except cannot be configured together" +
+			errors.New("packet_length and packet_length_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.PacketLength {
@@ -1848,7 +1849,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.PolicyMap) > 0 && len(block.PolicyMapExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("policy_map"),
-			fmt.Errorf("policy_map and policy_map_except cannot be configured together" +
+			errors.New("policy_map and policy_map_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.PolicyMap {
@@ -1860,7 +1861,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.Port) > 0 && len(block.PortExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("port"),
-			fmt.Errorf("port and port_except cannot be configured together" +
+			errors.New("port and port_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.Port {
@@ -1878,7 +1879,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.Protocol) > 0 && len(block.ProtocolExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("protocol"),
-			fmt.Errorf("protocol and protocol_except cannot be configured together" +
+			errors.New("protocol and protocol_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.Protocol {
@@ -1902,7 +1903,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	if len(block.SourcePort) > 0 && len(block.SourcePortExcept) > 0 {
 		return configSet,
 			pathRoot.AtName("source_port"),
-			fmt.Errorf("source_port and source_port_except cannot be configured together" +
+			errors.New("source_port and source_port_except cannot be configured together" +
 				" in from block")
 	}
 	for _, v := range block.SourcePort {
@@ -1921,13 +1922,13 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 		if block.TCPFlags.ValueString() != "" {
 			return configSet,
 				pathRoot.AtName("tcp_established"),
-				fmt.Errorf("tcp_established and tcp_flags cannot be configured together" +
+				errors.New("tcp_established and tcp_flags cannot be configured together" +
 					" in from block")
 		}
 		if block.TCPInitial.ValueBool() {
 			return configSet,
 				pathRoot.AtName("tcp_established"),
-				fmt.Errorf("tcp_established and tcp_initial cannot be configured together" +
+				errors.New("tcp_established and tcp_initial cannot be configured together" +
 					" in from block")
 		}
 		configSet = append(configSet, setPrefix+"tcp-established")

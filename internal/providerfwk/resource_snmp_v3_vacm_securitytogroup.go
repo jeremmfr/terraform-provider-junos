@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -324,7 +325,7 @@ func (rscData *snmpV3VacmSecuritytogroupData) set(
 			" security-name \"" + rscData.Name.ValueString() + "\"" +
 			" group \"" + v + "\""
 	} else {
-		return path.Root("group"), fmt.Errorf("group must be specified")
+		return path.Root("group"), errors.New("group must be specified")
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)

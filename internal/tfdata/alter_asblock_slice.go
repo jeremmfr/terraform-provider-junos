@@ -12,7 +12,7 @@ import (
 //   - if the value of this field is equal with inputValue,
 //     remove element from slice and return the new slice and the element
 //   - if not equal, create a new empty struct and return the slice unaltered and the new struct.
-func ExtractBlockWithTFTypesString[B any]( //nolint:ireturn
+func ExtractBlockWithTFTypesString[B any](
 	blocks []B, structFieldName, inputValue string,
 ) (
 	[]B, B,
@@ -88,7 +88,7 @@ func ExtractBlockWith2TFTypesString[B any]( //nolint:ireturn
 //   - if the value of this field is equal with inputValue,
 //     remove element from slice and return the new slice and the element
 //   - if not equal, create a new empty struct and return the slice unaltered and the new struct.
-func ExtractBlockWithTFTypesInt64[B any]( //nolint:ireturn
+func ExtractBlockWithTFTypesInt64[B any](
 	blocks []B, structFieldName string, inputValue int64,
 ) (
 	[]B, B,

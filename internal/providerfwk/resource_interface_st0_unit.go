@@ -2,7 +2,9 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -344,10 +345,10 @@ func (rsc *interfaceSt0Unit) searchNewAvailable(junSess *junos.Session) (string,
 		}
 	}
 	for i := 0; i <= 1073741823; i++ {
-		if !bchk.InSlice("st0."+strconv.Itoa(i), st0int) {
+		if !slices.Contains(st0int, "st0."+strconv.Itoa(i)) {
 			return "st0." + strconv.Itoa(i), nil
 		}
 	}
 
-	return "", fmt.Errorf("error for find st0 unit to create")
+	return "", errors.New("error for find st0 unit to create")
 }

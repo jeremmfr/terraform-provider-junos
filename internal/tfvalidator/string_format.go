@@ -66,7 +66,7 @@ func (f stringFormat) invalidRune() func(rune) bool {
 				r != '-' && r != '_' && r != '@' && r != '.'
 		}
 	default:
-		return func(r rune) bool {
+		return func(_ rune) bool {
 			return true
 		}
 	}

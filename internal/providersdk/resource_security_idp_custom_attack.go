@@ -2,8 +2,10 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type idpCustomAttackOptions struct {
@@ -1055,7 +1056,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, junSess *junos.Session) 
 				len(attackChainMember["attack_type_signature"].([]interface{})) == 0 {
 				return fmt.Errorf("missing one attack type in member %s for attack_type_chain", attackChainMember["name"].(string))
 			}
-			if bchk.InSlice(attackChainMember["name"].(string), memberNameList) {
+			if slices.Contains(memberNameList, attackChainMember["name"].(string)) {
 				return fmt.Errorf("multiple blocks member with the same name %s", attackChainMember["name"].(string))
 			}
 			memberNameList = append(memberNameList, attackChainMember["name"].(string))
@@ -1149,12 +1150,12 @@ func setSecurityIdpCustomAttackTypeSignature(setPrefixOrigin string, attackSigna
 		if len(attackSignature["protocol_icmpv6"].([]interface{})) != 0 ||
 			len(attackSignature["protocol_tcp"].([]interface{})) != 0 ||
 			len(attackSignature["protocol_udp"].([]interface{})) != 0 {
-			return configSet, fmt.Errorf("protocol_icmp cannot be specified with " +
+			return configSet, errors.New("protocol_icmp cannot be specified with " +
 				"protocol_icmpv6 or protocol_tcp or protocol_udp")
 		}
 		sets := setSecurityIdpCustomAttackTypeSignatureProtoICMP(false, setPrefix, v.(map[string]interface{}))
 		if len(sets) == 0 {
-			return configSet, fmt.Errorf("protocol_icmp block is empty")
+			return configSet, errors.New("protocol_icmp block is empty")
 		}
 		configSet = append(configSet, sets...)
 	}
@@ -1162,26 +1163,26 @@ func setSecurityIdpCustomAttackTypeSignature(setPrefixOrigin string, attackSigna
 		if len(attackSignature["protocol_icmp"].([]interface{})) != 0 ||
 			len(attackSignature["protocol_tcp"].([]interface{})) != 0 ||
 			len(attackSignature["protocol_udp"].([]interface{})) != 0 {
-			return configSet, fmt.Errorf("protocol_icmpv6 cannot be specified with " +
+			return configSet, errors.New("protocol_icmpv6 cannot be specified with " +
 				"protocol_icmp or protocol_tcp or protocol_udp")
 		}
 		sets := setSecurityIdpCustomAttackTypeSignatureProtoICMP(true, setPrefix, v.(map[string]interface{}))
 		if len(sets) == 0 {
-			return configSet, fmt.Errorf("protocol_icmpv6 block is empty")
+			return configSet, errors.New("protocol_icmpv6 block is empty")
 		}
 		configSet = append(configSet, sets...)
 	}
 	for _, v := range attackSignature["protocol_ipv4"].([]interface{}) {
 		sets := setSecurityIdpCustomAttackTypeSignatureProtoIPv4(setPrefix, v.(map[string]interface{}))
 		if len(sets) == 0 {
-			return configSet, fmt.Errorf("protocol_ipv4 block is empty")
+			return configSet, errors.New("protocol_ipv4 block is empty")
 		}
 		configSet = append(configSet, sets...)
 	}
 	for _, v := range attackSignature["protocol_ipv6"].([]interface{}) {
 		sets := setSecurityIdpCustomAttackTypeSignatureProtoIPv6(setPrefix, v.(map[string]interface{}))
 		if len(sets) == 0 {
-			return configSet, fmt.Errorf("protocol_ipv6 block is empty")
+			return configSet, errors.New("protocol_ipv6 block is empty")
 		}
 		configSet = append(configSet, sets...)
 	}
@@ -1189,12 +1190,12 @@ func setSecurityIdpCustomAttackTypeSignature(setPrefixOrigin string, attackSigna
 		if len(attackSignature["protocol_icmp"].([]interface{})) != 0 ||
 			len(attackSignature["protocol_icmpv6"].([]interface{})) != 0 ||
 			len(attackSignature["protocol_udp"].([]interface{})) != 0 {
-			return configSet, fmt.Errorf("protocol_tcp cannot be specified with " +
+			return configSet, errors.New("protocol_tcp cannot be specified with " +
 				"protocol_icmp or protocol_icmpv6 or protocol_udp")
 		}
 		sets := setSecurityIdpCustomAttackTypeSignatureProtoTCP(setPrefix, v.(map[string]interface{}))
 		if len(sets) == 0 {
-			return configSet, fmt.Errorf("protocol_tcp block is empty")
+			return configSet, errors.New("protocol_tcp block is empty")
 		}
 		configSet = append(configSet, sets...)
 	}
@@ -1202,12 +1203,12 @@ func setSecurityIdpCustomAttackTypeSignature(setPrefixOrigin string, attackSigna
 		if len(attackSignature["protocol_icmp"].([]interface{})) != 0 ||
 			len(attackSignature["protocol_icmpv6"].([]interface{})) != 0 ||
 			len(attackSignature["protocol_tcp"].([]interface{})) != 0 {
-			return configSet, fmt.Errorf("protocol_udp cannot be specified with " +
+			return configSet, errors.New("protocol_udp cannot be specified with " +
 				"protocol_icmp or protocol_icmpv6 or protocol_tcp")
 		}
 		sets := setSecurityIdpCustomAttackTypeSignatureProtoUDP(setPrefix, v.(map[string]interface{}))
 		if len(sets) == 0 {
-			return configSet, fmt.Errorf("protocol_udp block is empty")
+			return configSet, errors.New("protocol_udp block is empty")
 		}
 		configSet = append(configSet, sets...)
 	}

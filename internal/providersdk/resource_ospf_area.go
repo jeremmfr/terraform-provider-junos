@@ -2,8 +2,10 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -881,7 +882,7 @@ func checkOspfAreaExists(idArea, version, realm, routingInstance string, junSess
 	if version == "v3" {
 		ospfVersion = junos.OspfV3
 	} else if realm != "" {
-		return false, fmt.Errorf("realm can't set if version != v3")
+		return false, errors.New("realm can't set if version != v3")
 	}
 	switch {
 	case routingInstance == junos.DefaultW && realm == "":
@@ -926,7 +927,7 @@ func setOspfArea(d *schema.ResourceData, junSess *junos.Session) error {
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = junos.OspfV3
 	} else if d.Get("realm").(string) != "" {
-		return fmt.Errorf("realm can't set if version != v3")
+		return errors.New("realm can't set if version != v3")
 	}
 	setPrefix += "protocols " + ospfVersion + " "
 	if realm := d.Get("realm").(string); realm != "" {
@@ -937,7 +938,7 @@ func setOspfArea(d *schema.ResourceData, junSess *junos.Session) error {
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").([]interface{}) {
 		ospfInterface := v.(map[string]interface{})
-		if bchk.InSlice(ospfInterface["name"].(string), interfaceNameList) {
+		if slices.Contains(interfaceNameList, ospfInterface["name"].(string)) {
 			return fmt.Errorf("multiple blocks interface with the same name %s", ospfInterface["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, ospfInterface["name"].(string))
@@ -951,7 +952,7 @@ func setOspfArea(d *schema.ResourceData, junSess *junos.Session) error {
 	areaRangeList := make([]string, 0)
 	for _, areaRangeBlock := range d.Get("area_range").(*schema.Set).List() {
 		areaRange := areaRangeBlock.(map[string]interface{})
-		if bchk.InSlice(areaRange["range"].(string), areaRangeList) {
+		if slices.Contains(areaRangeList, areaRange["range"].(string)) {
 			return fmt.Errorf("multiple blocks area_range with the same range %s", areaRange["range"].(string))
 		}
 		areaRangeList = append(areaRangeList, areaRange["range"].(string))
@@ -998,7 +999,7 @@ func setOspfArea(d *schema.ResourceData, junSess *junos.Session) error {
 			nssaAreaRangeList := make([]string, 0)
 			for _, areaRangeBlock := range nssa["area_range"].(*schema.Set).List() {
 				areaRange := areaRangeBlock.(map[string]interface{})
-				if bchk.InSlice(areaRange["range"].(string), nssaAreaRangeList) {
+				if slices.Contains(nssaAreaRangeList, areaRange["range"].(string)) {
 					return fmt.Errorf("multiple blocks area_range with the same range %s in nssa block", areaRange["range"].(string))
 				}
 				nssaAreaRangeList = append(nssaAreaRangeList, areaRange["range"].(string))
@@ -1060,9 +1061,9 @@ func setOspfArea(d *schema.ResourceData, junSess *junos.Session) error {
 	virtualLinkList := make([]string, 0)
 	for _, virtualLinkBlock := range d.Get("virtual_link").(*schema.Set).List() {
 		virtualLink := virtualLinkBlock.(map[string]interface{})
-		if bchk.InSlice(
-			virtualLink["neighbor_id"].(string)+junos.IDSeparator+virtualLink["transit_area"].(string),
+		if slices.Contains(
 			virtualLinkList,
+			virtualLink["neighbor_id"].(string)+junos.IDSeparator+virtualLink["transit_area"].(string),
 		) {
 			return fmt.Errorf(
 				"multiple blocks virtual_link with the same neighbor_id '%s' and transit_area '%s'",
@@ -1121,7 +1122,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 	authenticationMD5List := make([]int, 0)
 	for _, mAuthMD5 := range ospfInterface["authentication_md5"].([]interface{}) {
 		authMD5 := mAuthMD5.(map[string]interface{})
-		if bchk.InSlice(authMD5["key_id"].(int), authenticationMD5List) {
+		if slices.Contains(authenticationMD5List, authMD5["key_id"].(int)) {
 			return configSet, fmt.Errorf("multiple blocks authentication_md5 with the same key_id %d in interface with name %s",
 				authMD5["key_id"].(int), ospfInterface["name"].(string))
 		}
@@ -1136,7 +1137,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 	bandwidthBasedMetricsList := make([]string, 0)
 	for _, mBandBaseMet := range ospfInterface["bandwidth_based_metrics"].(*schema.Set).List() {
 		bandwidthBaseMetrics := mBandBaseMet.(map[string]interface{})
-		if bchk.InSlice(bandwidthBaseMetrics["bandwidth"].(string), bandwidthBasedMetricsList) {
+		if slices.Contains(bandwidthBasedMetricsList, bandwidthBaseMetrics["bandwidth"].(string)) {
 			return configSet, fmt.Errorf("multiple blocks bandwidth_based_metrics "+
 				"with the same bandwidth %s in interface with name %s",
 				bandwidthBaseMetrics["bandwidth"].(string), ospfInterface["name"].(string))
@@ -1227,7 +1228,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 			configSet = append(configSet, setPrefix+"ipv4-adjacency-segment protected "+t)
 		}
 	} else if ospfInterface["ipv4_adjacency_segment_protected_value"].(string) != "" {
-		return configSet, fmt.Errorf("ipv4_adjacency_segment_protected_type need to be set with " +
+		return configSet, errors.New("ipv4_adjacency_segment_protected_type need to be set with " +
 			"ipv4_adjacency_segment_protected_value")
 	}
 	if t := ospfInterface["ipv4_adjacency_segment_unprotected_type"].(string); t != "" {
@@ -1237,7 +1238,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 			configSet = append(configSet, setPrefix+"ipv4-adjacency-segment unprotected "+t)
 		}
 	} else if ospfInterface["ipv4_adjacency_segment_unprotected_value"].(string) != "" {
-		return configSet, fmt.Errorf("ipv4_adjacency_segment_unprotected_type need to be set with " +
+		return configSet, errors.New("ipv4_adjacency_segment_unprotected_type need to be set with " +
 			"ipv4_adjacency_segment_unprotected_value")
 	}
 	if ospfInterface["link_protection"].(bool) {
@@ -1252,7 +1253,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 	neighborList := make([]string, 0)
 	for _, mNeighbor := range ospfInterface["neighbor"].(*schema.Set).List() {
 		neighbor := mNeighbor.(map[string]interface{})
-		if bchk.InSlice(neighbor["address"].(string), neighborList) {
+		if slices.Contains(neighborList, neighbor["address"].(string)) {
 			return configSet, fmt.Errorf("multiple blocks neighbor with the same address %s in interface with name %s",
 				neighbor["address"].(string), ospfInterface["name"].(string))
 		}
@@ -1290,7 +1291,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 		}
 	} else if ospfInterface["passive_traffic_engineering_remote_node_id"].(string) != "" ||
 		ospfInterface["passive_traffic_engineering_remote_node_router_id"].(string) != "" {
-		return configSet, fmt.Errorf("passive need to be true with " +
+		return configSet, errors.New("passive need to be true with " +
 			"passive_traffic_engineering_remote_node_id and passive_traffic_engineering_remote_node_router_id")
 	}
 	if v := ospfInterface["poll_interval"].(int); v != 0 {
@@ -1325,7 +1326,7 @@ func readOspfArea(idArea, version, realm, routingInstance string, junSess *junos
 	if version == "v3" {
 		ospfVersion = junos.OspfV3
 	} else if realm != "" {
-		return confRead, fmt.Errorf("realm can't set if version != v3")
+		return confRead, errors.New("realm can't set if version != v3")
 	}
 	switch {
 	case routingInstance == junos.DefaultW && realm == "":
@@ -1830,7 +1831,7 @@ func delOspfArea(d *schema.ResourceData, junSess *junos.Session) error {
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = junos.OspfV3
 	} else if d.Get("realm").(string) != "" {
-		return fmt.Errorf("realm can't set if version != v3")
+		return errors.New("realm can't set if version != v3")
 	}
 	switch {
 	case d.Get("routing_instance").(string) == junos.DefaultW && d.Get("realm").(string) == "":

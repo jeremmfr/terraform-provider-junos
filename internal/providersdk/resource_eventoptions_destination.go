@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -284,7 +284,7 @@ func setEventoptionsDestination(d *schema.ResourceData, junSess *junos.Session) 
 	archiveSiteURLList := make([]string, 0)
 	for _, v := range d.Get("archive_site").([]interface{}) {
 		archiveSite := v.(map[string]interface{})
-		if bchk.InSlice(archiveSite["url"].(string), archiveSiteURLList) {
+		if slices.Contains(archiveSiteURLList, archiveSite["url"].(string)) {
 			return fmt.Errorf("multiple blocks archive_site with the same url %s", archiveSite["url"].(string))
 		}
 		archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))

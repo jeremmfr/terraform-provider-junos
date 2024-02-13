@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 var (
@@ -304,7 +304,7 @@ func (v StringWildcardNetworkValidator) ValidateString(
 		return
 	}
 	for _, octet := range strings.Split(mask.String(), ".") {
-		if !bchk.InSlice(octet, []string{"255", "254", "252", "248", "240", "224", "192", "128", "0"}) {
+		if !slices.Contains([]string{"255", "254", "252", "248", "240", "224", "192", "128", "0"}, octet) {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid Wildcard Address",

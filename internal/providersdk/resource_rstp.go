@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type rstpOptions struct {
@@ -378,7 +378,7 @@ func setRstp(d *schema.ResourceData, junSess *junos.Session) error {
 	systemIDList := make([]string, 0)
 	for _, mSysID := range d.Get("system_id").(*schema.Set).List() {
 		systemID := mSysID.(map[string]interface{})
-		if bchk.InSlice(systemID["id"].(string), systemIDList) {
+		if slices.Contains(systemIDList, systemID["id"].(string)) {
 			return fmt.Errorf("multiple blocks system_id with the same id '%s'", systemID["id"].(string))
 		}
 		systemIDList = append(systemIDList, systemID["id"].(string))

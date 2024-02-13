@@ -34,7 +34,7 @@ func (sess *Session) gatherFacts() error {
 			errorsMsg = append(errorsMsg, fmt.Sprintf("%v", m))
 		}
 
-		return fmt.Errorf(strings.Join(errorsMsg, "\n"))
+		return errors.New(strings.Join(errorsMsg, "\n"))
 	}
 	var reply rpcGetSystemInformationReply
 	if err := xml.Unmarshal([]byte(val.RawReply), &reply); err != nil {
@@ -177,7 +177,7 @@ func (sess *Session) netconfCommitConfirmed(ctx context.Context, logMessage stri
 
 	select {
 	case <-ctx.Done():
-		return warnings, fmt.Errorf("confirmation of commit with 'confirmed' option aborted before done")
+		return warnings, errors.New("confirmation of commit with 'confirmed' option aborted before done")
 	case <-time.After(sess.commitConfirmedWait):
 	}
 

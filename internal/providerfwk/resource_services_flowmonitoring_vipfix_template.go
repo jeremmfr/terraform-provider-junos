@@ -3,6 +3,7 @@ package providerfwk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -640,7 +640,7 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
-			case bchk.InSlice(itemTrim, []string{"bridge-template", "ipv4-template", "ipv6-template", "mpls-template"}):
+			case slices.Contains([]string{"bridge-template", "ipv4-template", "ipv6-template", "mpls-template"}, itemTrim):
 				rscData.Type = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "ipv6-template export-extension "):
 				rscData.Type = types.StringValue("ipv6-template")

@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -325,7 +326,7 @@ func setServicesSSLInitiationProfile(d *schema.ResourceData, junSess *junos.Sess
 	configSet = append(configSet, setPrefix)
 	for _, v := range d.Get("actions").([]interface{}) {
 		if v == nil {
-			return fmt.Errorf("actions block is empty")
+			return errors.New("actions block is empty")
 		}
 		actions := v.(map[string]interface{})
 		if actions["crl_disable"].(bool) {

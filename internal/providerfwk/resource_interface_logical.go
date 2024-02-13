@@ -2,8 +2,10 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -25,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -2160,7 +2161,7 @@ func (rsc *interfaceLogical) ImportState(
 
 	if data.VlanID.IsNull() {
 		intCut := strings.Split(req.ID, ".")
-		if !bchk.InSlice(intCut[0], []string{junos.St0Word, "irb", "vlan"}) &&
+		if !slices.Contains([]string{junos.St0Word, "irb", "vlan"}, intCut[0]) &&
 			intCut[1] != "0" {
 			data.VlanNoCompute = types.BoolValue(true)
 		}
@@ -2186,14 +2187,7 @@ func (rscCfg *interfaceLogicalConfig) computeVlanID() {
 	if len(intCut) < 2 {
 		return
 	}
-	if bchk.InSlice(
-		intCut[0],
-		[]string{
-			junos.St0Word,
-			"irb",
-			"vlan",
-		},
-	) {
+	if slices.Contains([]string{junos.St0Word, "irb", "vlan"}, intCut[0]) {
 		return
 	}
 	v, err := tfdata.ConvAtoi64Value(intCut[1])
@@ -2212,14 +2206,7 @@ func (rscData *interfaceLogicalData) computeVlanID() {
 	if len(intCut) < 2 {
 		return
 	}
-	if bchk.InSlice(
-		intCut[0],
-		[]string{
-			junos.St0Word,
-			"irb",
-			"vlan",
-		},
-	) {
+	if slices.Contains([]string{junos.St0Word, "irb", "vlan"}, intCut[0]) {
 		return
 	}
 	v, err := tfdata.ConvAtoi64Value(intCut[1])
@@ -2303,7 +2290,7 @@ func (rscData *interfaceLogicalData) set(
 	}
 	if rscData.Disable.ValueBool() {
 		if rscData.Description.ValueString() == "NC" {
-			return path.Root("disable"), fmt.Errorf("disable=true and description=NC is not allowed " +
+			return path.Root("disable"), errors.New("disable=true and description=NC is not allowed " +
 				"because the provider might consider the resource deleted")
 		}
 		configSet = append(configSet, setPrefix+"disable")
@@ -2477,7 +2464,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 	for i, vrrpGroup := range block.VRRPGroup {
 		if strings.HasPrefix(setPrefix, "set interfaces st0.") {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("*"),
-				fmt.Errorf("vrrp not available on st0 interface")
+				errors.New("vrrp not available on st0 interface")
 		}
 
 		if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
@@ -2583,7 +2570,7 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 	for i, vrrpGroup := range block.VRRPGroup {
 		if strings.HasPrefix(setPrefix, "set interfaces st0.") {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("*"),
-				fmt.Errorf("vrrp not available on st0 interface")
+				errors.New("vrrp not available on st0 interface")
 		}
 
 		if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {

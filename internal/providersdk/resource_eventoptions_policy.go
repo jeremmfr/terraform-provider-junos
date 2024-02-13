@@ -2,7 +2,9 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type eventoptionsPolicyOptions struct {
@@ -698,7 +699,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 					configSet = append(configSet, setPrefix+"then change-configuration commit-options check synchronize")
 				}
 			} else if changeConfig["commit_options_check_synchronize"].(bool) {
-				return fmt.Errorf("commit_options_check must be set to true if commit_options_check_synchronize is set to true")
+				return errors.New("commit_options_check must be set to true if commit_options_check_synchronize is set to true")
 			}
 			if changeConfig["commit_options_force"].(bool) {
 				configSet = append(configSet, setPrefix+"then change-configuration commit-options force")
@@ -720,7 +721,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 		eventScriptFilenameList := make([]string, 0)
 		for _, v2 := range then["event_script"].([]interface{}) {
 			eventScript := v2.(map[string]interface{})
-			if bchk.InSlice(eventScript["filename"].(string), eventScriptFilenameList) {
+			if slices.Contains(eventScriptFilenameList, eventScript["filename"].(string)) {
 				return fmt.Errorf("multiple blocks event_script with the same filename %s", eventScript["filename"].(string))
 			}
 			eventScriptFilenameList = append(eventScriptFilenameList, eventScript["filename"].(string))
@@ -729,7 +730,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 			argumentsNameList := make([]string, 0)
 			for _, v3 := range eventScript["arguments"].([]interface{}) {
 				arguments := v3.(map[string]interface{})
-				if bchk.InSlice(arguments["name"].(string), argumentsNameList) {
+				if slices.Contains(argumentsNameList, arguments["name"].(string)) {
 					return fmt.Errorf("multiple blocks arguments with the same name %s", arguments["name"].(string))
 				}
 				argumentsNameList = append(argumentsNameList, arguments["name"].(string))
@@ -745,10 +746,10 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 						configSet = append(configSet, setPrefixDestination+
 							"retry-count "+strconv.Itoa(retryCount)+" retry-interval "+strconv.Itoa(retryInterval))
 					} else {
-						return fmt.Errorf("retry_interval must be set with retry_count")
+						return errors.New("retry_interval must be set with retry_count")
 					}
 				} else if destination["retry_interval"].(int) != -1 {
-					return fmt.Errorf("retry_count must be set with retry_interval")
+					return errors.New("retry_count must be set with retry_interval")
 				}
 				if transferDelay := destination["transfer_delay"].(int); transferDelay != -1 {
 					configSet = append(configSet, setPrefixDestination+"transfer-delay "+strconv.Itoa(transferDelay))
@@ -778,10 +779,10 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 						configSet = append(configSet, setPrefixDestination+
 							"retry-count "+strconv.Itoa(retryCount)+" retry-interval "+strconv.Itoa(retryInterval))
 					} else {
-						return fmt.Errorf("retry_interval must be set with retry_count")
+						return errors.New("retry_interval must be set with retry_count")
 					}
 				} else if destination["retry_interval"].(int) != -1 {
-					return fmt.Errorf("retry_count must be set with retry_interval")
+					return errors.New("retry_count must be set with retry_interval")
 				}
 				if transferDelay := destination["transfer_delay"].(int); transferDelay != -1 {
 					configSet = append(configSet, setPrefixDestination+"transfer-delay "+strconv.Itoa(transferDelay))
@@ -814,7 +815,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 			upload := v2.(map[string]interface{})
 			setPrefixThenUpload := setPrefix + "then upload filename \"" + upload["filename"].(string) + "\" " +
 				"destination \"" + upload["destination"].(string) + "\" "
-			if bchk.InSlice(setPrefixThenUpload, uploadFileDestList) {
+			if slices.Contains(uploadFileDestList, setPrefixThenUpload) {
 				return fmt.Errorf("multiple blocks upload with the same filename %s and destination %s",
 					upload["filename"].(string), upload["destination"].(string))
 			}
@@ -825,10 +826,10 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 					configSet = append(configSet, setPrefixThenUpload+
 						"retry-count "+strconv.Itoa(retryCount)+" retry-interval "+strconv.Itoa(retryInterval))
 				} else {
-					return fmt.Errorf("retry_interval must be set with retry_count")
+					return errors.New("retry_interval must be set with retry_count")
 				}
 			} else if upload["retry_interval"].(int) != -1 {
-				return fmt.Errorf("retry_count must be set with retry_interval")
+				return errors.New("retry_count must be set with retry_interval")
 			}
 			if transferDelay := upload["transfer_delay"].(int); transferDelay != -1 {
 				configSet = append(configSet, setPrefixThenUpload+"transfer-delay "+strconv.Itoa(transferDelay))
@@ -843,7 +844,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 		attriMatch := v.(map[string]interface{})
 		setAttriMatch := setPrefix + "attributes-match \"" + attriMatch["from"].(string) + "\" " +
 			attriMatch["compare"].(string) + " \"" + attriMatch["to"].(string) + "\""
-		if bchk.InSlice(setAttriMatch, attriMatchList) {
+		if slices.Contains(attriMatchList, setAttriMatch) {
 			return fmt.Errorf("multiple blocks attributes_match with the same from %s, compare %s and to %s",
 				attriMatch["from"].(string), attriMatch["compare"].(string), attriMatch["to"].(string))
 		}
@@ -853,7 +854,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 	withinTimeInterval := make([]int, 0)
 	for _, v := range d.Get("within").([]interface{}) {
 		within := v.(map[string]interface{})
-		if bchk.InSlice(within["time_interval"].(int), withinTimeInterval) {
+		if slices.Contains(withinTimeInterval, within["time_interval"].(int)) {
 			return fmt.Errorf("multiple blocks within with the same time_interval %d", within["time_interval"].(int))
 		}
 		withinTimeInterval = append(withinTimeInterval, within["time_interval"].(int))
@@ -868,10 +869,10 @@ func setEventoptionsPolicy(d *schema.ResourceData, junSess *junos.Session) error
 			if c := within["trigger_count"].(int); c != -1 {
 				configSet = append(configSet, setPrefixWithin+"trigger "+v2+" "+strconv.Itoa(c))
 			} else {
-				return fmt.Errorf("trigger_count must be set with trigger_when")
+				return errors.New("trigger_count must be set with trigger_when")
 			}
 		} else if within["trigger_count"].(int) != -1 {
-			return fmt.Errorf("trigger_when must be set with trigger_count")
+			return errors.New("trigger_when must be set with trigger_count")
 		}
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixWithin) {
 			return fmt.Errorf("missing argument for within (time_interval=%d)", within["time_interval"].(int))

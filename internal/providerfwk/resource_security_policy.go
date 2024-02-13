@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -910,7 +911,7 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) configSet(
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+"idp-policy \""+v+"\"")
 	}
 	if block.RedirectWx.ValueBool() && block.ReverseRedirectWx.ValueBool() {
-		return configSet, fmt.Errorf("conflict: redirect_wx and reverse_redirect_wx enabled both")
+		return configSet, errors.New("conflict: redirect_wx and reverse_redirect_wx enabled both")
 	}
 	if block.RedirectWx.ValueBool() {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+"redirect-wx")

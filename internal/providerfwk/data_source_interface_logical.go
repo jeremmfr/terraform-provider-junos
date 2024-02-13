@@ -2,8 +2,10 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -18,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -392,7 +393,7 @@ func (dsc *interfaceLogicalDataSource) searchName(
 		case 0, 1, 2:
 			continue
 		default:
-			if itemTrimFields[1] == "unit" && !bchk.InSlice("ethernet-switching", itemTrimFields) {
+			if itemTrimFields[1] == "unit" && !slices.Contains(itemTrimFields, "ethernet-switching") {
 				intConfigList = append(intConfigList, itemTrimFields[0]+"."+itemTrimFields[2])
 			}
 		}
@@ -402,7 +403,7 @@ func (dsc *interfaceLogicalDataSource) searchName(
 		return "", nil
 	}
 	if len(intConfigList) > 1 {
-		return "", fmt.Errorf("too many different logical interfaces found")
+		return "", errors.New("too many different logical interfaces found")
 	}
 
 	return intConfigList[0], nil
