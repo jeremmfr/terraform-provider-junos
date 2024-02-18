@@ -97,6 +97,16 @@ func (rsc *eventoptionsGenerateEvent) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"start_time": schema.StringAttribute{
+				Optional:    true,
+				Description: "Start-time to generate event.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
+						"must be in the format 'YYYY-MM-DD.HH:MM:SS'",
+					),
+				},
+			},
 			"time_interval": schema.Int64Attribute{
 				Optional:    true,
 				Description: "Frequency for generating the event.",
@@ -129,6 +139,7 @@ type eventoptionsGenerateEventData struct {
 	NoDrift      types.Bool   `tfsdk:"no_drift"`
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
+	StartTime    types.String `tfsdk:"start_time"`
 	TimeInterval types.Int64  `tfsdk:"time_interval"`
 	TimeOfDay    types.String `tfsdk:"time_of_day"`
 }
@@ -153,10 +164,19 @@ func (rsc *eventoptionsGenerateEvent) ValidateConfig(
 	if !config.TimeInterval.IsNull() && !config.TimeInterval.IsUnknown() &&
 		!config.TimeOfDay.IsNull() && !config.TimeOfDay.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("time_interval"),
+			path.Root("time_of_day"),
 			tfdiag.ConflictConfigErrSummary,
 			"only one of time_interval or time_of_day can be specified",
 		)
+	}
+	if !config.StartTime.IsNull() && !config.StartTime.IsUnknown() {
+		if config.TimeInterval.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("start_time"),
+				tfdiag.MissingConfigErrSummary,
+				"time_interval must be specified with start_time",
+			)
+		}
 	}
 }
 
@@ -329,6 +349,9 @@ func (rscData *eventoptionsGenerateEventData) set(
 	configSet := make([]string, 0)
 	setPrefix := "set event-options generate-event \"" + rscData.Name.ValueString() + "\" "
 
+	if v := rscData.StartTime.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"start-time "+v)
+	}
 	if !rscData.TimeInterval.IsNull() {
 		configSet = append(configSet, setPrefix+"time-interval "+
 			utils.ConvI64toa(rscData.TimeInterval.ValueInt64()))
@@ -365,6 +388,8 @@ func (rscData *eventoptionsGenerateEventData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
+			case balt.CutPrefixInString(&itemTrim, "start-time "):
+				rscData.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 			case balt.CutPrefixInString(&itemTrim, "time-interval "):
 				rscData.TimeInterval, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {

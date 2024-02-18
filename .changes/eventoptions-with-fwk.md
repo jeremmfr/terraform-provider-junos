@@ -8,5 +8,6 @@ ENHANCEMENTS:
 * **resource/junos_eventoptions_generate_event**:
   * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
     optional boolean attributes doesn't accept value *false*  
+  * add `start_time` argument
 
 BUG FIXES:
