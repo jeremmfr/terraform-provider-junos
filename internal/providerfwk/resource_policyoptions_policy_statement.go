@@ -260,7 +260,8 @@ func (rsc *policyoptionsPolicyStatement) schemaFromAttributes() map[string]schem
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
 				setvalidator.ValueStringsAre(
-					stringvalidator.RegexMatches(regexp.MustCompile(`^([\d\w]{2}:){9}[\d\w]{2}$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^([\d\w]{2}:){9}[\d\w]{2}$`),
 						"bad format or length"),
 				),
 			},

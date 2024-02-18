@@ -182,7 +182,8 @@ func (rsc *evpn) Schema(
 						Required:    false, // true when SingleNestedBlock is specified
 						Description: "Route distinguisher for this instance.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^(\d|\.)+L?:\d+$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^(\d|\.)+L?:\d+$`),
 								"must have valid route distinguisher. Use format 'x:y'"),
 						},
 					},
@@ -214,7 +215,8 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "VRF target community configuration.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^target:(\d|\.)+L?:\d+$`),
 								"must have valid target. Use format 'target:x:y'"),
 						},
 					},
@@ -229,7 +231,8 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "Target community to use when marking routes on export.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^target:(\d|\.)+L?:\d+$`),
 								"must have valid target. Use format 'target:x:y'"),
 						},
 					},
@@ -237,7 +240,8 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "Target community to use when filtering on import.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^target:(\d|\.)+L?:\d+$`),
 								"must have valid target. Use format 'target:x:y'"),
 						},
 					},

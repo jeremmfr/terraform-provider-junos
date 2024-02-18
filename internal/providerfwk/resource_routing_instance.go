@@ -132,7 +132,8 @@ func (rsc *routingInstance) Schema(
 				Optional:    true,
 				Description: "Autonomous system number in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^\d+(\.\d+)?$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^\d+(\.\d+)?$`),
 						"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format"),
 				},
 			},
@@ -172,7 +173,8 @@ func (rsc *routingInstance) Schema(
 				Optional:    true,
 				Description: "Route distinguisher for this instance.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^(\d|\.)+L?:\d+$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^(\d|\.)+L?:\d+$`),
 						"must be use format 'x:y' where 'x' is an AS number followed by an optional 'L' (To indicate 4 byte AS), "+
 							"or an IP address and 'y' is a number. e.g. 123456L:100"),
 				},
@@ -212,7 +214,8 @@ func (rsc *routingInstance) Schema(
 				Optional:    true,
 				Description: "Target community to use in import and export.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^target:(\d|\.)+L?:\d+$`),
 						"must be use format 'target:x:y' where 'x' is an AS number followed by an optional 'L' (To indicate 4 byte AS), "+
 							"or an IP address and 'y' is a number. e.g. target:123456L:100"),
 				},
@@ -228,7 +231,8 @@ func (rsc *routingInstance) Schema(
 				Optional:    true,
 				Description: "Target community to use when marking routes on export.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^target:(\d|\.)+L?:\d+$`),
 						"must be use format 'target:x:y' where 'x' is an AS number followed by an optional 'L' (To indicate 4 byte AS), "+
 							"or an IP address and 'y' is a number. e.g. target:123456L:100"),
 				},
@@ -237,7 +241,8 @@ func (rsc *routingInstance) Schema(
 				Optional:    true,
 				Description: "Target community to use when filtering on import.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^target:(\d|\.)+L?:\d+$`),
 						"must be use format 'target:x:y' where 'x' is an AS number followed by an optional 'L' (To indicate 4 byte AS), "+
 							"or an IP address and 'y' is a number. e.g. target:123456L:100"),
 				},

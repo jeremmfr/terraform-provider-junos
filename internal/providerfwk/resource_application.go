@@ -158,7 +158,8 @@ func (rsc *application) Schema(
 				Optional:    true,
 				Description: "Match range of RPC program numbers.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^\d+(-\d+)?$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^\d+(-\d+)?$`),
 						"must be an integer or a range of integers"),
 				},
 			},
@@ -268,7 +269,8 @@ func (rsc *application) Schema(
 							Optional:    true,
 							Description: "Match range of RPC program numbers.",
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(regexp.MustCompile(`^\d+(-\d+)?$`),
+								stringvalidator.RegexMatches(regexp.MustCompile(
+									`^\d+(-\d+)?$`),
 									"must be an integer or a range of integers"),
 							},
 						},

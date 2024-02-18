@@ -425,7 +425,8 @@ func (rsc *interfaceLogical) Schema(
 								Optional:    true,
 								Description: "Client identifier as a hexadecimal string.",
 								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]+$`),
+									stringvalidator.RegexMatches(regexp.MustCompile(
+										`^[0-9a-fA-F]+$`),
 										"must be hexadecimal digits (0-9, a-f, A-F)"),
 								},
 							},
@@ -462,7 +463,8 @@ func (rsc *interfaceLogical) Schema(
 								Optional:    true,
 								Description: "Add user id as a hexadecimal string to client-id option.",
 								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]+$`),
+									stringvalidator.RegexMatches(regexp.MustCompile(
+										`^[0-9a-fA-F]+$`),
 										"must be hexadecimal digits (0-9, a-f, A-F)"),
 								},
 							},

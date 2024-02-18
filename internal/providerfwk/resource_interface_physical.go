@@ -191,7 +191,8 @@ func (rsc *interfacePhysical) Schema(
 				Optional:    true,
 				Description: "Link speed.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^(\d+(m|g)|2\.5g|auto|auto-10m-100m)$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^(\d+(m|g)|2\.5g|auto|auto-10m-100m)$`),
 						"must be a valid speed (10m | 100m | 1g ...)"),
 				},
 			},
@@ -282,7 +283,8 @@ func (rsc *interfacePhysical) Schema(
 						Optional:    true,
 						Description: "The ESI value for the interface.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^([\d\w]{2}:){9}[\d\w]{2}$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^([\d\w]{2}:){9}[\d\w]{2}$`),
 								"must be ten octets integer value with colon separator"),
 						},
 					},
@@ -359,7 +361,8 @@ func (rsc *interfacePhysical) Schema(
 						Optional:    true,
 						Description: "Minimum bandwidth configured for aggregated bundle.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^[0-9]+ (k|g|m)?bps$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^[0-9]+ (k|g|m)?bps$`),
 								"must be 'N (k|g|m)?bps' format"),
 						},
 					},
@@ -673,7 +676,8 @@ func (rsc *interfacePhysical) schemaEtherOptsAttributes() map[string]schema.Attr
 			Optional:    true,
 			Description: "Name of an aggregated Ethernet interface to join.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(`^ae\d+$`),
+				stringvalidator.RegexMatches(regexp.MustCompile(
+					`^ae\d+$`),
 					"must be an ae interface"),
 			},
 		},
@@ -723,7 +727,8 @@ func (rsc *interfacePhysical) schemaEtherOptsAttributes() map[string]schema.Attr
 			Optional:    true,
 			Description: "Name of a redundant ethernet interface to join.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(`^reth\d+$`),
+				stringvalidator.RegexMatches(regexp.MustCompile(
+					`^reth\d+$`),
 					"must be a reth interface"),
 			},
 		},

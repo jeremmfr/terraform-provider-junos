@@ -631,8 +631,8 @@ func (rsc *security) Schema(
 						Optional:    true,
 						Description: "Automatic start time (YYYY-MM-DD.HH:MM:SS).",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
 								"must be in the format 'YYYY-MM-DD.HH:MM:SS'",
 							),
 						},

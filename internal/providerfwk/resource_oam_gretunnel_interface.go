@@ -95,7 +95,8 @@ func (rsc *oamGretunnelInterface) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(`^gr-`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^gr-`),
 						"must be a gr interface"),
 				},
 			},

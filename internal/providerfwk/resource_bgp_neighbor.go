@@ -282,7 +282,8 @@ func (rsc *bgpNeighbor) Schema(
 				Optional:    true,
 				Description: "Local autonomous system number.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^\d+(\.\d+)?$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^\d+(\.\d+)?$`),
 						"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format"),
 				},
 			},
@@ -420,7 +421,8 @@ func (rsc *bgpNeighbor) Schema(
 				Optional:    true,
 				Description: "Autonomous system number.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^\d+(\.\d+)?$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^\d+(\.\d+)?$`),
 						"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format"),
 				},
 			},

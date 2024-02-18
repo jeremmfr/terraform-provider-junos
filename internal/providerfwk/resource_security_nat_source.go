@@ -229,8 +229,8 @@ func (rsc *securityNatSource) Schema(
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
 										setvalidator.ValueStringsAre(
-											stringvalidator.RegexMatches(
-												regexp.MustCompile(`^\d+( to \d+)?$`),
+											stringvalidator.RegexMatches(regexp.MustCompile(
+												`^\d+( to \d+)?$`),
 												"must be use format `x` or `x to y`",
 											),
 										),
@@ -278,8 +278,8 @@ func (rsc *securityNatSource) Schema(
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
 										setvalidator.ValueStringsAre(
-											stringvalidator.RegexMatches(
-												regexp.MustCompile(`^\d+( to \d+)?$`),
+											stringvalidator.RegexMatches(regexp.MustCompile(
+												`^\d+( to \d+)?$`),
 												"must be use format `x` or `x to y`",
 											),
 										),
