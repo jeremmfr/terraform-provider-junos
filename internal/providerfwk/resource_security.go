@@ -842,7 +842,8 @@ func (rsc *security) Schema(
 								Validators: []validator.String{
 									stringvalidator.LengthAtLeast(1),
 									tfvalidator.StringDoubleQuoteExclusion(),
-									tfvalidator.StringRuneExclusion('/', '%', ' '),
+									tfvalidator.StringSpaceExclusion(),
+									tfvalidator.StringRuneExclusion('/', '%'),
 								},
 							},
 							"files": schema.Int64Attribute{
@@ -991,7 +992,8 @@ func (rsc *security) Schema(
 								Validators: []validator.String{
 									stringvalidator.LengthAtLeast(1),
 									tfvalidator.StringDoubleQuoteExclusion(),
-									tfvalidator.StringRuneExclusion('/', '%', ' '),
+									tfvalidator.StringSpaceExclusion(),
+									tfvalidator.StringRuneExclusion('/', '%'),
 								},
 							},
 							"path": schema.StringAttribute{

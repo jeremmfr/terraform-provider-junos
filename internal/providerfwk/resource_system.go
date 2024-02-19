@@ -262,7 +262,7 @@ func (rsc *system) Schema(
 									Validators: []validator.String{
 										stringvalidator.LengthBetween(1, 250),
 										tfvalidator.StringDoubleQuoteExclusion(),
-										tfvalidator.StringRuneExclusion(' '),
+										tfvalidator.StringSpaceExclusion(),
 									},
 								},
 								"password": schema.StringAttribute{
@@ -529,7 +529,7 @@ func (rsc *system) Schema(
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 250),
 							tfvalidator.StringDoubleQuoteExclusion(),
-							tfvalidator.StringRuneExclusion(' '),
+							tfvalidator.StringSpaceExclusion(),
 						},
 					},
 					"renew_before_expiration": schema.Int64Attribute{
@@ -963,7 +963,8 @@ func (rsc *system) Schema(
 								Validators: []validator.String{
 									stringvalidator.LengthAtLeast(1),
 									tfvalidator.StringDoubleQuoteExclusion(),
-									tfvalidator.StringRuneExclusion('/', '%', ' '),
+									tfvalidator.StringSpaceExclusion(),
+									tfvalidator.StringRuneExclusion('/', '%'),
 								},
 							},
 							"file_files": schema.Int64Attribute{
