@@ -235,6 +235,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newBridgeDomainResource,
 		newEventoptionsDestinationResource,
 		newEventoptionsGenerateEventResource,
+		newEventoptionsPolicyResource,
 		newEvpnResource,
 		newFirewallFilterResource,
 		newFirewallPolicerResource,

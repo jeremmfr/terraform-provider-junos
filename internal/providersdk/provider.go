@@ -170,7 +170,6 @@ func Provider() *schema.Provider {
 			"junos_access_address_assignment_pool":                       resourceAccessAddressAssignPool(),
 			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_chassis_redundancy":                                   resourceChassisRedundancy(),
-			"junos_eventoptions_policy":                                  resourceEventoptionsPolicy(),
 			"junos_forwardingoptions_dhcprelay":                          resourceForwardingOptionsDhcpRelay(),
 			"junos_forwardingoptions_dhcprelay_group":                    resourceForwardingOptionsDhcpRelayGroup(),
 			"junos_forwardingoptions_dhcprelay_servergroup":              resourceForwardingOptionsDhcpRelayServerGroup(),
