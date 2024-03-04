@@ -1,9 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
@@ -12,7 +13,7 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSystemRadiusServerConfigCreate(),
+				ConfigDirectory: config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
 						"address", "192.0.2.1"),
@@ -21,7 +22,7 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceSystemRadiusServerConfigUpdate(),
+				ConfigDirectory: config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
 						"preauthentication_secret", "password"),
@@ -56,37 +57,4 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccResourceSystemRadiusServerConfigCreate() string {
-	return `
-resource "junos_system_radius_server" "testacc_radiusServer" {
-  address = "192.0.2.1"
-  secret  = "password"
-}
-`
-}
-
-func testAccResourceSystemRadiusServerConfigUpdate() string {
-	return `
-resource "junos_routing_instance" "testacc_radiusServer" {
-  name = "testacc_radiusServer"
-}
-resource "junos_system_radius_server" "testacc_radiusServer" {
-  address                  = "192.0.2.1"
-  secret                   = "password"
-  preauthentication_secret = "password"
-  source_address           = "192.0.2.2"
-  port                     = 1645
-  accounting_port          = 1646
-  dynamic_request_port     = 3799
-  preauthentication_port   = 1812
-  timeout                  = 10
-  accounting_timeout       = 5
-  retry                    = 3
-  accounting_retry         = 2
-  max_outstanding_requests = 1000
-  routing_instance         = junos_routing_instance.testacc_radiusServer.name
-}
-`
 }
