@@ -178,8 +178,8 @@ func (rsc *evpn) Schema(
 				},
 				Attributes: map[string]schema.Attribute{
 					"route_distinguisher": schema.StringAttribute{
-						Optional:    true,
 						Required:    false, // true when SingleNestedBlock is specified
+						Optional:    true,
 						Description: "Route distinguisher for this instance.",
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(regexp.MustCompile(

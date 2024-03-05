@@ -286,8 +286,8 @@ func (rsc *system) Schema(
 				Description: "Declare `inet6-backup-router` configuration.",
 				Attributes: map[string]schema.Attribute{
 					"address": schema.StringAttribute{
-						Optional:    true,
 						Required:    false, // true when SingleNestedBlock is specified
+						Optional:    true,
 						Description: "Address of router to use while booting.",
 						Validators: []validator.String{
 							tfvalidator.StringIPAddress().IPv6Only(),
@@ -295,8 +295,8 @@ func (rsc *system) Schema(
 					},
 					"destination": schema.SetAttribute{
 						ElementType: types.StringType,
-						Optional:    true,
 						Required:    false, // true when SingleNestedBlock is specified
+						Optional:    true,
 						Description: "Destination networks reachable through the router.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
