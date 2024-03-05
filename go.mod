@@ -14,7 +14,7 @@ require (
 	github.com/jeremmfr/go-netconf v0.4.15
 	github.com/jeremmfr/go-utils v0.12.0
 	github.com/jeremmfr/junosdecode v1.1.1
-	golang.org/x/crypto v0.20.0
+	golang.org/x/crypto v0.21.0
 )
 
 require (
@@ -56,7 +56,7 @@ require (
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819 // indirect
 	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
