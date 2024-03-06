@@ -30,7 +30,7 @@ The following arguments are supported:
 - **export_rib** (Optional, String)  
   Export routing table
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

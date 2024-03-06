@@ -34,7 +34,7 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Text description of policy.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

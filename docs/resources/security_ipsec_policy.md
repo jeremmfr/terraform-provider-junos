@@ -33,7 +33,7 @@ The following arguments are supported:
   Types of default IPSec proposal-set.  
   Need to be `basic`, `compatible`, `prime-128`, `prime-256`, `standard`, `suiteb-gcm-128` or `suiteb-gcm-256`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

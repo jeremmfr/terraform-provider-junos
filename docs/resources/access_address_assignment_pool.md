@@ -224,7 +224,7 @@ The following arguments are supported:
   WINS name servers.  
   Need to be valid IPv4 addresses.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

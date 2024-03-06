@@ -41,7 +41,7 @@ The following arguments are supported:
 - **reauth_frequency** (Optional, Number)  
   Re-auth Peer after reauth-frequency times hard lifetime. (0-100)
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

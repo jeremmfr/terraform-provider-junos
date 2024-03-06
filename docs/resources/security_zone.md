@@ -102,7 +102,7 @@ The following arguments are supported:
 - **tcp_rst** (Optional, Boolean)  
   Send RST for NON-SYN packet not matching TCP session.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

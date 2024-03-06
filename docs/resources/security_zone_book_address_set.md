@@ -35,7 +35,7 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Description of address-set.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

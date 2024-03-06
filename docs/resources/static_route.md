@@ -101,7 +101,7 @@ The following arguments are supported:
   Don't always keep route in forwarding table.  
   Conflict with `resolve` and `retain`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

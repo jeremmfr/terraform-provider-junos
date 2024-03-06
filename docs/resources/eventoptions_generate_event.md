@@ -34,7 +34,7 @@ The following arguments are supported:
 - **no_drift** (Optional, Boolean)  
   Avoid event generation delay propagating to next event.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

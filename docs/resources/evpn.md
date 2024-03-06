@@ -70,7 +70,7 @@ The following arguments are supported:
   - **vrf_target_import** (Optional, String)  
     Target community to use when filtering on import.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -197,7 +197,7 @@ The following arguments are supported:
 - **syslog** (Optional, Boolean)  
   System log (syslog) information about the packet.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

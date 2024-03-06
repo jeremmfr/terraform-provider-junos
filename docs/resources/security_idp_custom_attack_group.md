@@ -25,7 +25,7 @@ The following arguments are supported:
 - **member** (Optional, Set of String)  
   List of attacks/attack groups belonging to this group.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

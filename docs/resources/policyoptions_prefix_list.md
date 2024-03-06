@@ -29,7 +29,7 @@ The following arguments are supported:
 - **prefix** (Optional, Set of String)  
   Address prefixes.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

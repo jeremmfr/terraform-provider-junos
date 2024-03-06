@@ -104,7 +104,7 @@ The following arguments are supported:
     Action for site-reputation.  
     Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

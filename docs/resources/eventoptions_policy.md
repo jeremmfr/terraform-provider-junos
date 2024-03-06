@@ -160,7 +160,7 @@ The following arguments are supported:
 - **user_name** (Optional, String)  
   User under whose privileges command will execute.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

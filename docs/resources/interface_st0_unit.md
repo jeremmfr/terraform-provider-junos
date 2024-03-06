@@ -15,7 +15,7 @@ New st0 unit interface can be configured with `junos_interface_logical` resource
 resource "junos_interface_st0_unit" "demo" {}
 ```
 
-## Attributes Reference
+## Attribute Reference
 
 - **id** (String)  
   Name of interface found and created.

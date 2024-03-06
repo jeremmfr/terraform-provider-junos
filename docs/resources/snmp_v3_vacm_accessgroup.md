@@ -59,7 +59,7 @@ The following arguments are supported:
 - **write_view** (Optional, String)  
   View used for write access.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

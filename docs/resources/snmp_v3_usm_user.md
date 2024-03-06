@@ -72,7 +72,7 @@ The following arguments are supported:
   Defaults to `privacy-none`.  
   `privacy_key` or `privacy_password` need to set when `privacy_type` != `privacy-none`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

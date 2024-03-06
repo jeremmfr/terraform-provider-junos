@@ -69,7 +69,7 @@ The following arguments are supported:
   - **out_of_profile** (Optional, Boolean)  
      Discard packets only if both congested and over threshold.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -44,7 +44,7 @@ The following arguments are supported:
     Define role.  
     Need to be `backup`, `disabled` or `master`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

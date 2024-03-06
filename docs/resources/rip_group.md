@@ -72,7 +72,7 @@ The following arguments are supported:
 - **update_interval** (Optional, Number)  
   Interval between regular route updates (10..60 seconds)
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -53,7 +53,7 @@ The following arguments are supported:
 - **session_establishment_hold_time** (Optional, Number)  
   Time within which connection must succeed with this peer (45..600 seconds).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

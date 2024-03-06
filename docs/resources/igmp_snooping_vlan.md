@@ -67,7 +67,7 @@ The following arguments are supported:
   - **source** (Optional, String)  
     IP multicast source address.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

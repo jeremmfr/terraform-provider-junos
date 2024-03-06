@@ -105,7 +105,7 @@ The following arguments are supported:
 - **weight** (Required, Number)  
   Weight assigned to this interface that influences failover (0..255).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

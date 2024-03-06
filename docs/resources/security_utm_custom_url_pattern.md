@@ -27,7 +27,7 @@ The following arguments are supported:
 - **value** (Required, List of String)  
   List of url for security utm custom-object url-pattern.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

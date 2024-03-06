@@ -47,7 +47,7 @@ The following arguments are supported:
   Set timeout.  
   Need to be between 1 and 1800.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

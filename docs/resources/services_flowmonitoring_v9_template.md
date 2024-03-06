@@ -67,7 +67,7 @@ The following arguments are supported:
 - **tunnel_observation_ipv6** (Optional, Boolean)  
   Tunnel observation IPv6.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

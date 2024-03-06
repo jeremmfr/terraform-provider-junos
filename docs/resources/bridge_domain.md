@@ -70,7 +70,7 @@ The following arguments are supported:
   - **vni_extend_evpn** (Optional, Boolean)  
     Extend VNI to EVPN.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

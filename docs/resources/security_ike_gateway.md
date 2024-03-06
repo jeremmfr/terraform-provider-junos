@@ -126,7 +126,7 @@ The following arguments are supported:
 - **threshold** (Optional, Number)  
   Maximum number of DPD retransmissions.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

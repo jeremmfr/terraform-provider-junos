@@ -93,7 +93,7 @@ The following arguments are supported:
   - **pool** (Optional, String)  
     Name of nat source pool when type pool.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -51,7 +51,7 @@ The following arguments are supported:
   - **drop** (Optional, Boolean)  
     Drop xSTP BPDUs.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -36,7 +36,7 @@ The following arguments are supported:
 - **triggers** (Optional, Map, Forces new resource)  
   A map of arbitrary strings that, when changed, will force the resource to be replaced.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

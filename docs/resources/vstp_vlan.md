@@ -37,7 +37,7 @@ The following arguments are supported:
 - **system_identifier** (Optional, String)  
   System identifier to represent this node.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

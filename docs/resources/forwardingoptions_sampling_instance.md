@@ -142,7 +142,7 @@ The following arguments are supported:
   - **source_address** (Optional, String)  
     Address to use for generating monitored packets.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -108,7 +108,7 @@ The following arguments are supported:
 - **utm_policy** (Optional, String)  
   Specify utm policy name.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

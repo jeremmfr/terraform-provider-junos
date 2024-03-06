@@ -46,7 +46,7 @@ The following arguments are supported:
 - **action_shutdown** (Optional, Boolean)  
   Disable port for excessive storm control errors.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

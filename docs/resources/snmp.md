@@ -72,7 +72,7 @@ The following arguments are supported:
 - **routing_instance_access_list** (Optional, Set of String)  
   Allow/Deny SNMP access to routing instances.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

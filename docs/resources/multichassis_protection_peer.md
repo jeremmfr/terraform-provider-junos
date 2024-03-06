@@ -27,7 +27,7 @@ The following arguments are supported:
 - **icl_down_delay** (Optional, Number)  
   Time in seconds between ICL down and MCAEs moving to standby (1..6000 seconds).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

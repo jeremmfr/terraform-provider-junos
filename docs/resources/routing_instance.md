@@ -59,7 +59,7 @@ The following arguments are supported:
 - **vtep_source_interface** (Optional, String)  
   Source layer-3 IFL for VXLAN.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -34,7 +34,7 @@ The following arguments are supported:
 - **timeout** (Optional, Number)  
   Request timeout period (1..90 seconds).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

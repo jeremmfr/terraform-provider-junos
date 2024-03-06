@@ -336,7 +336,7 @@ The following arguments are supported:
 - **top_level_status_code** (Optional, Boolean)  
   A top level status code option rather than encapsulated in IA for NoAddrsAvail in Advertise PDUs.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

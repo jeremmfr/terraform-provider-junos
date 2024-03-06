@@ -50,7 +50,7 @@ The following arguments are supported:
 - **trusted_ca** (Optional, Set of String)  
   List of trusted certificate authority profiles.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -48,7 +48,7 @@ The following arguments are supported:
 - **priority** (Optional, Number)  
   Interface priority (in increments of 16 - 0,16,..240).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

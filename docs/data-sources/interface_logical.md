@@ -32,7 +32,7 @@ The following arguments are supported:
 
 ~> **NOTE:** If more or less than a single match is returned by the search, Terraform will fail.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

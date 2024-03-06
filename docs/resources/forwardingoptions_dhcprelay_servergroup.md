@@ -34,7 +34,7 @@ The following arguments are supported:
 - **ip_address** (Optional, List of String)  
   IP Addresses of DHCP servers.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

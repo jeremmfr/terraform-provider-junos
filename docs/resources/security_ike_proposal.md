@@ -38,7 +38,7 @@ The following arguments are supported:
 - **lifetime_seconds** (Optional, Number)  
   Lifetime, in seconds.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

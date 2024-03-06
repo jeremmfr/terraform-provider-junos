@@ -273,7 +273,7 @@ The following arguments are supported:
 - **type_7** (Optional, Boolean)  
   Flood type 7 default LSA if no-summaries is configured.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

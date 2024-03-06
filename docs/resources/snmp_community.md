@@ -47,7 +47,7 @@ The following arguments are supported:
 - **view** (Optional, String)  
   View name.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

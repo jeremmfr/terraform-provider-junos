@@ -67,7 +67,7 @@ The following arguments are supported:
 - **web_filtering_profile** (Optional, String)  
   Web-filtering HTTP profile (local, enhanced, websense)
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

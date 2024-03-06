@@ -101,7 +101,7 @@ The following arguments are supported:
   - **source_interface_auto** (Optional, Boolean)  
     Compute the source_interface to `bind_interface`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -44,7 +44,7 @@ The following arguments are supported:
 - **ssh_public_keys** (Optional, Set of String)  
   Secure shell (ssh) public key string.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

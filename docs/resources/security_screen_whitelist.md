@@ -29,7 +29,7 @@ The following arguments are supported:
   List of address.  
   Need to be a valid CIDR network.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

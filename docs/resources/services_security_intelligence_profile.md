@@ -67,7 +67,7 @@ The following arguments are supported:
 - **then_log** (Optional, Boolean)  
   Log security intelligence block action.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

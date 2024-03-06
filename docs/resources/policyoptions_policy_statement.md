@@ -268,7 +268,7 @@ The following arguments are supported:
   - **value** (Required, String)  
     Value for action (preference, constant).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

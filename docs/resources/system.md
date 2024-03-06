@@ -497,7 +497,7 @@ arguments is required.
 - **user_severity** (Optional, String)  
   User processes severity.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -137,7 +137,7 @@ The following arguments are supported:
 - **ttl** (Optional, Number)  
   Time to Live (hop-limit) value for an RPM IPv4(IPv6) packet (1..254).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

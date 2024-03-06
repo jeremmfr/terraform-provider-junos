@@ -90,7 +90,7 @@ The following arguments are supported:
   - **no_world_readable** (Optional, Boolean)  
     Don't allow any user to read the log file.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

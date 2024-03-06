@@ -29,7 +29,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   Name of physical interface (without dot).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 
