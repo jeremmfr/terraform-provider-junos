@@ -233,6 +233,218 @@ func (rsc *system) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
+			"accounting": schema.SingleNestedBlock{
+				Description: "Declare `accounting` configuration.",
+				Attributes: map[string]schema.Attribute{
+					"events": schema.SetAttribute{
+						ElementType: types.StringType,
+						Required:    false, // true when SingleNestedBlock is specified
+						Optional:    true,
+						Description: "Events to be logged.",
+						Validators: []validator.Set{
+							setvalidator.SizeAtLeast(1),
+							setvalidator.ValueStringsAre(
+								stringvalidator.OneOf("change-log", "interactive-commands", "login"),
+							),
+						},
+					},
+					"destination_radius": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Send RADIUS accounting records.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
+					"destination_tacplus": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Send TACACS+ accounting records.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
+					"enhanced_avs_max": schema.Int64Attribute{
+						Optional:    true,
+						Description: "No. of AV pairs each of which can store a max of 250 Bytes.",
+						Validators: []validator.Int64{
+							int64validator.Between(7, 15),
+						},
+					},
+				},
+				Blocks: map[string]schema.Block{
+					"destination_radius_server": schema.ListNestedBlock{
+						Description: "For each address, RADIUS accounting server configuration.",
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"address": schema.StringAttribute{
+									Required:    true,
+									Description: "RADIUS server address.",
+									Validators: []validator.String{
+										tfvalidator.StringIPAddress(),
+									},
+								},
+								"secret": schema.StringAttribute{
+									Required:    true,
+									Sensitive:   true,
+									Description: "Shared secret with the RADIUS server.",
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
+								"accounting_port": schema.Int64Attribute{
+									Optional:    true,
+									Description: "RADIUS server accounting port number.",
+									Validators: []validator.Int64{
+										int64validator.Between(1, 65535),
+									},
+								},
+								"accounting_retry": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Accounting retry attempts.",
+									Validators: []validator.Int64{
+										int64validator.Between(0, 100),
+									},
+								},
+								"accounting_timeout": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Accounting request timeout period.",
+									Validators: []validator.Int64{
+										int64validator.Between(0, 1000),
+									},
+								},
+								"dynamic_request_port": schema.Int64Attribute{
+									Optional:    true,
+									Description: "RADIUS client dynamic request port number.",
+									Validators: []validator.Int64{
+										int64validator.Between(1, 65535),
+									},
+								},
+								"max_outstanding_requests": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Maximum requests in flight to server.",
+									Validators: []validator.Int64{
+										int64validator.Between(0, 2000),
+									},
+								},
+								"port": schema.Int64Attribute{
+									Optional:    true,
+									Description: "RADIUS server authentication port number.",
+									Validators: []validator.Int64{
+										int64validator.Between(1, 65535),
+									},
+								},
+								"preauthentication_port": schema.Int64Attribute{
+									Optional:    true,
+									Description: "RADIUS server preauthentication port number.",
+									Validators: []validator.Int64{
+										int64validator.Between(1, 65535),
+									},
+								},
+								"preauthentication_secret": schema.StringAttribute{
+									Optional:    true,
+									Sensitive:   true,
+									Description: "Shared secret with the RADIUS server.",
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
+								"retry": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Retry attempts.",
+									Validators: []validator.Int64{
+										int64validator.Between(1, 100),
+									},
+								},
+								"routing_instance": schema.StringAttribute{
+									Optional:    true,
+									Description: "Routing instance.",
+									Validators: []validator.String{
+										stringvalidator.LengthBetween(1, 63),
+										tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+									},
+								},
+								"source_address": schema.StringAttribute{
+									Optional:    true,
+									Description: "Use specified address as source address.",
+									Validators: []validator.String{
+										tfvalidator.StringIPAddress(),
+									},
+								},
+								"timeout": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Request timeout period.",
+									Validators: []validator.Int64{
+										int64validator.Between(1, 1000),
+									},
+								},
+							},
+						},
+					},
+					"destination_tacplus_server": schema.ListNestedBlock{
+						Description: "For each address, TACACS+ accounting server configuration.",
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"address": schema.StringAttribute{
+									Required:    true,
+									Description: "TACACS+ authentication server address.",
+									Validators: []validator.String{
+										tfvalidator.StringIPAddress(),
+									},
+								},
+								"port": schema.Int64Attribute{
+									Optional:    true,
+									Description: "TACACS+ authentication server port number.",
+									Validators: []validator.Int64{
+										int64validator.Between(1, 65535),
+									},
+								},
+								"routing_instance": schema.StringAttribute{
+									Optional:    true,
+									Description: "Routing instance.",
+									Validators: []validator.String{
+										stringvalidator.LengthBetween(1, 63),
+										tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+									},
+								},
+								"secret": schema.StringAttribute{
+									Optional:    true,
+									Sensitive:   true,
+									Description: "Shared secret with the authentication server.",
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
+								"single_connection": schema.BoolAttribute{
+									Optional:    true,
+									Description: "Optimize TCP connection attempts.",
+									Validators: []validator.Bool{
+										tfvalidator.BoolTrue(),
+									},
+								},
+								"source_address": schema.StringAttribute{
+									Optional:    true,
+									Description: "Use specified address as source address.",
+									Validators: []validator.String{
+										tfvalidator.StringIPAddress(),
+									},
+								},
+								"timeout": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Request timeout period.",
+									Validators: []validator.Int64{
+										int64validator.Between(1, 90),
+									},
+								},
+							},
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
 			"archival_configuration": schema.SingleNestedBlock{
 				Description: "Declare `archival configuration` configuration.",
 				Attributes: map[string]schema.Attribute{
@@ -1518,6 +1730,7 @@ type systemData struct {
 	RadiusOptionsAttributesNasIpaddress   types.String                      `tfsdk:"radius_options_attributes_nas_ipaddress"`
 	TimeZone                              types.String                      `tfsdk:"time_zone"`
 	TracingDestOverrideSyslogHost         types.String                      `tfsdk:"tracing_dest_override_syslog_host"`
+	Accounting                            *systemBlockAccounting            `tfsdk:"accounting"`
 	ArchivalConfiguration                 *systemBlockArchivalConfiguration `tfsdk:"archival_configuration"`
 	Inet6BackupRouter                     *systemBlockInet6BackupRouter     `tfsdk:"inet6_backup_router"`
 	InternetOptions                       *systemBlockInternetOptions       `tfsdk:"internet_options"`
@@ -1551,6 +1764,7 @@ type systemConfig struct {
 	RadiusOptionsAttributesNasIpaddress   types.String                            `tfsdk:"radius_options_attributes_nas_ipaddress"`
 	TimeZone                              types.String                            `tfsdk:"time_zone"`
 	TracingDestOverrideSyslogHost         types.String                            `tfsdk:"tracing_dest_override_syslog_host"`
+	Accounting                            *systemBlockAccountingConfig            `tfsdk:"accounting"`
 	ArchivalConfiguration                 *systemBlockArchivalConfigurationConfig `tfsdk:"archival_configuration"`
 	Inet6BackupRouter                     *systemBlockInet6BackupRouterConfig     `tfsdk:"inet6_backup_router"`
 	InternetOptions                       *systemBlockInternetOptions             `tfsdk:"internet_options"`
@@ -1561,6 +1775,51 @@ type systemConfig struct {
 	Ports                                 *systemBlockPortsConfig                 `tfsdk:"ports"`
 	Services                              *systemBlockServicesConfig              `tfsdk:"services"`
 	Syslog                                *systemBlockSyslog                      `tfsdk:"syslog"`
+}
+
+type systemBlockAccounting struct {
+	DestinationRadius        types.Bool                                           `tfsdk:"destination_radius"`
+	DestinationTacplus       types.Bool                                           `tfsdk:"destination_tacplus"`
+	EnhancedAvsMax           types.Int64                                          `tfsdk:"enhanced_avs_max"`
+	Events                   []types.String                                       `tfsdk:"events"`
+	DestinationRadiusServer  []systemBlockAccountingBlockDestinationRadiusServer  `tfsdk:"destination_radius_server"`
+	DestinationTacplusServer []systemBlockAccountingBlockDestinationTacplusServer `tfsdk:"destination_tacplus_server"`
+}
+
+type systemBlockAccountingConfig struct {
+	DestinationRadius        types.Bool  `tfsdk:"destination_radius"`
+	DestinationTacplus       types.Bool  `tfsdk:"destination_tacplus"`
+	EnhancedAvsMax           types.Int64 `tfsdk:"enhanced_avs_max"`
+	Events                   types.Set   `tfsdk:"events"`
+	DestinationRadiusServer  types.List  `tfsdk:"destination_radius_server"`
+	DestinationTacplusServer types.List  `tfsdk:"destination_tacplus_server"`
+}
+
+type systemBlockAccountingBlockDestinationRadiusServer struct {
+	Address                 types.String `tfsdk:"address"`
+	Secret                  types.String `tfsdk:"secret"`
+	AccountingPort          types.Int64  `tfsdk:"accounting_port"`
+	AccountingRetry         types.Int64  `tfsdk:"accounting_retry"`
+	AccountingTimeout       types.Int64  `tfsdk:"accounting_timeout"`
+	DynamicRequestPort      types.Int64  `tfsdk:"dynamic_request_port"`
+	MaxOutstandingRequests  types.Int64  `tfsdk:"max_outstanding_requests"`
+	Port                    types.Int64  `tfsdk:"port"`
+	PreauthenticationPort   types.Int64  `tfsdk:"preauthentication_port"`
+	PreauthenticationSecret types.String `tfsdk:"preauthentication_secret"`
+	Retry                   types.Int64  `tfsdk:"retry"`
+	RoutingInstance         types.String `tfsdk:"routing_instance"`
+	SourceAddress           types.String `tfsdk:"source_address"`
+	Timeout                 types.Int64  `tfsdk:"timeout"`
+}
+
+type systemBlockAccountingBlockDestinationTacplusServer struct {
+	SingleConnection types.Bool   `tfsdk:"single_connection"`
+	Address          types.String `tfsdk:"address"`
+	Port             types.Int64  `tfsdk:"port"`
+	RoutingInstance  types.String `tfsdk:"routing_instance"`
+	Secret           types.String `tfsdk:"secret"`
+	SourceAddress    types.String `tfsdk:"source_address"`
+	Timeout          types.Int64  `tfsdk:"timeout"`
 }
 
 type systemBlockArchivalConfiguration struct {
@@ -1965,6 +2224,92 @@ func (rsc *system) ValidateConfig(
 			tfdiag.ConflictConfigErrSummary,
 			"name_server and name_server_opts cannot be configured together",
 		)
+	}
+	if config.Accounting != nil {
+		if config.Accounting.Events.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("accounting").AtName("events"),
+				tfdiag.MissingConfigErrSummary,
+				"events must be specified in accounting block",
+			)
+		}
+		if config.Accounting.DestinationRadius.IsNull() &&
+			config.Accounting.DestinationTacplus.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("accounting").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"one of destination_radius or destination_tacplus must be specified"+
+					" in accounting block",
+			)
+		}
+		if !config.Accounting.DestinationRadiusServer.IsNull() {
+			if config.Accounting.DestinationRadius.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("accounting").AtName("destination_radius_server"),
+					tfdiag.MissingConfigErrSummary,
+					"destination_radius must be specified with destination_radius_server"+
+						" in accounting block",
+				)
+			}
+			if !config.Accounting.DestinationRadiusServer.IsUnknown() {
+				var configDestinationRadiusServer []systemBlockAccountingBlockDestinationRadiusServer
+				asDiags := config.Accounting.DestinationRadiusServer.ElementsAs(ctx, &configDestinationRadiusServer, false)
+				if asDiags.HasError() {
+					resp.Diagnostics.Append(asDiags...)
+
+					return
+				}
+				destinationRadiusServerAddress := make(map[string]struct{})
+				for i, block := range configDestinationRadiusServer {
+					if block.Address.IsUnknown() {
+						continue
+					}
+					if _, ok := destinationRadiusServerAddress[block.Address.ValueString()]; ok {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("address"),
+							tfdiag.DuplicateConfigErrSummary,
+							fmt.Sprintf("multiple destination_radius_server blocks with the same address %q in accounting block",
+								block.Address.ValueString()),
+						)
+					}
+					destinationRadiusServerAddress[block.Address.ValueString()] = struct{}{}
+				}
+			}
+		}
+		if !config.Accounting.DestinationTacplusServer.IsNull() {
+			if config.Accounting.DestinationTacplus.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("accounting").AtName("destination_tacplus_server"),
+					tfdiag.MissingConfigErrSummary,
+					"destination_tacplus must be specified with destination_tacplus_server"+
+						" in accounting block",
+				)
+			}
+			if !config.Accounting.DestinationTacplusServer.IsUnknown() {
+				var configDestinationTacplusServer []systemBlockAccountingBlockDestinationTacplusServer
+				asDiags := config.Accounting.DestinationTacplusServer.ElementsAs(ctx, &configDestinationTacplusServer, false)
+				if asDiags.HasError() {
+					resp.Diagnostics.Append(asDiags...)
+
+					return
+				}
+				destinationTacplusServerAddress := make(map[string]struct{})
+				for i, block := range configDestinationTacplusServer {
+					if block.Address.IsUnknown() {
+						continue
+					}
+					if _, ok := destinationTacplusServerAddress[block.Address.ValueString()]; ok {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("accounting").AtName("destination_tacplus_server").AtListIndex(i).AtName("address"),
+							tfdiag.DuplicateConfigErrSummary,
+							fmt.Sprintf("multiple destination_tacplus_server blocks with the same address %q in accounting block",
+								block.Address.ValueString()),
+						)
+					}
+					destinationTacplusServerAddress[block.Address.ValueString()] = struct{}{}
+				}
+			}
+		}
 	}
 	if config.ArchivalConfiguration != nil {
 		if config.ArchivalConfiguration.ArchiveSite.IsNull() {
@@ -2595,6 +2940,13 @@ func (rscData *systemData) set(
 		configSet = append(configSet, setPrefix+"tracing destination-override syslog host "+v)
 	}
 
+	if rscData.Accounting != nil {
+		blockSet, pathErr, err := rscData.Accounting.configSet()
+		if err != nil {
+			return pathErr, err
+		}
+		configSet = append(configSet, blockSet...)
+	}
 	if rscData.ArchivalConfiguration != nil {
 		blockSet, pathErr, err := rscData.ArchivalConfiguration.configSet()
 		if err != nil {
@@ -2692,6 +3044,140 @@ func (rscData *systemData) set(
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
+func (block *systemBlockAccounting) configSet() (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
+	configSet := make([]string, 0, len(block.Events)+1)
+	setPrefix := "set system accounting "
+
+	for _, v := range block.Events {
+		configSet = append(configSet, setPrefix+"events "+v.ValueString())
+	}
+	if block.DestinationRadius.ValueBool() {
+		configSet = append(configSet, setPrefix+"destination radius")
+	}
+	if block.DestinationTacplus.ValueBool() {
+		configSet = append(configSet, setPrefix+"destination tacplus")
+	}
+	if !block.EnhancedAvsMax.IsNull() {
+		configSet = append(configSet, setPrefix+"enhanced-avs-max "+
+			utils.ConvI64toa(block.EnhancedAvsMax.ValueInt64()))
+	}
+	destinationRadiusServerAddress := make(map[string]struct{})
+	for i, v := range block.DestinationRadiusServer {
+		address := v.Address.ValueString()
+		if _, ok := destinationRadiusServerAddress[address]; ok {
+			return configSet, path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("address"),
+				fmt.Errorf("multiple destination_radius_server blocks with the same address %q"+
+					" in accounting block", address)
+		}
+		destinationRadiusServerAddress[address] = struct{}{}
+
+		configSet = append(configSet, v.configSet()...)
+	}
+	destinationTacplusServerAddress := make(map[string]struct{})
+	for i, v := range block.DestinationTacplusServer {
+		address := v.Address.ValueString()
+		if _, ok := destinationTacplusServerAddress[address]; ok {
+			return configSet, path.Root("accounting").AtName("destination_tacplus_server").AtListIndex(i).AtName("address"),
+				fmt.Errorf("multiple destination_tacplus_server blocks with the same address %q"+
+					" in accounting block", address)
+		}
+		destinationTacplusServerAddress[address] = struct{}{}
+
+		configSet = append(configSet, v.configSet()...)
+	}
+
+	return configSet, path.Empty(), nil
+}
+
+func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet() []string {
+	setPrefix := "set system accounting destination radius server " + block.Address.ValueString() + " "
+	configSet := []string{
+		setPrefix + "secret \"" + block.Secret.ValueString() + "\"",
+	}
+
+	if !block.AccountingPort.IsNull() {
+		configSet = append(configSet, setPrefix+"accounting-port "+
+			utils.ConvI64toa(block.AccountingPort.ValueInt64()))
+	}
+	if !block.AccountingRetry.IsNull() {
+		configSet = append(configSet, setPrefix+"accounting-retry "+
+			utils.ConvI64toa(block.AccountingRetry.ValueInt64()))
+	}
+	if !block.AccountingTimeout.IsNull() {
+		configSet = append(configSet, setPrefix+"accounting-timeout "+
+			utils.ConvI64toa(block.AccountingTimeout.ValueInt64()))
+	}
+	if !block.DynamicRequestPort.IsNull() {
+		configSet = append(configSet, setPrefix+"dynamic-request-port "+
+			utils.ConvI64toa(block.DynamicRequestPort.ValueInt64()))
+	}
+	if !block.MaxOutstandingRequests.IsNull() {
+		configSet = append(configSet, setPrefix+"max-outstanding-requests "+
+			utils.ConvI64toa(block.MaxOutstandingRequests.ValueInt64()))
+	}
+	if !block.Port.IsNull() {
+		configSet = append(configSet, setPrefix+"port "+
+			utils.ConvI64toa(block.Port.ValueInt64()))
+	}
+	if !block.PreauthenticationPort.IsNull() {
+		configSet = append(configSet, setPrefix+"preauthentication-port "+
+			utils.ConvI64toa(block.PreauthenticationPort.ValueInt64()))
+	}
+	if v := block.PreauthenticationSecret.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"preauthentication-secret \""+v+"\"")
+	}
+	if !block.Retry.IsNull() {
+		configSet = append(configSet, setPrefix+"retry "+
+			utils.ConvI64toa(block.Retry.ValueInt64()))
+	}
+	if v := block.RoutingInstance.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"routing-instance "+v)
+	}
+	if v := block.SourceAddress.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"source-address "+v)
+	}
+	if !block.Timeout.IsNull() {
+		configSet = append(configSet, setPrefix+"timeout "+
+			utils.ConvI64toa(block.Timeout.ValueInt64()))
+	}
+
+	return configSet
+}
+
+func (block *systemBlockAccountingBlockDestinationTacplusServer) configSet() []string {
+	setPrefix := "set system accounting destination tacplus server " + block.Address.ValueString() + " "
+	configSet := []string{
+		setPrefix,
+	}
+
+	if !block.Port.IsNull() {
+		configSet = append(configSet, setPrefix+"port "+
+			utils.ConvI64toa(block.Port.ValueInt64()))
+	}
+	if v := block.RoutingInstance.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"routing-instance "+v)
+	}
+	if v := block.Secret.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"secret \""+v+"\"")
+	}
+	if block.SingleConnection.ValueBool() {
+		configSet = append(configSet, setPrefix+"single-connection")
+	}
+	if v := block.SourceAddress.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"source-address "+v)
+	}
+	if !block.Timeout.IsNull() {
+		configSet = append(configSet, setPrefix+"timeout "+
+			utils.ConvI64toa(block.Timeout.ValueInt64()))
+	}
+
+	return configSet
+}
+
 func (block *systemBlockArchivalConfiguration) configSet() (
 	[]string, // configSet
 	path.Path, // pathErr
@@ -2701,8 +3187,8 @@ func (block *systemBlockArchivalConfiguration) configSet() (
 	setPrefix := "set system archival configuration "
 
 	archiveSiteURL := make(map[string]struct{})
-	for i, block := range block.ArchiveSite {
-		url := block.URL.ValueString()
+	for i, v := range block.ArchiveSite {
+		url := v.URL.ValueString()
 		if _, ok := archiveSiteURL[url]; ok {
 			return configSet, path.Root("archival_configuration").AtName("archive_site").AtListIndex(i).AtName("url"),
 				fmt.Errorf("multiple archive_site blocks with the same url %q"+
@@ -2710,9 +3196,9 @@ func (block *systemBlockArchivalConfiguration) configSet() (
 		}
 		archiveSiteURL[url] = struct{}{}
 		configSet = append(configSet, setPrefix+"archive-sites \""+url+"\"")
-		if v := block.Password.ValueString(); v != "" {
+		if password := v.Password.ValueString(); password != "" {
 			configSet = append(configSet,
-				setPrefix+"archive-sites \""+url+"\" password \""+v+"\"")
+				setPrefix+"archive-sites \""+url+"\" password \""+password+"\"")
 		}
 	}
 	switch {
@@ -3424,6 +3910,13 @@ func (rscData *systemData) read(
 			case balt.CutPrefixInString(&itemTrim, "tracing destination-override syslog host "):
 				rscData.TracingDestOverrideSyslogHost = types.StringValue(itemTrim)
 
+			case balt.CutPrefixInString(&itemTrim, "accounting "):
+				if rscData.Accounting == nil {
+					rscData.Accounting = &systemBlockAccounting{}
+				}
+				if err := rscData.Accounting.read(itemTrim); err != nil {
+					return err
+				}
 			case balt.CutPrefixInString(&itemTrim, "archival configuration "):
 				if rscData.ArchivalConfiguration == nil {
 					rscData.ArchivalConfiguration = &systemBlockArchivalConfiguration{}
@@ -3535,6 +4028,144 @@ func (rscData *systemData) read(
 					return err
 				}
 			}
+		}
+	}
+
+	return nil
+}
+
+func (block *systemBlockAccounting) read(itemTrim string) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "events "):
+		block.Events = append(block.Events, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "enhanced-avs-max "):
+		block.EnhancedAvsMax, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "destination radius"):
+		block.DestinationRadius = types.BoolValue(true)
+		if balt.CutPrefixInString(&itemTrim, " server ") {
+			itemTrimFields := strings.Split(itemTrim, " ")
+			var destinationRadiusServer systemBlockAccountingBlockDestinationRadiusServer
+			block.DestinationRadiusServer, destinationRadiusServer = tfdata.ExtractBlockWithTFTypesString(
+				block.DestinationRadiusServer, "Address", itemTrimFields[0],
+			)
+			destinationRadiusServer.Address = types.StringValue(itemTrimFields[0])
+			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+			if err := destinationRadiusServer.read(itemTrim); err != nil {
+				return err
+			}
+			block.DestinationRadiusServer = append(block.DestinationRadiusServer, destinationRadiusServer)
+		}
+	case balt.CutPrefixInString(&itemTrim, "destination tacplus"):
+		block.DestinationTacplus = types.BoolValue(true)
+		if balt.CutPrefixInString(&itemTrim, " server ") {
+			itemTrimFields := strings.Split(itemTrim, " ")
+			var destinationTacplusServer systemBlockAccountingBlockDestinationTacplusServer
+			block.DestinationTacplusServer, destinationTacplusServer = tfdata.ExtractBlockWithTFTypesString(
+				block.DestinationTacplusServer, "Address", itemTrimFields[0],
+			)
+			destinationTacplusServer.Address = types.StringValue(itemTrimFields[0])
+			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+			if err := destinationTacplusServer.read(itemTrim); err != nil {
+				return err
+			}
+			block.DestinationTacplusServer = append(block.DestinationTacplusServer, destinationTacplusServer)
+		}
+	}
+
+	return nil
+}
+
+func (block *systemBlockAccountingBlockDestinationRadiusServer) read(itemTrim string) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "secret "):
+		block.Secret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "accounting-port "):
+		block.AccountingPort, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "accounting-retry "):
+		block.AccountingRetry, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "accounting-timeout "):
+		block.AccountingTimeout, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "dynamic-request-port "):
+		block.DynamicRequestPort, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "max-outstanding-requests "):
+		block.MaxOutstandingRequests, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "port "):
+		block.Port, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "preauthentication-port "):
+		block.PreauthenticationPort, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "preauthentication-secret "):
+		block.PreauthenticationSecret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "preauthentication-secret")
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "retry "):
+		block.Retry, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+		block.RoutingInstance = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "source-address "):
+		block.SourceAddress = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "timeout "):
+		block.Timeout, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (block *systemBlockAccountingBlockDestinationTacplusServer) read(itemTrim string) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "port "):
+		block.Port, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+		block.RoutingInstance = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "secret "):
+		block.Secret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
+		if err != nil {
+			return err
+		}
+	case itemTrim == "single-connection":
+		block.SingleConnection = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "source-address "):
+		block.SourceAddress = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "timeout "):
+		block.Timeout, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -4215,6 +4846,7 @@ func (rscData *systemData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	listLinesToDelete := make([]string, 0, 100)
+	listLinesToDelete = append(listLinesToDelete, "accounting")
 	listLinesToDelete = append(listLinesToDelete, "archival configuration")
 	listLinesToDelete = append(listLinesToDelete, "authentication-order")
 	listLinesToDelete = append(listLinesToDelete, "auto-snapshot")

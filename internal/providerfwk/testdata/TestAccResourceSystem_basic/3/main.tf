@@ -1,5 +1,43 @@
 resource "junos_system" "testacc_system" {
   host_name = "testacc-terraform"
+
+  accounting {
+    events              = ["login"]
+    destination_radius  = true
+    destination_tacplus = true
+    destination_radius_server {
+      address                  = "192.0.2.53"
+      secret                   = "wordPass"
+      preauthentication_secret = "passWord"
+      source_address           = "192.0.2.54"
+      port                     = 1645
+      accounting_port          = 1646
+      dynamic_request_port     = 3799
+      preauthentication_port   = 1812
+      timeout                  = 11
+      accounting_timeout       = 5
+      retry                    = 3
+      accounting_retry         = 2
+      max_outstanding_requests = 1000
+      routing_instance         = junos_routing_instance.testacc_system.name
+    }
+    destination_radius_server {
+      address = "192.0.2.43"
+      secret  = "aPass"
+    }
+    destination_tacplus_server {
+      address           = "192.0.2.55"
+      secret            = "password"
+      source_address    = "192.0.2.56"
+      port              = 49
+      timeout           = 12
+      single_connection = true
+      routing_instance  = junos_routing_instance.testacc_system.name
+    }
+    destination_tacplus_server {
+      address = "192.0.2.45"
+    }
+  }
   archival_configuration {
     archive_site {
       url      = "scp://juniper-configs@192.0.2.30:/destination/directory"
@@ -56,5 +94,9 @@ resource "junos_system" "testacc_system" {
 }
 
 resource "junos_routing_instance" "testacc_system" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
   name = "testacc_system"
 }

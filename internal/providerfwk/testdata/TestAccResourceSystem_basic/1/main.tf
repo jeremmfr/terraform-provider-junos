@@ -3,8 +3,38 @@ locals {
   netconfSSHCltAliveCountMax    = tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) >= 21 ? 100 : null
   netconfSSHClientAliveInterval = tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) >= 21 ? 1000 : null
 }
+resource "junos_system_radius_server" "testacc_system" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  address = "192.0.2.51"
+  secret  = "aPass#w "
+}
+
+resource "junos_system_tacplus_server" "testacc_system" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  address = "192.0.2.52"
+}
+
+
 resource "junos_system" "testacc_system" {
+  depends_on = [
+    junos_system_radius_server.testacc_system,
+    junos_system_tacplus_server.testacc_system
+  ]
+
   host_name = "testacc-terraform"
+
+  accounting {
+    events              = ["login", "change-log"]
+    destination_radius  = true
+    destination_tacplus = true
+    enhanced_avs_max    = 10
+  }
   archival_configuration {
     archive_site {
       url      = "scp://juniper-configs@192.0.2.30:/destination/directory"
