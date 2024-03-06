@@ -42,18 +42,18 @@ The following arguments are supported:
   Need to be a number between 1 to 60 or `disable`.
 - **member** (Optional, Block List)  
   For each identifier, member of virtual chassis configuration.  
-  See [below for nested schema](#member).
+  See [below for nested schema](#member-arguments).
 - **no_split_detection** (Optional, Boolean)  
   Disable split detection.
 - **preprovisioned** (Optional, Boolean)  
   Only accept preprovisioned members.
 - **traceoptions** (Optional, Block)  
   Trace options for virtual chassis.  
-  See [below for nested schema](#traceoptions).
+  See [below for nested schema](#traceoptions-arguments).
 - **vcp_no_hold_time** (Optional, Boolean)  
   Set no hold time for vcp interfaces.
 
-### member
+### member arguments
 
 - **id** (Required, Number)  
   Member identifier (0..9).
@@ -69,7 +69,7 @@ The following arguments are supported:
 - **serial_number** (Optional, String)  
   Member's serial number.
 
-### traceoptions
+### traceoptions arguments
 
 - **flag** (Optional, Set of String)  
   Tracing parameters.
