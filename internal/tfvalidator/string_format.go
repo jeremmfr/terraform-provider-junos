@@ -14,6 +14,7 @@ type stringFormat int
 
 const (
 	DefaultFormat stringFormat = iota
+	DefaultFormatAndSpace
 	AddressNameFormat
 	DNSNameFormat
 	InterfaceFormat
@@ -29,6 +30,11 @@ func (f stringFormat) invalidRune() func(rune) bool {
 		return func(r rune) bool {
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
 				r != '-' && r != '_'
+		}
+	case DefaultFormatAndSpace:
+		return func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
+				r != '-' && r != '_' && r != ' '
 		}
 	case AddressNameFormat:
 		return func(r rune) bool {
@@ -76,6 +82,8 @@ func (f stringFormat) String() string {
 	switch f {
 	case DefaultFormat:
 		return "letters, numbers, dashes and underscores"
+	case DefaultFormatAndSpace:
+		return "letters, numbers, dashes, underscores and spaces"
 	case AddressNameFormat:
 		return "letters, numbers, dashes, dots, colons, slashes and underscores"
 	case DNSNameFormat:
