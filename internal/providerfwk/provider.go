@@ -233,6 +233,9 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newBgpGroupResource,
 		newBgpNeighborResource,
 		newBridgeDomainResource,
+		newEventoptionsDestinationResource,
+		newEventoptionsGenerateEventResource,
+		newEventoptionsPolicyResource,
 		newEvpnResource,
 		newFirewallFilterResource,
 		newFirewallPolicerResource,
@@ -293,6 +296,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSystemSyslogHostResource,
 		newSystemSyslogUserResource,
 		newSystemTacplusServerResource,
+		newVirtualChassisResource,
 	}
 }
 

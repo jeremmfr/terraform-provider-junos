@@ -212,8 +212,8 @@ func (rsc *bridgeDomain) Schema(
 				Description: "Declare vxlan options.",
 				Attributes: map[string]schema.Attribute{
 					"vni": schema.Int64Attribute{
-						Optional:    true,
 						Required:    false, // true when SingleNestedBlock is specified
+						Optional:    true,
 						Description: "VXLAN identifier (0..16777214).",
 						Validators: []validator.Int64{
 							int64validator.Between(0, 16777214),
