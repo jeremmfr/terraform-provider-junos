@@ -90,7 +90,10 @@ resource "junos_system" "testacc_system" {
       any_severity = "emergency"
     }
   }
-  time_zone = "Europe/Paris"
+  tacplus_options_authorization_time_interval = 900
+  tacplus_options_no_cmd_attribute_value      = true
+  tacplus_options_no_strict_authorization     = true
+  time_zone                                   = "Europe/Paris"
 }
 
 resource "junos_routing_instance" "testacc_system" {

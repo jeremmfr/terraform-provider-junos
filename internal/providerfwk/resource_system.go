@@ -195,6 +195,14 @@ func (rsc *system) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"radius_options_attributes_nas_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "Value of NAS-ID in outgoing RADIUS packets.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(3, 64),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
 			"radius_options_attributes_nas_ipaddress": schema.StringAttribute{
 				Optional:    true,
 				Description: "Value of NAS-IP-Address in outgoing RADIUS packets.",
@@ -212,6 +220,63 @@ func (rsc *system) Schema(
 			"radius_options_password_protocol_mschapv2": schema.BoolAttribute{
 				Optional:    true,
 				Description: "MSCHAP version 2 for password protocol used in RADIUS packets.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"tacplus_options_authorization_time_interval": schema.Int64Attribute{
+				Optional:    true,
+				Description: "TACACS+ authorization refresh time interval (minutes).",
+				Validators: []validator.Int64{
+					int64validator.Between(15, 1440),
+				},
+			},
+			"tacplus_options_enhanced_accounting": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Include authentication method, remote port and user-privileges in `login` accounting.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"tacplus_options_exclude_cmd_attribute": schema.BoolAttribute{
+				Optional:    true,
+				Description: "In start/stop requests, do not include `cmd` attribute.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"tacplus_options_no_cmd_attribute_value": schema.BoolAttribute{
+				Optional:    true,
+				Description: "In start/stop requests, set `cmd` attribute value to empty string.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"tacplus_options_service_name": schema.StringAttribute{
+				Optional:    true,
+				Description: "TACACS+ service name.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"tacplus_options_strict_authorization": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Deny login if authorization request fails.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"tacplus_options_no_strict_authorization": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Don't deny login if authorization request fails.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"tacplus_options_timestamp_and_timezone": schema.BoolAttribute{
+				Optional:    true,
+				Description: "In start/stop accounting packets, include `start-time`, `stop-time` and `timezone` attributes.",
 				Validators: []validator.Bool{
 					tfvalidator.BoolTrue(),
 				},
@@ -1711,70 +1776,88 @@ func (rsc *system) Schema(
 
 //nolint:lll
 type systemData struct {
-	AutoSnapshot                          types.Bool                        `tfsdk:"auto_snapshot"`
-	DefaultAddressSelection               types.Bool                        `tfsdk:"default_address_selection"`
-	NoMulticastEcho                       types.Bool                        `tfsdk:"no_multicast_echo"`
-	NoPingRecordRoute                     types.Bool                        `tfsdk:"no_ping_record_route"`
-	NoPingTimestamp                       types.Bool                        `tfsdk:"no_ping_time_stamp"`
-	NoRedirects                           types.Bool                        `tfsdk:"no_redirects"`
-	NoRedirectsIPv6                       types.Bool                        `tfsdk:"no_redirects_ipv6"`
-	RadiusOptionsEnhancedAccounting       types.Bool                        `tfsdk:"radius_options_enhanced_accounting"`
-	RadiusOptionsPasswordProtocolMschapv2 types.Bool                        `tfsdk:"radius_options_password_protocol_mschapv2"`
-	ID                                    types.String                      `tfsdk:"id"`
-	AuthenticationOrder                   []types.String                    `tfsdk:"authentication_order"`
-	DomainName                            types.String                      `tfsdk:"domain_name"`
-	HostName                              types.String                      `tfsdk:"host_name"`
-	MaxConfigurationRollbacks             types.Int64                       `tfsdk:"max_configuration_rollbacks"`
-	MaxConfigurationsOnFlash              types.Int64                       `tfsdk:"max_configurations_on_flash"`
-	NameServer                            []types.String                    `tfsdk:"name_server"`
-	RadiusOptionsAttributesNasIpaddress   types.String                      `tfsdk:"radius_options_attributes_nas_ipaddress"`
-	TimeZone                              types.String                      `tfsdk:"time_zone"`
-	TracingDestOverrideSyslogHost         types.String                      `tfsdk:"tracing_dest_override_syslog_host"`
-	Accounting                            *systemBlockAccounting            `tfsdk:"accounting"`
-	ArchivalConfiguration                 *systemBlockArchivalConfiguration `tfsdk:"archival_configuration"`
-	Inet6BackupRouter                     *systemBlockInet6BackupRouter     `tfsdk:"inet6_backup_router"`
-	InternetOptions                       *systemBlockInternetOptions       `tfsdk:"internet_options"`
-	License                               *systemBlockLicense               `tfsdk:"license"`
-	Login                                 *systemBlockLogin                 `tfsdk:"login"`
-	NameServerOpts                        []systemBlockNameServerOpts       `tfsdk:"name_server_opts"`
-	Ntp                                   *systemBlockNtp                   `tfsdk:"ntp"`
-	Ports                                 *systemBlockPorts                 `tfsdk:"ports"`
-	Services                              *systemBlockServices              `tfsdk:"services"`
-	Syslog                                *systemBlockSyslog                `tfsdk:"syslog"`
+	AutoSnapshot                            types.Bool                        `tfsdk:"auto_snapshot"`
+	DefaultAddressSelection                 types.Bool                        `tfsdk:"default_address_selection"`
+	NoMulticastEcho                         types.Bool                        `tfsdk:"no_multicast_echo"`
+	NoPingRecordRoute                       types.Bool                        `tfsdk:"no_ping_record_route"`
+	NoPingTimestamp                         types.Bool                        `tfsdk:"no_ping_time_stamp"`
+	NoRedirects                             types.Bool                        `tfsdk:"no_redirects"`
+	NoRedirectsIPv6                         types.Bool                        `tfsdk:"no_redirects_ipv6"`
+	RadiusOptionsEnhancedAccounting         types.Bool                        `tfsdk:"radius_options_enhanced_accounting"`
+	RadiusOptionsPasswordProtocolMschapv2   types.Bool                        `tfsdk:"radius_options_password_protocol_mschapv2"`
+	TacplusOptionsEnhancedAccounting        types.Bool                        `tfsdk:"tacplus_options_enhanced_accounting"`
+	TacplusOptionsExcludeCmdAttribute       types.Bool                        `tfsdk:"tacplus_options_exclude_cmd_attribute"`
+	TacplusOptionsNoCmdAttributeValue       types.Bool                        `tfsdk:"tacplus_options_no_cmd_attribute_value"`
+	TacplusOptionsStrictAuthorization       types.Bool                        `tfsdk:"tacplus_options_strict_authorization"`
+	TacplusOptionsNoStrictAuthorization     types.Bool                        `tfsdk:"tacplus_options_no_strict_authorization"`
+	TacplusOptionsTimestampAndTimezone      types.Bool                        `tfsdk:"tacplus_options_timestamp_and_timezone"`
+	ID                                      types.String                      `tfsdk:"id"`
+	AuthenticationOrder                     []types.String                    `tfsdk:"authentication_order"`
+	DomainName                              types.String                      `tfsdk:"domain_name"`
+	HostName                                types.String                      `tfsdk:"host_name"`
+	MaxConfigurationRollbacks               types.Int64                       `tfsdk:"max_configuration_rollbacks"`
+	MaxConfigurationsOnFlash                types.Int64                       `tfsdk:"max_configurations_on_flash"`
+	NameServer                              []types.String                    `tfsdk:"name_server"`
+	RadiusOptionsAttributesNasID            types.String                      `tfsdk:"radius_options_attributes_nas_id"`
+	RadiusOptionsAttributesNasIpaddress     types.String                      `tfsdk:"radius_options_attributes_nas_ipaddress"`
+	TacplusOptionsAuthorizationTimeInterval types.Int64                       `tfsdk:"tacplus_options_authorization_time_interval"`
+	TacplusOptionsServiceName               types.String                      `tfsdk:"tacplus_options_service_name"`
+	TimeZone                                types.String                      `tfsdk:"time_zone"`
+	TracingDestOverrideSyslogHost           types.String                      `tfsdk:"tracing_dest_override_syslog_host"`
+	Accounting                              *systemBlockAccounting            `tfsdk:"accounting"`
+	ArchivalConfiguration                   *systemBlockArchivalConfiguration `tfsdk:"archival_configuration"`
+	Inet6BackupRouter                       *systemBlockInet6BackupRouter     `tfsdk:"inet6_backup_router"`
+	InternetOptions                         *systemBlockInternetOptions       `tfsdk:"internet_options"`
+	License                                 *systemBlockLicense               `tfsdk:"license"`
+	Login                                   *systemBlockLogin                 `tfsdk:"login"`
+	NameServerOpts                          []systemBlockNameServerOpts       `tfsdk:"name_server_opts"`
+	Ntp                                     *systemBlockNtp                   `tfsdk:"ntp"`
+	Ports                                   *systemBlockPorts                 `tfsdk:"ports"`
+	Services                                *systemBlockServices              `tfsdk:"services"`
+	Syslog                                  *systemBlockSyslog                `tfsdk:"syslog"`
 }
 
 //nolint:lll
 type systemConfig struct {
-	AutoSnapshot                          types.Bool                              `tfsdk:"auto_snapshot"`
-	DefaultAddressSelection               types.Bool                              `tfsdk:"default_address_selection"`
-	NoMulticastEcho                       types.Bool                              `tfsdk:"no_multicast_echo"`
-	NoPingRecordRoute                     types.Bool                              `tfsdk:"no_ping_record_route"`
-	NoPingTimestamp                       types.Bool                              `tfsdk:"no_ping_time_stamp"`
-	NoRedirects                           types.Bool                              `tfsdk:"no_redirects"`
-	NoRedirectsIPv6                       types.Bool                              `tfsdk:"no_redirects_ipv6"`
-	RadiusOptionsEnhancedAccounting       types.Bool                              `tfsdk:"radius_options_enhanced_accounting"`
-	RadiusOptionsPasswordProtocolMschapv2 types.Bool                              `tfsdk:"radius_options_password_protocol_mschapv2"`
-	ID                                    types.String                            `tfsdk:"id"`
-	AuthenticationOrder                   types.List                              `tfsdk:"authentication_order"`
-	DomainName                            types.String                            `tfsdk:"domain_name"`
-	HostName                              types.String                            `tfsdk:"host_name"`
-	MaxConfigurationRollbacks             types.Int64                             `tfsdk:"max_configuration_rollbacks"`
-	MaxConfigurationsOnFlash              types.Int64                             `tfsdk:"max_configurations_on_flash"`
-	NameServer                            types.List                              `tfsdk:"name_server"`
-	RadiusOptionsAttributesNasIpaddress   types.String                            `tfsdk:"radius_options_attributes_nas_ipaddress"`
-	TimeZone                              types.String                            `tfsdk:"time_zone"`
-	TracingDestOverrideSyslogHost         types.String                            `tfsdk:"tracing_dest_override_syslog_host"`
-	Accounting                            *systemBlockAccountingConfig            `tfsdk:"accounting"`
-	ArchivalConfiguration                 *systemBlockArchivalConfigurationConfig `tfsdk:"archival_configuration"`
-	Inet6BackupRouter                     *systemBlockInet6BackupRouterConfig     `tfsdk:"inet6_backup_router"`
-	InternetOptions                       *systemBlockInternetOptions             `tfsdk:"internet_options"`
-	License                               *systemBlockLicense                     `tfsdk:"license"`
-	Login                                 *systemBlockLoginConfig                 `tfsdk:"login"`
-	NameServerOpts                        types.List                              `tfsdk:"name_server_opts"`
-	Ntp                                   *systemBlockNtp                         `tfsdk:"ntp"`
-	Ports                                 *systemBlockPortsConfig                 `tfsdk:"ports"`
-	Services                              *systemBlockServicesConfig              `tfsdk:"services"`
-	Syslog                                *systemBlockSyslog                      `tfsdk:"syslog"`
+	AutoSnapshot                            types.Bool                              `tfsdk:"auto_snapshot"`
+	DefaultAddressSelection                 types.Bool                              `tfsdk:"default_address_selection"`
+	NoMulticastEcho                         types.Bool                              `tfsdk:"no_multicast_echo"`
+	NoPingRecordRoute                       types.Bool                              `tfsdk:"no_ping_record_route"`
+	NoPingTimestamp                         types.Bool                              `tfsdk:"no_ping_time_stamp"`
+	NoRedirects                             types.Bool                              `tfsdk:"no_redirects"`
+	NoRedirectsIPv6                         types.Bool                              `tfsdk:"no_redirects_ipv6"`
+	RadiusOptionsEnhancedAccounting         types.Bool                              `tfsdk:"radius_options_enhanced_accounting"`
+	RadiusOptionsPasswordProtocolMschapv2   types.Bool                              `tfsdk:"radius_options_password_protocol_mschapv2"`
+	TacplusOptionsEnhancedAccounting        types.Bool                              `tfsdk:"tacplus_options_enhanced_accounting"`
+	TacplusOptionsExcludeCmdAttribute       types.Bool                              `tfsdk:"tacplus_options_exclude_cmd_attribute"`
+	TacplusOptionsNoCmdAttributeValue       types.Bool                              `tfsdk:"tacplus_options_no_cmd_attribute_value"`
+	TacplusOptionsStrictAuthorization       types.Bool                              `tfsdk:"tacplus_options_strict_authorization"`
+	TacplusOptionsNoStrictAuthorization     types.Bool                              `tfsdk:"tacplus_options_no_strict_authorization"`
+	TacplusOptionsTimestampAndTimezone      types.Bool                              `tfsdk:"tacplus_options_timestamp_and_timezone"`
+	ID                                      types.String                            `tfsdk:"id"`
+	AuthenticationOrder                     types.List                              `tfsdk:"authentication_order"`
+	DomainName                              types.String                            `tfsdk:"domain_name"`
+	HostName                                types.String                            `tfsdk:"host_name"`
+	MaxConfigurationRollbacks               types.Int64                             `tfsdk:"max_configuration_rollbacks"`
+	MaxConfigurationsOnFlash                types.Int64                             `tfsdk:"max_configurations_on_flash"`
+	NameServer                              types.List                              `tfsdk:"name_server"`
+	RadiusOptionsAttributesNasID            types.String                            `tfsdk:"radius_options_attributes_nas_id"`
+	RadiusOptionsAttributesNasIpaddress     types.String                            `tfsdk:"radius_options_attributes_nas_ipaddress"`
+	TacplusOptionsAuthorizationTimeInterval types.Int64                             `tfsdk:"tacplus_options_authorization_time_interval"`
+	TacplusOptionsServiceName               types.String                            `tfsdk:"tacplus_options_service_name"`
+	TimeZone                                types.String                            `tfsdk:"time_zone"`
+	TracingDestOverrideSyslogHost           types.String                            `tfsdk:"tracing_dest_override_syslog_host"`
+	Accounting                              *systemBlockAccountingConfig            `tfsdk:"accounting"`
+	ArchivalConfiguration                   *systemBlockArchivalConfigurationConfig `tfsdk:"archival_configuration"`
+	Inet6BackupRouter                       *systemBlockInet6BackupRouterConfig     `tfsdk:"inet6_backup_router"`
+	InternetOptions                         *systemBlockInternetOptions             `tfsdk:"internet_options"`
+	License                                 *systemBlockLicense                     `tfsdk:"license"`
+	Login                                   *systemBlockLoginConfig                 `tfsdk:"login"`
+	NameServerOpts                          types.List                              `tfsdk:"name_server_opts"`
+	Ntp                                     *systemBlockNtp                         `tfsdk:"ntp"`
+	Ports                                   *systemBlockPortsConfig                 `tfsdk:"ports"`
+	Services                                *systemBlockServicesConfig              `tfsdk:"services"`
+	Syslog                                  *systemBlockSyslog                      `tfsdk:"syslog"`
 }
 
 type systemBlockAccounting struct {
@@ -2223,6 +2306,22 @@ func (rsc *system) ValidateConfig(
 			path.Root("name_server"),
 			tfdiag.ConflictConfigErrSummary,
 			"name_server and name_server_opts cannot be configured together",
+		)
+	}
+	if !config.TacplusOptionsExcludeCmdAttribute.IsNull() && !config.TacplusOptionsExcludeCmdAttribute.IsUnknown() &&
+		!config.TacplusOptionsNoCmdAttributeValue.IsNull() && !config.TacplusOptionsNoCmdAttributeValue.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("tacplus_options_exclude_cmd_attribute"),
+			tfdiag.ConflictConfigErrSummary,
+			"tacplus_options_exclude_cmd_attribute and tacplus_options_no_cmd_attribute_value cannot be configured together",
+		)
+	}
+	if !config.TacplusOptionsStrictAuthorization.IsNull() && !config.TacplusOptionsStrictAuthorization.IsUnknown() &&
+		!config.TacplusOptionsNoStrictAuthorization.IsNull() && !config.TacplusOptionsNoStrictAuthorization.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("tacplus_options_strict_authorization"),
+			tfdiag.ConflictConfigErrSummary,
+			"tacplus_options_strict_authorization and tacplus_options_no_strict_authorization cannot be configured together",
 		)
 	}
 	if config.Accounting != nil {
@@ -2924,6 +3023,9 @@ func (rscData *systemData) set(
 	if rscData.NoRedirectsIPv6.ValueBool() {
 		configSet = append(configSet, setPrefix+"no-redirects-ipv6")
 	}
+	if v := rscData.RadiusOptionsAttributesNasID.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"radius-options attributes nas-id \""+v+"\"")
+	}
 	if v := rscData.RadiusOptionsAttributesNasIpaddress.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"radius-options attributes nas-ip-address "+v)
 	}
@@ -2932,6 +3034,31 @@ func (rscData *systemData) set(
 	}
 	if rscData.RadiusOptionsPasswordProtocolMschapv2.ValueBool() {
 		configSet = append(configSet, setPrefix+"radius-options password-protocol mschap-v2")
+	}
+	if !rscData.TacplusOptionsAuthorizationTimeInterval.IsNull() {
+		configSet = append(configSet, setPrefix+"tacplus-options authorization-time-interval "+
+			utils.ConvI64toa(rscData.TacplusOptionsAuthorizationTimeInterval.ValueInt64()))
+	}
+	if rscData.TacplusOptionsEnhancedAccounting.ValueBool() {
+		configSet = append(configSet, setPrefix+"tacplus-options enhanced-accounting")
+	}
+	if rscData.TacplusOptionsExcludeCmdAttribute.ValueBool() {
+		configSet = append(configSet, setPrefix+"tacplus-options exclude-cmd-attribute")
+	}
+	if rscData.TacplusOptionsNoCmdAttributeValue.ValueBool() {
+		configSet = append(configSet, setPrefix+"tacplus-options no-cmd-attribute-value")
+	}
+	if v := rscData.TacplusOptionsServiceName.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"tacplus-options service-name \""+v+"\"")
+	}
+	if rscData.TacplusOptionsStrictAuthorization.ValueBool() {
+		configSet = append(configSet, setPrefix+"tacplus-options strict-authorization")
+	}
+	if rscData.TacplusOptionsNoStrictAuthorization.ValueBool() {
+		configSet = append(configSet, setPrefix+"tacplus-options no-strict-authorization")
+	}
+	if rscData.TacplusOptionsTimestampAndTimezone.ValueBool() {
+		configSet = append(configSet, setPrefix+"tacplus-options timestamp-and-timezone")
 	}
 	if v := rscData.TimeZone.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"time-zone "+v)
@@ -3899,12 +4026,33 @@ func (rscData *systemData) read(
 				rscData.NoRedirects = types.BoolValue(true)
 			case itemTrim == "no-redirects-ipv6":
 				rscData.NoRedirectsIPv6 = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "radius-options attributes nas-id "):
+				rscData.RadiusOptionsAttributesNasID = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "radius-options attributes nas-ip-address "):
 				rscData.RadiusOptionsAttributesNasIpaddress = types.StringValue(itemTrim)
 			case itemTrim == "radius-options enhanced-accounting":
 				rscData.RadiusOptionsEnhancedAccounting = types.BoolValue(true)
 			case itemTrim == "radius-options password-protocol mschap-v2":
 				rscData.RadiusOptionsPasswordProtocolMschapv2 = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "tacplus-options authorization-time-interval "):
+				rscData.TacplusOptionsAuthorizationTimeInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+				if err != nil {
+					return err
+				}
+			case itemTrim == "tacplus-options enhanced-accounting":
+				rscData.TacplusOptionsEnhancedAccounting = types.BoolValue(true)
+			case itemTrim == "tacplus-options exclude-cmd-attribute":
+				rscData.TacplusOptionsExcludeCmdAttribute = types.BoolValue(true)
+			case itemTrim == "tacplus-options no-cmd-attribute-value":
+				rscData.TacplusOptionsNoCmdAttributeValue = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "tacplus-options service-name "):
+				rscData.TacplusOptionsServiceName = types.StringValue(strings.Trim(itemTrim, "\""))
+			case itemTrim == "tacplus-options strict-authorization":
+				rscData.TacplusOptionsStrictAuthorization = types.BoolValue(true)
+			case itemTrim == "tacplus-options no-strict-authorization":
+				rscData.TacplusOptionsNoStrictAuthorization = types.BoolValue(true)
+			case itemTrim == "tacplus-options timestamp-and-timezone":
+				rscData.TacplusOptionsTimestampAndTimezone = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "time-zone "):
 				rscData.TimeZone = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "tracing destination-override syslog host "):
@@ -4870,6 +5018,7 @@ func (rscData *systemData) del(
 	listLinesToDelete = append(listLinesToDelete, "radius-options")
 	listLinesToDelete = append(listLinesToDelete, systemBlockServices{}.junosLines()...)
 	listLinesToDelete = append(listLinesToDelete, systemBlockSyslog{}.junosLines()...)
+	listLinesToDelete = append(listLinesToDelete, "tacplus-options")
 	listLinesToDelete = append(listLinesToDelete, "time-zone")
 	listLinesToDelete = append(listLinesToDelete,
 		"tracing destination-override syslog host",

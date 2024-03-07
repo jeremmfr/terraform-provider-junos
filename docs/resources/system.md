@@ -163,6 +163,8 @@ The following arguments are supported:
     Log out the console session when cable is unplugged.
   - **console_type** (Optional, String)  
     Terminal type on console port.
+- **radius_options_attributes_nas_id** (Optional, String)  
+  Value of NAS-ID in outgoing RADIUS packets.
 - **radius_options_attributes_nas_ipaddress** (Optional, String)  
   Value of NAS-IP-Address in outgoing RADIUS packets.
 - **radius_options_enhanced_accounting** (Optional, Boolean)  
@@ -206,6 +208,26 @@ The following arguments are supported:
     Include milliseconds in system log timestamp.
   - **time_format_year** (Optional, Boolean)  
     Include year in system log timestamp.
+- **tacplus_options_authorization_time_interval** (Optional, Number)  
+  TACACS+ authorization refresh time interval (15..1440 minutes).
+- **tacplus_options_enhanced_accounting** (Optional, Boolean)  
+  Include authentication method, remote port and user-privileges in `login` accounting.
+- **tacplus_options_exclude_cmd_attribute** (Optional, Boolean)  
+  In start/stop requests, do not include `cmd` attribute.  
+  Conflict with `tacplus_options_no_cmd_attribute_value`.
+- **tacplus_options_no_cmd_attribute_value** (Optional, Boolean)  
+  In start/stop requests, set `cmd` attribute value to empty string.  
+  Conflict with `tacplus_options_exclude_cmd_attribute`.
+- **tacplus_options_service_name** (Optional, String)  
+  TACACS+ service name.
+- **tacplus_options_strict_authorization** (Optional, Boolean)  
+  Deny login if authorization request fails.  
+  Conflict with `tacplus_options_no_strict_authorization`.
+- **tacplus_options_no_strict_authorization** (Optional, Boolean)  
+  Don't deny login if authorization request fails.  
+  Conflict with `tacplus_options_strict_authorization`.
+- **tacplus_options_timestamp_and_timezone** (Optional, Boolean)  
+  In start/stop accounting packets, include `start-time`, `stop-time` and `timezone` attributes.
 - **time_zone** (Optional, String)  
   Time zone name or POSIX-compliant time zone string (`<continent>`/`<major-city>` or `<time-zone>`).
 - **tracing_dest_override_syslog_host** (Optional, String)  
