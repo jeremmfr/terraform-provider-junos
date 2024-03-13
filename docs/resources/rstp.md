@@ -61,7 +61,7 @@ The following arguments are supported:
 - **vpls_flush_on_topology_change** (Optional, Boolean)  
   Enable VPLS MAC flush on root protected CE interface receiving topology change.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

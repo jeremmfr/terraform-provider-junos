@@ -82,7 +82,7 @@ The following arguments are supported:
 - **tenant** (Optional, String)  
   Tenant associated with this login.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

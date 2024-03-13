@@ -2,8 +2,10 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"html"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type fwdOptsDhcpRelayOptions struct {
@@ -821,7 +822,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	if d.Get("active_server_group_allow_server_change").(bool) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("active_server_group_allow_server_change not compatible when version = v6")
+			return errors.New("active_server_group_allow_server_change not compatible when version = v6")
 		}
 		configSet = append(configSet, setPrefix+"active-server-group allow-server-change")
 	}
@@ -858,7 +859,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 			}
 			if bulkLeasequery["trigger_automatic"].(bool) {
 				if d.Get("version").(string) != "v6" {
-					return fmt.Errorf("bulk_leasequery.0.trigger_automatic only compatible when version = v6")
+					return errors.New("bulk_leasequery.0.trigger_automatic only compatible when version = v6")
 				}
 				configSet = append(configSet, setPrefix+"bulk-leasequery trigger automatic")
 			}
@@ -866,19 +867,19 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	if v := d.Get("client_response_ttl").(int); v != 0 {
 		if d.Get("version").(string) != "v4" {
-			return fmt.Errorf("client_response_ttl only compatible when version = v4")
+			return errors.New("client_response_ttl only compatible when version = v4")
 		}
 		configSet = append(configSet, setPrefix+"client-response-ttl "+strconv.Itoa(v))
 	}
 	if v := d.Get("duplicate_clients_in_subnet").(string); v != "" {
 		if d.Get("version").(string) != "v4" {
-			return fmt.Errorf("duplicate_clients_in_subnet only compatible when version = v4")
+			return errors.New("duplicate_clients_in_subnet only compatible when version = v4")
 		}
 		configSet = append(configSet, setPrefix+"duplicate-clients-in-subnet "+v)
 	}
 	if d.Get("duplicate_clients_incoming_interface").(bool) {
 		if d.Get("version").(string) != "v6" {
-			return fmt.Errorf("duplicate_clients_incoming_interface only compatible when version = v6")
+			return errors.New("duplicate_clients_incoming_interface only compatible when version = v6")
 		}
 		configSet = append(configSet, setPrefix+"duplicate-clients incoming-interface")
 	}
@@ -890,7 +891,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 				configSet = append(configSet, setPrefix+"dynamic-profile aggregate-clients "+v)
 			}
 		} else if d.Get("dynamic_profile_aggregate_clients_action").(string) != "" {
-			return fmt.Errorf("dynamic_profile_aggregate_clients need to be true with " +
+			return errors.New("dynamic_profile_aggregate_clients need to be true with " +
 				"dynamic_profile_aggregate_clients_action")
 		}
 		if v := d.Get("dynamic_profile_use_primary").(string); v != "" {
@@ -899,13 +900,13 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	} else if d.Get("dynamic_profile_aggregate_clients").(bool) ||
 		d.Get("dynamic_profile_aggregate_clients_action").(string) != "" ||
 		d.Get("dynamic_profile_use_primary").(string) != "" {
-		return fmt.Errorf("dynamic_profile need to be set with " +
+		return errors.New("dynamic_profile need to be set with " +
 			"dynamic_profile_use_primary, dynamic_profile_aggregate_clients " +
 			"and dynamic_profile_aggregate_clients_action")
 	}
 	if d.Get("exclude_relay_agent_identifier").(bool) {
 		if d.Get("version").(string) != "v6" {
-			return fmt.Errorf("exclude_relay_agent_identifier only compatible when version = v6")
+			return errors.New("exclude_relay_agent_identifier only compatible when version = v6")
 		}
 		configSet = append(configSet, setPrefix+"exclude-relay-agent-identifier")
 	}
@@ -915,7 +916,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 			configSet = append(configSet, setPrefix+"forward-only routing-instance "+v)
 		}
 	} else if d.Get("forward_only_routing_instance").(string) != "" {
-		return fmt.Errorf("forward_only need to be true with forward_only_routing_instance")
+		return errors.New("forward_only need to be true with forward_only_routing_instance")
 	}
 	if d.Get("forward_only_replies").(bool) {
 		configSet = append(configSet, setPrefix+"forward-only-replies")
@@ -985,12 +986,12 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 		}
 
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixLDMBfd) {
-			return fmt.Errorf("liveness_detection_method_bfd block is empty")
+			return errors.New("liveness_detection_method_bfd block is empty")
 		}
 	}
 	for _, ldmLayer2 := range d.Get("liveness_detection_method_layer2").([]interface{}) {
 		if ldmLayer2 == nil {
-			return fmt.Errorf("liveness_detection_method_layer2 block is empty")
+			return errors.New("liveness_detection_method_layer2 block is empty")
 		}
 		liveDetectMethLayer2 := ldmLayer2.(map[string]interface{})
 		setPrefixLDMLayer2 := setPrefix + "liveness-detection method layer2-liveness-detection "
@@ -1003,13 +1004,13 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	if v := d.Get("maximum_hop_count").(int); v != 0 {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("maximum_hop_count not compatible if version = v6")
+			return errors.New("maximum_hop_count not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"maximum-hop-count "+strconv.Itoa(v))
 	}
 	if v := d.Get("minimum_wait_time").(int); v != -1 {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("minimum_wait_time not compatible if version = v6")
+			return errors.New("minimum_wait_time not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"minimum-wait-time "+strconv.Itoa(v))
 	}
@@ -1018,10 +1019,10 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	for _, v := range d.Get("overrides_v4").([]interface{}) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("overrides_v4 not compatible if version = v6")
+			return errors.New("overrides_v4 not compatible if version = v6")
 		}
 		if v == nil {
-			return fmt.Errorf("overrides_v4 block is empty")
+			return errors.New("overrides_v4 block is empty")
 		}
 		configSetOverrides, err := setForwardingOptionsDhcpRelayOverridesV4(
 			v.(map[string]interface{}), setPrefix)
@@ -1032,10 +1033,10 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	for _, v := range d.Get("overrides_v6").([]interface{}) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("overrides_v6 not compatible if version = v4")
+			return errors.New("overrides_v6 not compatible if version = v4")
 		}
 		if v == nil {
-			return fmt.Errorf("overrides_v6 block is empty")
+			return errors.New("overrides_v6 block is empty")
 		}
 		configSetOverrides, err := setForwardingOptionsDhcpRelayOverridesV6(
 			v.(map[string]interface{}), setPrefix)
@@ -1049,7 +1050,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	for _, v := range d.Get("relay_agent_interface_id").([]interface{}) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("relay_agent_interface_id not compatible if version = v4")
+			return errors.New("relay_agent_interface_id not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-interface-id")
 		if v != nil {
@@ -1063,13 +1064,13 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	if d.Get("relay_agent_option_79").(bool) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("relay_agent_interface_id not compatible if version = v4")
+			return errors.New("relay_agent_interface_id not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-option-79")
 	}
 	for _, v := range d.Get("relay_agent_remote_id").([]interface{}) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("relay_agent_interface_id not compatible if version = v4")
+			return errors.New("relay_agent_interface_id not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-remote-id")
 		if v != nil {
@@ -1094,7 +1095,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	for _, v := range d.Get("relay_option_82").([]interface{}) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("relay_option_82 not compatible if version = v6")
+			return errors.New("relay_option_82 not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"relay-option-82")
 		if v != nil {
@@ -1106,7 +1107,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	if d.Get("route_suppression_access").(bool) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("route_suppression_access not compatible if version = v4")
+			return errors.New("route_suppression_access not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"route-suppression access")
 	}
@@ -1115,14 +1116,14 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	if d.Get("route_suppression_destination").(bool) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("route_suppression_destination not compatible if version = v6")
+			return errors.New("route_suppression_destination not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"route-suppression destination")
 	}
 	serverMatchAddressList := make([]string, 0)
 	for _, v := range d.Get("server_match_address").(*schema.Set).List() {
 		serverMatchAddress := v.(map[string]interface{})
-		if bchk.InSlice(serverMatchAddress["address"].(string), serverMatchAddressList) {
+		if slices.Contains(serverMatchAddressList, serverMatchAddress["address"].(string)) {
 			return fmt.Errorf("multiple blocks server_match_address with the same address %s",
 				serverMatchAddress["address"].(string))
 		}
@@ -1136,15 +1137,15 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	serverMatchDuidList := make([]string, 0)
 	for _, v := range d.Get("server_match_duid").(*schema.Set).List() {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("server_match_duid not compatible if version = v4")
+			return errors.New("server_match_duid not compatible if version = v4")
 		}
 		serverMatchDuid := v.(map[string]interface{})
 		serverMatchDuidCompare := serverMatchDuid["compare"].(string)
 		serverMatchDuidValueType := serverMatchDuid["value_type"].(string)
 		serverMatchDuidValue := serverMatchDuid["value"].(string)
-		if bchk.InSlice(
-			serverMatchDuidCompare+junos.IDSeparator+serverMatchDuidValueType+junos.IDSeparator+serverMatchDuidValue,
+		if slices.Contains(
 			serverMatchDuidList,
+			serverMatchDuidCompare+junos.IDSeparator+serverMatchDuidValueType+junos.IDSeparator+serverMatchDuidValue,
 		) {
 			return fmt.Errorf("multiple blocks server_match_duid with the same compare %s, value_type %s, value %s",
 				serverMatchDuidCompare, serverMatchDuidValueType, serverMatchDuidValue)
@@ -1164,7 +1165,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	if v := d.Get("service_profile").(string); v != "" {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("service_profile not compatible if version = v4")
+			return errors.New("service_profile not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"service-profile \""+v+"\"")
 	}
@@ -1176,19 +1177,19 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 	}
 	if d.Get("source_ip_change").(bool) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("source_ip_change not compatible if version = v6")
+			return errors.New("source_ip_change not compatible if version = v6")
 		}
 		configSet = append(configSet, setPrefix+"source-ip-change")
 	}
 	if d.Get("vendor_specific_information_host_name").(bool) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("vendor_specific_information_host_name not compatible if version = v4")
+			return errors.New("vendor_specific_information_host_name not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"vendor-specific-information host-name")
 	}
 	if d.Get("vendor_specific_information_location").(bool) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("vendor_specific_information_location not compatible if version = v4")
+			return errors.New("vendor_specific_information_location not compatible if version = v4")
 		}
 		configSet = append(configSet, setPrefix+"vendor-specific-information location")
 	}

@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -1275,7 +1276,8 @@ func checkForwardingoptionsSamplingInstanceExists(
 ) {
 	var showConfig string
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			junos.RoutingInstancesWS + routingInstance + " " +
 			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
 	} else {
 		showConfig, err = junSess.Command(junos.CmdShowConfig +
@@ -1322,7 +1324,7 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 	if rscData.FamilyInetInput != nil {
 		blockSet := rscData.FamilyInetInput.configSet(setPrefix + "family inet input ")
 		if len(blockSet) == 0 {
-			return path.Root("family_inet_input").AtName("*"), fmt.Errorf("family_inet_input block is empty")
+			return path.Root("family_inet_input").AtName("*"), errors.New("family_inet_input block is empty")
 		}
 		configSet = append(configSet, blockSet...)
 	}
@@ -1332,14 +1334,14 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 			return pathErr, err
 		}
 		if len(blockSet) == 0 {
-			return path.Root("family_inet_output").AtName("*"), fmt.Errorf("family_inet_output block is empty")
+			return path.Root("family_inet_output").AtName("*"), errors.New("family_inet_output block is empty")
 		}
 		configSet = append(configSet, blockSet...)
 	}
 	if rscData.FamilyInet6Input != nil {
 		blockSet := rscData.FamilyInet6Input.configSet(setPrefix + "family inet6 input ")
 		if len(blockSet) == 0 {
-			return path.Root("family_inet6_input").AtName("*"), fmt.Errorf("family_inet6_input block is empty")
+			return path.Root("family_inet6_input").AtName("*"), errors.New("family_inet6_input block is empty")
 		}
 		configSet = append(configSet, blockSet...)
 	}
@@ -1349,14 +1351,14 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 			return pathErr, err
 		}
 		if len(blockSet) == 0 {
-			return path.Root("family_inet6_output").AtName("*"), fmt.Errorf("family_inet6_output block is empty")
+			return path.Root("family_inet6_output").AtName("*"), errors.New("family_inet6_output block is empty")
 		}
 		configSet = append(configSet, blockSet...)
 	}
 	if rscData.FamilyMplsInput != nil {
 		blockSet := rscData.FamilyMplsInput.configSet(setPrefix + "family mpls input ")
 		if len(blockSet) == 0 {
-			return path.Root("family_mpls_input").AtName("*"), fmt.Errorf("family_mpls_input block is empty")
+			return path.Root("family_mpls_input").AtName("*"), errors.New("family_mpls_input block is empty")
 		}
 		configSet = append(configSet, blockSet...)
 	}
@@ -1366,14 +1368,14 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 			return pathErr, err
 		}
 		if len(blockSet) == 0 {
-			return path.Root("family_mpls_output").AtName("*"), fmt.Errorf("family_mpls_output block is empty")
+			return path.Root("family_mpls_output").AtName("*"), errors.New("family_mpls_output block is empty")
 		}
 		configSet = append(configSet, blockSet...)
 	}
 	if rscData.Input != nil {
 		blockSet := rscData.Input.configSet(setPrefix + "input ")
 		if len(blockSet) == 0 {
-			return path.Root("input").AtName("*"), fmt.Errorf("input block is empty")
+			return path.Root("input").AtName("*"), errors.New("input block is empty")
 		}
 		configSet = append(configSet, blockSet...)
 	}
@@ -1735,7 +1737,8 @@ func (rscData *forwardingoptionsSamplingInstanceData) read(
 ) {
 	var showConfig string
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			junos.RoutingInstancesWS + routingInstance + " " +
 			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	} else {
 		showConfig, err = junSess.Command(junos.CmdShowConfig +

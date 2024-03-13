@@ -3,13 +3,13 @@ package providersdk
 import (
 	"fmt"
 	"net"
+	"slices"
 	"sort"
 	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type formatName int
@@ -134,7 +134,7 @@ func validateNameObjectJunos(exclude []string, length int, format formatName) sc
 				AttributePath: path,
 			})
 		}
-		if bchk.InSlice(v, exclude) {
+		if slices.Contains(exclude, v) {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
 				Summary:       fmt.Sprintf("expected value to not be one of %q, got %v", exclude, i),
@@ -213,30 +213,4 @@ func validateIsIPv6Address(i interface{}, k string) (warnings []string, errors [
 	}
 
 	return warnings, errors
-}
-
-func stringLenBetweenSensitive(min, max int) schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-		v, ok := i.(string)
-		if !ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       "expected type to be string",
-				AttributePath: path,
-			})
-
-			return diags
-		}
-
-		if len(v) < min || len(v) > max {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       fmt.Sprintf("expected length to be in the range (%d - %d), got %d", min, max, len(v)),
-				AttributePath: path,
-			})
-		}
-
-		return diags
-	}
 }

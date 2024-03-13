@@ -1,6 +1,7 @@
 package providersdk
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"strconv"
@@ -706,7 +707,7 @@ func setForwardingOptionsDhcpRelayAuthUsernameInclude(
 		}
 	} else if authenticationUsernameInclude["client_id_exclude_headers"].(bool) ||
 		authenticationUsernameInclude["client_id_use_automatic_ascii_hex_encoding"].(bool) {
-		return configSet, fmt.Errorf("authentication_username_include.0.client_id need to be true with " +
+		return configSet, errors.New("authentication_username_include.0.client_id need to be true with " +
 			"client_id_exclude_headers or client_id_use_automatic_ascii_hex_encoding")
 	}
 	if v := authenticationUsernameInclude["delimiter"].(string); v != "" {
@@ -726,13 +727,13 @@ func setForwardingOptionsDhcpRelayAuthUsernameInclude(
 	}
 	if authenticationUsernameInclude["option_60"].(bool) {
 		if version == "v6" {
-			return configSet, fmt.Errorf("authentication_username_include.0.option_60 not compatible when version = v6")
+			return configSet, errors.New("authentication_username_include.0.option_60 not compatible when version = v6")
 		}
 		configSet = append(configSet, setPrefix+"option-60")
 	}
 	if authenticationUsernameInclude["option_82"].(bool) {
 		if version == "v6" {
-			return configSet, fmt.Errorf("authentication_username_include.0.option_82 not compatible when version = v6")
+			return configSet, errors.New("authentication_username_include.0.option_82 not compatible when version = v6")
 		}
 		configSet = append(configSet, setPrefix+"option-82")
 		if authenticationUsernameInclude["option_82_circuit_id"].(bool) {
@@ -743,26 +744,26 @@ func setForwardingOptionsDhcpRelayAuthUsernameInclude(
 		}
 	} else if authenticationUsernameInclude["option_82_circuit_id"].(bool) ||
 		authenticationUsernameInclude["option_82_remote_id"].(bool) {
-		return configSet, fmt.Errorf("authentication_username_include.0.option_82 need to be true with " +
+		return configSet, errors.New("authentication_username_include.0.option_82 need to be true with " +
 			"option_82_circuit_id or option_82_remote_id")
 	}
 	if authenticationUsernameInclude["relay_agent_interface_id"].(bool) {
 		if version == "v4" {
-			return configSet, fmt.Errorf("authentication_username_include.0.relay_agent_interface_id" +
+			return configSet, errors.New("authentication_username_include.0.relay_agent_interface_id" +
 				" not compatible when version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-interface-id")
 	}
 	if authenticationUsernameInclude["relay_agent_remote_id"].(bool) {
 		if version == "v4" {
-			return configSet, fmt.Errorf("authentication_username_include.0.relay_agent_remote_id" +
+			return configSet, errors.New("authentication_username_include.0.relay_agent_remote_id" +
 				" not compatible when version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-remote-id")
 	}
 	if authenticationUsernameInclude["relay_agent_subscriber_id"].(bool) {
 		if version == "v4" {
-			return configSet, fmt.Errorf("authentication_username_include.0.relay_agent_subscriber_id" +
+			return configSet, errors.New("authentication_username_include.0.relay_agent_subscriber_id" +
 				" not compatible when version = v4")
 		}
 		configSet = append(configSet, setPrefix+"relay-agent-subscriber-id")
@@ -826,7 +827,7 @@ func setForwardingOptionsDhcpRelayOverridesV4(overrides map[string]interface{}, 
 	}
 	if overrides["no_allow_snooped_clients"].(bool) {
 		if overrides["allow_snooped_clients"].(bool) {
-			return configSet, fmt.Errorf("allow_snooped_clients and no_allow_snooped_clients can't be true in same time")
+			return configSet, errors.New("allow_snooped_clients and no_allow_snooped_clients can't be true in same time")
 		}
 		configSet = append(configSet, setPrefix+"no-allow-snooped-clients")
 	}
@@ -835,7 +836,7 @@ func setForwardingOptionsDhcpRelayOverridesV4(overrides map[string]interface{}, 
 	}
 	if overrides["no_unicast_replies"].(bool) {
 		if overrides["layer2_unicast_replies"].(bool) {
-			return configSet, fmt.Errorf("layer2_unicast_replies and no_unicast_replies can't be true in same time")
+			return configSet, errors.New("layer2_unicast_replies and no_unicast_replies can't be true in same time")
 		}
 		configSet = append(configSet, setPrefix+"no-unicast-replies")
 	}
@@ -859,7 +860,7 @@ func setForwardingOptionsDhcpRelayOverridesV4(overrides map[string]interface{}, 
 	}
 
 	if len(configSet) == 0 {
-		return configSet, fmt.Errorf("an overrides_v4 block is empty")
+		return configSet, errors.New("an overrides_v4 block is empty")
 	}
 
 	return configSet, nil
@@ -899,7 +900,7 @@ func setForwardingOptionsDhcpRelayOverridesV6(overrides map[string]interface{}, 
 	}
 	if overrides["no_allow_snooped_clients"].(bool) {
 		if overrides["allow_snooped_clients"].(bool) {
-			return configSet, fmt.Errorf("allow_snooped_clients and no_allow_snooped_clients can't be true in same time")
+			return configSet, errors.New("allow_snooped_clients and no_allow_snooped_clients can't be true in same time")
 		}
 		configSet = append(configSet, setPrefix+"no-allow-snooped-clients")
 	}
@@ -914,7 +915,7 @@ func setForwardingOptionsDhcpRelayOverridesV6(overrides map[string]interface{}, 
 	}
 
 	if len(configSet) == 0 {
-		return configSet, fmt.Errorf("an overrides_v6 block is empty")
+		return configSet, errors.New("an overrides_v6 block is empty")
 	}
 
 	return configSet, nil
@@ -938,7 +939,7 @@ func setForwardingOptionsDhcpRelayAgentID(relayAgentID map[string]interface{}, s
 			configSet = append(configSet, setPrefix+"keep-incoming-remote-id")
 		}
 	} else if blockName == "relay_agent_interface_id" && relayAgentID["keep_incoming_id_strict"].(bool) {
-		return configSet, fmt.Errorf("keep_incoming_id need to be true with keep_incoming_id_strict")
+		return configSet, errors.New("keep_incoming_id need to be true with keep_incoming_id_strict")
 	}
 	if relayAgentID["no_vlan_interface_name"].(bool) {
 		configSet = append(configSet, setPrefix+"no-vlan-interface-name")
@@ -958,7 +959,7 @@ func setForwardingOptionsDhcpRelayAgentID(relayAgentID map[string]interface{}, s
 			configSet = append(configSet, setPrefix+"use-option-82 strict")
 		}
 	} else if relayAgentID["use_option_82_strict"].(bool) {
-		return configSet, fmt.Errorf("use_option_82 need to be true with use_option_82_strict")
+		return configSet, errors.New("use_option_82 need to be true with use_option_82_strict")
 	}
 	if relayAgentID["use_vlan_id"].(bool) {
 		configSet = append(configSet, setPrefix+"use-vlan-id")
@@ -978,12 +979,12 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 
 	for _, block := range relayOption["option_15"].(*schema.Set).List() {
 		if version == "v4" {
-			return configSet, fmt.Errorf("relay_option.0.option_15 not compatible when version = v4")
+			return configSet, errors.New("relay_option.0.option_15 not compatible when version = v4")
 		}
 		option15 := block.(map[string]interface{})
 		if action := option15["action"].(string); action == "relay-server-group" {
 			if option15["group"].(string) == "" {
-				return configSet, fmt.Errorf("group must be set when " +
+				return configSet, errors.New("group must be set when " +
 					"action = relay-server-group in option_15 block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-15 "+
@@ -994,7 +995,7 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 				"\""+option15["group"].(string)+"\"")
 		} else {
 			if option15["group"].(string) != "" {
-				return configSet, fmt.Errorf("group must be set only with " +
+				return configSet, errors.New("group must be set only with " +
 					"action = relay-server-group in option_15 block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-15 "+
@@ -1006,19 +1007,19 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 	}
 	for _, block := range relayOption["option_15_default_action"].([]interface{}) {
 		if version == "v4" {
-			return configSet, fmt.Errorf("relay_option.0.option_15_default_action not compatible when version = v4")
+			return configSet, errors.New("relay_option.0.option_15_default_action not compatible when version = v4")
 		}
 		option15DefAction := block.(map[string]interface{})
 		if action := option15DefAction["action"].(string); action == "relay-server-group" {
 			if option15DefAction["group"].(string) == "" {
-				return configSet, fmt.Errorf("group must be set when " +
+				return configSet, errors.New("group must be set when " +
 					"action = relay-server-group in option_15_default_action block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-15 default-action "+action+
 				" \""+option15DefAction["group"].(string)+"\"")
 		} else {
 			if option15DefAction["group"].(string) != "" {
-				return configSet, fmt.Errorf("group must be set only with " +
+				return configSet, errors.New("group must be set only with " +
 					"action = relay-server-group in option_15_default_action block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-15 default-action "+action)
@@ -1026,12 +1027,12 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 	}
 	for _, block := range relayOption["option_16"].(*schema.Set).List() {
 		if version == "v4" {
-			return configSet, fmt.Errorf("relay_option.0.option_16 not compatible when version = v4")
+			return configSet, errors.New("relay_option.0.option_16 not compatible when version = v4")
 		}
 		option16 := block.(map[string]interface{})
 		if action := option16["action"].(string); action == "relay-server-group" {
 			if option16["group"].(string) == "" {
-				return configSet, fmt.Errorf("group must be set when " +
+				return configSet, errors.New("group must be set when " +
 					"action = relay-server-group in option_16 block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-16 "+
@@ -1042,7 +1043,7 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 				"\""+option16["group"].(string)+"\"")
 		} else {
 			if option16["group"].(string) != "" {
-				return configSet, fmt.Errorf("group must be set only with " +
+				return configSet, errors.New("group must be set only with " +
 					"action = relay-server-group in option_16 block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-16 "+
@@ -1054,19 +1055,19 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 	}
 	for _, block := range relayOption["option_16_default_action"].([]interface{}) {
 		if version == "v4" {
-			return configSet, fmt.Errorf("relay_option.0.option_16_default_action not compatible when version = v4")
+			return configSet, errors.New("relay_option.0.option_16_default_action not compatible when version = v4")
 		}
 		option16DefAction := block.(map[string]interface{})
 		if action := option16DefAction["action"].(string); action == "relay-server-group" {
 			if option16DefAction["group"].(string) == "" {
-				return configSet, fmt.Errorf("group must be set when " +
+				return configSet, errors.New("group must be set when " +
 					"action = relay-server-group in option_16_default_action block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-16 default-action "+action+
 				" \""+option16DefAction["group"].(string)+"\"")
 		} else {
 			if option16DefAction["group"].(string) != "" {
-				return configSet, fmt.Errorf("group must be set only with " +
+				return configSet, errors.New("group must be set only with " +
 					"action = relay-server-group in option_16_default_action block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-16 default-action "+action)
@@ -1074,12 +1075,12 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 	}
 	for _, block := range relayOption["option_60"].(*schema.Set).List() {
 		if version == "v6" {
-			return configSet, fmt.Errorf("relay_option.0.option_60 not compatible when version = v6")
+			return configSet, errors.New("relay_option.0.option_60 not compatible when version = v6")
 		}
 		option60 := block.(map[string]interface{})
 		if action := option60["action"].(string); action == "local-server-group" || action == "relay-server-group" {
 			if option60["group"].(string) == "" {
-				return configSet, fmt.Errorf("group must be set when " +
+				return configSet, errors.New("group must be set when " +
 					"action = local-server-group or relay-server-group in option_60 block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-60 "+
@@ -1090,7 +1091,7 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 				"\""+option60["group"].(string)+"\"")
 		} else {
 			if option60["group"].(string) != "" {
-				return configSet, fmt.Errorf("group must be set only with " +
+				return configSet, errors.New("group must be set only with " +
 					"action = local-server-group or relay-server-group in option_60 block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-60 "+
@@ -1102,19 +1103,19 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 	}
 	for _, block := range relayOption["option_60_default_action"].([]interface{}) {
 		if version == "v6" {
-			return configSet, fmt.Errorf("relay_option.0.option_60_default_action not compatible when version = v6")
+			return configSet, errors.New("relay_option.0.option_60_default_action not compatible when version = v6")
 		}
 		option60DefAction := block.(map[string]interface{})
 		if action := option60DefAction["action"].(string); action == "local-server-group" || action == "relay-server-group" {
 			if option60DefAction["group"].(string) == "" {
-				return configSet, fmt.Errorf("group must be set when " +
+				return configSet, errors.New("group must be set when " +
 					"action = local-server-group or relay-server-group in option_60_default_action block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-60 default-action "+action+
 				" \""+option60DefAction["group"].(string)+"\"")
 		} else {
 			if option60DefAction["group"].(string) != "" {
-				return configSet, fmt.Errorf("group must be set only with " +
+				return configSet, errors.New("group must be set only with " +
 					"action = local-server-group or relay-server-group in option_60_default_action block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-60 default-action "+action)
@@ -1122,12 +1123,12 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 	}
 	for _, block := range relayOption["option_77"].(*schema.Set).List() {
 		if version == "v6" {
-			return configSet, fmt.Errorf("relay_option.0.option_77 not compatible when version = v6")
+			return configSet, errors.New("relay_option.0.option_77 not compatible when version = v6")
 		}
 		option77 := block.(map[string]interface{})
 		if action := option77["action"].(string); action == "local-server-group" || action == "relay-server-group" {
 			if option77["group"].(string) == "" {
-				return configSet, fmt.Errorf("group must be set when " +
+				return configSet, errors.New("group must be set when " +
 					"action = local-server-group or relay-server-group in option_77 block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-77 "+
@@ -1138,7 +1139,7 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 				"\""+option77["group"].(string)+"\"")
 		} else {
 			if option77["group"].(string) != "" {
-				return configSet, fmt.Errorf("group must be set only with " +
+				return configSet, errors.New("group must be set only with " +
 					"action = local-server-group or relay-server-group in option_77 block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-77 "+
@@ -1150,19 +1151,19 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 	}
 	for _, block := range relayOption["option_77_default_action"].([]interface{}) {
 		if version == "v6" {
-			return configSet, fmt.Errorf("relay_option.0.option_77_default_action not compatible when version = v6")
+			return configSet, errors.New("relay_option.0.option_77_default_action not compatible when version = v6")
 		}
 		option77DefAction := block.(map[string]interface{})
 		if action := option77DefAction["action"].(string); action == "local-server-group" || action == "relay-server-group" {
 			if option77DefAction["group"].(string) == "" {
-				return configSet, fmt.Errorf("group must be set when " +
+				return configSet, errors.New("group must be set when " +
 					"action = local-server-group or relay-server-group in option_77_default_action block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-77 default-action "+action+
 				" \""+option77DefAction["group"].(string)+"\"")
 		} else {
 			if option77DefAction["group"].(string) != "" {
-				return configSet, fmt.Errorf("group must be set only with " +
+				return configSet, errors.New("group must be set only with " +
 					"action = local-server-group or relay-server-group in option_77_default_action block in relay_option block")
 			}
 			configSet = append(configSet, setPrefix+"option-77 default-action "+action)
@@ -1171,10 +1172,10 @@ func setForwardingOptionsDhcpRelayOption(relayOption map[string]interface{}, set
 	for _, elem := range relayOption["option_order"].([]interface{}) {
 		opt := elem.(string)
 		if version == "v4" && (opt == "15" || opt == "16") {
-			return configSet, fmt.Errorf("15 & 16 for value in relay_option.0.option_order not compatible when version = v4")
+			return configSet, errors.New("15 & 16 for value in relay_option.0.option_order not compatible when version = v4")
 		}
 		if version == "v6" && (opt == "60" || opt == "77") {
-			return configSet, fmt.Errorf("60 & 77 for value in relay_option.0.option_order not compatible when version = v4")
+			return configSet, errors.New("60 & 77 for value in relay_option.0.option_order not compatible when version = v4")
 		}
 		configSet = append(configSet, setPrefix+"option-order "+opt)
 	}

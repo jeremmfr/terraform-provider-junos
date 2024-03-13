@@ -29,7 +29,7 @@ The following arguments are supported:
 - **group** (Required, String)  
   Group to which to assign security name.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -31,7 +31,7 @@ The following arguments are supported:
 - **version** (Optional, Number)  
   NTP version to use (1..4).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

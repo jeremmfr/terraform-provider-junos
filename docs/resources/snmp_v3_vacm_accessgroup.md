@@ -29,7 +29,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   SNMPv3 VACM group name.
 - **context_prefix** (Optional, Block List)  
-  For each prefix of context-prefix access configuration
+  For each prefix of context-prefix access configuration.
   - **prefix** (Required, String)  
     SNMPv3 VACM context prefix.
   - **access_config** (Optional, Block Set)  
@@ -59,7 +59,7 @@ The following arguments are supported:
 - **write_view** (Optional, String)  
   View used for write access.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -1,7 +1,7 @@
 package tfdiag_test
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
@@ -12,7 +12,7 @@ import (
 func TestWarns(t *testing.T) {
 	t.Parallel()
 
-	err := fmt.Errorf("test")
+	err := errors.New("test")
 	diags := tfdiag.Warns("Test", []error{err, err})
 
 	if v := len(diags); v != 2 {

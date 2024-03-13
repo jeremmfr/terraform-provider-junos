@@ -254,7 +254,7 @@ func (sess *Session) ConfigSet(cmd []string) error {
 		return sess.fakeSetFile(cmd)
 	}
 
-	return fmt.Errorf("internal error: call Session.ConfigSet without netconf session or fake set file")
+	return errors.New("internal error: call Session.ConfigSet without netconf session or fake set file")
 }
 
 // ConfigLock lock candidate configuration and retry with sleep between when fail.
@@ -264,7 +264,7 @@ func (sess *Session) ConfigLock(ctx context.Context) error {
 		case <-ctx.Done():
 			sess.logFile("[ConfigLock] lock aborted")
 
-			return fmt.Errorf("candidate configuration lock attempt aborted")
+			return errors.New("candidate configuration lock attempt aborted")
 		default:
 			if sess.netconfConfigLock() {
 				sess.logFile("[ConfigLock] config locked")

@@ -234,7 +234,7 @@ Also for `family_inet6` and `family_evpn` (except `nlri_type`)
 - **prefix_limit** (Optional, Block)  
   Same options as `accepted_prefix_limit` but for limit maximum number of prefixes from a peer.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -31,7 +31,7 @@ The following arguments are supported:
 - **policy_b_to_a** (Required, String, Forces new resource)  
   The name of policy when from zone zone_b to zone zone_a.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

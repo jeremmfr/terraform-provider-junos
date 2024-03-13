@@ -58,7 +58,7 @@ The following arguments are supported:
   - **user_password** (Optional, String, Sensitive)  
     Password string.  
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

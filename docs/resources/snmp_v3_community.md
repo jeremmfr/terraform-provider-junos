@@ -31,7 +31,7 @@ The following arguments are supported:
 - **tag** (Optional, String)  
   Tag identifier for set of targets allowed to use this community string.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

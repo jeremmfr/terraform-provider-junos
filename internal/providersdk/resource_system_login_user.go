@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -316,7 +317,7 @@ func setSystemLoginUser(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, block := range d.Get("authentication").([]interface{}) {
 		if block == nil {
-			return fmt.Errorf("authentication block is empty")
+			return errors.New("authentication block is empty")
 		}
 		authentication := block.(map[string]interface{})
 		if pass := authentication["plain_text_password"].(string); pass != "" {

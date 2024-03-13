@@ -39,13 +39,15 @@ The following arguments are supported:
   - **name** (Required, String)  
     Name of routing instance.
   - **client_list_name** (Optional, String)  
-    The name of client list or prefix list.
+    The name of client list or prefix list.  
+    Conflict with `clients` in block.
   - **clients** (Optional, Set of String)  
-    List of source address prefix ranges to accept.
+    List of source address prefix ranges to accept.  
+    Conflict with `client_list_name` in block.
 - **view** (Optional, String)  
   View name.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

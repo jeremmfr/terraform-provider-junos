@@ -60,7 +60,7 @@ The following arguments are supported:
 - **preference** (Optional, Number)  
   Preference for generate route.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

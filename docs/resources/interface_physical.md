@@ -256,7 +256,7 @@ The following arguments are supported:
   Switchover mode.  
   Need to be `revertive` or `non-revertive`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

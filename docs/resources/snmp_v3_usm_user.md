@@ -48,7 +48,9 @@ The following arguments are supported:
   Conflict with `authentication_key`.
 - **authentication_type** (Optional, String)  
   Define authentication type.  
-  Need to be `authentication-md5`, `authentication-sha` or `authentication-none`.  
+  Need to be `authentication-md5`, `authentication-none`, `authentication-sha`,
+  `authentication-sha224`, `authentication-sha256`, `authentication-sha384` or
+  `authentication-sha512`.  
   Defaults to `authentication-none`.  
   `authentication_key` or `authentication_password` need to set when `authentication_type` != `authentication-none`.
 - **privacy_key** (Optional, String, Sensitive)  
@@ -70,7 +72,7 @@ The following arguments are supported:
   Defaults to `privacy-none`.  
   `privacy_key` or `privacy_password` need to set when `privacy_type` != `privacy-none`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

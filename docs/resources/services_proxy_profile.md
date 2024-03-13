@@ -27,7 +27,7 @@ The following arguments are supported:
 - **protocol_http_port** (Optional, Number)  
   Proxy server port (1..65535).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

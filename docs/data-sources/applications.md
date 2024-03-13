@@ -59,7 +59,7 @@ The following arguments are supported:
   - **uuid** (Optional, String)  
     Match universal unique identifier for DCE RPC objects.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

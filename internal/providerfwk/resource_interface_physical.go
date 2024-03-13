@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -190,7 +191,8 @@ func (rsc *interfacePhysical) Schema(
 				Optional:    true,
 				Description: "Link speed.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^(\d+(m|g)|2\.5g|auto|auto-10m-100m)$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^(\d+(m|g)|2\.5g|auto|auto-10m-100m)$`),
 						"must be a valid speed (10m | 100m | 1g ...)"),
 				},
 			},
@@ -281,7 +283,8 @@ func (rsc *interfacePhysical) Schema(
 						Optional:    true,
 						Description: "The ESI value for the interface.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^([\d\w]{2}:){9}[\d\w]{2}$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^([\d\w]{2}:){9}[\d\w]{2}$`),
 								"must be ten octets integer value with colon separator"),
 						},
 					},
@@ -358,7 +361,8 @@ func (rsc *interfacePhysical) Schema(
 						Optional:    true,
 						Description: "Minimum bandwidth configured for aggregated bundle.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^[0-9]+ (k|g|m)?bps$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^[0-9]+ (k|g|m)?bps$`),
 								"must be 'N (k|g|m)?bps' format"),
 						},
 					},
@@ -672,7 +676,8 @@ func (rsc *interfacePhysical) schemaEtherOptsAttributes() map[string]schema.Attr
 			Optional:    true,
 			Description: "Name of an aggregated Ethernet interface to join.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(`^ae\d+$`),
+				stringvalidator.RegexMatches(regexp.MustCompile(
+					`^ae\d+$`),
 					"must be an ae interface"),
 			},
 		},
@@ -722,7 +727,8 @@ func (rsc *interfacePhysical) schemaEtherOptsAttributes() map[string]schema.Attr
 			Optional:    true,
 			Description: "Name of a redundant ethernet interface to join.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(`^reth\d+$`),
+				stringvalidator.RegexMatches(regexp.MustCompile(
+					`^reth\d+$`),
 					"must be a reth interface"),
 			},
 		},
@@ -1773,7 +1779,7 @@ func (rscData *interfacePhysicalData) set(
 	}
 	if rscData.Disable.ValueBool() {
 		if rscData.Description.ValueString() == "NC" {
-			return path.Root("disable"), fmt.Errorf("disable=true and description=NC is not allowed " +
+			return path.Root("disable"), errors.New("disable=true and description=NC is not allowed " +
 				"because the provider might consider the resource deleted")
 		}
 		configSet = append(configSet, setPrefix+"disable")
@@ -1822,7 +1828,7 @@ func (rscData *interfacePhysicalData) set(
 				configSet = append(configSet, setPrefix+"ether-options redundant-parent "+v)
 			}
 			if !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"ether-options") {
-				return path.Root("ether_opts").AtName("*"), fmt.Errorf("ether_opts block is empty")
+				return path.Root("ether_opts").AtName("*"), errors.New("ether_opts block is empty")
 			}
 		case rscData.GigetherOpts != nil:
 			if v := rscData.GigetherOpts.Ae8023ad.ValueString(); v != "" {
@@ -1852,7 +1858,7 @@ func (rscData *interfacePhysicalData) set(
 				configSet = append(configSet, setPrefix+"gigether-options redundant-parent "+v)
 			}
 			if !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"gigether-options") {
-				return path.Root("gigether_opts").AtName("*"), fmt.Errorf("gigether_opts block is empty")
+				return path.Root("gigether_opts").AtName("*"), errors.New("gigether_opts block is empty")
 			}
 		}
 		if newAE != "" && junSess.HasNetconf() {
@@ -1893,7 +1899,7 @@ func (rscData *interfacePhysicalData) set(
 			return pathErr, err
 		}
 		if len(blockSet) == 0 {
-			return path.Root("parent_ether_opts").AtName("*"), fmt.Errorf("parent_ether_opts block is empty")
+			return path.Root("parent_ether_opts").AtName("*"), errors.New("parent_ether_opts block is empty")
 		}
 		configSet = append(configSet, blockSet...)
 	}
@@ -2598,7 +2604,8 @@ func findInterfaceAggregatedCountMax(
 	if err != nil {
 		return "", fmt.Errorf("converting ae interaface '%v' to integer: %w", newAE, err)
 	}
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"interfaces" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return "", err
 	}

@@ -16,7 +16,7 @@ jobs:
       - name: Running govulncheck
         uses: Templum/govulncheck-action@v1.0.0
         with:
-          go-version: '1.21'
+          go-version: '1.22'
           package: ./...
           fail-on-vuln: false
 
@@ -29,6 +29,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:

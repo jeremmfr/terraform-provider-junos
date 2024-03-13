@@ -423,7 +423,7 @@ The following arguments are supported:
 - **routing_instance** (Optional, String)  
   Routing instance name.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -29,7 +29,7 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Description for application-set.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -845,7 +845,8 @@ func checkSecurityZonesExists(
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "security zones security-zone " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security zones security-zone " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}

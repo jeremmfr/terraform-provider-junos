@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -259,7 +260,8 @@ func (rsc *policyoptionsPolicyStatement) schemaFromAttributes() map[string]schem
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
 				setvalidator.ValueStringsAre(
-					stringvalidator.RegexMatches(regexp.MustCompile(`^([\d\w]{2}:){9}[\d\w]{2}$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^([\d\w]{2}:){9}[\d\w]{2}$`),
 						"bad format or length"),
 				),
 			},
@@ -1838,7 +1840,7 @@ func (rscData *policyoptionsPolicyStatementData) set(
 	if rscData.From != nil {
 		if rscData.From.isEmpty() {
 			return path.Root("from").AtName("*"),
-				fmt.Errorf("from block is empty")
+				errors.New("from block is empty")
 		}
 		blockSet, pathErr, err := rscData.From.configSet(setPrefix, path.Root("from"))
 		if err != nil {
@@ -1849,14 +1851,14 @@ func (rscData *policyoptionsPolicyStatementData) set(
 	if rscData.To != nil {
 		if rscData.To.isEmpty() {
 			return path.Root("to").AtName("*"),
-				fmt.Errorf("to block is empty")
+				errors.New("to block is empty")
 		}
 		configSet = append(configSet, rscData.To.configSet(setPrefix)...)
 	}
 	if rscData.Then != nil {
 		if rscData.Then.isEmpty() {
 			return path.Root("then").AtName("*"),
-				fmt.Errorf("then block is empty")
+				errors.New("then block is empty")
 		}
 		blockSet, pathErr, err := rscData.Then.configSet(setPrefix, path.Root("then"))
 		if err != nil {

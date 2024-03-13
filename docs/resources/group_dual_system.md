@@ -106,7 +106,7 @@ The following arguments are supported:
   - **next_hop** (Required, List of String)  
     List of next-hop.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

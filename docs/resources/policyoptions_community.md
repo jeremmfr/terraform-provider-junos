@@ -31,7 +31,7 @@ The following arguments are supported:
 - **members** (Optional, List of String)  
   Community members.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

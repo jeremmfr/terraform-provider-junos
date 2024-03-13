@@ -51,7 +51,7 @@ The following arguments are supported:
 - **elin** (Optional, String)  
   Emergency line identification (ELIN) string.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

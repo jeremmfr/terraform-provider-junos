@@ -2,8 +2,10 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type igmpSnoopingVlanOptions struct {
@@ -428,7 +429,7 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, junSess *junos.Session) error {
 	interfaceList := make([]string, 0)
 	for _, mIntface := range d.Get("interface").([]interface{}) {
 		intFace := mIntface.(map[string]interface{})
-		if bchk.InSlice(intFace["name"].(string), interfaceList) {
+		if slices.Contains(interfaceList, intFace["name"].(string)) {
 			return fmt.Errorf("multiple blocks interface with the same name '%s'", intFace["name"].(string))
 		}
 		interfaceList = append(interfaceList, intFace["name"].(string))
@@ -449,7 +450,7 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, junSess *junos.Session) error {
 		staticGroupList := make([]string, 0)
 		for _, mStaticGrp := range intFace["static_group"].(*schema.Set).List() {
 			staticGroup := mStaticGrp.(map[string]interface{})
-			if bchk.InSlice(staticGroup["address"].(string), staticGroupList) {
+			if slices.Contains(staticGroupList, staticGroup["address"].(string)) {
 				return fmt.Errorf("multiple blocks static_group with the same address '%s'", staticGroup["address"].(string))
 			}
 			staticGroupList = append(staticGroupList, staticGroup["address"].(string))
@@ -468,7 +469,7 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, junSess *junos.Session) error {
 			configSet = append(configSet, setPrefix+"proxy source-address "+v)
 		}
 	} else if d.Get("proxy_source_address").(string) != "" {
-		return fmt.Errorf("proxy need to be true with proxy_source_address")
+		return errors.New("proxy need to be true with proxy_source_address")
 	}
 	if v := d.Get("query_interval").(int); v != 0 {
 		configSet = append(configSet, setPrefix+"query-interval "+strconv.Itoa(v))

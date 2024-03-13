@@ -23,7 +23,7 @@ The following arguments are supported:
 - **table_name** (Optional, String)  
   Get routes only on a specific routing table with the name.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

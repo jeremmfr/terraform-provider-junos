@@ -27,7 +27,7 @@ The following arguments are supported:
 - **oid_exclude** (Optional, Set of String)  
   OID exclude list.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

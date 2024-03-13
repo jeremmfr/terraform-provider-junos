@@ -85,7 +85,7 @@ The following arguments are supported:
 - **router_id** (Optional, String)  
   Router identifier.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

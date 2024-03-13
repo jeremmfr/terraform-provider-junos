@@ -48,7 +48,7 @@ The following arguments are supported:
 - **dynamic_db** (Optional, Boolean)  
   Object may exist in dynamic database.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

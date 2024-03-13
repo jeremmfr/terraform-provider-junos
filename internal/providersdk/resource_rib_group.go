@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -357,20 +358,20 @@ func delRibGroup(d *schema.ResourceData, junSess *junos.Session) error {
 }
 
 func validateRibGroup(d *schema.ResourceData) error {
-	var errors string
+	var err string
 	for _, v := range d.Get("import_rib").([]interface{}) {
 		if !strings.HasSuffix(v.(string), ".inet.0") && !strings.HasSuffix(v.(string), ".inet6.0") {
-			errors = errors + "rib-group " + v.(string) + " invalid name (missing .inet.0 or .inet6.0),"
+			err = err + "rib-group " + v.(string) + " invalid name (missing .inet.0 or .inet6.0),"
 		}
 	}
 	if d.Get("export_rib").(string) != "" {
 		if !strings.HasSuffix(d.Get("export_rib").(string), ".inet.0") &&
 			!strings.HasSuffix(d.Get("export_rib").(string), ".inet6.0") {
-			errors = errors + "rib-group " + d.Get("export_rib").(string) + " invalid name (missing .inet.0 or .inet6.0),"
+			err = err + "rib-group " + d.Get("export_rib").(string) + " invalid name (missing .inet.0 or .inet6.0),"
 		}
 	}
-	if errors != "" {
-		return fmt.Errorf(errors)
+	if err != "" {
+		return errors.New(err)
 	}
 
 	return nil

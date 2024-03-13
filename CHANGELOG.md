@@ -1,6 +1,56 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.6.0 (2024-03-13)
+
+FEATURES:
+
+* add **junos_system_tacplus_server** resource (Fix [#629](https://github.com/jeremmfr/terraform-provider-junos/issues/629))
+* add **junos_virtual_chassis** resource (Fix [#623](https://github.com/jeremmfr/terraform-provider-junos/issues/623))
+
+ENHANCEMENTS:
+
+* **resource/junos_eventoptions_destination**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional string attributes doesn't accept *empty* value  
+* **resource/junos_eventoptions_generate_event**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+    optional boolean attributes doesn't accept value *false*  
+  * add `start_time` argument
+* **resource/junos_eventoptions_policy**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_snmp**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_snmp_clientlist**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+* **resource/junos_snmp_community**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+* **resource/junos_snmp_v3_community**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional string attributes doesn't accept *empty* value  
+* **resource/junos_snmp_v3_usm_user**:  
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+  * `authentication_type` argument accept new value: `authentication-sha224`, `authentication-sha256`, `authentication-sha384` and `authentication-sha512`
+* **resource/junos_snmp_v3_vacm_accessgroup**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+* **resource/junos_snmp_v3_vacm_securitytogroup**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+* **resource/junos_snmp_view**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+* **resource/junos_system**:
+  * add `accounting` block argument (Fix [#630](https://github.com/jeremmfr/terraform-provider-junos/issues/630))
+  * add `radius_options_attributes_nas_id` argument
+  * add `tacplus_options_authorization_time_interval`, `tacplus_options_enhanced_accounting`, `tacplus_options_exclude_cmd_attribute`, `tacplus_options_no_cmd_attribute_value`, `tacplus_options_service_name`, `tacplus_options_strict_authorization`, `tacplus_options_no_strict_authorization`, `tacplus_options_timestamp_and_timezone` arguments
+* **resource/junos_system_radius_server**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional string attributes doesn't accept *empty* value  
+* release now with golang 1.22
+
 ## v2.5.0 (2024-01-25)
 
 FEATURES:

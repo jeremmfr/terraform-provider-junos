@@ -561,7 +561,7 @@ The following arguments are supported:
 - **vendor_specific_location** (Optional, Boolean)  
   Add vendor-specific information, add location information expressed as interface name format.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

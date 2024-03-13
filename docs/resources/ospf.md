@@ -115,7 +115,7 @@ The following arguments are supported:
   - **rapid_runs** (Optional, Number)  
     Number of maximum rapid SPF runs before holddown (1..10).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -136,7 +136,7 @@ The following arguments are supported:
   Set rule severity level.  
   Need to be `critical`, `info`, `major`, `minor` or `warning`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

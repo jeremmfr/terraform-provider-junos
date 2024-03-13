@@ -2,6 +2,7 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -556,7 +557,7 @@ func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, jun
 ) (_ bool, err error) {
 	var showConfig string
 	if vlan != "" && vlanGroup != "" {
-		return false, fmt.Errorf("internal error: checkVstpInterfaceExists called with vlan and vlanGroup")
+		return false, errors.New("internal error: checkVstpInterfaceExists called with vlan and vlanGroup")
 	}
 	if routingInstance == junos.DefaultW {
 		switch {
@@ -646,7 +647,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, junSess *j
 	// default -1
 	confRead.priority = -1
 	if vlan != "" && vlanGroup != "" {
-		return confRead, fmt.Errorf("internal error: readVstpInterface called with vlan and vlanGroup")
+		return confRead, errors.New("internal error: readVstpInterface called with vlan and vlanGroup")
 	}
 	var showConfig string
 	if routingInstance == junos.DefaultW {
@@ -723,7 +724,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, junSess *j
 func delVstpInterface(name, routingInstance, vlan, vlanGroup string, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	if vlan != "" && vlanGroup != "" {
-		return fmt.Errorf("internal error: delVstpInterface called with vlan and vlanGroup")
+		return errors.New("internal error: delVstpInterface called with vlan and vlanGroup")
 	}
 	if routingInstance == junos.DefaultW {
 		switch {

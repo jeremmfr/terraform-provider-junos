@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type securityIntellProfileOptions struct {
@@ -342,7 +342,7 @@ func setServicesSecurityIntellProfile(d *schema.ResourceData, junSess *junos.Ses
 	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
-		if bchk.InSlice(rule["name"].(string), ruleNameList) {
+		if slices.Contains(ruleNameList, rule["name"].(string)) {
 			return fmt.Errorf("multiple blocks rule with the same name %s", rule["name"].(string))
 		}
 		ruleNameList = append(ruleNameList, rule["name"].(string))

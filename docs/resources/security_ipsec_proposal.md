@@ -39,7 +39,7 @@ The following arguments are supported:
   IPSec protocol.  
   Need to be `esp` or `ah`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

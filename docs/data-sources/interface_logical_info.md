@@ -25,7 +25,7 @@ The following arguments are supported:
 - **name** (Required, String)  
   Name of unit interface (with dot).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type layer2ControlOptions struct {
@@ -291,7 +291,7 @@ func setLayer2Control(d *schema.ResourceData, junSess *junos.Session) error {
 			interfaceList := make([]string, 0)
 			for _, mIntFace := range bpduBlock["interface"].(*schema.Set).List() {
 				intFace := mIntFace.(map[string]interface{})
-				if bchk.InSlice(intFace["name"].(string), interfaceList) {
+				if slices.Contains(interfaceList, intFace["name"].(string)) {
 					return fmt.Errorf("multiple blocks interface with the same name '%s'", intFace["name"].(string))
 				}
 				interfaceList = append(interfaceList, intFace["name"].(string))
@@ -309,7 +309,7 @@ func setLayer2Control(d *schema.ResourceData, junSess *junos.Session) error {
 	macRewriteInterfaceList := make([]string, 0)
 	for _, mMacRewIntFace := range d.Get("mac_rewrite_interface").(*schema.Set).List() {
 		macRewIntFace := mMacRewIntFace.(map[string]interface{})
-		if bchk.InSlice(macRewIntFace["name"].(string), macRewriteInterfaceList) {
+		if slices.Contains(macRewriteInterfaceList, macRewIntFace["name"].(string)) {
 			return fmt.Errorf("multiple blocks mac_rewrite_interface with the same name '%s'", macRewIntFace["name"].(string))
 		}
 		macRewriteInterfaceList = append(macRewriteInterfaceList, macRewIntFace["name"].(string))

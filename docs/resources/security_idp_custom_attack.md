@@ -313,7 +313,7 @@ The following arguments are supported:
   Specify shellcode flag for this attack.  
   Need to be `all`, `intel`, `no-shellcode` or `sparc`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

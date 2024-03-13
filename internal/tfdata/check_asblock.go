@@ -3,9 +3,9 @@ package tfdata
 import (
 	"fmt"
 	"reflect"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/jeremmfr/go-utils/basiccheck"
 )
 
 // check if block struct doesn't have either:
@@ -16,7 +16,7 @@ func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 	v := reflect.Indirect(reflect.ValueOf(block).Elem())
 
 	for i := 0; i < v.NumField(); i++ {
-		if basiccheck.InSlice(v.Type().Field(i).Name, excludeFields) {
+		if slices.Contains(excludeFields, v.Type().Field(i).Name) {
 			continue
 		}
 
@@ -59,10 +59,14 @@ func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 // check if struct has either :
 //   - an framework attribute with known value (not null and not unknown)
 //   - an pointer to an other struct with a known framework attribute value.
-func CheckBlockHasKnownValue[B any](block B) bool {
+func CheckBlockHasKnownValue[B any](block B, excludeFields ...string) bool {
 	v := reflect.Indirect(reflect.ValueOf(block).Elem())
 
 	for i := 0; i < v.NumField(); i++ {
+		if slices.Contains(excludeFields, v.Type().Field(i).Name) {
+			continue
+		}
+
 		fieldValue := v.Field(i)
 		if !fieldValue.IsValid() {
 			continue

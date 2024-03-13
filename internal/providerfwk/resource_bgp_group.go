@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -282,7 +283,8 @@ func (rsc *bgpGroup) Schema(
 				Optional:    true,
 				Description: "Local autonomous system number.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^\d+(\.\d+)?$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^\d+(\.\d+)?$`),
 						"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format"),
 				},
 			},
@@ -420,7 +422,8 @@ func (rsc *bgpGroup) Schema(
 				Optional:    true,
 				Description: "Autonomous system number.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(`^\d+(\.\d+)?$`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^\d+(\.\d+)?$`),
 						"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format"),
 				},
 			},
@@ -1724,7 +1727,7 @@ func (rscData *bgpGroupData) set(
 	if rscData.BfdLivenessDetection != nil {
 		if rscData.BfdLivenessDetection.isEmpty() {
 			return path.Root("bfd_liveness_detection").AtName("*"),
-				fmt.Errorf("bfd_liveness_detection block is empty")
+				errors.New("bfd_liveness_detection block is empty")
 		}
 
 		configSet = append(configSet, rscData.BfdLivenessDetection.configSet(setPrefix)...)

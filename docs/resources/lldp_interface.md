@@ -35,7 +35,7 @@ The following arguments are supported:
 - **trap_notification_enable** (Optional, Boolean)  
   Enable lldp-trap notification.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

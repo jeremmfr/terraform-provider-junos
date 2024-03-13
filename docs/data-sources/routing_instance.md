@@ -22,7 +22,7 @@ The following arguments are supported:
 - **name** (Required, String)  
   The name of routing instance.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

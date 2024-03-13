@@ -3,8 +3,38 @@ locals {
   netconfSSHCltAliveCountMax    = tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) >= 21 ? 100 : null
   netconfSSHClientAliveInterval = tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) >= 21 ? 1000 : null
 }
+resource "junos_system_radius_server" "testacc_system" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  address = "192.0.2.51"
+  secret  = "aPass#w "
+}
+
+resource "junos_system_tacplus_server" "testacc_system" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  address = "192.0.2.52"
+}
+
+
 resource "junos_system" "testacc_system" {
+  depends_on = [
+    junos_system_radius_server.testacc_system,
+    junos_system_tacplus_server.testacc_system
+  ]
+
   host_name = "testacc-terraform"
+
+  accounting {
+    events              = ["login", "change-log"]
+    destination_radius  = true
+    destination_tacplus = true
+    enhanced_avs_max    = 10
+  }
   archival_configuration {
     archive_site {
       url      = "scp://juniper-configs@192.0.2.30:/destination/directory"
@@ -104,6 +134,7 @@ resource "junos_system" "testacc_system" {
     console_logout_on_disconnect   = true
     console_type                   = "vt100"
   }
+  radius_options_attributes_nas_id          = " a Nas #@ID1"
   radius_options_attributes_nas_ipaddress   = "192.0.2.12"
   radius_options_enhanced_accounting        = true
   radius_options_password_protocol_mschapv2 = true
@@ -182,6 +213,12 @@ resource "junos_system" "testacc_system" {
     time_format_millisecond = true
     time_format_year        = true
   }
-  time_zone                         = "Europe/Paris"
-  tracing_dest_override_syslog_host = "192.0.2.50"
+  tacplus_options_authorization_time_interval = 600
+  tacplus_options_enhanced_accounting         = true
+  tacplus_options_exclude_cmd_attribute       = true
+  tacplus_options_service_name                = " a Service #N@me"
+  tacplus_options_strict_authorization        = true
+  tacplus_options_timestamp_and_timezone      = true
+  time_zone                                   = "Europe/Paris"
+  tracing_dest_override_syslog_host           = "192.0.2.50"
 }

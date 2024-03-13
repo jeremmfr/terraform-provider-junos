@@ -29,7 +29,7 @@ The following arguments are supported:
 - **keepalive_time** (Optional, Number)  
   Keepalive time (1..50 seconds).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

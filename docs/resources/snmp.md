@@ -42,7 +42,7 @@ The following arguments are supported:
 - **filter_duplicates** (Optional, Boolean)  
   Filter requests with duplicate source address/port and request ID.
 - **filter_interfaces** (Optional, Set of String)  
-  List of interfaces that needs to be filtered.
+  Regular expressions to list of interfaces that needs to be filtered.
 - **filter_internal_interfaces** (Optional, Boolean)  
   Filter all internal interfaces.
 - **health_monitor** (Optional, Block)  
@@ -56,7 +56,7 @@ The following arguments are supported:
   - **idp_interval** (Optional, Number)  
     Interval between idp samples (1..2147483647).
   - **idp_rising_threshold** (Optional, Number)  
-    Rising threshold applied to all monitored idp objects(0..100).
+    Rising threshold applied to all monitored idp objects (0..100).
   - **interval** (Optional, Number)  
     Interval between samples (1..2147483647).
   - **rising_threshold** (Optional, Number)  
@@ -72,7 +72,7 @@ The following arguments are supported:
 - **routing_instance_access_list** (Optional, Set of String)  
   Allow/Deny SNMP access to routing instances.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

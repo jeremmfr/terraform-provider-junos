@@ -30,7 +30,7 @@ The following arguments are supported:
   List of application-sets to apply a filter on application-sets.  
   The list needs to be exact to match.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

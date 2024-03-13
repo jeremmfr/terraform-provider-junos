@@ -32,7 +32,7 @@ The following arguments are supported:
 - **mc_lag_consistency_check_comparison_delay_time** (Optional, Number)  
   Time after which local and remote config are compared (5..600 seconds).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -18,20 +18,23 @@ resource "junos_eventoptions_generate_event" "demo" {
 
 ## Argument Reference
 
+-> **Note:** One of `time_interval` or `time_of_day` arguments is required.
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   Name of the event to be generated.
+- **start_time** (Optional, String)  
+  Start-time to generate event (YYYY-MM-DD.HH:MM:SS).  
+  `time_interval` need to be set.
 - **time_interval** (Optional, Number)  
-  Frequency for generating the event (60..2592000 seconds).  
-  Need to set one of `time_interval` or `time_of_day`.
+  Frequency for generating the event (60..2592000 seconds).
 - **time_of_day** (Optional, String)  
-  Time of day at which to generate event (HH:MM:SS).  
-  Need to set one of `time_interval` or `time_of_day`.
+  Time of day at which to generate event (HH:MM:SS).
 - **no_drift** (Optional, Boolean)  
-  Avoid event generation delay propagating to next event
+  Avoid event generation delay propagating to next event.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

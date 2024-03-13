@@ -29,7 +29,7 @@ The following arguments are supported:
 - **path** (Optional, String)  
   AS path regular expression.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -66,7 +66,7 @@ The following arguments are supported:
 **WARNING** All severities need to be
 `alert`, `any`, `critical`, `emergency`, `error`, `info`, `none`, `notice` or `warning`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

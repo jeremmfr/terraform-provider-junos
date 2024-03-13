@@ -2,7 +2,9 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type lldpMedInterfaceOptions struct {
@@ -361,7 +362,7 @@ func setLldpMedInterface(d *schema.ResourceData, junSess *junos.Session) error {
 			civicBasedCaTypeList := make([]int, 0)
 			for _, mCaT := range location["civic_based_ca_type"].([]interface{}) {
 				caType := mCaT.(map[string]interface{})
-				if bchk.InSlice(caType["ca_type"].(int), civicBasedCaTypeList) {
+				if slices.Contains(civicBasedCaTypeList, caType["ca_type"].(int)) {
 					return fmt.Errorf("multiple blocks civic_based_ca_type with the same ca_type '%d'", caType["ca_type"].(int))
 				}
 				civicBasedCaTypeList = append(civicBasedCaTypeList, caType["ca_type"].(int))
@@ -376,7 +377,7 @@ func setLldpMedInterface(d *schema.ResourceData, junSess *junos.Session) error {
 			}
 		} else if len(location["civic_based_ca_type"].([]interface{})) > 0 ||
 			location["civic_based_what"].(int) != -1 {
-			return fmt.Errorf("civic_based_country_code need to be set with civic_based_ca_type and civic_based_what")
+			return errors.New("civic_based_country_code need to be set with civic_based_ca_type and civic_based_what")
 		}
 		if v := location["co_ordinate_latitude"].(int); v != -1 {
 			configSet = append(configSet, setPrefixLocation+"co-ordinate lattitude "+strconv.Itoa(v)) //nolint:misspell

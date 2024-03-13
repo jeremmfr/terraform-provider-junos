@@ -59,7 +59,7 @@ The following arguments are supported:
   must match feed server host name.  
   `tls_profile` need to be set.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

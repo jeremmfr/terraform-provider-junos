@@ -52,7 +52,7 @@ The following arguments are supported:
   - **string** (Required, List of String)  
     String value.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

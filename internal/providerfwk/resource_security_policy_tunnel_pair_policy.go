@@ -257,8 +257,8 @@ func (rsc *securityPolicyTunnelPairPolicy) Create(
 			if !pairPolicyExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
-					fmt.Sprintf(rsc.junosName()+" does not exists after commit "+
-						"=> check your config"),
+					rsc.junosName()+" does not exists after commit "+
+						"=> check your config",
 				)
 
 				return false

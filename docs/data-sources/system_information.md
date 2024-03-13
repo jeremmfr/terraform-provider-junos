@@ -12,7 +12,7 @@ Get information of the Junos device system information.
 data "junos_system_information" "example" {}
 ```
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

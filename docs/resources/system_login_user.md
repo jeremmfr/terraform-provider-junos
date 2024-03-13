@@ -53,7 +53,7 @@ The following arguments are supported:
 - **full_name** (Optional, String)  
   Full name.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

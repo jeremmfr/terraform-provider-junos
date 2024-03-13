@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -172,8 +173,8 @@ func (rsc *securityNatStaticRule) Schema(
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^\d+( to \d+)?$`),
+						stringvalidator.RegexMatches(regexp.MustCompile(
+							`^\d+( to \d+)?$`),
 							"must be use format `x` or `x to y`",
 						),
 					),
@@ -609,7 +610,7 @@ func (rscData *securityNatStaticRuleData) set(
 		}
 	} else if !rscData.DestiantionPortTo.IsNull() {
 		return path.Root("destination_port_to"),
-			fmt.Errorf("cannot have destination_port_to without destination_port")
+			errors.New("cannot have destination_port_to without destination_port")
 	}
 	for _, v := range rscData.SourceAddress {
 		configSet = append(configSet, setPrefix+"match source-address "+v.ValueString())
@@ -620,7 +621,7 @@ func (rscData *securityNatStaticRuleData) set(
 	for _, v := range rscData.SourcePort {
 		if !regexpSourcePort.MatchString(v.ValueString()) {
 			return path.Root("source_port"),
-				fmt.Errorf("source_port must be use format `x` or `x to y`")
+				errors.New("source_port must be use format `x` or `x to y`")
 		}
 		configSet = append(configSet, setPrefix+"match source-port "+v.ValueString())
 	}
@@ -630,15 +631,15 @@ func (rscData *securityNatStaticRuleData) set(
 		case junos.InetW:
 			if !rscData.Then.Prefix.IsNull() {
 				return path.Root("then").AtName("prefix"),
-					fmt.Errorf("only routing_instance can be set when type = inet in then block")
+					errors.New("only routing_instance can be set when type = inet in then block")
 			}
 			if !rscData.Then.MappedPort.IsNull() {
 				return path.Root("then").AtName("mapped_port"),
-					fmt.Errorf("only routing_instance can be set when type = inet in then block")
+					errors.New("only routing_instance can be set when type = inet in then block")
 			}
 			if !rscData.Then.MappedPortTo.IsNull() {
 				return path.Root("then").AtName("mapped_port_to"),
-					fmt.Errorf("only routing_instance can be set when type = inet in then block")
+					errors.New("only routing_instance can be set when type = inet in then block")
 			}
 			configSet = append(configSet, setPrefixRuleThenStaticNat+"inet")
 			if v := rscData.Then.RoutingInstance.ValueString(); v != "" {
@@ -669,7 +670,7 @@ func (rscData *securityNatStaticRuleData) set(
 				}
 			} else if !rscData.Then.MappedPortTo.IsNull() {
 				return path.Root("then").AtName("mapped_port_to"),
-					fmt.Errorf("cannot have mapped_port_to without mapped_port" +
+					errors.New("cannot have mapped_port_to without mapped_port" +
 						" in then block")
 			}
 			if v := rscData.Then.RoutingInstance.ValueString(); v != "" {

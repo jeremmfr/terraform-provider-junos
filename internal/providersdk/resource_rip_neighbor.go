@@ -2,8 +2,10 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -565,7 +566,7 @@ func resourceRipNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 		return result, nil
 	}
 	if idSplit[2] != "ng" {
-		return nil, fmt.Errorf(
+		return nil, errors.New(
 			"id must be <name>" + junos.IDSeparator + "<group>" + junos.IDSeparator + "<routing_instance> or " +
 				"<name>" + junos.IDSeparator + "<group>" + junos.IDSeparator + "ng" + junos.IDSeparator + "<routing_instance>",
 		)
@@ -640,7 +641,7 @@ func setRipNeighbor(d *schema.ResourceData, junSess *junos.Session) error {
 	authSimpleMD5List := make([]int, 0)
 	for _, authSimpMd5Block := range d.Get("authentication_selective_md5").([]interface{}) {
 		authSimpMd5 := authSimpMd5Block.(map[string]interface{})
-		if bchk.InSlice(authSimpMd5["key_id"].(int), authSimpleMD5List) {
+		if slices.Contains(authSimpleMD5List, authSimpMd5["key_id"].(int)) {
 			return fmt.Errorf("multiple blocks authentication_selective_md5 "+
 				"with the same key_id %d", authSimpMd5["key_id"].(int))
 		}
@@ -657,7 +658,7 @@ func setRipNeighbor(d *schema.ResourceData, junSess *junos.Session) error {
 	}
 	for _, mBFDLivDet := range d.Get("bfd_liveness_detection").([]interface{}) {
 		if mBFDLivDet == nil {
-			return fmt.Errorf("bfd_liveness_detection block is empty")
+			return errors.New("bfd_liveness_detection block is empty")
 		}
 		setPrefixBfd := setPrefix + "bfd-liveness-detection "
 		bfdLiveDetect := mBFDLivDet.(map[string]interface{})
@@ -697,7 +698,7 @@ func setRipNeighbor(d *schema.ResourceData, junSess *junos.Session) error {
 			configSet = append(configSet, setPrefixBfd+"version "+v)
 		}
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixBfd) {
-			return fmt.Errorf("bfd_liveness_detection block is empty")
+			return errors.New("bfd_liveness_detection block is empty")
 		}
 	}
 	if d.Get("check_zero").(bool) {

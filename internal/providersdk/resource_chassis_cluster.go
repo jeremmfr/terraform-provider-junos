@@ -2,7 +2,9 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type chassisClusterOptions struct {
@@ -435,7 +436,7 @@ func setChassisCluster(d *schema.ResourceData, junSess *junos.Session) error {
 		interfaceMonitorNameList := make([]string, 0)
 		for _, v2 := range redundancyGroup["interface_monitor"].([]interface{}) {
 			interfaceMonitor := v2.(map[string]interface{})
-			if bchk.InSlice(interfaceMonitor["name"].(string), interfaceMonitorNameList) {
+			if slices.Contains(interfaceMonitorNameList, interfaceMonitor["name"].(string)) {
 				return fmt.Errorf("multiple blocks interface_monitor with the same name %s", interfaceMonitor["name"].(string))
 			}
 			interfaceMonitorNameList = append(interfaceMonitorNameList, interfaceMonitor["name"].(string))
@@ -461,7 +462,7 @@ func setChassisCluster(d *schema.ResourceData, junSess *junos.Session) error {
 		} else if redundancyGroup["preempt_delay"].(int) != 0 ||
 			redundancyGroup["preempt_limit"].(int) != 0 ||
 			redundancyGroup["preempt_period"].(int) != 0 {
-			return fmt.Errorf("preempt need to be true with preempt_(delay|limit|period) arguments")
+			return errors.New("preempt need to be true with preempt_(delay|limit|period) arguments")
 		}
 	}
 	configSet = append(configSet, setChassisluster+"reth-count "+

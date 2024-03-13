@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -109,7 +110,8 @@ func (rsc *securityIpsecVpn) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(`^st0\.`),
+					stringvalidator.RegexMatches(regexp.MustCompile(
+						`^st0\.`),
 						"must be a secure tunnel interface"),
 				},
 			},
@@ -869,7 +871,8 @@ func checkSecurityIpsecVpnExists(
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "security ipsec vpn \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"security ipsec vpn \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -912,12 +915,12 @@ func (rscData *securityIpsecVpnData) set(
 		if v := rscData.Ike.Gateway.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"ike gateway \""+v+"\"")
 		} else {
-			return path.Root("ike").AtName("gateway"), fmt.Errorf("missing: gateway must be not empty in ike block")
+			return path.Root("ike").AtName("gateway"), errors.New("missing: gateway must be not empty in ike block")
 		}
 		if v := rscData.Ike.Policy.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"ike ipsec-policy "+v)
 		} else {
-			return path.Root("ike").AtName("policy"), fmt.Errorf("missing: policy must be not empty in ike block")
+			return path.Root("ike").AtName("policy"), errors.New("missing: policy must be not empty in ike block")
 		}
 		if v := rscData.Ike.IdentityLocal.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"ike proxy-identity local "+v)
@@ -934,13 +937,13 @@ func (rscData *securityIpsecVpnData) set(
 			configSet = append(configSet, setPrefix+"manual external-interface "+v)
 		} else {
 			return path.Root("manual").AtName("external_interface"),
-				fmt.Errorf("missing: external_interface must be not empty in manual block")
+				errors.New("missing: external_interface must be not empty in manual block")
 		}
 		if v := rscData.Manual.Protocol.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual protocol "+v)
 		} else {
 			return path.Root("manual").AtName("protocol"),
-				fmt.Errorf("missing: protocol must be not empty in manual block")
+				errors.New("missing: protocol must be not empty in manual block")
 		}
 		configSet = append(configSet, setPrefix+"manual spi "+utils.ConvI64toa(rscData.Manual.Spi.ValueInt64()))
 		if v := rscData.Manual.AuthenticationAlgorithm.ValueString(); v != "" {

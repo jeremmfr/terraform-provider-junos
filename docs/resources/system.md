@@ -37,6 +37,22 @@ resource "junos_system" "system" {
 
 The following arguments are supported:
 
+- **accounting** (Optional, Block)  
+  Declare `accounting` configuration.  
+  - **events** (Required, Set of String)  
+    Events to be logged.
+  - **destination_radius** (Optional, Boolean)  
+    Send RADIUS accounting records.
+  - **destination_radius_server** (Optional, Block List)  
+    For each address, RADIUS accounting server configuration.  
+    See [below for nested schema](#destination_radius_server-arguments-for-accounting).
+  - **destination_tacplus** (Optional, Boolean)  
+    Send TACACS+ accounting records.
+  - **destination_tacplus_server** (Optional, Block List)  
+    For each address, TACACS+ accounting server configuration.  
+    See [below for nested schema](#destination_tacplus_server-arguments-for-accounting).
+  - **enhanced_avs_max** (Optional, Number)  
+    No. of AV pairs each of which can store a max of 250 Bytes.
 - **archival_configuration** (Optional, Block)  
   Declare `archival configuration` configuration.  
   See [below for nested schema](#archival_configuration-arguments).
@@ -147,6 +163,8 @@ The following arguments are supported:
     Log out the console session when cable is unplugged.
   - **console_type** (Optional, String)  
     Terminal type on console port.
+- **radius_options_attributes_nas_id** (Optional, String)  
+  Value of NAS-ID in outgoing RADIUS packets.
 - **radius_options_attributes_nas_ipaddress** (Optional, String)  
   Value of NAS-IP-Address in outgoing RADIUS packets.
 - **radius_options_enhanced_accounting** (Optional, Boolean)  
@@ -190,10 +208,82 @@ The following arguments are supported:
     Include milliseconds in system log timestamp.
   - **time_format_year** (Optional, Boolean)  
     Include year in system log timestamp.
+- **tacplus_options_authorization_time_interval** (Optional, Number)  
+  TACACS+ authorization refresh time interval (15..1440 minutes).
+- **tacplus_options_enhanced_accounting** (Optional, Boolean)  
+  Include authentication method, remote port and user-privileges in `login` accounting.
+- **tacplus_options_exclude_cmd_attribute** (Optional, Boolean)  
+  In start/stop requests, do not include `cmd` attribute.  
+  Conflict with `tacplus_options_no_cmd_attribute_value`.
+- **tacplus_options_no_cmd_attribute_value** (Optional, Boolean)  
+  In start/stop requests, set `cmd` attribute value to empty string.  
+  Conflict with `tacplus_options_exclude_cmd_attribute`.
+- **tacplus_options_service_name** (Optional, String)  
+  TACACS+ service name.
+- **tacplus_options_strict_authorization** (Optional, Boolean)  
+  Deny login if authorization request fails.  
+  Conflict with `tacplus_options_no_strict_authorization`.
+- **tacplus_options_no_strict_authorization** (Optional, Boolean)  
+  Don't deny login if authorization request fails.  
+  Conflict with `tacplus_options_strict_authorization`.
+- **tacplus_options_timestamp_and_timezone** (Optional, Boolean)  
+  In start/stop accounting packets, include `start-time`, `stop-time` and `timezone` attributes.
 - **time_zone** (Optional, String)  
   Time zone name or POSIX-compliant time zone string (`<continent>`/`<major-city>` or `<time-zone>`).
 - **tracing_dest_override_syslog_host** (Optional, String)  
   Send trace messages to remote syslog server.
+
+---
+
+### destination_radius_server arguments for accounting
+
+- **address** (Required, String)  
+  RADIUS server address.
+- **secret** (Required, String, Sensitive)  
+  Shared secret with the RADIUS server.
+- **accounting_port** (Optional, Number)  
+  RADIUS server accounting port number (1..65535).
+- **accounting_retry** (Optional, Number)  
+  Accounting retry attempts (0..100).
+- **accounting_timeout** (Optional, Number)  
+  Accounting request timeout period (0..1000 seconds).
+- **dynamic_request_port** (Optional, Number)  
+  RADIUS client dynamic request port number (1..65535).
+- **max_outstanding_requests** (Optional, Number)  
+  Maximum requests in flight to server (0..2000).
+- **port** (Optional, Number)  
+  RADIUS server authentication port number (1..65535).
+- **preauthentication_port** (Optional, Number)  
+  RADIUS server preauthentication port number (1..65535).
+- **preauthentication_secret** (Optional, String, Sensitive)  
+  Preauthentication shared secret with the RADIUS server.
+- **retry** (Optional, Number)  
+  Retry attempts (1..100).
+- **routing_instance** (Optional, String)  
+  Routing instance.
+- **source_address** (Optional, String)  
+  Use specified address as source address.
+- **timeout** (Optional, Number)  
+  Request timeout period (1..1000 seconds).
+
+---
+
+### destination_tacplus_server arguments for accounting
+
+- **address** (Required, String)  
+  TACACS+ authentication server address.
+- **port** (Optional, Number)  
+  TACACS+ authentication server port number (1..65535).
+- **routing_instance** (Optional, String)  
+  Routing instance.
+- **secret** (Optional, String, Sensitive)  
+  Shared secret with the authentication server.
+- **single_connection** (Optional, Boolean)  
+  Optimize TCP connection attempts.
+- **source_address** (Optional, String)  
+  Use specified address as source address.
+- **timeout** (Optional, Number)  
+  Request timeout period (1..90 seconds).
 
 ---
 
@@ -497,7 +587,7 @@ arguments is required.
 - **user_severity** (Optional, String)  
   User processes severity.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

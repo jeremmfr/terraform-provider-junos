@@ -62,7 +62,7 @@ The following arguments are supported:
 - **severity** (Optional, String)  
   Severity threshold for security logs.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

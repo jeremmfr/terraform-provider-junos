@@ -47,7 +47,7 @@ The following arguments are supported:
 
 -> **Note:** One of `cidr`, `dns_name`, `range_from` or `wildcard` arguments need to be set.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

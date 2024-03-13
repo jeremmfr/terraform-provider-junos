@@ -67,7 +67,7 @@ The following arguments are supported:
   - **unreachable_vtep_aging_timer** (Optional, Number)  
     Unreachable VXLAN tunnel endpoint removal timer (300..1800 seconds).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

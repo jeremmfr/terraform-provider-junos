@@ -28,7 +28,7 @@ The following arguments are supported:
 - **match_oper_up** (Optional, Bool)  
   Filter on interfaces that have operational status `up`.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

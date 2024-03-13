@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -177,11 +178,12 @@ func (rsc *evpn) Schema(
 				},
 				Attributes: map[string]schema.Attribute{
 					"route_distinguisher": schema.StringAttribute{
-						Optional:    true,
 						Required:    false, // true when SingleNestedBlock is specified
+						Optional:    true,
 						Description: "Route distinguisher for this instance.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^(\d|\.)+L?:\d+$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^(\d|\.)+L?:\d+$`),
 								"must have valid route distinguisher. Use format 'x:y'"),
 						},
 					},
@@ -213,7 +215,8 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "VRF target community configuration.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^target:(\d|\.)+L?:\d+$`),
 								"must have valid target. Use format 'target:x:y'"),
 						},
 					},
@@ -228,7 +231,8 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "Target community to use when marking routes on export.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^target:(\d|\.)+L?:\d+$`),
 								"must have valid target. Use format 'target:x:y'"),
 						},
 					},
@@ -236,7 +240,8 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "Target community to use when filtering on import.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+							stringvalidator.RegexMatches(regexp.MustCompile(
+								`^target:(\d|\.)+L?:\d+$`),
 								"must have valid target. Use format 'target:x:y'"),
 						},
 					},
@@ -598,7 +603,7 @@ func (rscData *evpnData) set(
 	if rscData.RoutingInstanceEvpn.ValueBool() {
 		if rscData.SwitchOrRIOptions == nil {
 			return path.Root("switch_or_ri_options"),
-				fmt.Errorf("switch_or_ri_options must be specified with routing_instance_evpn")
+				errors.New("switch_or_ri_options must be specified with routing_instance_evpn")
 		}
 		configSet = append(configSet, setSwitchRIPrefix+"instance-type evpn")
 	}
@@ -611,7 +616,7 @@ func (rscData *evpnData) set(
 	if rscData.DuplicateMacDetection != nil {
 		if rscData.DuplicateMacDetection.isEmpty() {
 			return path.Root("duplicate_mac_detection"),
-				fmt.Errorf("duplicate_mac_detection block is empty")
+				errors.New("duplicate_mac_detection block is empty")
 		}
 		if !rscData.DuplicateMacDetection.AutoRecoveryTime.IsNull() {
 			configSet = append(configSet, setPrefix+"duplicate-mac-detection auto-recovery-time "+

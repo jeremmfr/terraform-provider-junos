@@ -36,7 +36,7 @@ The following arguments are supported:
   - **value** (Required, Set of String)  
     A list of values.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

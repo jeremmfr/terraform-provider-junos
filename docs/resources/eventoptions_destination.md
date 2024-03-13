@@ -33,7 +33,7 @@ The following arguments are supported:
 - **transfer_delay** (Optional, Number)  
   Delay before transferring files (seconds).
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

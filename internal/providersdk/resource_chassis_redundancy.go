@@ -3,6 +3,7 @@ package providersdk
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type chassisRedundancyOptions struct {
@@ -281,7 +281,7 @@ func setChassisRedundancy(d *schema.ResourceData, junSess *junos.Session) error 
 	routingEngineList := make([]int, 0)
 	for _, mRE := range d.Get("routing_engine").(*schema.Set).List() {
 		routingEngine := mRE.(map[string]interface{})
-		if bchk.InSlice(routingEngine["slot"].(int), routingEngineList) {
+		if slices.Contains(routingEngineList, routingEngine["slot"].(int)) {
 			return fmt.Errorf("multiple blocks routing_engine with the same slot '%d'", routingEngine["slot"].(int))
 		}
 		routingEngineList = append(routingEngineList, routingEngine["slot"].(int))

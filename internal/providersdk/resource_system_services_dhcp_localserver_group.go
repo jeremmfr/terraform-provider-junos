@@ -2,8 +2,10 @@ package providersdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"html"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type systemServicesDhcpLocalServerGroupOptions struct {
@@ -1102,7 +1103,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 			}
 		} else if authenticationUsernameInclude["client_id_exclude_headers"].(bool) ||
 			authenticationUsernameInclude["client_id_use_automatic_ascii_hex_encoding"].(bool) {
-			return fmt.Errorf("authentication_username_include.0.client_id need to be true with " +
+			return errors.New("authentication_username_include.0.client_id need to be true with " +
 				"client_id_exclude_headers or client_id_use_automatic_ascii_hex_encoding")
 		}
 		if v := authenticationUsernameInclude["delimiter"].(string); v != "" {
@@ -1122,13 +1123,13 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 		}
 		if authenticationUsernameInclude["option_60"].(bool) {
 			if d.Get("version").(string) == "v6" {
-				return fmt.Errorf("authentication_username_include.0.option_60 not compatible when version = v6")
+				return errors.New("authentication_username_include.0.option_60 not compatible when version = v6")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include option-60")
 		}
 		if authenticationUsernameInclude["option_82"].(bool) {
 			if d.Get("version").(string) == "v6" {
-				return fmt.Errorf("authentication_username_include.0.option_82 not compatible when version = v6")
+				return errors.New("authentication_username_include.0.option_82 not compatible when version = v6")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include option-82")
 			if authenticationUsernameInclude["option_82_circuit_id"].(bool) {
@@ -1139,24 +1140,24 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 			}
 		} else if authenticationUsernameInclude["option_82_circuit_id"].(bool) ||
 			authenticationUsernameInclude["option_82_remote_id"].(bool) {
-			return fmt.Errorf("authentication_username_include.0.option_82 need to be true with " +
+			return errors.New("authentication_username_include.0.option_82 need to be true with " +
 				"option_82_circuit_id or option_82_remote_id")
 		}
 		if authenticationUsernameInclude["relay_agent_interface_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("authentication_username_include.0.relay_agent_interface_id not compatible when version = v4")
+				return errors.New("authentication_username_include.0.relay_agent_interface_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-interface-id")
 		}
 		if authenticationUsernameInclude["relay_agent_remote_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("authentication_username_include.0.relay_agent_remote_id not compatible when version = v4")
+				return errors.New("authentication_username_include.0.relay_agent_remote_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-remote-id")
 		}
 		if authenticationUsernameInclude["relay_agent_subscriber_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("authentication_username_include.0.relay_agent_subscriber_id not compatible when version = v4")
+				return errors.New("authentication_username_include.0.relay_agent_subscriber_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-subscriber-id")
 		}
@@ -1181,20 +1182,20 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 				configSet = append(configSet, setPrefix+"dynamic-profile aggregate-clients "+v)
 			}
 		} else if d.Get("dynamic_profile_aggregate_clients_action").(string) != "" {
-			return fmt.Errorf("dynamic_profile_aggregate_clients need to be true with " +
+			return errors.New("dynamic_profile_aggregate_clients need to be true with " +
 				"dynamic_profile_aggregate_clients_action")
 		}
 	} else if d.Get("dynamic_profile_use_primary").(string) != "" ||
 		d.Get("dynamic_profile_aggregate_clients").(bool) ||
 		d.Get("dynamic_profile_aggregate_clients_action").(string) != "" {
-		return fmt.Errorf("dynamic_profile need to be set with " +
+		return errors.New("dynamic_profile need to be set with " +
 			"dynamic_profile_use_primary, dynamic_profile_aggregate_clients " +
 			"and dynamic_profile_aggregate_clients_action")
 	}
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").(*schema.Set).List() {
 		interFace := v.(map[string]interface{})
-		if bchk.InSlice(interFace["name"].(string), interfaceNameList) {
+		if slices.Contains(interfaceNameList, interFace["name"].(string)) {
 			return fmt.Errorf("multiple blocks interface with the same name %s", interFace["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, interFace["name"].(string))
@@ -1255,12 +1256,12 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 		}
 
 		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixLDMBfd) {
-			return fmt.Errorf("liveness_detection_method_bfd block is empty")
+			return errors.New("liveness_detection_method_bfd block is empty")
 		}
 	}
 	for _, ldmLayer2 := range d.Get("liveness_detection_method_layer2").([]interface{}) {
 		if ldmLayer2 == nil {
-			return fmt.Errorf("liveness_detection_method_layer2 block is empty")
+			return errors.New("liveness_detection_method_layer2 block is empty")
 		}
 		liveDetectMethLayer2 := ldmLayer2.(map[string]interface{})
 		setPrefixLDMLayer2 := setPrefix + "liveness-detection method layer2-liveness-detection "
@@ -1273,10 +1274,10 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 	}
 	for _, v := range d.Get("overrides_v4").([]interface{}) {
 		if d.Get("version").(string) == "v6" {
-			return fmt.Errorf("overrides_v4 not compatible if version = v6")
+			return errors.New("overrides_v4 not compatible if version = v6")
 		}
 		if v == nil {
-			return fmt.Errorf("overrides_v4 block is empty")
+			return errors.New("overrides_v4 block is empty")
 		}
 		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV4(
 			v.(map[string]interface{}), setPrefix)
@@ -1287,10 +1288,10 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 	}
 	for _, v := range d.Get("overrides_v6").([]interface{}) {
 		if d.Get("version").(string) == "v4" {
-			return fmt.Errorf("overrides_v6 not compatible if version = v4")
+			return errors.New("overrides_v6 not compatible if version = v4")
 		}
 		if v == nil {
-			return fmt.Errorf("overrides_v6 block is empty")
+			return errors.New("overrides_v6 block is empty")
 		}
 		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV6(
 			v.(map[string]interface{}), setPrefix)
@@ -1396,7 +1397,7 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 	}
 	for _, v := range interFace["overrides_v4"].([]interface{}) {
 		if version == "v6" {
-			return configSet, fmt.Errorf("overrides_v4 not compatible if version = v6")
+			return configSet, errors.New("overrides_v4 not compatible if version = v6")
 		}
 		if v == nil {
 			return configSet, fmt.Errorf("overrides_v4 block in interface %s is empty", interFace["name"].(string))
@@ -1410,7 +1411,7 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 	}
 	for _, v := range interFace["overrides_v6"].([]interface{}) {
 		if version == "v4" {
-			return configSet, fmt.Errorf("overrides_v6 not compatible if version = v4")
+			return configSet, errors.New("overrides_v6 not compatible if version = v4")
 		}
 		if v == nil {
 			return configSet, fmt.Errorf("overrides_v6 block in interface %s is empty", interFace["name"].(string))
@@ -1466,7 +1467,7 @@ func setSystemServicesDhcpLocalServerGroupOverridesV4(overrides map[string]inter
 	}
 	if len(overrides["delay_offer_based_on"].(*schema.Set).List()) == 0 &&
 		overrides["delay_offer_delay_time"].(int) != 0 {
-		return configSet, fmt.Errorf("delay_offer_based_on need to be set with delay_offer_delay_time")
+		return configSet, errors.New("delay_offer_based_on need to be set with delay_offer_delay_time")
 	}
 	if v := overrides["delay_offer_delay_time"].(int); v != 0 {
 		configSet = append(configSet, setPrefix+"delay-offer delay-time "+strconv.Itoa(v))
@@ -1492,14 +1493,14 @@ func setSystemServicesDhcpLocalServerGroupOverridesV4(overrides map[string]inter
 			configSet = append(configSet, setPrefix+"process-inform pool \""+v+"\"")
 		}
 	} else if overrides["process_inform_pool"].(string) != "" {
-		return configSet, fmt.Errorf("process_inform need to be true with process_inform_pool")
+		return configSet, errors.New("process_inform need to be true with process_inform_pool")
 	}
 	if v := overrides["protocol_attributes"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"protocol-attributes \""+v+"\"")
 	}
 
 	if len(configSet) == 0 {
-		return configSet, fmt.Errorf("an overrides_v4 block is empty")
+		return configSet, errors.New("an overrides_v4 block is empty")
 	}
 
 	return configSet, nil
@@ -1533,7 +1534,7 @@ func setSystemServicesDhcpLocalServerGroupOverridesV6(overrides map[string]inter
 	}
 	if len(overrides["delay_advertise_based_on"].(*schema.Set).List()) == 0 &&
 		overrides["delay_advertise_delay_time"].(int) != 0 {
-		return configSet, fmt.Errorf("delay_offer_based_on need to be set with delay_offer_delay_time")
+		return configSet, errors.New("delay_offer_based_on need to be set with delay_offer_delay_time")
 	}
 	if v := overrides["delay_advertise_delay_time"].(int); v != 0 {
 		configSet = append(configSet, setPrefix+"delay-advertise delay-time "+strconv.Itoa(v))
@@ -1559,7 +1560,7 @@ func setSystemServicesDhcpLocalServerGroupOverridesV6(overrides map[string]inter
 			configSet = append(configSet, setPrefix+"process-inform pool \""+v+"\"")
 		}
 	} else if overrides["process_inform_pool"].(string) != "" {
-		return configSet, fmt.Errorf("process_inform need to be true with process_inform_pool")
+		return configSet, errors.New("process_inform need to be true with process_inform_pool")
 	}
 	if v := overrides["protocol_attributes"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"protocol-attributes \""+v+"\"")
@@ -1572,7 +1573,7 @@ func setSystemServicesDhcpLocalServerGroupOverridesV6(overrides map[string]inter
 	}
 
 	if len(configSet) == 0 {
-		return configSet, fmt.Errorf("an overrides_v6 block is empty")
+		return configSet, errors.New("an overrides_v6 block is empty")
 	}
 
 	return configSet, nil

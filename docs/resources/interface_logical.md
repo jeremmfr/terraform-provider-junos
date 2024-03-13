@@ -312,7 +312,7 @@ block but without `authentication_key`, `authentication_type` and with
 - **mode_loose** (Optional, Boolean)  
   Use reverse-path-forwarding loose mode instead the strict mode.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

@@ -45,7 +45,7 @@ The following arguments are supported:
 - **routing_instance** (Optional, String)  
   Name of routing instance to switch instance with nat.
 
-## Attributes Reference
+## Attribute Reference
 
 The following attributes are exported:
 

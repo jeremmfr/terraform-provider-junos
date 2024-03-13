@@ -1,6 +1,8 @@
 package junos
 
-import "fmt"
+import (
+	"errors"
+)
 
 const directoryPermission = 0o755
 
@@ -111,7 +113,7 @@ func (clt *Client) WithSleepLock(sleep int) *Client {
 
 func (clt *Client) WithCommitConfirmed(timeout int) (*Client, error) {
 	if timeout < 1 || timeout > 65535 {
-		return clt, fmt.Errorf("bad value for timeout of commit confirmed")
+		return clt, errors.New("bad value for timeout of commit confirmed")
 	}
 	clt.junosCommitConfirmed = timeout
 
@@ -120,7 +122,7 @@ func (clt *Client) WithCommitConfirmed(timeout int) (*Client, error) {
 
 func (clt *Client) WithCommitConfirmedWaitPercent(percent int) (*Client, error) {
 	if percent < 0 || percent > 99 {
-		return clt, fmt.Errorf("bad value for wait percent of timeout before the commit confirm")
+		return clt, errors.New("bad value for wait percent of timeout before the commit confirm")
 	}
 	clt.junosCommitConfirmedWaitPercent = percent
 
@@ -147,7 +149,7 @@ func (clt *Client) WithSSHTimeoutToEstablish(timeout int) *Client {
 
 func (clt *Client) WithSSHRetryToEstablish(retry int) (*Client, error) {
 	if retry < 1 || retry > 10 {
-		return clt, fmt.Errorf("bad value for number of retry to establishing SSH connection")
+		return clt, errors.New("bad value for number of retry to establishing SSH connection")
 	}
 	clt.junosSSHRetryToEstab = retry
 
@@ -156,7 +158,7 @@ func (clt *Client) WithSSHRetryToEstablish(retry int) (*Client, error) {
 
 func (clt *Client) WithFilePermission(perm int64) (*Client, error) {
 	if perm > 0o777 || perm < 0 {
-		return clt, fmt.Errorf("bad value for file permision, must be three octal digits")
+		return clt, errors.New("bad value for file permision, must be three octal digits")
 	}
 	clt.filePermission = perm
 
