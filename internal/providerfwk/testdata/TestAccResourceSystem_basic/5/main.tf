@@ -15,5 +15,9 @@ resource "junos_system" "testacc_system" {
 }
 
 resource "junos_routing_instance" "testacc_system" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
   name = "testacc_system"
 }
