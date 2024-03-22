@@ -132,16 +132,16 @@ func (rsc *policyoptionsASPathGroup) Schema(
 }
 
 type policyoptionsASPathGroupData struct {
-	DynamicDB types.Bool                            `tfsdk:"dynamic_db"`
 	ID        types.String                          `tfsdk:"id"`
 	Name      types.String                          `tfsdk:"name"`
+	DynamicDB types.Bool                            `tfsdk:"dynamic_db"`
 	ASPath    []policyoptionsASPathGroupBlockASPAth `tfsdk:"as_path"`
 }
 
 type policyoptionsASPathGroupConfig struct {
-	DynamicDB types.Bool   `tfsdk:"dynamic_db"`
 	ID        types.String `tfsdk:"id"`
 	Name      types.String `tfsdk:"name"`
+	DynamicDB types.Bool   `tfsdk:"dynamic_db"`
 	ASPath    types.List   `tfsdk:"as_path"`
 }
 

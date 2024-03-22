@@ -14,9 +14,9 @@ import (
 )
 
 type bgpBlockBfdLivenessDetection struct {
-	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
 	AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
 	AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
+	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
 	DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
 	HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
 	MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
@@ -33,8 +33,8 @@ func (block *bgpBlockBfdLivenessDetection) isEmpty() bool {
 }
 
 type bgpBlockBgpErrorTolerance struct {
-	NoMalformedRouteLimit      types.Bool  `tfsdk:"no_malformed_route_limit"`
 	MalformedRouteLimit        types.Int64 `tfsdk:"malformed_route_limit"`
+	NoMalformedRouteLimit      types.Bool  `tfsdk:"no_malformed_route_limit"`
 	MalformedUpdateLogInterval types.Int64 `tfsdk:"malformed_update_log_interval"`
 }
 
@@ -51,10 +51,10 @@ type bgpBlockFamily struct {
 }
 
 type bgpBlockFamilyBlockPrefixLimit struct {
-	TeardownIdleTimeoutForever types.Bool  `tfsdk:"teardown_idle_timeout_forever"`
 	Maximum                    types.Int64 `tfsdk:"maximum"`
 	Teardown                   types.Int64 `tfsdk:"teardown"`
 	TeardownIdleTimeout        types.Int64 `tfsdk:"teardown_idle_timeout"`
+	TeardownIdleTimeoutForever types.Bool  `tfsdk:"teardown_idle_timeout_forever"`
 }
 
 type bgpBlockGracefulRestart struct {

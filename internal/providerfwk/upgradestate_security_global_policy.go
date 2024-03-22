@@ -147,38 +147,38 @@ func upgradeSecurityGlobalPolicyV0toV1(
 	type modelV0 struct {
 		ID     types.String `tfsdk:"id"`
 		Policy []struct {
-			Count                           types.Bool     `tfsdk:"count"`
-			LogInit                         types.Bool     `tfsdk:"log_init"`
-			LogClose                        types.Bool     `tfsdk:"log_close"`
-			MatchDestinationAddressExcluded types.Bool     `tfsdk:"match_destination_address_excluded"`
-			MatchSourceAddressExcluded      types.Bool     `tfsdk:"match_source_address_excluded"`
 			Name                            types.String   `tfsdk:"name"`
-			Then                            types.String   `tfsdk:"then"`
-			MatchSourceEndUserProfile       types.String   `tfsdk:"match_source_end_user_profile"`
 			MatchSourceAddress              []types.String `tfsdk:"match_source_address"`
 			MatchDestinationAddress         []types.String `tfsdk:"match_destination_address"`
 			MatchFromZone                   []types.String `tfsdk:"match_from_zone"`
 			MatchToZone                     []types.String `tfsdk:"match_to_zone"`
+			Then                            types.String   `tfsdk:"then"`
+			Count                           types.Bool     `tfsdk:"count"`
+			LogInit                         types.Bool     `tfsdk:"log_init"`
+			LogClose                        types.Bool     `tfsdk:"log_close"`
 			MatchApplication                []types.String `tfsdk:"match_application"`
+			MatchDestinationAddressExcluded types.Bool     `tfsdk:"match_destination_address_excluded"`
 			MatchDynamicApplication         []types.String `tfsdk:"match_dynamic_application"`
+			MatchSourceAddressExcluded      types.Bool     `tfsdk:"match_source_address_excluded"`
+			MatchSourceEndUserProfile       types.String   `tfsdk:"match_source_end_user_profile"`
 			PermitApplicationServices       []struct {
-				Idp                              types.Bool   `tfsdk:"idp"`
-				RedirectWx                       types.Bool   `tfsdk:"redirect_wx"`
-				ReverseRedirectWx                types.Bool   `tfsdk:"reverse_redirect_wx"`
 				AdvancedAntiMalwarePolicy        types.String `tfsdk:"advanced_anti_malware_policy"`
 				ApplicationFirewallRuleSet       types.String `tfsdk:"application_firewall_rule_set"`
 				ApplicationTrafficControlRuleSet types.String `tfsdk:"application_traffic_control_rule_set"`
 				GprsGtpProfile                   types.String `tfsdk:"gprs_gtp_profile"`
 				GprsSctpProfile                  types.String `tfsdk:"gprs_sctp_profile"`
+				Idp                              types.Bool   `tfsdk:"idp"`
 				IdpPolicy                        types.String `tfsdk:"idp_policy"`
+				RedirectWx                       types.Bool   `tfsdk:"redirect_wx"`
+				ReverseRedirectWx                types.Bool   `tfsdk:"reverse_redirect_wx"`
 				SecurityIntelligencePolicy       types.String `tfsdk:"security_intelligence_policy"`
+				UtmPolicy                        types.String `tfsdk:"utm_policy"`
 				SSLProxy                         []struct {
 					ProfileName types.String `tfsdk:"profile_name"`
 				} `tfsdk:"ssl_proxy"`
 				UacPolicy []struct {
 					CaptivePortal types.String `tfsdk:"captive_portal"`
 				} `tfsdk:"uac_policy"`
-				UtmPolicy types.String `tfsdk:"utm_policy"`
 			} `tfsdk:"permit_application_services"`
 		} `tfsdk:"policy"`
 	}

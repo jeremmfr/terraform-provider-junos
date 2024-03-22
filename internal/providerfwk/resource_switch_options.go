@@ -108,8 +108,8 @@ func (rsc *switchOptions) Schema(
 }
 
 type switchOptionsData struct {
-	CleanOnDestroy      types.Bool   `tfsdk:"clean_on_destroy"`
 	ID                  types.String `tfsdk:"id"`
+	CleanOnDestroy      types.Bool   `tfsdk:"clean_on_destroy"`
 	ServiceID           types.Int64  `tfsdk:"service_id"`
 	VTEPSourceInterface types.String `tfsdk:"vtep_source_interface"`
 }

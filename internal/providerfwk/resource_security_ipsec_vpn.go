@@ -377,10 +377,10 @@ func (rsc *securityIpsecVpn) Schema(
 }
 
 type securityIpsecVpnData struct {
-	CopyOuterDscp          types.Bool                             `tfsdk:"copy_outer_dscp"`
 	ID                     types.String                           `tfsdk:"id"`
 	Name                   types.String                           `tfsdk:"name"`
 	BindInterface          types.String                           `tfsdk:"bind_interface"`
+	CopyOuterDscp          types.Bool                             `tfsdk:"copy_outer_dscp"`
 	DfBit                  types.String                           `tfsdk:"df_bit"`
 	EstablishTunnels       types.String                           `tfsdk:"establish_tunnels"`
 	Ike                    *securityIpsecVpnBlockIke              `tfsdk:"ike"`
@@ -392,10 +392,10 @@ type securityIpsecVpnData struct {
 }
 
 type securityIpsecVpnConfig struct {
-	CopyOuterDscp          types.Bool                           `tfsdk:"copy_outer_dscp"`
 	ID                     types.String                         `tfsdk:"id"`
 	Name                   types.String                         `tfsdk:"name"`
 	BindInterface          types.String                         `tfsdk:"bind_interface"`
+	CopyOuterDscp          types.Bool                           `tfsdk:"copy_outer_dscp"`
 	DfBit                  types.String                         `tfsdk:"df_bit"`
 	EstablishTunnels       types.String                         `tfsdk:"establish_tunnels"`
 	Ike                    *securityIpsecVpnBlockIke            `tfsdk:"ike"`
@@ -446,10 +446,10 @@ type securityIpsecVpnBlockUDPEncapsulate struct {
 }
 
 type securityIpsecVpnBlockVpnMonitor struct {
-	Optimized           types.Bool   `tfsdk:"optimized"`
-	SourceInterfaceAuto types.Bool   `tfsdk:"source_interface_auto"`
 	DestinationIP       types.String `tfsdk:"destination_ip"`
+	Optimized           types.Bool   `tfsdk:"optimized"`
 	SourceInterface     types.String `tfsdk:"source_interface"`
+	SourceInterfaceAuto types.Bool   `tfsdk:"source_interface_auto"`
 }
 
 func (block *securityIpsecVpnBlockVpnMonitor) hasKnownValue() bool {

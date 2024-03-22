@@ -243,11 +243,11 @@ type iccpPeerBlockBackupLivenessDetection struct {
 }
 
 type iccpPeerBlockLivenessDetection struct {
-	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
 	DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
 	MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
 	MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
 	Multiplier                      types.Int64  `tfsdk:"multiplier"`
+	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
 	TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
 	TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
 	Version                         types.String `tfsdk:"version"`

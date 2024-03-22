@@ -233,9 +233,9 @@ func (rsc *systemSyslogUser) Schema(
 }
 
 type systemSyslogUserData struct {
-	AllowDuplicates             types.Bool     `tfsdk:"allow_duplicates"`
 	ID                          types.String   `tfsdk:"id"`
 	Username                    types.String   `tfsdk:"username"`
+	AllowDuplicates             types.Bool     `tfsdk:"allow_duplicates"`
 	Match                       types.String   `tfsdk:"match"`
 	MatchStrings                []types.String `tfsdk:"match_strings"`
 	AnySeverity                 types.String   `tfsdk:"any_severity"`

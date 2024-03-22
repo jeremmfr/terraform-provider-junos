@@ -252,23 +252,23 @@ func (rsc *evpn) Schema(
 }
 
 type evpnData struct {
-	RoutingInstanceEvpn   types.Bool                      `tfsdk:"routing_instance_evpn"`
 	ID                    types.String                    `tfsdk:"id"`
 	RoutingInstance       types.String                    `tfsdk:"routing_instance"`
 	Encapsulation         types.String                    `tfsdk:"encapsulation"`
 	DefaultGateway        types.String                    `tfsdk:"default_gateway"`
 	MulticastMode         types.String                    `tfsdk:"multicast_mode"`
+	RoutingInstanceEvpn   types.Bool                      `tfsdk:"routing_instance_evpn"`
 	DuplicateMacDetection *evpnBlockDuplicateMACDetection `tfsdk:"duplicate_mac_detection"`
 	SwitchOrRIOptions     *evpnBlockSwitchOrRIOptions     `tfsdk:"switch_or_ri_options"`
 }
 
 type evpnConfig struct {
-	RoutingInstanceEvpn   types.Bool                        `tfsdk:"routing_instance_evpn"`
 	ID                    types.String                      `tfsdk:"id"`
 	RoutingInstance       types.String                      `tfsdk:"routing_instance"`
 	Encapsulation         types.String                      `tfsdk:"encapsulation"`
 	DefaultGateway        types.String                      `tfsdk:"default_gateway"`
 	MulticastMode         types.String                      `tfsdk:"multicast_mode"`
+	RoutingInstanceEvpn   types.Bool                        `tfsdk:"routing_instance_evpn"`
 	DuplicateMacDetection *evpnBlockDuplicateMACDetection   `tfsdk:"duplicate_mac_detection"`
 	SwitchOrRIOptions     *evpnBlockSwitchOrRIOptionsConfig `tfsdk:"switch_or_ri_options"`
 }
@@ -284,21 +284,21 @@ func (block *evpnBlockDuplicateMACDetection) isEmpty() bool {
 }
 
 type evpnBlockSwitchOrRIOptions struct {
-	VRFTargetAuto      types.Bool     `tfsdk:"vrf_target_auto"`
 	RouteDistinguisher types.String   `tfsdk:"route_distinguisher"`
 	VRFExport          []types.String `tfsdk:"vrf_export"`
 	VRFImport          []types.String `tfsdk:"vrf_import"`
 	VRFTarget          types.String   `tfsdk:"vrf_target"`
+	VRFTargetAuto      types.Bool     `tfsdk:"vrf_target_auto"`
 	VRFTargetExport    types.String   `tfsdk:"vrf_target_export"`
 	VRFTargetImport    types.String   `tfsdk:"vrf_target_import"`
 }
 
 type evpnBlockSwitchOrRIOptionsConfig struct {
-	VRFTargetAuto      types.Bool   `tfsdk:"vrf_target_auto"`
 	RouteDistinguisher types.String `tfsdk:"route_distinguisher"`
 	VRFExport          types.List   `tfsdk:"vrf_export"`
 	VRFImport          types.List   `tfsdk:"vrf_import"`
 	VRFTarget          types.String `tfsdk:"vrf_target"`
+	VRFTargetAuto      types.Bool   `tfsdk:"vrf_target_auto"`
 	VRFTargetExport    types.String `tfsdk:"vrf_target_export"`
 	VRFTargetImport    types.String `tfsdk:"vrf_target_import"`
 }

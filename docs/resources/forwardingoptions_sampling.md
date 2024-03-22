@@ -99,16 +99,16 @@ The following arguments are supported:
     Disable sampled packet dumps.
   - **files** (Optional, Number)  
     Maximum number of sampled packet dump files (2..10000).
-  - **no_stamp** (Optional, Boolean)  
-    Don't timestamp every packet in the dump.
-  - **no_world_readable** (Optional, Boolean)  
-    Don't allow any user to read the sampled dump.
   - **size** (Optional, Number)  
     Maximum sample dump file size (1024..104857600).
   - **stamp** (Optional, Boolean)  
     Timestamp every packet in the dump.
+  - **no_stamp** (Optional, Boolean)  
+    Don't timestamp every packet in the dump.
   - **world_readable** (Optional, Boolean)  
     Allow any user to read the sampled dump.
+  - **no_world_readable** (Optional, Boolean)  
+    Don't allow any user to read the sampled dump.
 - **flow_active_timeout** (Optional, Number)  
   Interval after which an active flow is exported (60..1800 seconds).
 - **flow_inactive_timeout** (Optional, Number)  

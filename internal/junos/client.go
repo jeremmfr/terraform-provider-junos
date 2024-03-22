@@ -8,27 +8,27 @@ const directoryPermission = 0o755
 
 // Client information to connect on Junos Device and more.
 type Client struct {
-	fakeUpdateAlso                  bool
-	fakeDeleteAlso                  bool
-	junosCommitConfirmed            int
-	junosCommitConfirmedWaitPercent int
-	junosPort                       int
-	junosSSHTimeoutToEstab          int
-	junosSSHRetryToEstab            int
-	sleepLock                       int
-	sleepShort                      int
-	sleepSSHClosed                  int
-	filePermission                  int64
 	junosIP                         string
+	junosPort                       int
 	junosUserName                   string
 	junosPassword                   string
 	junosSSHKeyPEM                  string
 	junosSSHKeyFile                 string
 	junosSSHKeyPass                 string
 	groupIntDel                     string
+	sleepShort                      int
+	sleepLock                       int
+	junosCommitConfirmed            int
+	junosCommitConfirmedWaitPercent int
+	sleepSSHClosed                  int
+	junosSSHCiphers                 []string
+	junosSSHTimeoutToEstab          int
+	junosSSHRetryToEstab            int
+	filePermission                  int64
 	logFileDst                      string
 	fakeCreateSetFile               string
-	junosSSHCiphers                 []string
+	fakeUpdateAlso                  bool
+	fakeDeleteAlso                  bool
 }
 
 func NewClient(ip string) *Client {

@@ -84,21 +84,21 @@ func upgradeServicesFlowMonitoringVIPFixTemplateStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		FlowKeyFlowDirection      types.Bool     `tfsdk:"flow_key_flow_direction"`
-		FlowKeyVlanID             types.Bool     `tfsdk:"flow_key_vlan_id"`
-		NexthopLearningEnable     types.Bool     `tfsdk:"nexthop_learning_enable"`
-		NexthopLearningDisable    types.Bool     `tfsdk:"nexthop_learning_disable"`
-		TunnelObservationIPv4     types.Bool     `tfsdk:"tunnel_observation_ipv4"`
-		TunnelObservationIPv6     types.Bool     `tfsdk:"tunnel_observation_ipv6"`
 		ID                        types.String   `tfsdk:"id"`
 		Name                      types.String   `tfsdk:"name"`
 		Type                      types.String   `tfsdk:"type"`
 		FlowActiveTimeout         types.Int64    `tfsdk:"flow_active_timeout"`
 		FlowInactiveTimeout       types.Int64    `tfsdk:"flow_inactive_timeout"`
+		FlowKeyFlowDirection      types.Bool     `tfsdk:"flow_key_flow_direction"`
+		FlowKeyVlanID             types.Bool     `tfsdk:"flow_key_vlan_id"`
 		IPTemplateExportExtension []types.String `tfsdk:"ip_template_export_extension"`
+		NexthopLearningEnable     types.Bool     `tfsdk:"nexthop_learning_enable"`
+		NexthopLearningDisable    types.Bool     `tfsdk:"nexthop_learning_disable"`
 		ObservationDomainID       types.Int64    `tfsdk:"observation_domain_id"`
 		OptionTemplateID          types.Int64    `tfsdk:"option_template_id"`
 		TemplateID                types.Int64    `tfsdk:"template_id"`
+		TunnelObservationIPv4     types.Bool     `tfsdk:"tunnel_observation_ipv4"`
+		TunnelObservationIPv6     types.Bool     `tfsdk:"tunnel_observation_ipv6"`
 		OptionRefreshRate         []struct {
 			Packets types.Int64 `tfsdk:"packets"`
 			Seconds types.Int64 `tfsdk:"seconds"`

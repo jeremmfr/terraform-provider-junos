@@ -3,12 +3,12 @@ run:
 linters:
   enable-all: true
   disable:
-    # maligned # deprecated 1.38 but govet-fieldalignment not usuable
+    - maligned # deprecated 1.38
     - interfacer # deprecated 1.38
     - scopelint # deprecated 1.39
     - golint # deprecated 1.41
     - exhaustivestruct # deprecated 1.46
-    # ifshort deprecated 1.48 but no replacement
+    - ifshort # deprecated 1.48
     - deadcode # deprecated 1.49
     - structcheck # deprecated 1.49
     - varcheck # deprecated 1.49

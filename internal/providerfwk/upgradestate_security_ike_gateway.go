@@ -150,26 +150,16 @@ func upgradeSecurityIkeGatewayV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		GeneralIkeID      types.Bool     `tfsdk:"general_ike_id"`
-		NoNatTraversal    types.Bool     `tfsdk:"no_nat_traversal"`
 		ID                types.String   `tfsdk:"id"`
 		Name              types.String   `tfsdk:"name"`
 		ExternalInterface types.String   `tfsdk:"external_interface"`
 		Policy            types.String   `tfsdk:"policy"`
 		Address           []types.String `tfsdk:"address"`
+		GeneralIkeID      types.Bool     `tfsdk:"general_ike_id"`
 		LocalAddress      types.String   `tfsdk:"local_address"`
+		NoNatTraversal    types.Bool     `tfsdk:"no_nat_traversal"`
 		Version           types.String   `tfsdk:"version"`
-		Aaa               []struct {
-			AccessProfile  types.String `tfsdk:"access_profile"`
-			ClientPassword types.String `tfsdk:"client_password"`
-			ClientUsername types.String `tfsdk:"client_username"`
-		} `tfsdk:"aaa"`
-		DeadPeerDetection []struct {
-			Interval  types.Int64  `tfsdk:"interval"`
-			SendMode  types.String `tfsdk:"send_mode"`
-			Threshold types.Int64  `tfsdk:"threshold"`
-		} `tfsdk:"dead_peer_detection"`
-		DynamicRemote []struct {
+		DynamicRemote     []struct {
 			ConnectionsLimit          types.Int64  `tfsdk:"connections_limit"`
 			Hostname                  types.String `tfsdk:"hostname"`
 			IkeUserType               types.String `tfsdk:"ike_user_type"`
@@ -182,6 +172,16 @@ func upgradeSecurityIkeGatewayV0toV1(
 				Wildcard  types.String `tfsdk:"wildcard"`
 			} `tfsdk:"distinguished_name"`
 		} `tfsdk:"dynamic_remote"`
+		Aaa []struct {
+			AccessProfile  types.String `tfsdk:"access_profile"`
+			ClientPassword types.String `tfsdk:"client_password"`
+			ClientUsername types.String `tfsdk:"client_username"`
+		} `tfsdk:"aaa"`
+		DeadPeerDetection []struct {
+			Interval  types.Int64  `tfsdk:"interval"`
+			SendMode  types.String `tfsdk:"send_mode"`
+			Threshold types.Int64  `tfsdk:"threshold"`
+		} `tfsdk:"dead_peer_detection"`
 		LocalIdentity []struct {
 			Type  types.String `tfsdk:"type"`
 			Value types.String `tfsdk:"value"`

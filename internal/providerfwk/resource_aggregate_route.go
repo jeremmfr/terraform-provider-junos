@@ -229,41 +229,41 @@ func (rsc *aggregateRoute) Schema(
 }
 
 type aggregateRouteData struct {
-	Active                   types.Bool     `tfsdk:"active"`
-	ASPathAtomicAggregate    types.Bool     `tfsdk:"as_path_atomic_aggregate"`
-	Brief                    types.Bool     `tfsdk:"brief"`
-	Discard                  types.Bool     `tfsdk:"discard"`
-	Full                     types.Bool     `tfsdk:"full"`
-	Passive                  types.Bool     `tfsdk:"passive"`
 	ID                       types.String   `tfsdk:"id"`
 	Destination              types.String   `tfsdk:"destination"`
 	RoutingInstance          types.String   `tfsdk:"routing_instance"`
+	Active                   types.Bool     `tfsdk:"active"`
 	ASPathAggregatorAddress  types.String   `tfsdk:"as_path_aggregator_address"`
 	ASPathAggregatorASNumber types.String   `tfsdk:"as_path_aggregator_as_number"`
+	ASPathAtomicAggregate    types.Bool     `tfsdk:"as_path_atomic_aggregate"`
 	ASPathOrigin             types.String   `tfsdk:"as_path_origin"`
 	ASPathPath               types.String   `tfsdk:"as_path_path"`
+	Brief                    types.Bool     `tfsdk:"brief"`
 	Community                []types.String `tfsdk:"community"`
+	Discard                  types.Bool     `tfsdk:"discard"`
+	Full                     types.Bool     `tfsdk:"full"`
 	Metric                   types.Int64    `tfsdk:"metric"`
+	Passive                  types.Bool     `tfsdk:"passive"`
 	Policy                   []types.String `tfsdk:"policy"`
 	Preference               types.Int64    `tfsdk:"preference"`
 }
 
 type aggregateRouteConfig struct {
-	Active                   types.Bool   `tfsdk:"active"`
-	ASPathAtomicAggregate    types.Bool   `tfsdk:"as_path_atomic_aggregate"`
-	Brief                    types.Bool   `tfsdk:"brief"`
-	Discard                  types.Bool   `tfsdk:"discard"`
-	Full                     types.Bool   `tfsdk:"full"`
-	Passive                  types.Bool   `tfsdk:"passive"`
 	ID                       types.String `tfsdk:"id"`
 	Destination              types.String `tfsdk:"destination"`
 	RoutingInstance          types.String `tfsdk:"routing_instance"`
+	Active                   types.Bool   `tfsdk:"active"`
 	ASPathAggregatorAddress  types.String `tfsdk:"as_path_aggregator_address"`
 	ASPathAggregatorASNumber types.String `tfsdk:"as_path_aggregator_as_number"`
+	ASPathAtomicAggregate    types.Bool   `tfsdk:"as_path_atomic_aggregate"`
 	ASPathOrigin             types.String `tfsdk:"as_path_origin"`
 	ASPathPath               types.String `tfsdk:"as_path_path"`
+	Brief                    types.Bool   `tfsdk:"brief"`
 	Community                types.List   `tfsdk:"community"`
+	Discard                  types.Bool   `tfsdk:"discard"`
+	Full                     types.Bool   `tfsdk:"full"`
 	Metric                   types.Int64  `tfsdk:"metric"`
+	Passive                  types.Bool   `tfsdk:"passive"`
 	Policy                   types.List   `tfsdk:"policy"`
 	Preference               types.Int64  `tfsdk:"preference"`
 }

@@ -272,46 +272,46 @@ func (rsc *snmp) Schema(
 }
 
 type snmpData struct {
+	ID                          types.String            `tfsdk:"id"`
 	CleanOnDestroy              types.Bool              `tfsdk:"clean_on_destroy"`
 	ARP                         types.Bool              `tfsdk:"arp"`
 	ARPHostNameResolution       types.Bool              `tfsdk:"arp_host_name_resolution"`
-	FilterDuplicates            types.Bool              `tfsdk:"filter_duplicates"`
-	FilterInternalInterfaces    types.Bool              `tfsdk:"filter_internal_interfaces"`
-	IfCountWithFilterInterfaces types.Bool              `tfsdk:"if_count_with_filter_interfaces"`
-	RoutingInstanceAccess       types.Bool              `tfsdk:"routing_instance_access"`
-	ID                          types.String            `tfsdk:"id"`
 	Contact                     types.String            `tfsdk:"contact"`
 	Description                 types.String            `tfsdk:"description"`
 	EngineID                    types.String            `tfsdk:"engine_id"`
+	FilterDuplicates            types.Bool              `tfsdk:"filter_duplicates"`
 	FilterInterfaces            []types.String          `tfsdk:"filter_interfaces"`
+	FilterInternalInterfaces    types.Bool              `tfsdk:"filter_internal_interfaces"`
+	IfCountWithFilterInterfaces types.Bool              `tfsdk:"if_count_with_filter_interfaces"`
 	Interface                   []types.String          `tfsdk:"interface"`
 	Location                    types.String            `tfsdk:"location"`
+	RoutingInstanceAccess       types.Bool              `tfsdk:"routing_instance_access"`
 	RoutingInstanceAccessList   []types.String          `tfsdk:"routing_instance_access_list"`
 	HealthMonitor               *snmpBlockHealthMonitor `tfsdk:"health_monitor"`
 }
 
 type snmpConfig struct {
+	ID                          types.String            `tfsdk:"id"`
 	CleanOnDestroy              types.Bool              `tfsdk:"clean_on_destroy"`
 	ARP                         types.Bool              `tfsdk:"arp"`
 	ARPHostNameResolution       types.Bool              `tfsdk:"arp_host_name_resolution"`
-	FilterDuplicates            types.Bool              `tfsdk:"filter_duplicates"`
-	FilterInternalInterfaces    types.Bool              `tfsdk:"filter_internal_interfaces"`
-	IfCountWithFilterInterfaces types.Bool              `tfsdk:"if_count_with_filter_interfaces"`
-	RoutingInstanceAccess       types.Bool              `tfsdk:"routing_instance_access"`
-	ID                          types.String            `tfsdk:"id"`
 	Contact                     types.String            `tfsdk:"contact"`
 	Description                 types.String            `tfsdk:"description"`
 	EngineID                    types.String            `tfsdk:"engine_id"`
+	FilterDuplicates            types.Bool              `tfsdk:"filter_duplicates"`
 	FilterInterfaces            types.Set               `tfsdk:"filter_interfaces"`
+	FilterInternalInterfaces    types.Bool              `tfsdk:"filter_internal_interfaces"`
+	IfCountWithFilterInterfaces types.Bool              `tfsdk:"if_count_with_filter_interfaces"`
 	Interface                   types.Set               `tfsdk:"interface"`
 	Location                    types.String            `tfsdk:"location"`
+	RoutingInstanceAccess       types.Bool              `tfsdk:"routing_instance_access"`
 	RoutingInstanceAccessList   types.Set               `tfsdk:"routing_instance_access_list"`
 	HealthMonitor               *snmpBlockHealthMonitor `tfsdk:"health_monitor"`
 }
 
 type snmpBlockHealthMonitor struct {
-	Idp                 types.Bool  `tfsdk:"idp"`
 	FallingThreshold    types.Int64 `tfsdk:"falling_threshold"`
+	Idp                 types.Bool  `tfsdk:"idp"`
 	IdpFallingThreshold types.Int64 `tfsdk:"idp_falling_threshold"`
 	IdpInterval         types.Int64 `tfsdk:"idp_interval"`
 	IdpRisingThreshold  types.Int64 `tfsdk:"idp_rising_threshold"`

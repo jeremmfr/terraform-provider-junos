@@ -278,13 +278,13 @@ func (rsc *bridgeDomain) Schema(
 }
 
 type bridgeDomainData struct {
-	DomainTypeBridge types.Bool              `tfsdk:"domain_type_bridge"`
 	ID               types.String            `tfsdk:"id"`
 	Name             types.String            `tfsdk:"name"`
 	RoutingInstance  types.String            `tfsdk:"routing_instance"`
 	CommunityVlans   []types.String          `tfsdk:"community_vlans"`
 	Description      types.String            `tfsdk:"description"`
 	DomainID         types.Int64             `tfsdk:"domain_id"`
+	DomainTypeBridge types.Bool              `tfsdk:"domain_type_bridge"`
 	Interface        []types.String          `tfsdk:"interface"`
 	IsolatedVLAN     types.Int64             `tfsdk:"isolated_vlan"`
 	RoutingInterface types.String            `tfsdk:"routing_interface"`
@@ -295,13 +295,13 @@ type bridgeDomainData struct {
 }
 
 type bridgeDomainConfig struct {
-	DomainTypeBridge types.Bool              `tfsdk:"domain_type_bridge"`
 	ID               types.String            `tfsdk:"id"`
 	Name             types.String            `tfsdk:"name"`
 	RoutingInstance  types.String            `tfsdk:"routing_instance"`
 	CommunityVlans   types.Set               `tfsdk:"community_vlans"`
 	Description      types.String            `tfsdk:"description"`
 	DomainID         types.Int64             `tfsdk:"domain_id"`
+	DomainTypeBridge types.Bool              `tfsdk:"domain_type_bridge"`
 	Interface        types.Set               `tfsdk:"interface"`
 	IsolatedVLAN     types.Int64             `tfsdk:"isolated_vlan"`
 	RoutingInterface types.String            `tfsdk:"routing_interface"`
@@ -316,14 +316,14 @@ func (rscConfig *bridgeDomainConfig) isEmpty() bool {
 }
 
 type bridgeDomainBlockVXLAN struct {
-	VNIExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
+	VNI                        types.Int64  `tfsdk:"vni"`
 	DecapsulateAcceptInnerVlan types.Bool   `tfsdk:"decapsulate_accept_inner_vlan"`
 	EncapsulateInnerVlan       types.Bool   `tfsdk:"encapsulate_inner_vlan"`
 	IngressNodeReplication     types.Bool   `tfsdk:"ingress_node_replication"`
-	OvsdbManaged               types.Bool   `tfsdk:"ovsdb_managed"`
-	VNI                        types.Int64  `tfsdk:"vni"`
 	MulticastGroup             types.String `tfsdk:"multicast_group"`
+	OvsdbManaged               types.Bool   `tfsdk:"ovsdb_managed"`
 	UnreachableVtepAgingTimer  types.Int64  `tfsdk:"unreachable_vtep_aging_timer"`
+	VNIExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
 }
 
 func (rsc *bridgeDomain) ValidateConfig(

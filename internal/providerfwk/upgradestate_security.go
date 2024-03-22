@@ -400,10 +400,10 @@ func (rsc *security) UpgradeState(_ context.Context) map[int64]resource.StateUpg
 											"size": schema.Int64Attribute{
 												Optional: true,
 											},
-											"no_world_readable": schema.BoolAttribute{
+											"world_readable": schema.BoolAttribute{
 												Optional: true,
 											},
-											"world_readable": schema.BoolAttribute{
+											"no_world_readable": schema.BoolAttribute{
 												Optional: true,
 											},
 										},
@@ -560,8 +560,8 @@ func upgradeSecurityV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		CleanOnDestroy types.Bool   `tfsdk:"clean_on_destroy"`
 		ID             types.String `tfsdk:"id"`
+		CleanOnDestroy types.Bool   `tfsdk:"clean_on_destroy"`
 		Alg            []struct {
 			DNSDisable    types.Bool `tfsdk:"dns_disable"`
 			FtpDisable    types.Bool `tfsdk:"ftp_disable"`
@@ -586,11 +586,11 @@ func upgradeSecurityV0toV1(
 			ForceIPReassembly                types.Bool   `tfsdk:"force_ip_reassembly"`
 			IpsecPerformanceAcceleration     types.Bool   `tfsdk:"ipsec_performance_acceleration"`
 			McastBufferEnhance               types.Bool   `tfsdk:"mcast_buffer_enhance"`
-			PreserveIncomingFragmentSize     types.Bool   `tfsdk:"preserve_incoming_fragment_size"`
-			SyncIcmpSession                  types.Bool   `tfsdk:"sync_icmp_session"`
 			PendingSessQueueLength           types.String `tfsdk:"pending_sess_queue_length"`
+			PreserveIncomingFragmentSize     types.Bool   `tfsdk:"preserve_incoming_fragment_size"`
 			RouteChangeTimeout               types.Int64  `tfsdk:"route_change_timeout"`
 			SynFloodProtectionMode           types.String `tfsdk:"syn_flood_protection_mode"`
+			SyncIcmpSession                  types.Bool   `tfsdk:"sync_icmp_session"`
 			AdvancedOptions                  []struct {
 				DropMatchingLinkLocalAddress  types.Bool `tfsdk:"drop_matching_link_local_address"`
 				DropMatchingReservedIPAddress types.Bool `tfsdk:"drop_matching_reserved_ip_address"`
@@ -623,13 +623,13 @@ func upgradeSecurityV0toV1(
 			} `tfsdk:"tcp_mss"`
 			TCPSession []struct {
 				FinInvalidateSession types.Bool   `tfsdk:"fin_invalidate_session"`
+				MaximumWindow        types.String `tfsdk:"maximum_window"`
 				NoSequenceCheck      types.Bool   `tfsdk:"no_sequence_check"`
 				NoSynCheck           types.Bool   `tfsdk:"no_syn_check"`
 				NoSynCheckInTunnel   types.Bool   `tfsdk:"no_syn_check_in_tunnel"`
 				RstInvalidateSession types.Bool   `tfsdk:"rst_invalidate_session"`
 				RstSequenceCheck     types.Bool   `tfsdk:"rst_sequence_check"`
 				StrictSynCheck       types.Bool   `tfsdk:"strict_syn_check"`
-				MaximumWindow        types.String `tfsdk:"maximum_window"`
 				TCPInitialTimeout    types.Int64  `tfsdk:"tcp_initial_timeout"`
 				TimeWaitState        []struct {
 					ApplyToHalfCloseState types.Bool  `tfsdk:"apply_to_half_close_state"`
@@ -648,9 +648,9 @@ func upgradeSecurityV0toV1(
 		} `tfsdk:"forwarding_process"`
 		IdpSecurityPackage []struct {
 			AutomaticEnable           types.Bool   `tfsdk:"automatic_enable"`
-			InstallIgnoreVersionCheck types.Bool   `tfsdk:"install_ignore_version_check"`
 			AutomaticInterval         types.Int64  `tfsdk:"automatic_interval"`
 			AutomaticStartTime        types.String `tfsdk:"automatic_start_time"`
+			InstallIgnoreVersionCheck types.Bool   `tfsdk:"install_ignore_version_check"`
 			ProxyProfile              types.String `tfsdk:"proxy_profile"`
 			SourceAddress             types.String `tfsdk:"source_address"`
 			URL                       types.String `tfsdk:"url"`
@@ -680,26 +680,26 @@ func upgradeSecurityV0toV1(
 			NoRemoteTrace types.Bool     `tfsdk:"no_remote_trace"`
 			RateLimit     types.Int64    `tfsdk:"rate_limit"`
 			File          []struct {
-				NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
-				WorldReadable   types.Bool   `tfsdk:"world_readable"`
 				Name            types.String `tfsdk:"name"`
 				Files           types.Int64  `tfsdk:"files"`
 				Match           types.String `tfsdk:"match"`
 				Size            types.Int64  `tfsdk:"size"`
+				WorldReadable   types.Bool   `tfsdk:"world_readable"`
+				NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
 			} `tfsdk:"file"`
 		} `tfsdk:"ike_traceoptions"`
 		Log []struct {
 			Disable           types.Bool   `tfsdk:"disable"`
-			Report            types.Bool   `tfsdk:"report"`
-			UtcTimestamp      types.Bool   `tfsdk:"utc_timestamp"`
 			EventRate         types.Int64  `tfsdk:"event_rate"`
 			FacilityOverride  types.String `tfsdk:"facility_override"`
 			Format            types.String `tfsdk:"format"`
 			MaxDatabaseRecord types.Int64  `tfsdk:"max_database_record"`
 			Mode              types.String `tfsdk:"mode"`
 			RateCap           types.Int64  `tfsdk:"rate_cap"`
+			Report            types.Bool   `tfsdk:"report"`
 			SourceAddress     types.String `tfsdk:"source_address"`
 			SourceInterface   types.String `tfsdk:"source_interface"`
+			UtcTimestamp      types.Bool   `tfsdk:"utc_timestamp"`
 			File              []struct {
 				Files types.Int64  `tfsdk:"files"`
 				Name  types.String `tfsdk:"name"`

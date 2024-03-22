@@ -300,7 +300,6 @@ func (rsc *application) Schema(
 }
 
 type applicationData struct {
-	InactivityTimeoutNever types.Bool             `tfsdk:"inactivity_timeout_never"`
 	ID                     types.String           `tfsdk:"id"`
 	Name                   types.String           `tfsdk:"name"`
 	ApplicationProtocol    types.String           `tfsdk:"application_protocol"`
@@ -308,6 +307,7 @@ type applicationData struct {
 	DestinationPort        types.String           `tfsdk:"destination_port"`
 	EtherType              types.String           `tfsdk:"ether_type"`
 	InactivityTimeout      types.Int64            `tfsdk:"inactivity_timeout"`
+	InactivityTimeoutNever types.Bool             `tfsdk:"inactivity_timeout_never"`
 	Protocol               types.String           `tfsdk:"protocol"`
 	RPCProgramNumber       types.String           `tfsdk:"rpc_program_number"`
 	SourcePort             types.String           `tfsdk:"source_port"`
@@ -316,7 +316,6 @@ type applicationData struct {
 }
 
 type applicationConfig struct {
-	InactivityTimeoutNever types.Bool   `tfsdk:"inactivity_timeout_never"`
 	ID                     types.String `tfsdk:"id"`
 	Name                   types.String `tfsdk:"name"`
 	ApplicationProtocol    types.String `tfsdk:"application_protocol"`
@@ -324,6 +323,7 @@ type applicationConfig struct {
 	DestinationPort        types.String `tfsdk:"destination_port"`
 	EtherType              types.String `tfsdk:"ether_type"`
 	InactivityTimeout      types.Int64  `tfsdk:"inactivity_timeout"`
+	InactivityTimeoutNever types.Bool   `tfsdk:"inactivity_timeout_never"`
 	Protocol               types.String `tfsdk:"protocol"`
 	RPCProgramNumber       types.String `tfsdk:"rpc_program_number"`
 	SourcePort             types.String `tfsdk:"source_port"`
@@ -332,7 +332,6 @@ type applicationConfig struct {
 }
 
 type applicationBlockTerm struct {
-	InactivityTimeoutNever types.Bool   `tfsdk:"inactivity_timeout_never"`
 	Name                   types.String `tfsdk:"name"`
 	Protocol               types.String `tfsdk:"protocol"`
 	Alg                    types.String `tfsdk:"alg"`
@@ -342,6 +341,7 @@ type applicationBlockTerm struct {
 	Icmp6Code              types.String `tfsdk:"icmp6_code"`
 	Icmp6Type              types.String `tfsdk:"icmp6_type"`
 	InactivityTimeout      types.Int64  `tfsdk:"inactivity_timeout"`
+	InactivityTimeoutNever types.Bool   `tfsdk:"inactivity_timeout_never"`
 	RPCRrogramNumber       types.String `tfsdk:"rpc_program_number"`
 	SourcePort             types.String `tfsdk:"source_port"`
 	UUID                   types.String `tfsdk:"uuid"`

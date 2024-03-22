@@ -186,25 +186,8 @@ func (dsc *applicationsDataSource) Schema(
 type applicationsDataSourceData struct {
 	ID           types.String                              `tfsdk:"id"`
 	MatchName    types.String                              `tfsdk:"match_name"`
-	MatchOptions []applicationsDataSourceBlockMatchOptions `tfsdk:"match_options"`
 	Applications []applicationsDataSourceBlockApplications `tfsdk:"applications"`
-}
-
-type applicationsDataSourceBlockMatchOptions struct {
-	Alg                    types.String `tfsdk:"alg"`
-	ApplicationProtocol    types.String `tfsdk:"application_protocol"`
-	DestinationPort        types.String `tfsdk:"destination_port"`
-	EtherType              types.String `tfsdk:"ether_type"`
-	IcmpCode               types.String `tfsdk:"icmp_code"`
-	IcmpType               types.String `tfsdk:"icmp_type"`
-	Icmp6Code              types.String `tfsdk:"icmp6_code"`
-	Icmp6Type              types.String `tfsdk:"icmp6_type"`
-	InactivityTimeout      types.Int64  `tfsdk:"inactivity_timeout"`
-	InactivityTimeoutNever types.Bool   `tfsdk:"inactivity_timeout_never"`
-	Protocol               types.String `tfsdk:"protocol"`
-	RPCRrogramNumber       types.String `tfsdk:"rpc_program_number"`
-	SourcePort             types.String `tfsdk:"source_port"`
-	UUID                   types.String `tfsdk:"uuid"`
+	MatchOptions []applicationsDataSourceBlockMatchOptions `tfsdk:"match_options"`
 }
 
 type applicationsDataSourceBlockApplications struct {
@@ -226,6 +209,23 @@ type applicationsDataSourceBlockApplicationsBlockTerm struct {
 	Name                   types.String `tfsdk:"name"`
 	Alg                    types.String `tfsdk:"alg"`
 	DestinationPort        types.String `tfsdk:"destination_port"`
+	IcmpCode               types.String `tfsdk:"icmp_code"`
+	IcmpType               types.String `tfsdk:"icmp_type"`
+	Icmp6Code              types.String `tfsdk:"icmp6_code"`
+	Icmp6Type              types.String `tfsdk:"icmp6_type"`
+	InactivityTimeout      types.Int64  `tfsdk:"inactivity_timeout"`
+	InactivityTimeoutNever types.Bool   `tfsdk:"inactivity_timeout_never"`
+	Protocol               types.String `tfsdk:"protocol"`
+	RPCRrogramNumber       types.String `tfsdk:"rpc_program_number"`
+	SourcePort             types.String `tfsdk:"source_port"`
+	UUID                   types.String `tfsdk:"uuid"`
+}
+
+type applicationsDataSourceBlockMatchOptions struct {
+	Alg                    types.String `tfsdk:"alg"`
+	ApplicationProtocol    types.String `tfsdk:"application_protocol"`
+	DestinationPort        types.String `tfsdk:"destination_port"`
+	EtherType              types.String `tfsdk:"ether_type"`
 	IcmpCode               types.String `tfsdk:"icmp_code"`
 	IcmpType               types.String `tfsdk:"icmp_type"`
 	Icmp6Code              types.String `tfsdk:"icmp6_code"`

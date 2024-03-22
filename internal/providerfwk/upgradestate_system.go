@@ -648,28 +648,28 @@ func upgradeSystemV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		AutoSnapshot                          types.Bool     `tfsdk:"auto_snapshot"`
-		DefaultAddressSelection               types.Bool     `tfsdk:"default_address_selection"`
-		NoMulticastEcho                       types.Bool     `tfsdk:"no_multicast_echo"`
-		NoPingRecordRoute                     types.Bool     `tfsdk:"no_ping_record_route"`
-		NoPingTimestamp                       types.Bool     `tfsdk:"no_ping_time_stamp"`
-		NoRedirects                           types.Bool     `tfsdk:"no_redirects"`
-		NoRedirectsIPv6                       types.Bool     `tfsdk:"no_redirects_ipv6"`
-		RadiusOptionsEnhancedAccounting       types.Bool     `tfsdk:"radius_options_enhanced_accounting"`
-		RadiusOptionsPasswordProtocolMschapv2 types.Bool     `tfsdk:"radius_options_password_protocol_mschapv2"`
 		ID                                    types.String   `tfsdk:"id"`
 		AuthenticationOrder                   []types.String `tfsdk:"authentication_order"`
+		AutoSnapshot                          types.Bool     `tfsdk:"auto_snapshot"`
+		DefaultAddressSelection               types.Bool     `tfsdk:"default_address_selection"`
 		DomainName                            types.String   `tfsdk:"domain_name"`
 		HostName                              types.String   `tfsdk:"host_name"`
 		MaxConfigurationRollbacks             types.Int64    `tfsdk:"max_configuration_rollbacks"`
 		MaxConfigurationsOnFlash              types.Int64    `tfsdk:"max_configurations_on_flash"`
 		NameServer                            []types.String `tfsdk:"name_server"`
+		NoMulticastEcho                       types.Bool     `tfsdk:"no_multicast_echo"`
+		NoPingRecordRoute                     types.Bool     `tfsdk:"no_ping_record_route"`
+		NoPingTimestamp                       types.Bool     `tfsdk:"no_ping_time_stamp"`
+		NoRedirects                           types.Bool     `tfsdk:"no_redirects"`
+		NoRedirectsIPv6                       types.Bool     `tfsdk:"no_redirects_ipv6"`
 		RadiusOptionsAttributesNasIpaddress   types.String   `tfsdk:"radius_options_attributes_nas_ipaddress"`
+		RadiusOptionsEnhancedAccounting       types.Bool     `tfsdk:"radius_options_enhanced_accounting"`
+		RadiusOptionsPasswordProtocolMschapv2 types.Bool     `tfsdk:"radius_options_password_protocol_mschapv2"`
 		TimeZone                              types.String   `tfsdk:"time_zone"`
 		TracingDestOverrideSyslogHost         types.String   `tfsdk:"tracing_dest_override_syslog_host"`
 		ArchivalConfiguration                 []struct {
-			TransferOnCommit types.Bool  `tfsdk:"transfer_on_commit"`
 			TransferInterval types.Int64 `tfsdk:"transfer_interval"`
+			TransferOnCommit types.Bool  `tfsdk:"transfer_on_commit"`
 			ArchiveSite      []struct {
 				URL      types.String `tfsdk:"url"`
 				Password types.String `tfsdk:"password"`
@@ -684,21 +684,21 @@ func upgradeSystemV0toV1(
 			NoGrePathMtuDiscovery               types.Bool   `tfsdk:"no_gre_path_mtu_discovery"`
 			IpipPathMtuDiscovery                types.Bool   `tfsdk:"ipip_path_mtu_discovery"`
 			NoIpipPathMtuDiscovery              types.Bool   `tfsdk:"no_ipip_path_mtu_discovery"`
+			IPv6DuplicateAddrDetectionTransmits types.Int64  `tfsdk:"ipv6_duplicate_addr_detection_transmits"`
 			IPv6PathMtuDiscovery                types.Bool   `tfsdk:"ipv6_path_mtu_discovery"`
 			NoIPv6PathMtuDiscovery              types.Bool   `tfsdk:"no_ipv6_path_mtu_discovery"`
+			IPv6PathMtuDiscoveryTimeout         types.Int64  `tfsdk:"ipv6_path_mtu_discovery_timeout"`
 			IPv6RejectZeroHopLimit              types.Bool   `tfsdk:"ipv6_reject_zero_hop_limit"`
 			NoIPv6RejectZeroHopLimit            types.Bool   `tfsdk:"no_ipv6_reject_zero_hop_limit"`
+			NoTCPReset                          types.String `tfsdk:"no_tcp_reset"`
 			NoTCPRFC1323                        types.Bool   `tfsdk:"no_tcp_rfc1323"`
 			NoTCPRFC1323Paws                    types.Bool   `tfsdk:"no_tcp_rfc1323_paws"`
 			PathMtuDiscovery                    types.Bool   `tfsdk:"path_mtu_discovery"`
 			NoPathMtuDiscovery                  types.Bool   `tfsdk:"no_path_mtu_discovery"`
+			SourcePortUpperLimit                types.Int64  `tfsdk:"source_port_upper_limit"`
 			SourceQuench                        types.Bool   `tfsdk:"source_quench"`
 			NoSourceQuench                      types.Bool   `tfsdk:"no_source_quench"`
 			TCPDropSynfinSet                    types.Bool   `tfsdk:"tcp_drop_synfin_set"`
-			IPv6DuplicateAddrDetectionTransmits types.Int64  `tfsdk:"ipv6_duplicate_addr_detection_transmits"`
-			IPv6PathMtuDiscoveryTimeout         types.Int64  `tfsdk:"ipv6_path_mtu_discovery_timeout"`
-			NoTCPReset                          types.String `tfsdk:"no_tcp_reset"`
-			SourcePortUpperLimit                types.Int64  `tfsdk:"source_port_upper_limit"`
 			TCPMss                              types.Int64  `tfsdk:"tcp_mss"`
 			IcmpV4RateLimit                     []struct {
 				BucketSize types.Int64 `tfsdk:"bucket_size"`
@@ -744,24 +744,24 @@ func upgradeSystemV0toV1(
 			} `tfsdk:"retry_options"`
 		} `tfsdk:"login"`
 		Ntp []struct {
-			BroadcastClient        types.Bool   `tfsdk:"broadcast_client"`
-			MulticastClient        types.Bool   `tfsdk:"multicast_client"`
 			BootServer             types.String `tfsdk:"boot_server"`
+			BroadcastClient        types.Bool   `tfsdk:"broadcast_client"`
 			IntervalRange          types.Int64  `tfsdk:"interval_range"`
+			MulticastClient        types.Bool   `tfsdk:"multicast_client"`
 			MulticastClientAddress types.String `tfsdk:"multicast_client_address"`
 			ThresholdAction        types.String `tfsdk:"threshold_action"`
 			ThresholdValue         types.Int64  `tfsdk:"threshold_value"`
 		} `tfsdk:"ntp"`
 		Ports []struct {
+			AuxiliaryAuthenticationOrder []types.String `tfsdk:"auxiliary_authentication_order"`
 			AuxiliaryDisable             types.Bool     `tfsdk:"auxiliary_disable"`
 			AuxiliaryInsecure            types.Bool     `tfsdk:"auxiliary_insecure"`
 			AuxiliaryLogoutOnDisconnect  types.Bool     `tfsdk:"auxiliary_logout_on_disconnect"`
+			AuxiliaryType                types.String   `tfsdk:"auxiliary_type"`
+			ConsoleAuthenticationOrder   []types.String `tfsdk:"console_authentication_order"`
 			ConsoleDisable               types.Bool     `tfsdk:"console_disable"`
 			ConsoleInsecure              types.Bool     `tfsdk:"console_insecure"`
 			ConsoleLogoutOnDisconnect    types.Bool     `tfsdk:"console_logout_on_disconnect"`
-			AuxiliaryAuthenticationOrder []types.String `tfsdk:"auxiliary_authentication_order"`
-			AuxiliaryType                types.String   `tfsdk:"auxiliary_type"`
-			ConsoleAuthenticationOrder   []types.String `tfsdk:"console_authentication_order"`
 			ConsoleType                  types.String   `tfsdk:"console_type"`
 		} `tfsdk:"ports"`
 		Services []struct {
@@ -772,22 +772,17 @@ func upgradeSystemV0toV1(
 				RateLimit           types.Int64 `tfsdk:"rate_limit"`
 			} `tfsdk:"netconf_ssh"`
 			NetconfTraceoptions []struct {
-				FileWorldReadable   types.Bool     `tfsdk:"file_world_readable"`
-				FileNoWorldReadable types.Bool     `tfsdk:"file_no_world_readable"`
-				NoRemoteTrace       types.Bool     `tfsdk:"no_remote_trace"`
-				OnDemand            types.Bool     `tfsdk:"on_demand"`
 				FileName            types.String   `tfsdk:"file_name"`
 				FileFiles           types.Int64    `tfsdk:"file_files"`
 				FileMatch           types.String   `tfsdk:"file_match"`
 				FileSize            types.Int64    `tfsdk:"file_size"`
+				FileWorldReadable   types.Bool     `tfsdk:"file_world_readable"`
+				FileNoWorldReadable types.Bool     `tfsdk:"file_no_world_readable"`
 				Flag                []types.String `tfsdk:"flag"`
+				NoRemoteTrace       types.Bool     `tfsdk:"no_remote_trace"`
+				OnDemand            types.Bool     `tfsdk:"on_demand"`
 			} `tfsdk:"netconf_traceoptions"`
 			SSH []struct {
-				LogKeyChanges               types.Bool     `tfsdk:"log_key_changes"`
-				NoPasswords                 types.Bool     `tfsdk:"no_passwords"`
-				NoPublicKeys                types.Bool     `tfsdk:"no_public_keys"`
-				TCPForwarding               types.Bool     `tfsdk:"tcp_forwarding"`
-				NoTCPForwarding             types.Bool     `tfsdk:"no_tcp_forwarding"`
 				AuthenticationOrder         []types.String `tfsdk:"authentication_order"`
 				Ciphers                     []types.String `tfsdk:"ciphers"`
 				ClientAliveCountMax         types.Int64    `tfsdk:"client_alive_count_max"`
@@ -796,38 +791,43 @@ func upgradeSystemV0toV1(
 				FingerprintHash             types.String   `tfsdk:"fingerprint_hash"`
 				HostkeyAlgorithm            []types.String `tfsdk:"hostkey_algorithm"`
 				KeyExchange                 []types.String `tfsdk:"key_exchange"`
+				LogKeyChanges               types.Bool     `tfsdk:"log_key_changes"`
 				Macs                        []types.String `tfsdk:"macs"`
 				MaxPreAuthenticationPackets types.Int64    `tfsdk:"max_pre_authentication_packets"`
 				MaxSessionsPerConnection    types.Int64    `tfsdk:"max_sessions_per_connection"`
+				NoPasswords                 types.Bool     `tfsdk:"no_passwords"`
+				NoPublicKeys                types.Bool     `tfsdk:"no_public_keys"`
 				Port                        types.Int64    `tfsdk:"port"`
 				ProtocolVersion             []types.String `tfsdk:"protocol_version"`
 				RateLimit                   types.Int64    `tfsdk:"rate_limit"`
 				RootLogin                   types.String   `tfsdk:"root_login"`
+				TCPForwarding               types.Bool     `tfsdk:"tcp_forwarding"`
+				NoTCPForwarding             types.Bool     `tfsdk:"no_tcp_forwarding"`
 			} `tfsdk:"ssh"`
 			WebManagementHTTP []struct {
 				Interface []types.String `tfsdk:"interface"`
 				Port      types.Int64    `tfsdk:"port"`
 			} `tfsdk:"web_management_http"`
 			WebManagementHTTPS []struct {
-				SystemGeneratedCertificate types.Bool     `tfsdk:"system_generated_certificate"`
 				Interface                  []types.String `tfsdk:"interface"`
 				LocalCertificate           types.String   `tfsdk:"local_certificate"`
 				PkiLocalCertificate        types.String   `tfsdk:"pki_local_certificate"`
 				Port                       types.Int64    `tfsdk:"port"`
+				SystemGeneratedCertificate types.Bool     `tfsdk:"system_generated_certificate"`
 			} `tfsdk:"web_management_https"`
 		} `tfsdk:"services"`
 		Syslog []struct {
-			TimeFormatMillisecond types.Bool   `tfsdk:"time_format_millisecond"`
-			TimeFormatYear        types.Bool   `tfsdk:"time_format_year"`
 			LogRotateFrequency    types.Int64  `tfsdk:"log_rotate_frequency"`
 			SourceAddress         types.String `tfsdk:"source_address"`
+			TimeFormatMillisecond types.Bool   `tfsdk:"time_format_millisecond"`
+			TimeFormatYear        types.Bool   `tfsdk:"time_format_year"`
 			Archive               []struct {
 				BinaryData      types.Bool  `tfsdk:"binary_data"`
 				NoBinaryData    types.Bool  `tfsdk:"no_binary_data"`
-				WorldReadable   types.Bool  `tfsdk:"world_readable"`
-				NoWorldReadable types.Bool  `tfsdk:"no_world_readable"`
 				Files           types.Int64 `tfsdk:"files"`
 				Size            types.Int64 `tfsdk:"size"`
+				WorldReadable   types.Bool  `tfsdk:"world_readable"`
+				NoWorldReadable types.Bool  `tfsdk:"no_world_readable"`
 			} `tfsdk:"archive"`
 			Console []struct {
 				AnySeverity                 types.String `tfsdk:"any_severity"`
