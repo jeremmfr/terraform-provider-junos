@@ -19,10 +19,10 @@ type StringRuneExclusionValidator struct {
 }
 
 func StringRuneExclusion(runes ...rune) StringRuneExclusionValidator {
-	var validator StringRuneExclusionValidator
-	validator.runes = append(validator.runes, runes...)
+	var v StringRuneExclusionValidator
+	v.runes = append(v.runes, runes...)
 
-	return validator
+	return v
 }
 
 func StringDoubleQuoteExclusion() StringRuneExclusionValidator {

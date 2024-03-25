@@ -113,7 +113,7 @@ toretry:
 		}
 		s, err := netconf.NewSSHSession(conn, sshOpts.ClientConfig)
 		if err != nil {
-			conn.Close()
+			_ = conn.Close()
 			select {
 			case <-ctx.Done():
 				return nil, fmt.Errorf("initializing SSH session to %s: %w", host, err)

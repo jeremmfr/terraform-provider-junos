@@ -25,8 +25,8 @@ func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 			continue
 		}
 
-		if attr, ok := fieldValue.Interface().(attr.Value); ok {
-			if !attr.IsNull() {
+		if attrValue, ok := fieldValue.Interface().(attr.Value); ok {
+			if !attrValue.IsNull() {
 				return false
 			}
 
@@ -72,8 +72,8 @@ func CheckBlockHasKnownValue[B any](block B, excludeFields ...string) bool {
 			continue
 		}
 
-		if attr, ok := fieldValue.Interface().(attr.Value); ok {
-			if !attr.IsNull() && !attr.IsUnknown() {
+		if attrValue, ok := fieldValue.Interface().(attr.Value); ok {
+			if !attrValue.IsNull() && !attrValue.IsUnknown() {
 				return true
 			}
 
