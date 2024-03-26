@@ -107,9 +107,9 @@ func upgradeSecurityNatStaticV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		ConfigureRulesSingly types.Bool   `tfsdk:"configure_rules_singly"`
 		ID                   types.String `tfsdk:"id"`
 		Name                 types.String `tfsdk:"name"`
+		ConfigureRulesSingly types.Bool   `tfsdk:"configure_rules_singly"`
 		Description          types.String `tfsdk:"description"`
 		From                 []struct {
 			Type  types.String   `tfsdk:"type"`

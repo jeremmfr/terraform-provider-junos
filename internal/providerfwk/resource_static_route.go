@@ -338,12 +338,24 @@ func (rsc *staticRoute) Schema(
 }
 
 type staticRouteData struct {
+	ID                       types.String                       `tfsdk:"id"`
+	Destination              types.String                       `tfsdk:"destination"`
+	RoutingInstance          types.String                       `tfsdk:"routing_instance"`
 	Active                   types.Bool                         `tfsdk:"active"`
+	ASPathAggregatorAddress  types.String                       `tfsdk:"as_path_aggregator_address"`
+	ASPathAggregatorASNumber types.String                       `tfsdk:"as_path_aggregator_as_number"`
 	ASPathAtomicAggregate    types.Bool                         `tfsdk:"as_path_atomic_aggregate"`
+	ASPathOrigin             types.String                       `tfsdk:"as_path_origin"`
+	ASPathPath               types.String                       `tfsdk:"as_path_path"`
+	Community                []types.String                     `tfsdk:"community"`
 	Discard                  types.Bool                         `tfsdk:"discard"`
 	Install                  types.Bool                         `tfsdk:"install"`
 	NoInstall                types.Bool                         `tfsdk:"no_install"`
+	Metric                   types.Int64                        `tfsdk:"metric"`
+	NextHop                  []types.String                     `tfsdk:"next_hop"`
+	NextTable                types.String                       `tfsdk:"next_table"`
 	Passive                  types.Bool                         `tfsdk:"passive"`
+	Preference               types.Int64                        `tfsdk:"preference"`
 	Readvertise              types.Bool                         `tfsdk:"readvertise"`
 	NoReadvertise            types.Bool                         `tfsdk:"no_readvertise"`
 	Receive                  types.Bool                         `tfsdk:"receive"`
@@ -352,28 +364,28 @@ type staticRouteData struct {
 	NoResolve                types.Bool                         `tfsdk:"no_resolve"`
 	Retain                   types.Bool                         `tfsdk:"retain"`
 	NoRetain                 types.Bool                         `tfsdk:"no_retain"`
-	ID                       types.String                       `tfsdk:"id"`
-	Destination              types.String                       `tfsdk:"destination"`
-	RoutingInstance          types.String                       `tfsdk:"routing_instance"`
-	ASPathAggregatorAddress  types.String                       `tfsdk:"as_path_aggregator_address"`
-	ASPathAggregatorASNumber types.String                       `tfsdk:"as_path_aggregator_as_number"`
-	ASPathOrigin             types.String                       `tfsdk:"as_path_origin"`
-	ASPathPath               types.String                       `tfsdk:"as_path_path"`
-	Community                []types.String                     `tfsdk:"community"`
-	Metric                   types.Int64                        `tfsdk:"metric"`
-	NextHop                  []types.String                     `tfsdk:"next_hop"`
-	NextTable                types.String                       `tfsdk:"next_table"`
-	Preference               types.Int64                        `tfsdk:"preference"`
 	QualifiedNextHop         []staticRouteBlockQualifiedNextHop `tfsdk:"qualified_next_hop"`
 }
 
 type staticRouteConfig struct {
+	ID                       types.String `tfsdk:"id"`
+	Destination              types.String `tfsdk:"destination"`
+	RoutingInstance          types.String `tfsdk:"routing_instance"`
 	Active                   types.Bool   `tfsdk:"active"`
+	ASPathAggregatorAddress  types.String `tfsdk:"as_path_aggregator_address"`
+	ASPathAggregatorASNumber types.String `tfsdk:"as_path_aggregator_as_number"`
 	ASPathAtomicAggregate    types.Bool   `tfsdk:"as_path_atomic_aggregate"`
+	ASPathOrigin             types.String `tfsdk:"as_path_origin"`
+	ASPathPath               types.String `tfsdk:"as_path_path"`
+	Community                types.List   `tfsdk:"community"`
 	Discard                  types.Bool   `tfsdk:"discard"`
 	Install                  types.Bool   `tfsdk:"install"`
 	NoInstall                types.Bool   `tfsdk:"no_install"`
+	Metric                   types.Int64  `tfsdk:"metric"`
+	NextHop                  types.List   `tfsdk:"next_hop"`
+	NextTable                types.String `tfsdk:"next_table"`
 	Passive                  types.Bool   `tfsdk:"passive"`
+	Preference               types.Int64  `tfsdk:"preference"`
 	Readvertise              types.Bool   `tfsdk:"readvertise"`
 	NoReadvertise            types.Bool   `tfsdk:"no_readvertise"`
 	Receive                  types.Bool   `tfsdk:"receive"`
@@ -382,18 +394,6 @@ type staticRouteConfig struct {
 	NoResolve                types.Bool   `tfsdk:"no_resolve"`
 	Retain                   types.Bool   `tfsdk:"retain"`
 	NoRetain                 types.Bool   `tfsdk:"no_retain"`
-	ID                       types.String `tfsdk:"id"`
-	Destination              types.String `tfsdk:"destination"`
-	RoutingInstance          types.String `tfsdk:"routing_instance"`
-	ASPathAggregatorAddress  types.String `tfsdk:"as_path_aggregator_address"`
-	ASPathAggregatorASNumber types.String `tfsdk:"as_path_aggregator_as_number"`
-	ASPathOrigin             types.String `tfsdk:"as_path_origin"`
-	ASPathPath               types.String `tfsdk:"as_path_path"`
-	Community                types.List   `tfsdk:"community"`
-	Metric                   types.Int64  `tfsdk:"metric"`
-	NextHop                  types.List   `tfsdk:"next_hop"`
-	NextTable                types.String `tfsdk:"next_table"`
-	Preference               types.Int64  `tfsdk:"preference"`
 	QualifiedNextHop         types.List   `tfsdk:"qualified_next_hop"`
 }
 

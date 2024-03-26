@@ -108,9 +108,9 @@ func (rsc *multichassis) Schema(
 }
 
 type multichassisData struct {
+	ID                                        types.String `tfsdk:"id"`
 	CleanOnDestroy                            types.Bool   `tfsdk:"clean_on_destroy"`
 	MCLagConsistencyCheck                     types.Bool   `tfsdk:"mc_lag_consistency_check"`
-	ID                                        types.String `tfsdk:"id"`
 	MCLagConsistencyCheckComparaisonDelayTime types.Int64  `tfsdk:"mc_lag_consistency_check_comparison_delay_time"`
 }
 

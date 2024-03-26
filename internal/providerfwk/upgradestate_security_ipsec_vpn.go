@@ -114,10 +114,10 @@ func upgradeSecurityIpsecVpnV0toV1(
 			RemoteIP types.String `tfsdk:"remote_ip"`
 		} `tfsdk:"traffic_selector"`
 		VpnMonitor []struct {
-			Optimized           types.Bool   `tfsdk:"optimized"`
-			SourceInterfaceAuto types.Bool   `tfsdk:"source_interface_auto"`
 			DestinationIP       types.String `tfsdk:"destination_ip"`
+			Optimized           types.Bool   `tfsdk:"optimized"`
 			SourceInterface     types.String `tfsdk:"source_interface"`
+			SourceInterfaceAuto types.Bool   `tfsdk:"source_interface_auto"`
 		} `tfsdk:"vpn_monitor"`
 	}
 

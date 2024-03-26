@@ -366,10 +366,10 @@ func (rsc *systemSyslogFile) Schema(
 }
 
 type systemSyslogFileData struct {
-	AllowDuplicates             types.Bool                           `tfsdk:"allow_duplicates"`
-	ExplicitPriority            types.Bool                           `tfsdk:"explicit_priority"`
 	ID                          types.String                         `tfsdk:"id"`
 	Filename                    types.String                         `tfsdk:"filename"`
+	AllowDuplicates             types.Bool                           `tfsdk:"allow_duplicates"`
+	ExplicitPriority            types.Bool                           `tfsdk:"explicit_priority"`
 	Match                       types.String                         `tfsdk:"match"`
 	MatchStrings                []types.String                       `tfsdk:"match_strings"`
 	AnySeverity                 types.String                         `tfsdk:"any_severity"`
@@ -392,10 +392,10 @@ type systemSyslogFileData struct {
 }
 
 type systemSyslogFileConfig struct {
-	AllowDuplicates             types.Bool                           `tfsdk:"allow_duplicates"`
-	ExplicitPriority            types.Bool                           `tfsdk:"explicit_priority"`
 	ID                          types.String                         `tfsdk:"id"`
 	Filename                    types.String                         `tfsdk:"filename"`
+	AllowDuplicates             types.Bool                           `tfsdk:"allow_duplicates"`
+	ExplicitPriority            types.Bool                           `tfsdk:"explicit_priority"`
 	Match                       types.String                         `tfsdk:"match"`
 	MatchStrings                types.List                           `tfsdk:"match_strings"`
 	AnySeverity                 types.String                         `tfsdk:"any_severity"`
@@ -420,24 +420,24 @@ type systemSyslogFileConfig struct {
 type systemSyslogFileBlockArchive struct {
 	BinaryData       types.Bool                               `tfsdk:"binary_data"`
 	NoBinaryData     types.Bool                               `tfsdk:"no_binary_data"`
-	WorldReadable    types.Bool                               `tfsdk:"world_readable"`
-	NoWorldReadable  types.Bool                               `tfsdk:"no_world_readable"`
 	Files            types.Int64                              `tfsdk:"files"`
 	Size             types.Int64                              `tfsdk:"size"`
 	StartTime        types.String                             `tfsdk:"start_time"`
 	TransferInterval types.Int64                              `tfsdk:"transfer_interval"`
+	WorldReadable    types.Bool                               `tfsdk:"world_readable"`
+	NoWorldReadable  types.Bool                               `tfsdk:"no_world_readable"`
 	Sites            []systemSyslogFileBlockArchiveBlockSites `tfsdk:"sites"`
 }
 
 type systemSyslogFileBlockArchiveConfig struct {
 	BinaryData       types.Bool   `tfsdk:"binary_data"`
 	NoBinaryData     types.Bool   `tfsdk:"no_binary_data"`
-	WorldReadable    types.Bool   `tfsdk:"world_readable"`
-	NoWorldReadable  types.Bool   `tfsdk:"no_world_readable"`
 	Files            types.Int64  `tfsdk:"files"`
 	Size             types.Int64  `tfsdk:"size"`
 	StartTime        types.String `tfsdk:"start_time"`
 	TransferInterval types.Int64  `tfsdk:"transfer_interval"`
+	WorldReadable    types.Bool   `tfsdk:"world_readable"`
+	NoWorldReadable  types.Bool   `tfsdk:"no_world_readable"`
 	Sites            types.List   `tfsdk:"sites"`
 }
 

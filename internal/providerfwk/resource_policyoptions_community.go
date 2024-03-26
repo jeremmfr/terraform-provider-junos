@@ -125,18 +125,18 @@ func (rsc *policyoptionsCommunity) Schema(
 }
 
 type policyoptionsCommunityData struct {
-	DynamicDB   types.Bool     `tfsdk:"dynamic_db"`
-	InvertMatch types.Bool     `tfsdk:"invert_match"`
 	ID          types.String   `tfsdk:"id"`
 	Name        types.String   `tfsdk:"name"`
+	DynamicDB   types.Bool     `tfsdk:"dynamic_db"`
+	InvertMatch types.Bool     `tfsdk:"invert_match"`
 	Members     []types.String `tfsdk:"members"`
 }
 
 type policyoptionsCommunityConfig struct {
-	DynamicDB   types.Bool   `tfsdk:"dynamic_db"`
-	InvertMatch types.Bool   `tfsdk:"invert_match"`
 	ID          types.String `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
+	DynamicDB   types.Bool   `tfsdk:"dynamic_db"`
+	InvertMatch types.Bool   `tfsdk:"invert_match"`
 	Members     types.List   `tfsdk:"members"`
 }
 

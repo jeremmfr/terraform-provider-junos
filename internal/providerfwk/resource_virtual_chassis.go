@@ -317,30 +317,30 @@ func (rsc *virtualChassis) Schema(
 }
 
 type virtualChassisData struct {
+	ID                      types.String                     `tfsdk:"id"`
 	AutoSWUpdate            types.Bool                       `tfsdk:"auto_sw_update"`
+	AutoSWUpdatePackageName types.String                     `tfsdk:"auto_sw_update_package_name"`
 	GracefulRestartDisable  types.Bool                       `tfsdk:"graceful_restart_disable"`
+	Identifier              types.String                     `tfsdk:"identifier"`
+	MacPersistenceTimer     types.String                     `tfsdk:"mac_persistence_timer"`
 	NoSplitDetection        types.Bool                       `tfsdk:"no_split_detection"`
 	Preprovisioned          types.Bool                       `tfsdk:"preprovisioned"`
 	VcpNoHoldTime           types.Bool                       `tfsdk:"vcp_no_hold_time"`
-	ID                      types.String                     `tfsdk:"id"`
-	AutoSWUpdatePackageName types.String                     `tfsdk:"auto_sw_update_package_name"`
-	Identifier              types.String                     `tfsdk:"identifier"`
-	MacPersistenceTimer     types.String                     `tfsdk:"mac_persistence_timer"`
 	Alias                   []virtualChassisBlockAlias       `tfsdk:"alias"`
 	Member                  []virtualChassisBlockMember      `tfsdk:"member"`
 	Traceoptions            *virtualChassisBlockTraceoptions `tfsdk:"traceoptions"`
 }
 
 type virtualChassisConfig struct {
+	ID                      types.String                           `tfsdk:"id"`
 	AutoSWUpdate            types.Bool                             `tfsdk:"auto_sw_update"`
+	AutoSWUpdatePackageName types.String                           `tfsdk:"auto_sw_update_package_name"`
 	GracefulRestartDisable  types.Bool                             `tfsdk:"graceful_restart_disable"`
+	Identifier              types.String                           `tfsdk:"identifier"`
+	MacPersistenceTimer     types.String                           `tfsdk:"mac_persistence_timer"`
 	NoSplitDetection        types.Bool                             `tfsdk:"no_split_detection"`
 	Preprovisioned          types.Bool                             `tfsdk:"preprovisioned"`
 	VcpNoHoldTime           types.Bool                             `tfsdk:"vcp_no_hold_time"`
-	ID                      types.String                           `tfsdk:"id"`
-	AutoSWUpdatePackageName types.String                           `tfsdk:"auto_sw_update_package_name"`
-	Identifier              types.String                           `tfsdk:"identifier"`
-	MacPersistenceTimer     types.String                           `tfsdk:"mac_persistence_timer"`
 	Alias                   types.Set                              `tfsdk:"alias"`
 	Member                  types.List                             `tfsdk:"member"`
 	Traceoptions            *virtualChassisBlockTraceoptionsConfig `tfsdk:"traceoptions"`
@@ -352,10 +352,10 @@ type virtualChassisBlockAlias struct {
 }
 
 type virtualChassisBlockMember struct {
-	NoManagementVlan   types.Bool   `tfsdk:"no_management_vlan"`
 	ID                 types.Int64  `tfsdk:"id"`
 	Location           types.String `tfsdk:"location"`
 	MastershipPriority types.Int64  `tfsdk:"mastership_priority"`
+	NoManagementVlan   types.Bool   `tfsdk:"no_management_vlan"`
 	Role               types.String `tfsdk:"role"`
 	SerialNumber       types.String `tfsdk:"serial_number"`
 }
@@ -383,13 +383,13 @@ func (block *virtualChassisBlockTraceoptionsConfig) isEmpty() bool {
 }
 
 type virtualChassisBlockTraceoptionsBlockFile struct {
-	NoStamp         types.Bool   `tfsdk:"no_stamp"`
-	Replace         types.Bool   `tfsdk:"replace"`
-	WorldReadable   types.Bool   `tfsdk:"world_readable"`
-	NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
 	Name            types.String `tfsdk:"name"`
 	Files           types.Int64  `tfsdk:"files"`
+	NoStamp         types.Bool   `tfsdk:"no_stamp"`
+	Replace         types.Bool   `tfsdk:"replace"`
 	Size            types.Int64  `tfsdk:"size"`
+	WorldReadable   types.Bool   `tfsdk:"world_readable"`
+	NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
 }
 
 func (rsc *virtualChassis) ValidateConfig(

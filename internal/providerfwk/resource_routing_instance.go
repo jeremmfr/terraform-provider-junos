@@ -261,11 +261,10 @@ func (rsc *routingInstance) Schema(
 }
 
 type routingInstanceData struct {
-	ConfigureRDVrfOptSingly types.Bool     `tfsdk:"configure_rd_vrfopts_singly"`
-	ConfigureTypeSingly     types.Bool     `tfsdk:"configure_type_singly"`
-	VRFTargetAuto           types.Bool     `tfsdk:"vrf_target_auto"`
 	ID                      types.String   `tfsdk:"id"`
 	Name                    types.String   `tfsdk:"name"`
+	ConfigureRDVrfOptSingly types.Bool     `tfsdk:"configure_rd_vrfopts_singly"`
+	ConfigureTypeSingly     types.Bool     `tfsdk:"configure_type_singly"`
 	Type                    types.String   `tfsdk:"type"`
 	AS                      types.String   `tfsdk:"as"`
 	Description             types.String   `tfsdk:"description"`
@@ -276,6 +275,7 @@ type routingInstanceData struct {
 	VRFExport               []types.String `tfsdk:"vrf_export"`
 	VRFImport               []types.String `tfsdk:"vrf_import"`
 	VRFTarget               types.String   `tfsdk:"vrf_target"`
+	VRFTargetAuto           types.Bool     `tfsdk:"vrf_target_auto"`
 	VRFTargetExport         types.String   `tfsdk:"vrf_target_export"`
 	VRFTargetImport         types.String   `tfsdk:"vrf_target_import"`
 	VTEPSourceInterface     types.String   `tfsdk:"vtep_source_interface"`
@@ -283,11 +283,10 @@ type routingInstanceData struct {
 }
 
 type routingInstanceConfig struct {
-	ConfigureRDVrfOptSingly types.Bool   `tfsdk:"configure_rd_vrfopts_singly"`
-	ConfigureTypeSingly     types.Bool   `tfsdk:"configure_type_singly"`
-	VRFTargetAuto           types.Bool   `tfsdk:"vrf_target_auto"`
 	ID                      types.String `tfsdk:"id"`
 	Name                    types.String `tfsdk:"name"`
+	ConfigureRDVrfOptSingly types.Bool   `tfsdk:"configure_rd_vrfopts_singly"`
+	ConfigureTypeSingly     types.Bool   `tfsdk:"configure_type_singly"`
 	Type                    types.String `tfsdk:"type"`
 	AS                      types.String `tfsdk:"as"`
 	Description             types.String `tfsdk:"description"`
@@ -298,6 +297,7 @@ type routingInstanceConfig struct {
 	VRFExport               types.List   `tfsdk:"vrf_export"`
 	VRFImport               types.List   `tfsdk:"vrf_import"`
 	VRFTarget               types.String `tfsdk:"vrf_target"`
+	VRFTargetAuto           types.Bool   `tfsdk:"vrf_target_auto"`
 	VRFTargetExport         types.String `tfsdk:"vrf_target_export"`
 	VRFTargetImport         types.String `tfsdk:"vrf_target_import"`
 	VTEPSourceInterface     types.String `tfsdk:"vtep_source_interface"`

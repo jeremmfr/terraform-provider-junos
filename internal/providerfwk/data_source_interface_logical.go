@@ -265,12 +265,12 @@ func (dsc *interfaceLogicalDataSource) Schema(
 }
 
 type interfaceLogicalDataSourceData struct {
-	Disable                  types.Bool                        `tfsdk:"disable"`
 	ID                       types.String                      `tfsdk:"id"`
 	ConfigInterface          types.String                      `tfsdk:"config_interface"`
 	Match                    types.String                      `tfsdk:"match"`
 	Name                     types.String                      `tfsdk:"name"`
 	Description              types.String                      `tfsdk:"description"`
+	Disable                  types.Bool                        `tfsdk:"disable"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`

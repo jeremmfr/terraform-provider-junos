@@ -249,41 +249,41 @@ func upgradeInterfacePhysicalV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		NoDisableOnDestroy types.Bool     `tfsdk:"no_disable_on_destroy"`
-		Disable            types.Bool     `tfsdk:"disable"`
-		Trunk              types.Bool     `tfsdk:"trunk"`
-		VlanTagging        types.Bool     `tfsdk:"vlan_tagging"`
 		ID                 types.String   `tfsdk:"id"`
 		Name               types.String   `tfsdk:"name"`
+		NoDisableOnDestroy types.Bool     `tfsdk:"no_disable_on_destroy"`
 		Description        types.String   `tfsdk:"description"`
+		Disable            types.Bool     `tfsdk:"disable"`
 		Mtu                types.Int64    `tfsdk:"mtu"`
+		Trunk              types.Bool     `tfsdk:"trunk"`
 		VlanMembers        []types.String `tfsdk:"vlan_members"`
 		VlanNative         types.Int64    `tfsdk:"vlan_native"`
+		VlanTagging        types.Bool     `tfsdk:"vlan_tagging"`
 		ESI                []struct {
-			AutoDeriveLACP types.Bool   `tfsdk:"auto_derive_lacp"`
 			Mode           types.String `tfsdk:"mode"`
+			AutoDeriveLACP types.Bool   `tfsdk:"auto_derive_lacp"`
 			DFElectionType types.String `tfsdk:"df_election_type"`
 			Identifier     types.String `tfsdk:"identifier"`
 			SourceBMAC     types.String `tfsdk:"source_bmac"`
 		} `tfsdk:"esi"`
 		EtherOpts []struct {
+			Ae8023ad          types.String `tfsdk:"ae_8023ad"`
 			AutoNegotiation   types.Bool   `tfsdk:"auto_negotiation"`
 			NoAutoNegotiation types.Bool   `tfsdk:"no_auto_negotiation"`
 			FlowControl       types.Bool   `tfsdk:"flow_control"`
 			NoFlowControl     types.Bool   `tfsdk:"no_flow_control"`
 			Loopback          types.Bool   `tfsdk:"loopback"`
 			NoLoopback        types.Bool   `tfsdk:"no_loopback"`
-			Ae8023ad          types.String `tfsdk:"ae_8023ad"`
 			RedundantParent   types.String `tfsdk:"redundant_parent"`
 		} `tfsdk:"ether_opts"`
 		GigetherOpts []struct {
+			Ae8023ad          types.String `tfsdk:"ae_8023ad"`
 			AutoNegotiation   types.Bool   `tfsdk:"auto_negotiation"`
 			NoAutoNegotiation types.Bool   `tfsdk:"no_auto_negotiation"`
 			FlowControl       types.Bool   `tfsdk:"flow_control"`
 			NoFlowControl     types.Bool   `tfsdk:"no_flow_control"`
 			Loopback          types.Bool   `tfsdk:"loopback"`
 			NoLoopback        types.Bool   `tfsdk:"no_loopback"`
-			Ae8023ad          types.String `tfsdk:"ae_8023ad"`
 			RedundantParent   types.String `tfsdk:"redundant_parent"`
 		} `tfsdk:"gigether_opts"`
 		ParentEtherOpts []struct {
@@ -291,17 +291,16 @@ func upgradeInterfacePhysicalV0toV1(
 			NoFlowControl        types.Bool     `tfsdk:"no_flow_control"`
 			Loopback             types.Bool     `tfsdk:"loopback"`
 			NoLoopback           types.Bool     `tfsdk:"no_loopback"`
-			SourceFiltering      types.Bool     `tfsdk:"source_filtering"`
 			LinkSpeed            types.String   `tfsdk:"link_speed"`
 			MinimumBandwidth     types.String   `tfsdk:"minimum_bandwidth"`
 			MinimumLinks         types.Int64    `tfsdk:"minimum_links"`
 			RedundancyGroup      types.Int64    `tfsdk:"redundancy_group"`
 			SourceAddressFilter  []types.String `tfsdk:"source_address_filter"`
+			SourceFiltering      types.Bool     `tfsdk:"source_filtering"`
 			BFDLivenessDetection []struct {
-				AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
-				NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
 				LocalAddress                    types.String `tfsdk:"local_address"`
 				AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
+				AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
 				AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
 				DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
 				HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
@@ -309,6 +308,7 @@ func upgradeInterfacePhysicalV0toV1(
 				MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
 				Multiplier                      types.Int64  `tfsdk:"multiplier"`
 				Neighbor                        types.String `tfsdk:"neighbor"`
+				NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
 				TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
 				TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
 				Version                         types.String `tfsdk:"version"`

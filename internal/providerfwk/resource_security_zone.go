@@ -376,18 +376,18 @@ func (rsc *securityZone) Schema(
 }
 
 type securityZoneData struct {
-	AddressBookConfigureSingly       types.Bool                             `tfsdk:"address_book_configure_singly"`
-	ApplicationTracking              types.Bool                             `tfsdk:"application_tracking"`
-	ReverseReroute                   types.Bool                             `tfsdk:"reverse_reroute"`
-	SourceIdentityLog                types.Bool                             `tfsdk:"source_identity_log"`
-	TCPRst                           types.Bool                             `tfsdk:"tcp_rst"`
 	ID                               types.String                           `tfsdk:"id"`
 	Name                             types.String                           `tfsdk:"name"`
+	AddressBookConfigureSingly       types.Bool                             `tfsdk:"address_book_configure_singly"`
 	AdvancePolicyBasedRoutingProfile types.String                           `tfsdk:"advance_policy_based_routing_profile"`
+	ApplicationTracking              types.Bool                             `tfsdk:"application_tracking"`
 	Description                      types.String                           `tfsdk:"description"`
-	Screen                           types.String                           `tfsdk:"screen"`
 	InboundProtocols                 []types.String                         `tfsdk:"inbound_protocols"`
 	InboundServices                  []types.String                         `tfsdk:"inbound_services"`
+	ReverseReroute                   types.Bool                             `tfsdk:"reverse_reroute"`
+	Screen                           types.String                           `tfsdk:"screen"`
+	SourceIdentityLog                types.Bool                             `tfsdk:"source_identity_log"`
+	TCPRst                           types.Bool                             `tfsdk:"tcp_rst"`
 	AddressBook                      []securityZoneBlockAddressBook         `tfsdk:"address_book"`
 	AddressBookDNS                   []securityZoneBlockAddressBookDNS      `tfsdk:"address_book_dns"`
 	AddressBookRange                 []securityZoneBlockAddressBookRange    `tfsdk:"address_book_range"`
@@ -397,18 +397,18 @@ type securityZoneData struct {
 }
 
 type securityZoneConfig struct {
-	AddressBookConfigureSingly       types.Bool   `tfsdk:"address_book_configure_singly"`
-	ApplicationTracking              types.Bool   `tfsdk:"application_tracking"`
-	ReverseReroute                   types.Bool   `tfsdk:"reverse_reroute"`
-	SourceIdentityLog                types.Bool   `tfsdk:"source_identity_log"`
-	TCPRst                           types.Bool   `tfsdk:"tcp_rst"`
 	ID                               types.String `tfsdk:"id"`
 	Name                             types.String `tfsdk:"name"`
+	AddressBookConfigureSingly       types.Bool   `tfsdk:"address_book_configure_singly"`
 	AdvancePolicyBasedRoutingProfile types.String `tfsdk:"advance_policy_based_routing_profile"`
+	ApplicationTracking              types.Bool   `tfsdk:"application_tracking"`
 	Description                      types.String `tfsdk:"description"`
-	Screen                           types.String `tfsdk:"screen"`
 	InboundProtocols                 types.Set    `tfsdk:"inbound_protocols"`
 	InboundServices                  types.Set    `tfsdk:"inbound_services"`
+	ReverseReroute                   types.Bool   `tfsdk:"reverse_reroute"`
+	Screen                           types.String `tfsdk:"screen"`
+	SourceIdentityLog                types.Bool   `tfsdk:"source_identity_log"`
+	TCPRst                           types.Bool   `tfsdk:"tcp_rst"`
 	AddressBook                      types.Set    `tfsdk:"address_book"`
 	AddressBookDNS                   types.Set    `tfsdk:"address_book_dns"`
 	AddressBookRange                 types.Set    `tfsdk:"address_book_range"`

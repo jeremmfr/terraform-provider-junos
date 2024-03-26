@@ -24,6 +24,8 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   Name of the event to be generated.
+- **no_drift** (Optional, Boolean)  
+  Avoid event generation delay propagating to next event.
 - **start_time** (Optional, String)  
   Start-time to generate event (YYYY-MM-DD.HH:MM:SS).  
   `time_interval` need to be set.
@@ -31,8 +33,6 @@ The following arguments are supported:
   Frequency for generating the event (60..2592000 seconds).
 - **time_of_day** (Optional, String)  
   Time of day at which to generate event (HH:MM:SS).
-- **no_drift** (Optional, Boolean)  
-  Avoid event generation delay propagating to next event.
 
 ## Attribute Reference
 

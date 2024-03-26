@@ -165,20 +165,6 @@ func (rsc *forwardingoptionsSampling) Schema(
 									int64validator.Between(2, 10000),
 								},
 							},
-							"no_stamp": schema.BoolAttribute{
-								Optional:    true,
-								Description: "Don't timestamp every packet in the dump.",
-								Validators: []validator.Bool{
-									tfvalidator.BoolTrue(),
-								},
-							},
-							"no_world_readable": schema.BoolAttribute{
-								Optional:    true,
-								Description: "Don't allow any user to read the sampled dump.",
-								Validators: []validator.Bool{
-									tfvalidator.BoolTrue(),
-								},
-							},
 							"size": schema.Int64Attribute{
 								Optional:    true,
 								Description: "Maximum sample dump file size (1024..104857600).",
@@ -193,9 +179,23 @@ func (rsc *forwardingoptionsSampling) Schema(
 									tfvalidator.BoolTrue(),
 								},
 							},
+							"no_stamp": schema.BoolAttribute{
+								Optional:    true,
+								Description: "Don't timestamp every packet in the dump.",
+								Validators: []validator.Bool{
+									tfvalidator.BoolTrue(),
+								},
+							},
 							"world_readable": schema.BoolAttribute{
 								Optional:    true,
 								Description: "Allow any user to read the sampled dump.",
+								Validators: []validator.Bool{
+									tfvalidator.BoolTrue(),
+								},
+							},
+							"no_world_readable": schema.BoolAttribute{
+								Optional:    true,
+								Description: "Don't allow any user to read the sampled dump.",
 								Validators: []validator.Bool{
 									tfvalidator.BoolTrue(),
 								},
@@ -663,11 +663,11 @@ func (rsc *forwardingoptionsSampling) schemaOutputInterfaceAttributes() map[stri
 }
 
 type forwardingoptionsSamplingData struct {
+	ID                types.String                                     `tfsdk:"id"`
+	RoutingInstance   types.String                                     `tfsdk:"routing_instance"`
 	Disable           types.Bool                                       `tfsdk:"disable"`
 	PreRewriteTos     types.Bool                                       `tfsdk:"pre_rewrite_tos"`
 	SampleOnce        types.Bool                                       `tfsdk:"sample_once"`
-	ID                types.String                                     `tfsdk:"id"`
-	RoutingInstance   types.String                                     `tfsdk:"routing_instance"`
 	FamilyInetInput   *forwardingoptionsSamplingBlockInput             `tfsdk:"family_inet_input"`
 	FamilyInetOutput  *forwardingoptionsSamplingBlockFamilyInetOutput  `tfsdk:"family_inet_output"`
 	FamilyInet6Input  *forwardingoptionsSamplingBlockInput             `tfsdk:"family_inet6_input"`
@@ -678,11 +678,11 @@ type forwardingoptionsSamplingData struct {
 }
 
 type forwardingoptionsSamplingConfig struct {
+	ID                types.String                                           `tfsdk:"id"`
+	RoutingInstance   types.String                                           `tfsdk:"routing_instance"`
 	Disable           types.Bool                                             `tfsdk:"disable"`
 	PreRewriteTos     types.Bool                                             `tfsdk:"pre_rewrite_tos"`
 	SampleOnce        types.Bool                                             `tfsdk:"sample_once"`
-	ID                types.String                                           `tfsdk:"id"`
-	RoutingInstance   types.String                                           `tfsdk:"routing_instance"`
 	FamilyInetInput   *forwardingoptionsSamplingBlockInput                   `tfsdk:"family_inet_input"`
 	FamilyInetOutput  *forwardingoptionsSamplingBlockFamilyInetOutputConfig  `tfsdk:"family_inet_output"`
 	FamilyInet6Input  *forwardingoptionsSamplingBlockInput                   `tfsdk:"family_inet6_input"`
@@ -737,31 +737,31 @@ func (block *forwardingoptionsSamplingBlockFamilyInetOutputConfig) isEmpty() boo
 }
 
 type forwardingoptionsSamplingBlockFamilyInetOutputBlockFile struct {
-	Disable         types.Bool   `tfsdk:"disable"`
-	NoStamp         types.Bool   `tfsdk:"no_stamp"`
-	NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
-	Stamp           types.Bool   `tfsdk:"stamp"`
-	WorldReadable   types.Bool   `tfsdk:"world_readable"`
 	Filename        types.String `tfsdk:"filename"`
+	Disable         types.Bool   `tfsdk:"disable"`
 	Files           types.Int64  `tfsdk:"files"`
 	Size            types.Int64  `tfsdk:"size"`
+	Stamp           types.Bool   `tfsdk:"stamp"`
+	NoStamp         types.Bool   `tfsdk:"no_stamp"`
+	WorldReadable   types.Bool   `tfsdk:"world_readable"`
+	NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
 }
 
 //nolint:lll
 type forwardingoptionsSamplingBlockFamilyInetOutputBlockFlowServer struct {
+	Hostname                                         types.String `tfsdk:"hostname"`
+	Port                                             types.Int64  `tfsdk:"port"`
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 	AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
 	AggregationSourceDestinationPrefix               types.Bool   `tfsdk:"aggregation_source_destination_prefix"`
 	AggregationSourceDestinationPrefixCaidaCompliant types.Bool   `tfsdk:"aggregation_source_destination_prefix_caida_compliant"`
 	AggregationSourcePrefix                          types.Bool   `tfsdk:"aggregation_source_prefix"`
-	LocalDump                                        types.Bool   `tfsdk:"local_dump"`
-	NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
-	Hostname                                         types.String `tfsdk:"hostname"`
-	Port                                             types.Int64  `tfsdk:"port"`
 	AutonomousSystemType                             types.String `tfsdk:"autonomous_system_type"`
 	Dscp                                             types.Int64  `tfsdk:"dscp"`
 	ForwardingClass                                  types.String `tfsdk:"forwarding_class"`
+	LocalDump                                        types.Bool   `tfsdk:"local_dump"`
+	NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
 	RoutingInstance                                  types.String `tfsdk:"routing_instance"`
 	SourceAddress                                    types.String `tfsdk:"source_address"`
 	Version                                          types.Int64  `tfsdk:"version"`
@@ -816,19 +816,19 @@ func (block *forwardingoptionsSamplingBlockFamilyMplsOutputConfig) isEmpty() boo
 
 //nolint:lll
 type forwardingoptionsSamplingBlockOutputBlockFlowServer struct {
+	Hostname                                         types.String `tfsdk:"hostname"`
+	Port                                             types.Int64  `tfsdk:"port"`
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 	AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
 	AggregationSourceDestinationPrefix               types.Bool   `tfsdk:"aggregation_source_destination_prefix"`
 	AggregationSourceDestinationPrefixCaidaCompliant types.Bool   `tfsdk:"aggregation_source_destination_prefix_caida_compliant"`
 	AggregationSourcePrefix                          types.Bool   `tfsdk:"aggregation_source_prefix"`
-	LocalDump                                        types.Bool   `tfsdk:"local_dump"`
-	NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
-	Hostname                                         types.String `tfsdk:"hostname"`
-	Port                                             types.Int64  `tfsdk:"port"`
 	AutonomousSystemType                             types.String `tfsdk:"autonomous_system_type"`
 	Dscp                                             types.Int64  `tfsdk:"dscp"`
 	ForwardingClass                                  types.String `tfsdk:"forwarding_class"`
+	LocalDump                                        types.Bool   `tfsdk:"local_dump"`
+	NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
 	RoutingInstance                                  types.String `tfsdk:"routing_instance"`
 	SourceAddress                                    types.String `tfsdk:"source_address"`
 	Version9Template                                 types.String `tfsdk:"version9_template"`

@@ -448,38 +448,38 @@ func upgradeInterfaceLogicalV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		St0AlsoOnDestroy         types.Bool     `tfsdk:"st0_also_on_destroy"`
-		VlanNoCompute            types.Bool     `tfsdk:"vlan_no_compute"`
-		Disable                  types.Bool     `tfsdk:"disable"`
 		ID                       types.String   `tfsdk:"id"`
 		Name                     types.String   `tfsdk:"name"`
+		St0AlsoOnDestroy         types.Bool     `tfsdk:"st0_also_on_destroy"`
+		Disable                  types.Bool     `tfsdk:"disable"`
 		Description              types.String   `tfsdk:"description"`
 		RoutingInstance          types.String   `tfsdk:"routing_instance"`
 		SecurityInboundProtocols []types.String `tfsdk:"security_inbound_protocols"`
 		SecurityInboundServices  []types.String `tfsdk:"security_inbound_services"`
 		SecurityZone             types.String   `tfsdk:"security_zone"`
 		VlanID                   types.Int64    `tfsdk:"vlan_id"`
+		VlanNoCompute            types.Bool     `tfsdk:"vlan_no_compute"`
 		FamilyInet               []struct {
-			SamplingInput  types.Bool   `tfsdk:"sampling_input"`
-			SamplingOutput types.Bool   `tfsdk:"sampling_output"`
 			FilterInput    types.String `tfsdk:"filter_input"`
 			FilterOutput   types.String `tfsdk:"filter_output"`
 			Mtu            types.Int64  `tfsdk:"mtu"`
+			SamplingInput  types.Bool   `tfsdk:"sampling_input"`
+			SamplingOutput types.Bool   `tfsdk:"sampling_output"`
 			Address        []struct {
+				CidrIP    types.String `tfsdk:"cidr_ip"`
 				Preferred types.Bool   `tfsdk:"preferred"`
 				Primary   types.Bool   `tfsdk:"primary"`
-				CidrIP    types.String `tfsdk:"cidr_ip"`
 				VRRPGroup []struct {
-					AcceptData              types.Bool     `tfsdk:"accept_data"`
-					NoAcceptData            types.Bool     `tfsdk:"no_accept_data"`
-					Preempt                 types.Bool     `tfsdk:"preempt"`
-					NoPreempt               types.Bool     `tfsdk:"no_preempt"`
 					Identifier              types.Int64    `tfsdk:"identifier"`
 					VirtualAddress          []types.String `tfsdk:"virtual_address"`
+					AcceptData              types.Bool     `tfsdk:"accept_data"`
+					NoAcceptData            types.Bool     `tfsdk:"no_accept_data"`
 					AdvertiseInterval       types.Int64    `tfsdk:"advertise_interval"`
 					AdvertisementsThreshold types.Int64    `tfsdk:"advertisements_threshold"`
 					AuthenticationKey       types.String   `tfsdk:"authentication_key"`
 					AuthenticationType      types.String   `tfsdk:"authentication_type"`
+					Preempt                 types.Bool     `tfsdk:"preempt"`
+					NoPreempt               types.Bool     `tfsdk:"no_preempt"`
 					Priority                types.Int64    `tfsdk:"priority"`
 					TrackInterface          []struct {
 						Interface    types.String `tfsdk:"interface"`
@@ -494,23 +494,23 @@ func upgradeInterfaceLogicalV0toV1(
 			} `tfsdk:"address"`
 			DHCP []struct {
 				SrxOldOptionName                          types.Bool   `tfsdk:"srx_old_option_name"`
-				ClientIdentifierPrefixHostname            types.Bool   `tfsdk:"client_identifier_prefix_hostname"`
-				ClientIdentifierPrefixRoutingInstanceName types.Bool   `tfsdk:"client_identifier_prefix_routing_instance_name"`
-				ForceDiscover                             types.Bool   `tfsdk:"force_discover"`
-				LeaseTimeInfinite                         types.Bool   `tfsdk:"lease_time_infinite"`
-				NoDNSInstall                              types.Bool   `tfsdk:"no_dns_install"`
-				OptionsNoHostname                         types.Bool   `tfsdk:"options_no_hostname"`
-				UpdateServer                              types.Bool   `tfsdk:"update_server"`
 				ClientIdentifierASCII                     types.String `tfsdk:"client_identifier_ascii"`
 				ClientIdentifierHexadecimal               types.String `tfsdk:"client_identifier_hexadecimal"`
+				ClientIdentifierPrefixHostname            types.Bool   `tfsdk:"client_identifier_prefix_hostname"`
+				ClientIdentifierPrefixRoutingInstanceName types.Bool   `tfsdk:"client_identifier_prefix_routing_instance_name"`
 				ClientIdentifierUseInterfaceDescription   types.String `tfsdk:"client_identifier_use_interface_description"`
 				ClientIdentifierUseridASCII               types.String `tfsdk:"client_identifier_userid_ascii"`
 				ClientIdentifierUseridHexadecimal         types.String `tfsdk:"client_identifier_userid_hexadecimal"`
+				ForceDiscover                             types.Bool   `tfsdk:"force_discover"`
 				LeaseTime                                 types.Int64  `tfsdk:"lease_time"`
+				LeaseTimeInfinite                         types.Bool   `tfsdk:"lease_time_infinite"`
 				Metric                                    types.Int64  `tfsdk:"metric"`
+				NoDNSInstall                              types.Bool   `tfsdk:"no_dns_install"`
+				OptionsNoHostname                         types.Bool   `tfsdk:"options_no_hostname"`
 				RetransmissionAttempt                     types.Int64  `tfsdk:"retransmission_attempt"`
 				RetransmissionInterval                    types.Int64  `tfsdk:"retransmission_interval"`
 				ServerAddress                             types.String `tfsdk:"server_address"`
+				UpdateServer                              types.Bool   `tfsdk:"update_server"`
 				VendorID                                  types.String `tfsdk:"vendor_id"`
 			} `tfsdk:"dhcp"`
 			RPFCheck []struct {
@@ -520,25 +520,25 @@ func upgradeInterfaceLogicalV0toV1(
 		} `tfsdk:"family_inet"`
 		FamilyInet6 []struct {
 			DadDisable     types.Bool   `tfsdk:"dad_disable"`
-			SamplingInput  types.Bool   `tfsdk:"sampling_input"`
-			SamplingOutput types.Bool   `tfsdk:"sampling_output"`
 			FilterInput    types.String `tfsdk:"filter_input"`
 			FilterOutput   types.String `tfsdk:"filter_output"`
 			Mtu            types.Int64  `tfsdk:"mtu"`
+			SamplingInput  types.Bool   `tfsdk:"sampling_input"`
+			SamplingOutput types.Bool   `tfsdk:"sampling_output"`
 			Address        []struct {
+				CidrIP    types.String `tfsdk:"cidr_ip"`
 				Preferred types.Bool   `tfsdk:"preferred"`
 				Primary   types.Bool   `tfsdk:"primary"`
-				CidrIP    types.String `tfsdk:"cidr_ip"`
 				VRRPGroup []struct {
-					AcceptData              types.Bool     `tfsdk:"accept_data"`
-					NoAcceptData            types.Bool     `tfsdk:"no_accept_data"`
-					Preempt                 types.Bool     `tfsdk:"preempt"`
-					NoPreempt               types.Bool     `tfsdk:"no_preempt"`
 					Identifier              types.Int64    `tfsdk:"identifier"`
 					VirtualAddress          []types.String `tfsdk:"virtual_address"`
 					VirutalLinkLocalAddress types.String   `tfsdk:"virtual_link_local_address"`
+					AcceptData              types.Bool     `tfsdk:"accept_data"`
+					NoAcceptData            types.Bool     `tfsdk:"no_accept_data"`
 					AdvertiseInterval       types.Int64    `tfsdk:"advertise_interval"`
 					AdvertisementsThreshold types.Int64    `tfsdk:"advertisements_threshold"`
+					Preempt                 types.Bool     `tfsdk:"preempt"`
+					NoPreempt               types.Bool     `tfsdk:"no_preempt"`
 					Priority                types.Int64    `tfsdk:"priority"`
 					TrackInterface          []struct {
 						Interface    types.String `tfsdk:"interface"`
@@ -552,14 +552,14 @@ func upgradeInterfaceLogicalV0toV1(
 				} `tfsdk:"vrrp_group"`
 			} `tfsdk:"address"`
 			DHCPv6Client []struct {
+				ClientIdentifierDuidType              types.String   `tfsdk:"client_identifier_duid_type"`
+				ClientType                            types.String   `tfsdk:"client_type"`
 				ClientIATypeNA                        types.Bool     `tfsdk:"client_ia_type_na"`
 				ClientIATypePD                        types.Bool     `tfsdk:"client_ia_type_pd"`
 				NoDNSInstall                          types.Bool     `tfsdk:"no_dns_install"`
-				RapidCommit                           types.Bool     `tfsdk:"rapid_commit"`
-				ClientIdentifierDuidType              types.String   `tfsdk:"client_identifier_duid_type"`
-				ClientType                            types.String   `tfsdk:"client_type"`
 				PrefixDelegatingPreferredPrefixLength types.Int64    `tfsdk:"prefix_delegating_preferred_prefix_length"`
 				PrefixDelegatingSubPrefixLength       types.Int64    `tfsdk:"prefix_delegating_sub_prefix_length"`
+				RapidCommit                           types.Bool     `tfsdk:"rapid_commit"`
 				ReqOption                             []types.String `tfsdk:"req_option"`
 				RetransmissionAttempt                 types.Int64    `tfsdk:"retransmission_attempt"`
 				UpdateRouterAdvertisementInterface    []types.String `tfsdk:"update_router_advertisement_interface"`
@@ -571,13 +571,13 @@ func upgradeInterfaceLogicalV0toV1(
 			} `tfsdk:"rpf_check"`
 		} `tfsdk:"family_inet6"`
 		Tunnel []struct {
-			AllowFragmentation         types.Bool   `tfsdk:"allow_fragmentation"`
-			DoNotFragment              types.Bool   `tfsdk:"do_not_fragment"`
-			PathMtuDiscovery           types.Bool   `tfsdk:"path_mtu_discovery"`
-			NoPathMtuDiscovery         types.Bool   `tfsdk:"no_path_mtu_discovery"`
 			Destination                types.String `tfsdk:"destination"`
 			Source                     types.String `tfsdk:"source"`
+			AllowFragmentation         types.Bool   `tfsdk:"allow_fragmentation"`
+			DoNotFragment              types.Bool   `tfsdk:"do_not_fragment"`
 			FlowLabel                  types.Int64  `tfsdk:"flow_label"`
+			PathMtuDiscovery           types.Bool   `tfsdk:"path_mtu_discovery"`
+			NoPathMtuDiscovery         types.Bool   `tfsdk:"no_path_mtu_discovery"`
 			RoutingInstanceDestination types.String `tfsdk:"routing_instance_destination"`
 			TrafficClass               types.Int64  `tfsdk:"traffic_class"`
 			TTL                        types.Int64  `tfsdk:"ttl"`

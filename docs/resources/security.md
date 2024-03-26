@@ -175,12 +175,12 @@ The following arguments are supported:
   Maximum number of trace files (2..1000).
 - **match** (Optional, String)  
   Regular expression for lines to be logged.
-- **no_world_readable** (Optional, Boolean)  
-  Don't allow any user to read the log file.
 - **size** (Optional, Number)  
   Maximum trace file size (10240..1073741824).
 - **world_readable** (Optional, Boolean)  
   Allow any user to read the log file.
+- **no_world_readable** (Optional, Boolean)  
+  Don't allow any user to read the log file.
 
 ---
 

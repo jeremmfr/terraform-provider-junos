@@ -68,9 +68,9 @@ func upgradeFirewallPolicerStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		FilterSpecific types.Bool   `tfsdk:"filter_specific"`
 		ID             types.String `tfsdk:"id"`
 		Name           types.String `tfsdk:"name"`
+		FilterSpecific types.Bool   `tfsdk:"filter_specific"`
 		IfExceeding    []struct {
 			BurstSizeLimit   types.String `tfsdk:"burst_size_limit"`
 			BandwidthPercent types.Int64  `tfsdk:"bandwidth_percent"`
@@ -78,9 +78,9 @@ func upgradeFirewallPolicerStateV0toV1(
 		} `tfsdk:"if_exceeding"`
 		Then []struct {
 			Discard         types.Bool   `tfsdk:"discard"`
-			OutOfProfile    types.Bool   `tfsdk:"out_of_profile"`
 			ForwardingClass types.String `tfsdk:"forwarding_class"`
 			LossPriority    types.String `tfsdk:"loss_priority"`
+			OutOfProfile    types.Bool   `tfsdk:"out_of_profile"`
 		} `tfsdk:"then"`
 	}
 

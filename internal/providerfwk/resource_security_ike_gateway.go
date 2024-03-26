@@ -374,14 +374,14 @@ func (rsc *securityIkeGateway) Schema(
 }
 
 type securityIkeGatewayData struct {
-	GeneralIkeID      types.Bool                                `tfsdk:"general_ike_id"`
-	NoNatTraversal    types.Bool                                `tfsdk:"no_nat_traversal"`
 	ID                types.String                              `tfsdk:"id"`
 	Name              types.String                              `tfsdk:"name"`
 	ExternalInterface types.String                              `tfsdk:"external_interface"`
 	Policy            types.String                              `tfsdk:"policy"`
 	Address           []types.String                            `tfsdk:"address"`
+	GeneralIkeID      types.Bool                                `tfsdk:"general_ike_id"`
 	LocalAddress      types.String                              `tfsdk:"local_address"`
+	NoNatTraversal    types.Bool                                `tfsdk:"no_nat_traversal"`
 	Version           types.String                              `tfsdk:"version"`
 	Aaa               *securityIkeGatewayBlockAaa               `tfsdk:"aaa"`
 	DeadPeerDetection *securityIkeGatewayBlockDeadPeerDetection `tfsdk:"dead_peer_detection"`
@@ -391,14 +391,14 @@ type securityIkeGatewayData struct {
 }
 
 type securityIkeGatewayConfig struct {
-	GeneralIkeID      types.Bool                                `tfsdk:"general_ike_id"`
-	NoNatTraversal    types.Bool                                `tfsdk:"no_nat_traversal"`
 	ID                types.String                              `tfsdk:"id"`
 	Name              types.String                              `tfsdk:"name"`
 	ExternalInterface types.String                              `tfsdk:"external_interface"`
 	Policy            types.String                              `tfsdk:"policy"`
 	Address           types.List                                `tfsdk:"address"`
+	GeneralIkeID      types.Bool                                `tfsdk:"general_ike_id"`
 	LocalAddress      types.String                              `tfsdk:"local_address"`
+	NoNatTraversal    types.Bool                                `tfsdk:"no_nat_traversal"`
 	Version           types.String                              `tfsdk:"version"`
 	Aaa               *securityIkeGatewayBlockAaa               `tfsdk:"aaa"`
 	DeadPeerDetection *securityIkeGatewayBlockDeadPeerDetection `tfsdk:"dead_peer_detection"`

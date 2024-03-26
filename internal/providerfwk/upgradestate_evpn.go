@@ -73,18 +73,18 @@ func upgradeEvpnV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		RoutingInstanceEvpn types.Bool   `tfsdk:"routing_instance_evpn"`
 		ID                  types.String `tfsdk:"id"`
 		RoutingInstance     types.String `tfsdk:"routing_instance"`
 		Encapsulation       types.String `tfsdk:"encapsulation"`
 		DefaultGateway      types.String `tfsdk:"default_gateway"`
 		MulticastMode       types.String `tfsdk:"multicast_mode"`
+		RoutingInstanceEvpn types.Bool   `tfsdk:"routing_instance_evpn"`
 		SwitchOrRIOptions   []struct {
-			VRFTargetAuto      types.Bool     `tfsdk:"vrf_target_auto"`
 			RouteDistinguisher types.String   `tfsdk:"route_distinguisher"`
 			VRFExport          []types.String `tfsdk:"vrf_export"`
 			VRFImport          []types.String `tfsdk:"vrf_import"`
 			VRFTarget          types.String   `tfsdk:"vrf_target"`
+			VRFTargetAuto      types.Bool     `tfsdk:"vrf_target_auto"`
 			VRFTargetExport    types.String   `tfsdk:"vrf_target_export"`
 			VRFTargetImport    types.String   `tfsdk:"vrf_target_import"`
 		} `tfsdk:"switch_or_ri_options"`
