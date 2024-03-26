@@ -45,7 +45,7 @@ func (rsc *iccpPeer) typeName() string {
 }
 
 func (rsc *iccpPeer) junosName() string {
-	return "protocols iccp peer"
+	return "iccp peer"
 }
 
 func (rsc *iccpPeer) junosClient() *junos.Client {
