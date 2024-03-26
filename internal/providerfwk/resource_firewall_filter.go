@@ -1944,7 +1944,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 }
 
 func (block *firewallFilterBlockTermBlockThen) configSet(setPrefix string) []string {
-	configSet := make([]string, 0, 100)
+	configSet := make([]string, 0, 1)
 	setPrefix += "then "
 
 	if v := block.Action.ValueString(); v != "" {
