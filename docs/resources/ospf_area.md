@@ -25,19 +25,19 @@ resource "junos_ospf_area" "demo_area" {
 The following arguments are supported:
 
 - **area_id** (Required, String, Forces new resource)  
-  The id of ospf area.
-- **routing_instance** (Optional, String, Forces new resource)  
-  Routing instance for area.  
-  Need to be `default` or name of routing instance.  
-  Defaults to `default`.
-- **realm** (Optional, String, Forces new resource)  
-  OSPFv3 realm configuration.  
-  Need to be `ipv4-unicast`, `ipv4-multicast` or `ipv6-multicast`.  
-  `version` need to be `v3`.
+  Area ID.
 - **version** (Optional, String, Forces new resource)  
   Version of ospf.  
   Need to be `v2` or `v3`.  
   Defaults to `v2`.
+- **realm** (Optional, String, Forces new resource)  
+  OSPFv3 realm configuration.  
+  Need to be `ipv4-unicast`, `ipv4-multicast` or `ipv6-multicast`.  
+  `version` need to be `v3`.
+- **routing_instance** (Optional, String, Forces new resource)  
+  Routing instance for ospf area.  
+  Need to be `default` or name of routing instance.  
+  Defaults to `default`.
 - **interface** (Required, Block List)  
   For each interface or interface-range to declare.
   - **name** (Required, String)  
@@ -68,7 +68,8 @@ The following arguments are supported:
   - **hello_interval** (Optional, Number)  
     Hello interval (seconds).
   - **interface_type** (Optional, String)  
-    Type of interface.
+    Type of interface.  
+    Need to be `nbma`, `p2mp`, `p2mp-over-lan` or `p2p`.
   - **ipsec_sa** (Optional, String)  
     IPSec security association name.
   - **ipv4_adjacency_segment_protected_type** (Optional, String)  
@@ -117,11 +118,11 @@ The following arguments are supported:
   - **secondary** (Optional, Boolean)  
     Treat interface as secondary.
   - **strict_bfd** (Optional, Boolean)  
-    Enable strict bfd over this interface
+    Enable strict bfd over this interface.
   - **te_metric** (Optional, Number)  
     Traffic engineering metric (1..4294967295).
   - **transit_delay** (Optional, Number)  
-    Transit delay (seconds) (1..65535).
+    Transit delay (1..65535 seconds).
 - **area_range** (Optional, Block Set)  
   For each `range`, configure area range.  
   See [below for nested schema](#area_range-arguments).
@@ -129,15 +130,19 @@ The following arguments are supported:
   Configure context identifier in support of edge protection.  
   Conflict with `no_context_identifier_advertisement`.
 - **inter_area_prefix_export** (Optional, List of String)  
-  Export policy for Inter Area Prefix LSAs.
+  Export policy for Inter Area Prefix LSAs.  
+  `version` need to be `v3`.
 - **inter_area_prefix_import** (Optional, List of String)  
-  Import policy for Inter Area Prefix LSAs.
+  Import policy for Inter Area Prefix LSAs.  
+  `version` need to be `v3`.
 - **network_summary_export** (Optional, List of String)  
-  Export policy for Type 3 Summary LSAs.
+  Export policy for Type 3 Summary LSAs.  
+  `version` need to be `v2`.
 - **network_summary_import** (Optional, List of String)  
-  Import policy for Type 3 Summary LSAs.
+  Import policy for Type 3 Summary LSAs.  
+  `version` need to be `v2`.
 - **no_context_identifier_advertisement** (Optional, Boolean)  
-  Disable context identifier advertisments in this area.  
+  Disable context identifier advertisements in this area.  
   Conflict with `context_identifier`.
 - **nssa** (Optional, Block)  
   Configure a not-so-stubby area.  
@@ -148,19 +153,19 @@ The following arguments are supported:
   - **default_lsa** (Optional, Block)  
     Configure a default LSA.  
     See [below for nested schema](#default_lsa-arguments-for-nssa).
-  - **no_summaries** (Optional, Boolean)  
-    Don't flood summary LSAs into this NSSA area.
   - **summaries** (Optional, Boolean)  
     Flood summary LSAs into this NSSA area.
+  - **no_summaries** (Optional, Boolean)  
+    Don't flood summary LSAs into this NSSA area.
 - **stub** (Optional, Block)  
   Configure a stub area.  
   Conflict with `nssa`.
   - **default_metric** (Optional, Number)  
     Metric for the default route in this stub area (1..16777215).
-  - **no_summaries** (Optional, Boolean)  
-    Don't flood summary LSAs into this stub area.
   - **summaries** (Optional, Boolean)  
     Flood summary LSAs into this stub area.
+  - **no_summaries** (Optional, Boolean)  
+    Don't flood summary LSAs into this stub area.
 - **virtual_link** (Optional, Block Set)  
   For each combination of `neighbor_id` and `transit_area`, configure virtual link.
   - **neighbor_id** (Required, String)  
@@ -170,7 +175,7 @@ The following arguments are supported:
     Transit area in common with virtual neighbor.  
     Need to be in IPv4 format.
   - **dead_interval** (Optional, Number)  
-    Dead interval (seconds) (1..65535).
+    Dead interval (1..65535 seconds).
   - **demand_circuit** (Optional, Boolean)  
     Interface functions as a demand circuit.
   - **disable** (Optional, Boolean)  
@@ -178,15 +183,15 @@ The following arguments are supported:
   - **flood_reduction** (Optional, Boolean)  
     Enable flood reduction.
   - **hello_interval** (Optional, Number)  
-    Hello interval (seconds) (1..255).
+    Hello interval (1..255 seconds).
   - **ipsec_sa** (Optional, String)  
     IPSec security association name.
   - **mtu** (Optional, Number)  
     Maximum OSPF packet size (128..65535).
   - **retransmit_interval** (Optional, Number)  
-    Retransmission interval (seconds) (1..65535).
+    Retransmission interval (1..65535 seconds).
   - **transit_delay** (Optional, Number)  
-    Transit delay (seconds) (1..65535).
+    Transit delay (1..65535 seconds).
 
 ---
 
