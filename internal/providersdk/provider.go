@@ -167,24 +167,36 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"junos_access_address_assignment_pool":                       resourceAccessAddressAssignPool(),
-			"junos_chassis_cluster":                                      resourceChassisCluster(),
-			"junos_chassis_redundancy":                                   resourceChassisRedundancy(),
-			"junos_forwardingoptions_dhcprelay":                          resourceForwardingOptionsDhcpRelay(),
-			"junos_forwardingoptions_dhcprelay_group":                    resourceForwardingOptionsDhcpRelayGroup(),
-			"junos_forwardingoptions_dhcprelay_servergroup":              resourceForwardingOptionsDhcpRelayServerGroup(),
-			"junos_group_dual_system":                                    resourceGroupDualSystem(),
-			"junos_igmp_snooping_vlan":                                   resourceIgmpSnoopingVlan(),
-			"junos_layer2_control":                                       resourceLayer2Control(),
-			"junos_lldp_interface":                                       resourceLldpInterface(),
-			"junos_lldpmed_interface":                                    resourceLldpMedInterface(),
-			"junos_null_commit_file":                                     resourceNullCommitFile(),
-			"junos_rib_group":                                            resourceRibGroup(),
-			"junos_rip_group":                                            resourceRipGroup(),
-			"junos_rip_neighbor":                                         resourceRipNeighbor(),
-			"junos_routing_options":                                      resourceRoutingOptions(),
-			"junos_rstp":                                                 resourceRstp(),
-			"junos_rstp_interface":                                       resourceRstpInterface(),
+			"junos_access_address_assignment_pool": resourceAccessAddressAssignPool(),
+
+			"junos_chassis_cluster":    resourceChassisCluster(),
+			"junos_chassis_redundancy": resourceChassisRedundancy(),
+
+			"junos_forwardingoptions_dhcprelay":             resourceForwardingOptionsDhcpRelay(),
+			"junos_forwardingoptions_dhcprelay_group":       resourceForwardingOptionsDhcpRelayGroup(),
+			"junos_forwardingoptions_dhcprelay_servergroup": resourceForwardingOptionsDhcpRelayServerGroup(),
+
+			"junos_group_dual_system": resourceGroupDualSystem(),
+
+			"junos_igmp_snooping_vlan": resourceIgmpSnoopingVlan(),
+
+			"junos_layer2_control": resourceLayer2Control(),
+
+			"junos_lldp_interface":    resourceLldpInterface(),
+			"junos_lldpmed_interface": resourceLldpMedInterface(),
+
+			"junos_null_commit_file": resourceNullCommitFile(),
+
+			"junos_rib_group": resourceRibGroup(),
+
+			"junos_rip_group":    resourceRipGroup(),
+			"junos_rip_neighbor": resourceRipNeighbor(),
+
+			"junos_routing_options": resourceRoutingOptions(),
+
+			"junos_rstp":           resourceRstp(),
+			"junos_rstp_interface": resourceRstpInterface(),
+
 			"junos_security_dynamic_address_feed_server":                 resourceSecurityDynamicAddressFeedServer(),
 			"junos_security_dynamic_address_name":                        resourceSecurityDynamicAddressName(),
 			"junos_security_idp_custom_attack":                           resourceSecurityIdpCustomAttack(),
@@ -199,7 +211,9 @@ func Provider() *schema.Provider {
 			"junos_security_utm_profile_web_filtering_juniper_enhanced":  resourceSecurityUtmProfileWebFilteringEnhanced(),
 			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
 			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
-			"junos_services":                                             resourceServices(),
+
+			"junos_services": resourceServices(),
+
 			"junos_services_advanced_anti_malware_policy":                resourceServicesAdvancedAntiMalwarePolicy(),
 			"junos_services_proxy_profile":                               resourceServicesProxyProfile(),
 			"junos_services_rpm_probe":                                   resourceServicesRpmProbe(),
@@ -208,12 +222,15 @@ func Provider() *schema.Provider {
 			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_services_user_identification_ad_access_domain":        resourceServicesUserIdentAdAccessDomain(),
 			"junos_services_user_identification_device_identity_profile": resourceServicesUserIdentDeviceIdentityProfile(),
-			"junos_system_login_class":                                   resourceSystemLoginClass(),
-			"junos_system_login_user":                                    resourceSystemLoginUser(),
-			"junos_system_ntp_server":                                    resourceSystemNtpServer(),
-			"junos_system_root_authentication":                           resourceSystemRootAuthentication(),
-			"junos_system_services_dhcp_localserver_group":               resourceSystemServicesDhcpLocalServerGroup(),
-			"junos_vlan":            resourceVlan(),
+
+			"junos_system_login_class":                     resourceSystemLoginClass(),
+			"junos_system_login_user":                      resourceSystemLoginUser(),
+			"junos_system_ntp_server":                      resourceSystemNtpServer(),
+			"junos_system_root_authentication":             resourceSystemRootAuthentication(),
+			"junos_system_services_dhcp_localserver_group": resourceSystemServicesDhcpLocalServerGroup(),
+
+			"junos_vlan": resourceVlan(),
+
 			"junos_vstp":            resourceVstp(),
 			"junos_vstp_interface":  resourceVstpInterface(),
 			"junos_vstp_vlan":       resourceVstpVlan(),
