@@ -179,7 +179,6 @@ func Provider() *schema.Provider {
 			"junos_lldp_interface":                                       resourceLldpInterface(),
 			"junos_lldpmed_interface":                                    resourceLldpMedInterface(),
 			"junos_null_commit_file":                                     resourceNullCommitFile(),
-			"junos_ospf":                                                 resourceOspf(),
 			"junos_rib_group":                                            resourceRibGroup(),
 			"junos_rip_group":                                            resourceRipGroup(),
 			"junos_rip_neighbor":                                         resourceRipNeighbor(),
