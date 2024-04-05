@@ -427,25 +427,25 @@ func (rsc *virtualChassis) ValidateConfig(
 				continue
 			}
 
-			if _, ok := aliasSerialNumber[block.SerialNumber.ValueString()]; ok {
+			serialNumber := block.SerialNumber.ValueString()
+			if _, ok := aliasSerialNumber[serialNumber]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("alias"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple alias blocks with the same serial_number %q",
-						block.SerialNumber.ValueString()),
+					fmt.Sprintf("multiple alias blocks with the same serial_number %q", serialNumber),
 				)
 			}
-			aliasSerialNumber[block.AliasName.ValueString()] = struct{}{}
+			aliasSerialNumber[serialNumber] = struct{}{}
 
-			if _, ok := aliasAliasName[block.AliasName.ValueString()]; ok {
+			aliasName := block.AliasName.ValueString()
+			if _, ok := aliasAliasName[aliasName]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("alias"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple alias blocks with the same alias_name %q",
-						block.AliasName.ValueString()),
+					fmt.Sprintf("multiple alias blocks with the same alias_name %q", aliasName),
 				)
 			}
-			aliasAliasName[block.AliasName.ValueString()] = struct{}{}
+			aliasAliasName[aliasName] = struct{}{}
 		}
 	}
 	if !config.Member.IsNull() && !config.Member.IsUnknown() {
@@ -460,15 +460,15 @@ func (rsc *virtualChassis) ValidateConfig(
 		memberID := make(map[int64]struct{})
 		for i, block := range configMember {
 			if !block.ID.IsUnknown() {
-				if _, ok := memberID[block.ID.ValueInt64()]; ok {
+				id := block.ID.ValueInt64()
+				if _, ok := memberID[id]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("member").AtListIndex(i).AtName("id"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple member blocks with the same id %d",
-							block.ID.ValueInt64()),
+						fmt.Sprintf("multiple member blocks with the same id %d", id),
 					)
 				}
-				memberID[block.ID.ValueInt64()] = struct{}{}
+				memberID[id] = struct{}{}
 			}
 			if block.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
@@ -639,14 +639,13 @@ func (rscData *virtualChassisData) set(
 	aliasAliasName := make(map[string]struct{})
 	for _, block := range rscData.Alias {
 		serialNumber := block.SerialNumber.ValueString()
-		aliasName := block.AliasName.ValueString()
-
 		if _, ok := aliasSerialNumber[serialNumber]; ok {
 			return path.Root("alias"),
 				fmt.Errorf("multiple alias blocks with the same serial_number %q", serialNumber)
 		}
 		aliasSerialNumber[serialNumber] = struct{}{}
 
+		aliasName := block.AliasName.ValueString()
 		if _, ok := aliasAliasName[aliasName]; ok {
 			return path.Root("alias"),
 				fmt.Errorf("multiple alias blocks with the same alias_name %q", aliasName)

@@ -1047,8 +1047,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 					resp.Diagnostics.AddAttributeError(
 						path.Root("parent_ether_opts").AtName("*"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("parent_ether_opts not compatible with this interface %q "+
-							"(need to be ae* or reth* interface)", v),
+						fmt.Sprintf("parent_ether_opts not compatible with this interface %q"+
+							" (need to be ae* or reth* interface)", v),
 					)
 				}
 			}
@@ -1109,8 +1109,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 					resp.Diagnostics.AddAttributeError(
 						path.Root("parent_ether_opts").AtName("mc_ae").AtName("*"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("mc_ae in parent_ether_opts block not compatible with this interface %q "+
-							"(need to be ae* interface)", v),
+						fmt.Sprintf("mc_ae in parent_ether_opts block not compatible with this interface %q"+
+							" (need to be ae* interface)", v),
 					)
 				}
 			}
@@ -1149,8 +1149,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 					resp.Diagnostics.AddAttributeError(
 						path.Root("parent_ether_opts").AtName("redundancy_group"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("redundancy_group in parent_ether_opts block not compatible with this interface %q "+
-							"(need to be reth* interface)", v),
+						fmt.Sprintf("redundancy_group in parent_ether_opts block not compatible with this interface %q"+
+							" (need to be reth* interface)", v),
 					)
 				}
 			}
@@ -1971,8 +1971,8 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 	default:
 		return configSet,
 			path.Root("parent_ether_opts").AtName("*"),
-			fmt.Errorf("parent_ether_opts not compatible with this interface %q "+
-				"(need to be ae* or reth* interface)", interfaceName)
+			fmt.Errorf("parent_ether_opts not compatible with this interface %q"+
+				" (need to be ae* or reth* interface)", interfaceName)
 	}
 
 	if block.BFDLivenessDetection != nil {
@@ -2067,8 +2067,8 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 		if !strings.HasPrefix(interfaceName, "ae") {
 			return configSet,
 				path.Root("parent_ether_opts").AtName("mc_ae").AtName("*"),
-				fmt.Errorf("mc_ae in parent_ether_opts block not compatible with this interface %q "+
-					"(need to be ae* interface)", interfaceName)
+				fmt.Errorf("mc_ae in parent_ether_opts block not compatible with this interface %q"+
+					" (need to be ae* interface)", interfaceName)
 		}
 		configSet = append(configSet, setPrefix+"mc-ae chassis-id "+
 			utils.ConvI64toa(block.MCAE.ChassisID.ValueInt64()))
@@ -2121,8 +2121,8 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 		if !strings.HasPrefix(interfaceName, "reth") {
 			return configSet,
 				path.Root("parent_ether_opts").AtName("redundancy_group"),
-				fmt.Errorf("redundancy_group in parent_ether_opts block not compatible with this interface %q "+
-					"(need to be reth* interface)", interfaceName)
+				fmt.Errorf("redundancy_group in parent_ether_opts block not compatible with this interface %q"+
+					" (need to be reth* interface)", interfaceName)
 		}
 		configSet = append(configSet, setPrefix+"redundancy-group "+
 			utils.ConvI64toa(block.RedundancyGroup.ValueInt64()))

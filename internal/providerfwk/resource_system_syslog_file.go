@@ -515,9 +515,8 @@ func (rsc *systemSyslogFile) ValidateConfig(
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple sites blocks with the same url %q in archive block", url),
 					)
-				} else {
-					sitesURL[url] = struct{}{}
 				}
+				sitesURL[url] = struct{}{}
 			}
 		}
 	}

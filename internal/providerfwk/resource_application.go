@@ -670,6 +670,7 @@ func (rscData *applicationData) set(
 				fmt.Errorf("multiple term blocks with the same name %q", name)
 		}
 		termName[name] = struct{}{}
+
 		blockSet, pathErr, err := block.configSet(setPrefix, path.Root("term").AtListIndex(i))
 		if err != nil {
 			return pathErr, err

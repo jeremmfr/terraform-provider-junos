@@ -900,15 +900,16 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if block.Hostname.IsUnknown() {
 					continue
 				}
-				if _, ok := flowServerHostname[block.Hostname.ValueString()]; ok {
+				hostname := block.Hostname.ValueString()
+				if _, ok := flowServerHostname[hostname]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet_output").AtName("flow_server"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple flow_server blocks with the same hostname %q in family_inet_output block",
-							block.Hostname.ValueString()),
+						fmt.Sprintf("multiple flow_server blocks with the same hostname %q"+
+							" in family_inet_output block", hostname),
 					)
 				}
-				flowServerHostname[block.Hostname.ValueString()] = struct{}{}
+				flowServerHostname[hostname] = struct{}{}
 			}
 		}
 		if !config.FamilyInetOutput.Interface.IsNull() && !config.FamilyInetOutput.Interface.IsUnknown() {
@@ -924,15 +925,16 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if block.Name.IsUnknown() {
 					continue
 				}
-				if _, ok := interfaceName[block.Name.ValueString()]; ok {
+				name := block.Name.ValueString()
+				if _, ok := interfaceName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet_output").AtName("interface").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple interface blocks with the same name %q in family_inet_output block",
-							block.Name.ValueString()),
+						fmt.Sprintf("multiple interface blocks with the same name %q"+
+							" in family_inet_output block", name),
 					)
 				}
-				interfaceName[block.Name.ValueString()] = struct{}{}
+				interfaceName[name] = struct{}{}
 			}
 		}
 	}
@@ -972,15 +974,16 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if block.Hostname.IsUnknown() {
 					continue
 				}
-				if _, ok := flowServerHostname[block.Hostname.ValueString()]; ok {
+				hostname := block.Hostname.ValueString()
+				if _, ok := flowServerHostname[hostname]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet6_output").AtName("flow_server"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple flow_server blocks with the same hostname %q in family_inet6_output block",
-							block.Hostname.ValueString()),
+						fmt.Sprintf("multiple flow_server blocks with the same hostname %q"+
+							" in family_inet6_output block", hostname),
 					)
 				}
-				flowServerHostname[block.Hostname.ValueString()] = struct{}{}
+				flowServerHostname[hostname] = struct{}{}
 			}
 		}
 		if !config.FamilyInet6Output.Interface.IsNull() && !config.FamilyInet6Output.Interface.IsUnknown() {
@@ -996,15 +999,16 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if block.Name.IsUnknown() {
 					continue
 				}
-				if _, ok := interfaceName[block.Name.ValueString()]; ok {
+				name := block.Name.ValueString()
+				if _, ok := interfaceName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_inet6_output").AtName("interface").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple interface blocks with the same name %q in family_inet6_output block",
-							block.Name.ValueString()),
+						fmt.Sprintf("multiple interface blocks with the same name %q"+
+							" in family_inet6_output block", name),
 					)
 				}
-				interfaceName[block.Name.ValueString()] = struct{}{}
+				interfaceName[name] = struct{}{}
 			}
 		}
 	}
@@ -1044,15 +1048,16 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if block.Hostname.IsUnknown() {
 					continue
 				}
-				if _, ok := flowServerHostname[block.Hostname.ValueString()]; ok {
+				hostname := block.Hostname.ValueString()
+				if _, ok := flowServerHostname[hostname]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_mpls_output").AtName("flow_server"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple flow_server blocks with the same hostname %q in family_mpls_output block",
-							block.Hostname.ValueString()),
+						fmt.Sprintf("multiple flow_server blocks with the same hostname %q"+
+							" in family_mpls_output block", hostname),
 					)
 				}
-				flowServerHostname[block.Hostname.ValueString()] = struct{}{}
+				flowServerHostname[hostname] = struct{}{}
 			}
 		}
 		if !config.FamilyMplsOutput.Interface.IsNull() && !config.FamilyMplsOutput.Interface.IsUnknown() {
@@ -1068,15 +1073,16 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 				if block.Name.IsUnknown() {
 					continue
 				}
-				if _, ok := interfaceName[block.Name.ValueString()]; ok {
+				name := block.Name.ValueString()
+				if _, ok := interfaceName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family_mpls_output").AtName("interface").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple interface blocks with the same name %q in family_mpls_output block",
-							block.Name.ValueString()),
+						fmt.Sprintf("multiple interface blocks with the same name %q"+
+							" in family_mpls_output block", name),
 					)
 				}
-				interfaceName[block.Name.ValueString()] = struct{}{}
+				interfaceName[name] = struct{}{}
 			}
 		}
 	}
@@ -1457,6 +1463,7 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutput) configSet(
 					hostname)
 		}
 		flowServerHostname[hostname] = struct{}{}
+
 		setPrefixFlowServer := setPrefix + "flow-server " + hostname + " "
 		configSet = append(configSet, setPrefixFlowServer+"port "+
 			utils.ConvI64toa(blockFlowServer.Port.ValueInt64()))
@@ -1525,13 +1532,15 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutput) configSet(
 	}
 	interfaceName := make(map[string]struct{})
 	for i, blockInterface := range block.Interface {
-		if _, ok := interfaceName[blockInterface.Name.ValueString()]; ok {
+		name := blockInterface.Name.ValueString()
+		if _, ok := interfaceName[name]; ok {
 			return configSet,
 				path.Root("family_inet_output").AtName("interface").AtListIndex(i).AtName("name"),
-				fmt.Errorf("multiple interface blocks with the same name %q in family_inet_output block",
-					blockInterface.Name.ValueString())
+				fmt.Errorf("multiple interface blocks with the same name %q"+
+					" in family_inet_output block", name)
 		}
-		interfaceName[blockInterface.Name.ValueString()] = struct{}{}
+		interfaceName[name] = struct{}{}
+
 		configSet = append(configSet, blockInterface.configSet(setPrefix)...)
 	}
 
@@ -1565,13 +1574,15 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInet6Output) configSet(
 	}
 	flowServerHostname := make(map[string]struct{})
 	for _, blockFlowServer := range block.FlowServer {
-		if _, ok := flowServerHostname[blockFlowServer.Hostname.ValueString()]; ok {
+		hostname := blockFlowServer.Hostname.ValueString()
+		if _, ok := flowServerHostname[hostname]; ok {
 			return configSet,
 				path.Root("family_inet6_output").AtName("flow_server"),
-				fmt.Errorf("multiple flow_server blocks with the same hostname %q in family_inet6_output block",
-					blockFlowServer.Hostname.ValueString())
+				fmt.Errorf("multiple flow_server blocks with the same hostname %q"+
+					" in family_inet6_output block", hostname)
 		}
-		flowServerHostname[blockFlowServer.Hostname.ValueString()] = struct{}{}
+		flowServerHostname[hostname] = struct{}{}
+
 		blockSet, err := blockFlowServer.configSet(setPrefix)
 		if err != nil {
 			return configSet, path.Root("family_inet6_output").AtName("flow_server"), err
@@ -1587,13 +1598,15 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInet6Output) configSet(
 	}
 	interfaceName := make(map[string]struct{})
 	for i, blockInterface := range block.Interface {
-		if _, ok := interfaceName[blockInterface.Name.ValueString()]; ok {
+		name := blockInterface.Name.ValueString()
+		if _, ok := interfaceName[name]; ok {
 			return configSet,
 				path.Root("family_inet6_output").AtName("interface").AtListIndex(i).AtName("name"),
-				fmt.Errorf("multiple interface blocks with the same name %q in family_inet6_output block",
-					blockInterface.Name.ValueString())
+				fmt.Errorf("multiple interface blocks with the same name %q"+
+					" in family_inet6_output block", name)
 		}
-		interfaceName[blockInterface.Name.ValueString()] = struct{}{}
+		interfaceName[name] = struct{}{}
+
 		configSet = append(configSet, blockInterface.configSet(setPrefix)...)
 	}
 
@@ -1632,6 +1645,7 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) configSet(
 					hostname)
 		}
 		flowServerHostname[hostname] = struct{}{}
+
 		blockSet, err := blockFlowServer.configSet(setPrefix)
 		if err != nil {
 			return configSet, path.Root("family_mpls_output").AtName("flow_server"), err
@@ -1647,13 +1661,15 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) configSet(
 	}
 	interfaceName := make(map[string]struct{})
 	for i, blockInterface := range block.Interface {
-		if _, ok := interfaceName[blockInterface.Name.ValueString()]; ok {
+		name := blockInterface.Name.ValueString()
+		if _, ok := interfaceName[name]; ok {
 			return configSet,
 				path.Root("family_mpls_output").AtName("interface").AtListIndex(i).AtName("name"),
-				fmt.Errorf("multiple interface blocks with the same name %q in family_mpls_output block",
-					blockInterface.Name.ValueString())
+				fmt.Errorf("multiple interface blocks with the same name %q"+
+					" in family_mpls_output block", name)
 		}
-		interfaceName[blockInterface.Name.ValueString()] = struct{}{}
+		interfaceName[name] = struct{}{}
+
 		configSet = append(configSet, blockInterface.configSet(setPrefix)...)
 	}
 

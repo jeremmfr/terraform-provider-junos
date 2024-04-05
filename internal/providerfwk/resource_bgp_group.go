@@ -1065,9 +1065,8 @@ func (rsc *bgpGroup) ValidateConfig(
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple family_evpn blocks with the same nlri_type %q", nlriType),
 					)
-				} else {
-					familyEvpnNlriType[nlriType] = struct{}{}
 				}
+				familyEvpnNlriType[nlriType] = struct{}{}
 			}
 			if block.AcceptedPrefixLimit != nil {
 				if block.AcceptedPrefixLimit.Maximum.IsNull() {
@@ -1129,9 +1128,8 @@ func (rsc *bgpGroup) ValidateConfig(
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple family_inet blocks with the same nlri_type %q", nlriType),
 					)
-				} else {
-					familyInetNlriType[nlriType] = struct{}{}
 				}
+				familyInetNlriType[nlriType] = struct{}{}
 			}
 			if block.AcceptedPrefixLimit != nil {
 				if block.AcceptedPrefixLimit.Maximum.IsNull() {
@@ -1193,9 +1191,8 @@ func (rsc *bgpGroup) ValidateConfig(
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple family_inet6 blocks with the same nlri_type %q", nlriType),
 					)
-				} else {
-					familyInet6NlriType[nlriType] = struct{}{}
 				}
+				familyInet6NlriType[nlriType] = struct{}{}
 			}
 			if block.AcceptedPrefixLimit != nil {
 				if block.AcceptedPrefixLimit.Maximum.IsNull() {

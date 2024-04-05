@@ -680,7 +680,6 @@ func (rscData *securityNatSourceData) set(
 		ruleName[name] = struct{}{}
 
 		setPrefixRule := setPrefix + " rule " + name + " "
-
 		if block.Match != nil {
 			if block.Match.isEmpty() {
 				return path.Root("rule").AtListIndex(i).AtName("match"),

@@ -437,14 +437,15 @@ func (rsc *securityGlobalPolicy) ValidateConfig(
 		policyName := make(map[string]struct{})
 		for i, block := range configPolicy {
 			if !block.Name.IsUnknown() {
-				if _, ok := policyName[block.Name.ValueString()]; ok {
+				name := block.Name.ValueString()
+				if _, ok := policyName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple policy blocks with the same name %q", block.Name.ValueString()),
+						fmt.Sprintf("multiple policy blocks with the same name %q", name),
 					)
 				}
-				policyName[block.Name.ValueString()] = struct{}{}
+				policyName[name] = struct{}{}
 			}
 			if block.MatchApplication.IsNull() && block.MatchDynamicApplication.IsNull() {
 				resp.Diagnostics.AddAttributeError(
@@ -613,6 +614,7 @@ func (rscData *securityGlobalPolicyData) set(
 				fmt.Errorf("multiple policy blocks with the same name %q", name)
 		}
 		policyName[name] = struct{}{}
+
 		setPrefixPolicy := setPrefix + name + " "
 		for _, v := range block.MatchSourceAddress {
 			configSet = append(configSet, setPrefixPolicy+"match source-address \""+v.ValueString()+"\"")

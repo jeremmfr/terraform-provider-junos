@@ -605,15 +605,16 @@ func (rsc *staticRoute) ValidateConfig(
 			if block.NextHop.IsUnknown() {
 				continue
 			}
-			if _, ok := qualifiedNextHopNextHop[block.NextHop.ValueString()]; ok {
+			nextHop := block.NextHop.ValueString()
+			if _, ok := qualifiedNextHopNextHop[nextHop]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("qualified_next_hop").AtListIndex(i).AtName("next_hop"),
 					tfdiag.DuplicateConfigErrSummary,
 					fmt.Sprintf("multiple qualified_next_hop blocks with the same next_hop %q",
-						block.NextHop.ValueString()),
+						nextHop),
 				)
 			}
-			qualifiedNextHopNextHop[block.NextHop.ValueString()] = struct{}{}
+			qualifiedNextHopNextHop[nextHop] = struct{}{}
 		}
 	}
 }
