@@ -580,6 +580,7 @@ func (rscData *snmpV3VacmAccessgroupData) set(
 			return path.Root("default_context_prefix"),
 				fmt.Errorf("default_context_prefix block model:%q level:%q is empty", model, level)
 		}
+
 		setPrefixBlock := setPrefix + "default-context-prefix security-model " + model + " security-level " + level + " "
 		if v := block.ContextMatch.ValueString(); v != "" {
 			configSet = append(configSet, setPrefixBlock+"context-match "+v)
@@ -602,6 +603,7 @@ func (rscData *snmpV3VacmAccessgroupData) set(
 				fmt.Errorf("multiple context_prefix blocks with the same prefix %q", prefix)
 		}
 		contextPrefixPrefix[prefix] = struct{}{}
+
 		accessConfigModelLevel := make(map[string]struct{})
 		for _, blockAccessConfig := range block.AccessConfig {
 			model := blockAccessConfig.Model.ValueString()
@@ -617,6 +619,7 @@ func (rscData *snmpV3VacmAccessgroupData) set(
 					fmt.Errorf("access_config block model:%q level:%q is empty"+
 						" in context_prefix block %q", model, level, prefix)
 			}
+
 			setPrefixBlock := setPrefix + " context-prefix \"" + prefix + "\" " +
 				"security-model " + model + " security-level " + level + " "
 			if v := blockAccessConfig.ContextMatch.ValueString(); v != "" {

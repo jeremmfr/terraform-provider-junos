@@ -1354,15 +1354,16 @@ func (rsc *interfaceLogical) ValidateConfig(
 			addressCIDRIP := make(map[string]struct{})
 			for i, address := range configAddress {
 				if !address.CidrIP.IsUnknown() {
-					if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
+					cidrIP := address.CidrIP.ValueString()
+					if _, ok := addressCIDRIP[cidrIP]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("family_inet").AtName("address").AtListIndex(i).AtName("cidr_ip"),
 							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple address blocks with the same cidr_ip %q in family_inet block",
-								address.CidrIP.ValueString()),
+							fmt.Sprintf("multiple address blocks with the same cidr_ip %q"+
+								" in family_inet block", cidrIP),
 						)
 					}
-					addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
+					addressCIDRIP[cidrIP] = struct{}{}
 				}
 				if !address.VRRPGroup.IsNull() && !address.VRRPGroup.IsUnknown() {
 					var configVRRPGroup []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroupConfig
@@ -1375,16 +1376,17 @@ func (rsc *interfaceLogical) ValidateConfig(
 					vrrpGroupID := make(map[int64]struct{})
 					for ii, vrrpGroup := range configVRRPGroup {
 						if !vrrpGroup.Identifier.IsUnknown() {
-							if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
+							identifier := vrrpGroup.Identifier.ValueInt64()
+							if _, ok := vrrpGroupID[identifier]; ok {
 								resp.Diagnostics.AddAttributeError(
 									path.Root("family_inet").AtName("address").AtListIndex(i).
 										AtName("vrrp_group").AtListIndex(ii).AtName("identifier"),
 									tfdiag.DuplicateConfigErrSummary,
-									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet block",
-										vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q"+
+										" in family_inet block", identifier, address.CidrIP.ValueString()),
 								)
 							}
-							vrrpGroupID[vrrpGroup.Identifier.ValueInt64()] = struct{}{}
+							vrrpGroupID[identifier] = struct{}{}
 						}
 
 						if !vrrpGroup.TrackInterface.IsNull() && !vrrpGroup.TrackInterface.IsUnknown() {
@@ -1400,18 +1402,19 @@ func (rsc *interfaceLogical) ValidateConfig(
 								if trackInterface.Interface.IsUnknown() {
 									continue
 								}
-								if _, ok := trackInterfaceInterface[trackInterface.Interface.ValueString()]; ok {
+								interFace := trackInterface.Interface.ValueString()
+								if _, ok := trackInterfaceInterface[interFace]; ok {
 									resp.Diagnostics.AddAttributeError(
 										path.Root("family_inet").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_interface").AtListIndex(iii).AtName("interface"),
 										tfdiag.DuplicateConfigErrSummary,
-										fmt.Sprintf("multiple track_interface blocks with the same interface %q "+
-											"in vrrp_group block %d in address block %q in family_inet block",
-											trackInterface.Interface.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+										fmt.Sprintf("multiple track_interface blocks with the same interface %q"+
+											" in vrrp_group block %d in address block %q in family_inet block",
+											interFace, vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 									)
 								}
-								trackInterfaceInterface[trackInterface.Interface.ValueString()] = struct{}{}
+								trackInterfaceInterface[interFace] = struct{}{}
 							}
 						}
 						if !vrrpGroup.TrackRoute.IsNull() && !vrrpGroup.TrackRoute.IsUnknown() {
@@ -1427,18 +1430,19 @@ func (rsc *interfaceLogical) ValidateConfig(
 								if trackRoute.Route.IsUnknown() {
 									continue
 								}
-								if _, ok := trackRouteRoute[trackRoute.Route.ValueString()]; ok {
+								route := trackRoute.Route.ValueString()
+								if _, ok := trackRouteRoute[route]; ok {
 									resp.Diagnostics.AddAttributeError(
 										path.Root("family_inet").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_route").AtListIndex(iii).AtName("route"),
 										tfdiag.DuplicateConfigErrSummary,
-										fmt.Sprintf("multiple track_route blocks with the same route %q "+
-											"in vrrp_group block %d in address block %q in family_inet block",
-											trackRoute.Route.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+										fmt.Sprintf("multiple track_route blocks with the same route %q"+
+											" in vrrp_group block %d in address block %q in family_inet block",
+											route, vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 									)
 								}
-								trackRouteRoute[trackRoute.Route.ValueString()] = struct{}{}
+								trackRouteRoute[route] = struct{}{}
 							}
 						}
 					}
@@ -1491,15 +1495,16 @@ func (rsc *interfaceLogical) ValidateConfig(
 			addressCIDRIP := make(map[string]struct{})
 			for i, address := range configAddress {
 				if !address.CidrIP.IsUnknown() {
-					if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
+					cidrIP := address.CidrIP.ValueString()
+					if _, ok := addressCIDRIP[cidrIP]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("family_inet6").AtName("address").AtListIndex(i).AtName("cidr_ip"),
 							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple address blocks with the same cidr_ip %q in family_inet6 block",
-								address.CidrIP.ValueString()),
+							fmt.Sprintf("multiple address blocks with the same cidr_ip %q"+
+								" in family_inet6 block", cidrIP),
 						)
 					}
-					addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
+					addressCIDRIP[cidrIP] = struct{}{}
 				}
 				if !address.VRRPGroup.IsNull() && !address.VRRPGroup.IsUnknown() {
 					var configVRRPGroup []interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroupConfig
@@ -1512,16 +1517,17 @@ func (rsc *interfaceLogical) ValidateConfig(
 					vrrpGroupID := make(map[int64]struct{})
 					for ii, vrrpGroup := range configVRRPGroup {
 						if !vrrpGroup.Identifier.IsUnknown() {
-							if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
+							identifier := vrrpGroup.Identifier.ValueInt64()
+							if _, ok := vrrpGroupID[identifier]; ok {
 								resp.Diagnostics.AddAttributeError(
 									path.Root("family_inet6").AtName("address").AtListIndex(i).
 										AtName("vrrp_group").AtListIndex(ii).AtName("identifier"),
 									tfdiag.DuplicateConfigErrSummary,
-									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet6 block",
-										vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d"+
+										" in address block %q in family_inet6 block", identifier, address.CidrIP.ValueString()),
 								)
 							}
-							vrrpGroupID[vrrpGroup.Identifier.ValueInt64()] = struct{}{}
+							vrrpGroupID[identifier] = struct{}{}
 						}
 
 						if !vrrpGroup.TrackInterface.IsNull() && !vrrpGroup.TrackInterface.IsUnknown() {
@@ -1537,18 +1543,19 @@ func (rsc *interfaceLogical) ValidateConfig(
 								if trackInterface.Interface.IsUnknown() {
 									continue
 								}
-								if _, ok := trackInterfaceInterface[trackInterface.Interface.ValueString()]; ok {
+								interFace := trackInterface.Interface.ValueString()
+								if _, ok := trackInterfaceInterface[interFace]; ok {
 									resp.Diagnostics.AddAttributeError(
 										path.Root("family_inet6").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_interface").AtListIndex(iii).AtName("interface"),
 										tfdiag.DuplicateConfigErrSummary,
-										fmt.Sprintf("multiple track_interface blocks with the same interface %q "+
-											"in vrrp_group block %d in address block %q in family_inet6 block",
-											trackInterface.Interface.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+										fmt.Sprintf("multiple track_interface blocks with the same interface %q"+
+											" in vrrp_group block %d in address block %q in family_inet6 block",
+											interFace, vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 									)
 								}
-								trackInterfaceInterface[trackInterface.Interface.ValueString()] = struct{}{}
+								trackInterfaceInterface[interFace] = struct{}{}
 							}
 						}
 						if !vrrpGroup.TrackRoute.IsNull() && !vrrpGroup.TrackRoute.IsUnknown() {
@@ -1564,18 +1571,19 @@ func (rsc *interfaceLogical) ValidateConfig(
 								if trackRoute.Route.IsUnknown() {
 									continue
 								}
-								if _, ok := trackRouteRoute[trackRoute.Route.ValueString()]; ok {
+								route := trackRoute.Route.ValueString()
+								if _, ok := trackRouteRoute[route]; ok {
 									resp.Diagnostics.AddAttributeError(
 										path.Root("family_inet6").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_route").AtListIndex(iii).AtName("route"),
 										tfdiag.DuplicateConfigErrSummary,
-										fmt.Sprintf("multiple track_route blocks with the same route %q "+
-											"in vrrp_group block %d in address block %q in family_inet6 block",
-											trackRoute.Route.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+										fmt.Sprintf("multiple track_route blocks with the same route %q"+
+											" in vrrp_group block %d in address block %q in family_inet6 block",
+											route, vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 									)
 								}
-								trackRouteRoute[trackRoute.Route.ValueString()] = struct{}{}
+								trackRouteRoute[route] = struct{}{}
 							}
 						}
 					}
@@ -2302,11 +2310,14 @@ func (rscData *interfaceLogicalData) set(
 
 		addressCIDRIP := make(map[string]struct{})
 		for i, address := range rscData.FamilyInet.Address {
-			if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
+			cidrIP := address.CidrIP.ValueString()
+			if _, ok := addressCIDRIP[cidrIP]; ok {
 				return path.Root("family_inet").AtName("address").AtListIndex(i).AtName("cidr_ip"),
-					fmt.Errorf("multiple address blocks with the same cidr_ip %q in family_inet block", address.CidrIP.ValueString())
+					fmt.Errorf("multiple address blocks with the same cidr_ip %q"+
+						" in family_inet block", cidrIP)
 			}
-			addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
+			addressCIDRIP[cidrIP] = struct{}{}
+
 			blockSet, pathErr, err := address.configSet(setPrefix, path.Root("family_inet").AtName("address").AtListIndex(i))
 			if err != nil {
 				return pathErr, err
@@ -2347,11 +2358,14 @@ func (rscData *interfaceLogicalData) set(
 
 		addressCIDRIP := make(map[string]struct{})
 		for i, address := range rscData.FamilyInet6.Address {
-			if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
+			cidrIP := address.CidrIP.ValueString()
+			if _, ok := addressCIDRIP[cidrIP]; ok {
 				return path.Root("family_inet6").AtName("address").AtListIndex(i).AtName("cidr_ip"),
-					fmt.Errorf("multiple address blocks with the same cidr_ip %q in family_inet6 block", address.CidrIP.ValueString())
+					fmt.Errorf("multiple address blocks with the same cidr_ip %q"+
+						" in family_inet6 block", cidrIP)
 			}
-			addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
+			addressCIDRIP[cidrIP] = struct{}{}
+
 			blockSet, pathErr, err := address.configSet(setPrefix, path.Root("family_inet6").AtName("address").AtListIndex(i))
 			if err != nil {
 				return pathErr, err
@@ -2469,12 +2483,13 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 				errors.New("vrrp not available on st0 interface")
 		}
 
-		if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
+		identifier := vrrpGroup.Identifier.ValueInt64()
+		if _, ok := vrrpGroupID[identifier]; ok {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("identifier"),
-				fmt.Errorf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet block",
-					vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
+				fmt.Errorf("multiple vrrp_group blocks with the same identifier %d"+
+					" in address block %q in family_inet block", identifier, block.CidrIP.ValueString())
 		}
-		vrrpGroupID[vrrpGroup.Identifier.ValueInt64()] = struct{}{}
+		vrrpGroupID[identifier] = struct{}{}
 
 		setPrefixVRRPGroup := setPrefix + " vrrp-group " + utils.ConvI64toa(vrrpGroup.Identifier.ValueInt64()) + " "
 		for _, v := range vrrpGroup.VirtualAddress {
@@ -2512,34 +2527,30 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 		}
 		trackInterfaceInterface := make(map[string]struct{})
 		for ii, trackInterface := range vrrpGroup.TrackInterface {
-			if _, ok := trackInterfaceInterface[trackInterface.Interface.ValueString()]; ok {
+			interFace := trackInterface.Interface.ValueString()
+			if _, ok := trackInterfaceInterface[interFace]; ok {
 				return configSet,
 					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_interface").AtListIndex(ii).AtName("interface"),
-					fmt.Errorf("multiple track_interface blocks with the same interface %q "+
-						"in vrrp_group block %d in address block %q in family_inet block",
-						trackInterface.Interface.ValueString(),
-						vrrpGroup.Identifier.ValueInt64(),
-						block.CidrIP.ValueString(),
-					)
+					fmt.Errorf("multiple track_interface blocks with the same interface %q"+
+						" in vrrp_group block %d in address block %q in family_inet block",
+						interFace, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
 			}
-			trackInterfaceInterface[trackInterface.Interface.ValueString()] = struct{}{}
+			trackInterfaceInterface[interFace] = struct{}{}
 
 			configSet = append(configSet, setPrefixVRRPGroup+"track interface "+trackInterface.Interface.ValueString()+
 				" priority-cost "+utils.ConvI64toa(trackInterface.PriorityCost.ValueInt64()))
 		}
 		trackRouteRoute := make(map[string]struct{})
 		for ii, trackRoute := range vrrpGroup.TrackRoute {
-			if _, ok := trackRouteRoute[trackRoute.Route.ValueString()]; ok {
+			route := trackRoute.Route.ValueString()
+			if _, ok := trackRouteRoute[route]; ok {
 				return configSet,
 					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_route").AtListIndex(ii).AtName("route"),
-					fmt.Errorf("multiple track_route blocks with the same route %q "+
-						"in vrrp_group block %d in address block %q in family_inet block",
-						trackRoute.Route.ValueString(),
-						vrrpGroup.Identifier.ValueInt64(),
-						block.CidrIP.ValueString(),
-					)
+					fmt.Errorf("multiple track_route blocks with the same route %q"+
+						" in vrrp_group block %d in address block %q in family_inet block",
+						route, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
 			}
-			trackRouteRoute[trackRoute.Route.ValueString()] = struct{}{}
+			trackRouteRoute[route] = struct{}{}
 
 			configSet = append(configSet, setPrefixVRRPGroup+"track route "+trackRoute.Route.ValueString()+
 				" routing-instance "+trackRoute.RoutingInstance.ValueString()+
@@ -2575,12 +2586,13 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 				errors.New("vrrp not available on st0 interface")
 		}
 
-		if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
+		identifier := vrrpGroup.Identifier.ValueInt64()
+		if _, ok := vrrpGroupID[identifier]; ok {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("identifier"),
-				fmt.Errorf("multiple blocks vrrp_group with the same identifier %d in address block %q in family_inet6 block",
-					vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
+				fmt.Errorf("multiple blocks vrrp_group with the same identifier %d"+
+					" in address block %q in family_inet6 block", identifier, block.CidrIP.ValueString())
 		}
-		vrrpGroupID[vrrpGroup.Identifier.ValueInt64()] = struct{}{}
+		vrrpGroupID[identifier] = struct{}{}
 
 		setPrefixVRRPGroup := setPrefix + " vrrp-inet6-group " + utils.ConvI64toa(vrrpGroup.Identifier.ValueInt64()) + " "
 		for _, v := range vrrpGroup.VirtualAddress {
@@ -2615,34 +2627,30 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 		}
 		trackInterfaceInterface := make(map[string]struct{})
 		for ii, trackInterface := range vrrpGroup.TrackInterface {
-			if _, ok := trackInterfaceInterface[trackInterface.Interface.ValueString()]; ok {
+			interFace := trackInterface.Interface.ValueString()
+			if _, ok := trackInterfaceInterface[interFace]; ok {
 				return configSet,
 					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_interface").AtListIndex(ii).AtName("interface"),
-					fmt.Errorf("multiple track_interface blocks with the same interface %q "+
-						"in vrrp_group block %d in address block %q in family_inet6 block",
-						trackInterface.Interface.ValueString(),
-						vrrpGroup.Identifier.ValueInt64(),
-						block.CidrIP.ValueString(),
-					)
+					fmt.Errorf("multiple track_interface blocks with the same interface %q"+
+						" in vrrp_group block %d in address block %q in family_inet6 block",
+						interFace, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
 			}
-			trackInterfaceInterface[trackInterface.Interface.ValueString()] = struct{}{}
+			trackInterfaceInterface[interFace] = struct{}{}
 
 			configSet = append(configSet, setPrefixVRRPGroup+"track interface "+trackInterface.Interface.ValueString()+
 				" priority-cost "+utils.ConvI64toa(trackInterface.PriorityCost.ValueInt64()))
 		}
 		trackRouteRoute := make(map[string]struct{})
 		for ii, trackRoute := range vrrpGroup.TrackRoute {
-			if _, ok := trackRouteRoute[trackRoute.Route.ValueString()]; ok {
+			route := trackRoute.Route.ValueString()
+			if _, ok := trackRouteRoute[route]; ok {
 				return configSet,
 					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_route").AtListIndex(ii).AtName("route"),
-					fmt.Errorf("multiple track_route blocks with the same route %q "+
-						"in vrrp_group block %d in address block %q in family_inet6 block",
-						trackRoute.Route.ValueString(),
-						vrrpGroup.Identifier.ValueInt64(),
-						block.CidrIP.ValueString(),
-					)
+					fmt.Errorf("multiple track_route blocks with the same route %q"+
+						" in vrrp_group block %d in address block %q in family_inet6 block",
+						route, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
 			}
-			trackRouteRoute[trackRoute.Route.ValueString()] = struct{}{}
+			trackRouteRoute[route] = struct{}{}
 
 			configSet = append(configSet, setPrefixVRRPGroup+"track route "+trackRoute.Route.ValueString()+
 				" routing-instance "+trackRoute.RoutingInstance.ValueString()+

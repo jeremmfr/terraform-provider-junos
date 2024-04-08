@@ -2363,15 +2363,16 @@ func (rsc *system) ValidateConfig(
 					if block.Address.IsUnknown() {
 						continue
 					}
-					if _, ok := destinationRadiusServerAddress[block.Address.ValueString()]; ok {
+					address := block.Address.ValueString()
+					if _, ok := destinationRadiusServerAddress[address]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("address"),
 							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple destination_radius_server blocks with the same address %q in accounting block",
-								block.Address.ValueString()),
+							fmt.Sprintf("multiple destination_radius_server blocks with the same address %q"+
+								" in accounting block", address),
 						)
 					}
-					destinationRadiusServerAddress[block.Address.ValueString()] = struct{}{}
+					destinationRadiusServerAddress[address] = struct{}{}
 				}
 			}
 		}
@@ -2397,15 +2398,16 @@ func (rsc *system) ValidateConfig(
 					if block.Address.IsUnknown() {
 						continue
 					}
-					if _, ok := destinationTacplusServerAddress[block.Address.ValueString()]; ok {
+					address := block.Address.ValueString()
+					if _, ok := destinationTacplusServerAddress[address]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("accounting").AtName("destination_tacplus_server").AtListIndex(i).AtName("address"),
 							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple destination_tacplus_server blocks with the same address %q in accounting block",
-								block.Address.ValueString()),
+							fmt.Sprintf("multiple destination_tacplus_server blocks with the same address %q"+
+								" in accounting block", address),
 						)
 					}
-					destinationTacplusServerAddress[block.Address.ValueString()] = struct{}{}
+					destinationTacplusServerAddress[address] = struct{}{}
 				}
 			}
 		}
@@ -2436,9 +2438,8 @@ func (rsc *system) ValidateConfig(
 							fmt.Sprintf("multiple archive_site blocks with the same url %q"+
 								" in archival_configuration block", url),
 						)
-					} else {
-						archiveSiteURL[url] = struct{}{}
 					}
+					archiveSiteURL[url] = struct{}{}
 				}
 			}
 		}

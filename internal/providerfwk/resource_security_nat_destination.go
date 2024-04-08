@@ -581,6 +581,7 @@ func (rscData *securityNatDestinationData) set(
 				fmt.Errorf("multiple rule blocks with the same name %q", name)
 		}
 		ruleName[name] = struct{}{}
+
 		if block.DestinationAddress.IsNull() &&
 			block.DestinationAddressName.IsNull() {
 			return path.Root("rule").AtListIndex(i).AtName("destination_address"),

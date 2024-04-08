@@ -422,10 +422,17 @@ func (rsc *bridgeDomain) Create(
 				return false
 			}
 			if domainExists {
-				resp.Diagnostics.AddError(
-					tfdiag.DuplicateConfigErrSummary,
-					defaultResourceAlreadyExistsMessage(rsc, plan.Name),
-				)
+				if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+					resp.Diagnostics.AddError(
+						tfdiag.DuplicateConfigErrSummary,
+						defaultResourceAlreadyExistsInRoutingInstanceMessage(rsc, plan.Name, v),
+					)
+				} else {
+					resp.Diagnostics.AddError(
+						tfdiag.DuplicateConfigErrSummary,
+						defaultResourceAlreadyExistsMessage(rsc, plan.Name),
+					)
+				}
 
 				return false
 			}
@@ -445,10 +452,17 @@ func (rsc *bridgeDomain) Create(
 				return false
 			}
 			if !domainExists {
-				resp.Diagnostics.AddError(
-					tfdiag.NotFoundErrSummary,
-					defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
-				)
+				if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+					resp.Diagnostics.AddError(
+						tfdiag.NotFoundErrSummary,
+						defaultResourceDoesNotExistsInRoutingInstanceAfterCommitMessage(rsc, plan.Name, v),
+					)
+				} else {
+					resp.Diagnostics.AddError(
+						tfdiag.NotFoundErrSummary,
+						defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
+					)
+				}
 
 				return false
 			}

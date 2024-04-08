@@ -1878,6 +1878,7 @@ func (rscData *policyoptionsPolicyStatementData) set(
 			return path.Root("term").AtListIndex(i).AtName("name"),
 				fmt.Errorf("term block %q is empty", name)
 		}
+
 		setPrefixTerm := setPrefix + "term \"" + name + "\" "
 		if block.From != nil {
 			if block.From.isEmpty() {
@@ -1943,6 +1944,7 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 				fmt.Errorf("multiple bgp_as_path_calc_length blocks with the same count %d in from block", count)
 		}
 		bgpASPathCalcLengthCount[count] = struct{}{}
+
 		configSet = append(configSet,
 			setPrefix+"as-path-calc-length "+utils.ConvI64toa(count)+" "+v.Match.ValueString())
 	}
@@ -1958,6 +1960,7 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 				fmt.Errorf("multiple bgp_as_path_unique_count blocks with the same count %d in from block", count)
 		}
 		bgpASPathUniqueCountCount[count] = struct{}{}
+
 		configSet = append(configSet,
 			setPrefix+"as-path-unique-count "+utils.ConvI64toa(count)+" "+v.Match.ValueString())
 	}
@@ -1973,6 +1976,7 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 				fmt.Errorf("multiple bgp_community_count blocks with the same count %d in from block", count)
 		}
 		bgpCommunityCountCount[count] = struct{}{}
+
 		configSet = append(configSet,
 			setPrefix+"community-count "+utils.ConvI64toa(count)+" "+v.Match.ValueString())
 	}
@@ -2029,6 +2033,7 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 				fmt.Errorf("multiple next_hop_weight blocks with the same argument values %q in from block", values)
 		}
 		nextHopWeightBlock[values] = struct{}{}
+
 		configSet = append(configSet,
 			setPrefix+"nexthop-weight "+v.Match.ValueString()+" "+utils.ConvI64toa(v.Weight.ValueInt64()))
 	}
@@ -2057,6 +2062,7 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 				fmt.Errorf("multiple route_filter blocks with the same argument values %q in from block", values)
 		}
 		routeFilterBlock[values] = struct{}{}
+
 		setRoutFilter := setPrefix + "route-filter " +
 			v.Route.ValueString() + " " + v.Option.ValueString()
 		if v2 := v.OptionValue.ValueString(); v2 != "" {
@@ -2175,6 +2181,7 @@ func (block *policyoptionsPolicyStatementBlockThen) configSet(
 				fmt.Errorf("multiple community blocks with the same argument values %q in then block", values)
 		}
 		communityBlock[values] = struct{}{}
+
 		configSet = append(configSet, setPrefix+
 			"community "+v.Action.ValueString()+" \""+v.Value.ValueString()+"\"")
 	}

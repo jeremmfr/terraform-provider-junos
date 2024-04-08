@@ -629,15 +629,15 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := names[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := names[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("traffic_selector").AtListIndex(i).AtName("name"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple traffic_selector blocks with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple traffic_selector blocks with the same name %q", name),
 				)
-			} else {
-				names[block.Name.ValueString()] = struct{}{}
 			}
+			names[name] = struct{}{}
 		}
 	}
 	if !config.MultiSaForwardingClass.IsNull() && !config.MultiSaForwardingClass.IsUnknown() &&
@@ -970,11 +970,13 @@ func (rscData *securityIpsecVpnData) set(
 	}
 	trafficSelectorNames := make(map[string]struct{})
 	for i, block := range rscData.TrafficSelector {
-		if _, ok := trafficSelectorNames[block.Name.ValueString()]; ok {
+		name := block.Name.ValueString()
+		if _, ok := trafficSelectorNames[name]; ok {
 			return path.Root("traffic_selector").AtListIndex(i).AtName("name"),
-				fmt.Errorf("multiple traffic_selector blocks with the same name %q", block.Name.ValueString())
+				fmt.Errorf("multiple traffic_selector blocks with the same name %q", name)
 		}
-		trafficSelectorNames[block.Name.ValueString()] = struct{}{}
+		trafficSelectorNames[name] = struct{}{}
+
 		configSet = append(configSet,
 			setPrefix+"traffic-selector \""+block.Name.ValueString()+"\" local-ip "+block.LocalIP.ValueString())
 		configSet = append(configSet,

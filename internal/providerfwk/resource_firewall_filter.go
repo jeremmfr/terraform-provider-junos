@@ -1701,11 +1701,11 @@ func (rscData *firewallFilterData) set(
 				fmt.Errorf("multiple term blocks with the same name %q", name)
 		}
 		termName[name] = struct{}{}
+
 		setPrefixTerm := setPrefix + "term \"" + name + "\" "
 		if v := block.Filter.ValueString(); v != "" {
 			configSet = append(configSet, setPrefixTerm+"filter \""+v+"\"")
 		}
-
 		if block.From != nil {
 			blockSet, pathErr, err := block.From.configSet(setPrefixTerm, path.Root("term").AtListIndex(i).AtName("from"))
 			if err != nil {
@@ -1944,7 +1944,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 }
 
 func (block *firewallFilterBlockTermBlockThen) configSet(setPrefix string) []string {
-	configSet := make([]string, 0, 100)
+	configSet := make([]string, 0, 1)
 	setPrefix += "then "
 
 	if v := block.Action.ValueString(); v != "" {

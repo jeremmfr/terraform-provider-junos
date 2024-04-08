@@ -483,6 +483,7 @@ func (rscData *snmpCommunityData) set(
 				fmt.Errorf("multiple routing_instance blocks with the same name %q", name)
 		}
 		routingInstanceName[name] = struct{}{}
+
 		configSet = append(configSet, setPrefix+"routing-instance "+name)
 		if v := block.ClientListName.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"routing-instance "+name+" client-list-name \""+v+"\"")
