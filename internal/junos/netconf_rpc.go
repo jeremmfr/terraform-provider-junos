@@ -70,9 +70,12 @@ type commitResults struct {
 type RPCGetPhysicalInterfaceTerseReply struct {
 	XMLName           xml.Name `xml:"interface-information"`
 	PhysicalInterface []struct {
-		Name        string `xml:"name"`
-		AdminStatus string `xml:"admin-status"`
-		OperStatus  string `xml:"oper-status"`
+		Name             string `xml:"name"`
+		AdminStatus      string `xml:"admin-status"`
+		OperStatus       string `xml:"oper-status"`
+		LogicalInterface []struct {
+			Name string `xml:"name"`
+		} `xml:"logical-interface"`
 	} `xml:"physical-interface"`
 }
 
