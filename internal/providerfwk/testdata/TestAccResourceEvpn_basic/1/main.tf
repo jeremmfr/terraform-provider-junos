@@ -41,7 +41,8 @@ resource "junos_evpn" "testacc_evpn_default" {
   depends_on = [
     junos_switch_options.testacc_evpn,
   ]
-  encapsulation = "vxlan"
+  encapsulation     = "vxlan"
+  no_core_isolation = true
   switch_or_ri_options {
     route_distinguisher = "20:1"
     vrf_target          = "target:20:2"
