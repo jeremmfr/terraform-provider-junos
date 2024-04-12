@@ -22,36 +22,36 @@ resource "junos_vlan" "blue" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of vlan.
-- **community_vlans** (Optional, Set of Number)  
-  List of ID community vlan for primary vlan (when Junos device supports it).
+  The name of VLAN.
+- **community_vlans** (Optional, Set of String)  
+  List of VLAN id or name of community vlans for primary vlan.
 - **description** (Optional, String)  
-  A description for vlan.
+  Text description of VLAN.
 - **forward_filter_input** (Optional, String)  
-  Input filter to apply for forwarded packets (when Junos device supports it).
+  Input filter to apply for forwarded packets.
 - **forward_filter_output** (Optional, String)  
-  Output filter to apply for forwarded packets (when Junos device supports it).
+  Output filter to apply for forwarded packets.
 - **forward_flood_input** (Optional, String)  
-  Input filter to apply for ethernet switching flood packets (when Junos device supports it).
+  Input filter to apply for ethernet switching flood packets.
+- **isolated_vlan** (Optional, String)  
+  VLAN id or name of isolated vlan for primary vlan.
 - **l3_interface** (Optional, String)  
-  L3 interface name for this vlans.  
+  L3 interface name for this VLAN.  
   Must be start with `irb.` or `vlan.`.
-- **isolated-vlan** (Optional, Number)  
-  Declare ID isolated vlan for primary vlan (when Junos device supports it).
 - **private_vlan** (Optional, String)  
-  Type of secondary vlan for private vlan (when Junos device supports it).  
+  Type of secondary VLAN for private vlan.  
   Must be `community` or `isolated`.
 - **service_id** (Optional, Number)  
-  Service id (when Junos device supports it).
-- **vlan_id** (Optional, Number)  
-  802.1q VLAN identifier.  
+  Service id.
+- **vlan_id** (Optional, String)  
+  802.1q VLAN id or `all` or `none`.  
   Conflict with `vlan_id_list`.
 - **vlan_id_list** (Optional, Set of String)  
-  List of vlan ID.  
-  Can be an ID or range (exemple: 10-20).  
+  List of 802.1q VLAN id.  
+  Can be a VLAN id or range of VLAN id (example: 10-20).  
   Conflict with `vlan_id`.
 - **vxlan** (Optional, Block)  
-  Declare vxlan configuration (when Junos device supports it).
+  Declare vxlan configuration.
   - **vni** (Required, Number)  
     VXLAN identifier (0..16777214).
   - **encapsulate_inner_vlan** (Optional, Boolean)  
@@ -59,7 +59,7 @@ The following arguments are supported:
   - **ingress_node_replication** (Optional, Boolean)  
     Enable ingress node replication.
   - **multicast_group** (Optional, String)  
-    CIDR for Multicast group registered for VXLAN segment.
+    Multicast group registered for VXLAN segment.
   - **ovsdb_managed** (Optional, Boolean)  
     Bridge-domain is managed remotely via VXLAN OVSDB Controller.
   - **vni_extend_evpn** (Optional, Boolean)  
