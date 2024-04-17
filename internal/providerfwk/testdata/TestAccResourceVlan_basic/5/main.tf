@@ -65,3 +65,31 @@ resource "junos_vlan" "testacc_vlan_vxlan" {
     unreachable_vtep_aging_timer = 900
   }
 }
+
+resource "junos_routing_instance" "testacc_vlan_ri" {
+  name                  = "testacc_vlan_ri"
+  type                  = "virtual-switch"
+  route_distinguisher   = "11:1"
+  vrf_target            = "target:11:2"
+  vtep_source_interface = junos_interface_logical.testacc_vlan_vxlan.name
+}
+
+resource "junos_evpn" "testacc_vlan_ri" {
+  routing_instance = junos_routing_instance.testacc_vlan_ri.name
+  encapsulation    = "vxlan"
+}
+
+resource "junos_vlan" "testacc_vlan_ri" {
+  depends_on = [
+    junos_evpn.testacc_vlan_ri,
+  ]
+
+  name             = "testacc_vlan_ri"
+  routing_instance = junos_routing_instance.testacc_vlan_ri.name
+  description      = "testacc_vlan_ri"
+  vlan_id          = 1030
+  vxlan {
+    vni             = 103010
+    vni_extend_evpn = true
+  }
+}

@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -85,7 +87,7 @@ func (rsc *vlan) Schema(
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
-				Description: "An identifier for the resource with format `<name>`.",
+				Description: "An identifier for the resource with format `<name>_-_<routing_instance>`.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -98,6 +100,19 @@ func (rsc *vlan) Schema(
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 64),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				},
+			},
+			"routing_instance": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(junos.DefaultW),
+				Description: "Routing instance for vlan if not root level.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
@@ -267,6 +282,7 @@ func (rsc *vlan) Schema(
 type vlanData struct {
 	ID                  types.String    `tfsdk:"id"`
 	Name                types.String    `tfsdk:"name"`
+	RoutingInstance     types.String    `tfsdk:"routing_instance"`
 	CommunityVlans      []types.String  `tfsdk:"community_vlans"`
 	Description         types.String    `tfsdk:"description"`
 	ForwardFilterInput  types.String    `tfsdk:"forward_filter_input"`
@@ -284,6 +300,7 @@ type vlanData struct {
 type vlanConfig struct {
 	ID                  types.String    `tfsdk:"id"`
 	Name                types.String    `tfsdk:"name"`
+	RoutingInstance     types.String    `tfsdk:"routing_instance"`
 	CommunityVlans      types.Set       `tfsdk:"community_vlans"`
 	Description         types.String    `tfsdk:"description"`
 	ForwardFilterInput  types.String    `tfsdk:"forward_filter_input"`
@@ -299,7 +316,7 @@ type vlanConfig struct {
 }
 
 func (rscConfig *vlanConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscConfig, "ID", "Name")
+	return tfdata.CheckBlockIsEmpty(rscConfig, "ID", "Name", "RoutingInstance")
 }
 
 type vlanBlockVxlan struct {
@@ -325,7 +342,7 @@ func (rsc *vlan) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			tfdiag.MissingConfigErrSummary,
-			"At least one of arguments need to be set (in addition to `name`)",
+			"at least one of arguments need to be set (in addition to `name` and `routing_instance`)",
 		)
 	}
 
@@ -394,17 +411,41 @@ func (rsc *vlan) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			vlanExists, err := checkVlanExists(fnCtx, plan.Name.ValueString(), junSess)
+			if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+				instanceExists, err := checkRoutingInstanceExists(fnCtx, v, junSess)
+				if err != nil {
+					resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
+
+					return false
+				}
+				if !instanceExists {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("routing_instance"),
+						tfdiag.MissingConfigErrSummary,
+						fmt.Sprintf("routing instance %q doesn't exist", v),
+					)
+
+					return false
+				}
+			}
+			vlanExists, err := checkVlanExists(fnCtx, plan.Name.ValueString(), plan.RoutingInstance.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
 			if vlanExists {
-				resp.Diagnostics.AddError(
-					tfdiag.DuplicateConfigErrSummary,
-					defaultResourceAlreadyExistsMessage(rsc, plan.Name),
-				)
+				if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+					resp.Diagnostics.AddError(
+						tfdiag.DuplicateConfigErrSummary,
+						defaultResourceAlreadyExistsInRoutingInstanceMessage(rsc, plan.Name, v),
+					)
+				} else {
+					resp.Diagnostics.AddError(
+						tfdiag.DuplicateConfigErrSummary,
+						defaultResourceAlreadyExistsMessage(rsc, plan.Name),
+					)
+				}
 
 				return false
 			}
@@ -412,17 +453,24 @@ func (rsc *vlan) Create(
 			return true
 		},
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			vlanExists, err := checkVlanExists(fnCtx, plan.Name.ValueString(), junSess)
+			vlanExists, err := checkVlanExists(fnCtx, plan.Name.ValueString(), plan.RoutingInstance.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
 			if !vlanExists {
-				resp.Diagnostics.AddError(
-					tfdiag.NotFoundErrSummary,
-					defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
-				)
+				if v := plan.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+					resp.Diagnostics.AddError(
+						tfdiag.NotFoundErrSummary,
+						defaultResourceDoesNotExistsInRoutingInstanceAfterCommitMessage(rsc, plan.Name, v),
+					)
+				} else {
+					resp.Diagnostics.AddError(
+						tfdiag.NotFoundErrSummary,
+						defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
+					)
+				}
 
 				return false
 			}
@@ -443,12 +491,13 @@ func (rsc *vlan) Read(
 		return
 	}
 
-	var _ resourceDataReadFrom1String = &data
+	var _ resourceDataReadFrom2String = &data
 	defaultResourceRead(
 		ctx,
 		rsc,
 		[]string{
 			state.Name.ValueString(),
+			state.RoutingInstance.ValueString(),
 		},
 		&data,
 		nil,
@@ -495,25 +544,53 @@ func (rsc *vlan) Delete(
 func (rsc *vlan) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	var data vlanData
+	junSess, err := rsc.client.StartNewSession(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
 
-	var _ resourceDataReadFrom1String = &data
-	defaultResourceImportState(
-		ctx,
-		rsc,
-		&data,
-		req,
-		resp,
-		defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "name"),
-	)
+		return
+	}
+	defer junSess.Close()
+
+	var data vlanData
+	idSplit := strings.Split(req.ID, junos.IDSeparator)
+	if len(idSplit) > 1 {
+		if err := data.read(ctx, idSplit[0], idSplit[1], junSess); err != nil {
+			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
+
+			return
+		}
+	} else {
+		if err := data.read(ctx, idSplit[0], junos.DefaultW, junSess); err != nil {
+			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
+
+			return
+		}
+	}
+
+	if data.ID.IsNull() {
+		resp.Diagnostics.AddError(
+			tfdiag.NotFoundErrSummary,
+			defaultResourceImportDontFindMessage(rsc, req.ID)+
+				" (id must be <name> or <name>"+junos.IDSeparator+"<routing_instance>)",
+		)
+
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 func checkVlanExists(
-	_ context.Context, name string, junSess *junos.Session,
+	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
+	showPrefix := junos.CmdShowConfig
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
+	}
+
+	showConfig, err := junSess.Command(showPrefix +
 		"vlans " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
@@ -526,7 +603,11 @@ func checkVlanExists(
 }
 
 func (rscData *vlanData) fillID() {
-	rscData.ID = types.StringValue(rscData.Name.ValueString())
+	if v := rscData.RoutingInstance.ValueString(); v != "" {
+		rscData.ID = types.StringValue(rscData.Name.ValueString() + junos.IDSeparator + v)
+	} else {
+		rscData.ID = types.StringValue(rscData.Name.ValueString() + junos.IDSeparator + junos.DefaultW)
+	}
 }
 
 func (rscData *vlanData) nullID() bool {
@@ -539,7 +620,12 @@ func (rscData *vlanData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-	setPrefix := "set vlans " + rscData.Name.ValueString() + " "
+	setPrefix := junos.SetLS
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		setPrefix += junos.RoutingInstancesWS + v + " "
+	}
+	setPrefixProtocolsEvpn := setPrefix + "protocols evpn "
+	setPrefix += "vlans " + rscData.Name.ValueString() + " "
 
 	for _, v := range rscData.CommunityVlans {
 		configSet = append(configSet, setPrefix+"community-vlans "+v.ValueString())
@@ -580,7 +666,7 @@ func (rscData *vlanData) set(
 			utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 
 		if rscData.Vxlan.VniExtendEvpn.ValueBool() {
-			configSet = append(configSet, "set protocols evpn extended-vni-list "+
+			configSet = append(configSet, setPrefixProtocolsEvpn+"extended-vni-list "+
 				utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 		}
 		if rscData.Vxlan.EncapsulateInnerVlan.ValueBool() {
@@ -605,17 +691,27 @@ func (rscData *vlanData) set(
 }
 
 func (rscData *vlanData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
 	err error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
+	showPrefix := junos.CmdShowConfig
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
+	}
+
+	showConfig, err := junSess.Command(showPrefix +
 		"vlans " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
 	if showConfig != junos.EmptyW {
 		rscData.Name = types.StringValue(name)
+		if routingInstance == "" {
+			rscData.RoutingInstance = types.StringValue(junos.DefaultW)
+		} else {
+			rscData.RoutingInstance = types.StringValue(routingInstance)
+		}
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
@@ -661,7 +757,7 @@ func (rscData *vlanData) read(
 					if err != nil {
 						return err
 					}
-					showConfigEvpn, err := junSess.Command(junos.CmdShowConfig + "protocols evpn" + junos.PipeDisplaySetRelative)
+					showConfigEvpn, err := junSess.Command(showPrefix + "protocols evpn" + junos.PipeDisplaySetRelative)
 					if err != nil {
 						return err
 					}
@@ -702,11 +798,16 @@ func (rscData *vlanData) read(
 func (rscData *vlanData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
+	delPrefix := junos.DeleteLS
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		delPrefix += junos.RoutingInstancesWS + v + " "
+	}
+
 	configSet := []string{
-		"delete vlans " + rscData.Name.ValueString(),
+		delPrefix + "vlans " + rscData.Name.ValueString(),
 	}
 	if rscData.Vxlan != nil && rscData.Vxlan.VniExtendEvpn.ValueBool() {
-		configSet = append(configSet, "delete protocols evpn extended-vni-list "+
+		configSet = append(configSet, delPrefix+"protocols evpn extended-vni-list "+
 			utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 	}
 

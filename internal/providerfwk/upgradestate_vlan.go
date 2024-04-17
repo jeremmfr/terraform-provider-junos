@@ -3,6 +3,7 @@ package providerfwk
 import (
 	"context"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -127,8 +128,9 @@ func upgradeVlanV0toV1(
 	}
 
 	var dataV1 vlanData
-	dataV1.ID = dataV0.ID
 	dataV1.Name = dataV0.Name
+	dataV1.RoutingInstance = types.StringValue(junos.DefaultW)
+	dataV1.fillID()
 	dataV1.CommunityVlans = make([]types.String, len(dataV0.CommunityVlans))
 	for i, v := range dataV0.CommunityVlans {
 		dataV1.CommunityVlans[i] = types.StringValue(utils.ConvI64toa(v.ValueInt64()))

@@ -18,5 +18,7 @@ ENHANCEMENTS:
   * `vlan_id` argument is now a String (instead of Number) to accept `all` or `none` in addition to VLAN id  
     data in the state has been updated for the new format  
     Number in config is automatically converted to String by Terraform
+  * add `routing_instance` argument (Partial fix [#646](https://github.com/jeremmfr/terraform-provider-junos/issues/646))  
+    and therefore `id` format has been changed to `<name>_-_<routing_instance>` (instead of `<name>`)
 
 BUG FIXES:
