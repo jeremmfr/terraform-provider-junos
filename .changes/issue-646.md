@@ -20,5 +20,7 @@ ENHANCEMENTS:
     Number in config is automatically converted to String by Terraform
   * add `routing_instance` argument (Partial fix [#646](https://github.com/jeremmfr/terraform-provider-junos/issues/646))  
     and therefore `id` format has been changed to `<name>_-_<routing_instance>` (instead of `<name>`)
+  * add `no_arp_suppression` argument (Partial fix [#646](https://github.com/jeremmfr/terraform-provider-junos/issues/646))
+  * add `translation_vni` argument inside `vxlan` block argument
 
 BUG FIXES:

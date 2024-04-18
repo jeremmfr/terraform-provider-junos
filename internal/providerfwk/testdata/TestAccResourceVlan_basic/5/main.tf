@@ -84,12 +84,14 @@ resource "junos_vlan" "testacc_vlan_ri" {
     junos_evpn.testacc_vlan_ri,
   ]
 
-  name             = "testacc_vlan_ri"
-  routing_instance = junos_routing_instance.testacc_vlan_ri.name
-  description      = "testacc_vlan_ri"
-  vlan_id          = 1030
+  name               = "testacc_vlan_ri"
+  routing_instance   = junos_routing_instance.testacc_vlan_ri.name
+  description        = "testacc_vlan_ri"
+  vlan_id            = 1030
+  no_arp_suppression = true
   vxlan {
     vni             = 103010
     vni_extend_evpn = true
+    translation_vni = 1103010
   }
 }

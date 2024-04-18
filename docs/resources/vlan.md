@@ -42,6 +42,8 @@ The following arguments are supported:
 - **l3_interface** (Optional, String)  
   L3 interface name for this VLAN.  
   Must be start with `irb.` or `vlan.`.
+- **no_arp_suppression** (Optional, Boolean)  
+  Turn off ARP suppression.
 - **private_vlan** (Optional, String)  
   Type of secondary VLAN for private vlan.  
   Must be `community` or `isolated`.
@@ -66,6 +68,8 @@ The following arguments are supported:
     Multicast group registered for VXLAN segment.
   - **ovsdb_managed** (Optional, Boolean)  
     Bridge-domain is managed remotely via VXLAN OVSDB Controller.
+  - **translation_vni** (Optional, Number)  
+    Translated VXLAN identifier (1..16777214).
   - **vni_extend_evpn** (Optional, Boolean)  
     Extend VNI to EVPN.
   - **unreachable_vtep_aging_timer** (Optional, Number)  

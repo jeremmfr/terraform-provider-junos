@@ -178,6 +178,13 @@ func (rsc *vlan) Schema(
 						"must start with 'irb.' or 'vlan.'"),
 				},
 			},
+			"no_arp_suppression": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Turn off ARP suppression.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"private_vlan": schema.StringAttribute{
 				Optional:    true,
 				Description: "Type of secondary VLAN for private vlan.",
@@ -263,6 +270,13 @@ func (rsc *vlan) Schema(
 							tfvalidator.BoolTrue(),
 						},
 					},
+					"translation_vni": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Translated VXLAN identifier.",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 16777214),
+						},
+					},
 					"unreachable_vtep_aging_timer": schema.Int64Attribute{
 						Optional:    true,
 						Description: "Unreachable VXLAN tunnel endpoint removal timer (seconds).",
@@ -290,6 +304,7 @@ type vlanData struct {
 	ForwardFloodInput   types.String    `tfsdk:"forward_flood_input"`
 	IsolatedVlan        types.String    `tfsdk:"isolated_vlan"`
 	L3Interface         types.String    `tfsdk:"l3_interface"`
+	NoARPSuppression    types.Bool      `tfsdk:"no_arp_suppression"`
 	PrivateVlan         types.String    `tfsdk:"private_vlan"`
 	ServiceID           types.Int64     `tfsdk:"service_id"`
 	VlanID              types.String    `tfsdk:"vlan_id"`
@@ -308,6 +323,7 @@ type vlanConfig struct {
 	ForwardFloodInput   types.String    `tfsdk:"forward_flood_input"`
 	IsolatedVlan        types.String    `tfsdk:"isolated_vlan"`
 	L3Interface         types.String    `tfsdk:"l3_interface"`
+	NoARPSuppression    types.Bool      `tfsdk:"no_arp_suppression"`
 	PrivateVlan         types.String    `tfsdk:"private_vlan"`
 	ServiceID           types.Int64     `tfsdk:"service_id"`
 	VlanID              types.String    `tfsdk:"vlan_id"`
@@ -326,6 +342,7 @@ type vlanBlockVxlan struct {
 	IngressNodeReplication    types.Bool   `tfsdk:"ingress_node_replication"`
 	MulticastGroup            types.String `tfsdk:"multicast_group"`
 	OvsdbManaged              types.Bool   `tfsdk:"ovsdb_managed"`
+	TranslationVni            types.Int64  `tfsdk:"translation_vni"`
 	UnreachableVtepAgingTimer types.Int64  `tfsdk:"unreachable_vtep_aging_timer"`
 }
 
@@ -648,6 +665,9 @@ func (rscData *vlanData) set(
 	if v := rscData.L3Interface.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"l3-interface "+v)
 	}
+	if rscData.NoARPSuppression.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-arp-suppression")
+	}
 	if v := rscData.PrivateVlan.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"private-vlan "+v)
 	}
@@ -680,6 +700,10 @@ func (rscData *vlanData) set(
 		}
 		if rscData.Vxlan.OvsdbManaged.ValueBool() {
 			configSet = append(configSet, setPrefix+"vxlan ovsdb-managed")
+		}
+		if !rscData.Vxlan.TranslationVni.IsNull() {
+			configSet = append(configSet, setPrefix+"vxlan translation-vni "+
+				utils.ConvI64toa(rscData.Vxlan.TranslationVni.ValueInt64()))
 		}
 		if !rscData.Vxlan.UnreachableVtepAgingTimer.IsNull() {
 			configSet = append(configSet, setPrefix+"vxlan unreachable-vtep-aging-timer "+
@@ -736,6 +760,8 @@ func (rscData *vlanData) read(
 				rscData.IsolatedVlan = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "l3-interface "):
 				rscData.L3Interface = types.StringValue(itemTrim)
+			case itemTrim == "no-arp-suppression":
+				rscData.NoARPSuppression = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "private-vlan "):
 				rscData.PrivateVlan = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "service-id "):
@@ -782,6 +808,11 @@ func (rscData *vlanData) read(
 					rscData.Vxlan.MulticastGroup = types.StringValue(itemTrim)
 				case itemTrim == "ovsdb-managed":
 					rscData.Vxlan.OvsdbManaged = types.BoolValue(true)
+				case balt.CutPrefixInString(&itemTrim, "translation-vni "):
+					rscData.Vxlan.TranslationVni, err = tfdata.ConvAtoi64Value(itemTrim)
+					if err != nil {
+						return err
+					}
 				case balt.CutPrefixInString(&itemTrim, "unreachable-vtep-aging-timer "):
 					rscData.Vxlan.UnreachableVtepAgingTimer, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
