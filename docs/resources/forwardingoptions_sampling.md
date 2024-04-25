@@ -183,5 +183,5 @@ Junos forwarding-options sampling can be imported using an id made up of
 `<routing_instance>`, e.g.
 
 ```shell
-$ terraform import junos_forwardingoptions_sampling_instance.demo default
+$ terraform import junos_forwardingoptions_sampling.demo default
 ```
