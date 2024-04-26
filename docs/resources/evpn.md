@@ -51,6 +51,9 @@ The following arguments are supported:
     Time window for detection of duplicate MACs (5..600 seconds).
 - **multicast_mode** (Optional, String)  
   Multicast mode for EVPN.
+- **no_core_isolation** (Optional, Boolean)  
+  Disable EVPN Core isolation.  
+  `routing_instance` need to be `default`.
 - **switch_or_ri_options** (Optional, Block, Forces new resource)  
   Declare `switch-options` or `routing-instance` configuration.  
   Need to be set if `routing_instance` = `default` or `routing_instance_evpn` = true.  

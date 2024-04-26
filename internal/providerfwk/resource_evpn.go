@@ -129,6 +129,13 @@ func (rsc *evpn) Schema(
 					stringvalidator.OneOf("ingress-replication"),
 				},
 			},
+			"no_core_isolation": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Disable EVPN Core isolation.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"routing_instance_evpn": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Configure routing instance is an evpn instance-type.",
@@ -257,6 +264,7 @@ type evpnData struct {
 	Encapsulation         types.String                    `tfsdk:"encapsulation"`
 	DefaultGateway        types.String                    `tfsdk:"default_gateway"`
 	MulticastMode         types.String                    `tfsdk:"multicast_mode"`
+	NoCoreIsolation       types.Bool                      `tfsdk:"no_core_isolation"`
 	RoutingInstanceEvpn   types.Bool                      `tfsdk:"routing_instance_evpn"`
 	DuplicateMacDetection *evpnBlockDuplicateMACDetection `tfsdk:"duplicate_mac_detection"`
 	SwitchOrRIOptions     *evpnBlockSwitchOrRIOptions     `tfsdk:"switch_or_ri_options"`
@@ -268,6 +276,7 @@ type evpnConfig struct {
 	Encapsulation         types.String                      `tfsdk:"encapsulation"`
 	DefaultGateway        types.String                      `tfsdk:"default_gateway"`
 	MulticastMode         types.String                      `tfsdk:"multicast_mode"`
+	NoCoreIsolation       types.Bool                        `tfsdk:"no_core_isolation"`
 	RoutingInstanceEvpn   types.Bool                        `tfsdk:"routing_instance_evpn"`
 	DuplicateMacDetection *evpnBlockDuplicateMACDetection   `tfsdk:"duplicate_mac_detection"`
 	SwitchOrRIOptions     *evpnBlockSwitchOrRIOptionsConfig `tfsdk:"switch_or_ri_options"`
@@ -335,6 +344,15 @@ func (rsc *evpn) ValidateConfig(
 				fmt.Sprintf("default_gateway cannot be configured when routing_instance = %q", junos.DefaultW),
 			)
 		}
+	}
+	if !config.RoutingInstance.IsNull() && !config.RoutingInstance.IsUnknown() &&
+		config.RoutingInstance.ValueString() != junos.DefaultW &&
+		!config.NoCoreIsolation.IsNull() && !config.NoCoreIsolation.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("no_core_isolation"),
+			tfdiag.ConflictConfigErrSummary,
+			fmt.Sprintf("no_core_isolation cannot be configured when routing_instance != %q", junos.DefaultW),
+		)
 	}
 	if config.DuplicateMacDetection != nil {
 		if config.DuplicateMacDetection.isEmpty() {
@@ -637,6 +655,9 @@ func (rscData *evpnData) set(
 	if v := rscData.MulticastMode.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"multicast-mode "+v)
 	}
+	if rscData.NoCoreIsolation.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-core-isolation")
+	}
 	if rscData.SwitchOrRIOptions != nil {
 		configSet = append(configSet,
 			setSwitchRIPrefix+"route-distinguisher "+rscData.SwitchOrRIOptions.RouteDistinguisher.ValueString())
@@ -722,6 +743,8 @@ func (rscData *evpnData) read(
 				rscData.Encapsulation = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "multicast-mode "):
 				rscData.MulticastMode = types.StringValue(itemTrim)
+			case itemTrim == "no-core-isolation":
+				rscData.NoCoreIsolation = types.BoolValue(true)
 			}
 		}
 	}
@@ -790,6 +813,7 @@ func (rscData *evpnData) delOpts(
 		delPrefix + "duplicate-mac-detection",
 		delPrefix + "encapsulation",
 		delPrefix + "multicast-mode",
+		delPrefix + "no-core-isolation",
 	}
 
 	if rscData.RoutingInstanceEvpn.ValueBool() {
