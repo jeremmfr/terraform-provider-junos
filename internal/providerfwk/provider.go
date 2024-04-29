@@ -299,6 +299,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSystemSyslogUserResource,
 		newSystemTacplusServerResource,
 		newVirtualChassisResource,
+		newVlanResource,
 	}
 }
 
