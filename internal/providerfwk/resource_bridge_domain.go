@@ -339,7 +339,7 @@ func (rsc *bridgeDomain) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("name"),
 			tfdiag.MissingConfigErrSummary,
-			"At least one of arguments need to be set (in addition to `name` and `routing_instance`)",
+			"at least one of arguments need to be set (in addition to `name` and `routing_instance`)",
 		)
 	}
 
