@@ -1,6 +1,48 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.7.0 (2024-05-03)
+
+FEATURES:
+
+* add **junos_forwardingoptions_evpn_vxlan** resource (Partial Fix [#645](https://github.com/jeremmfr/terraform-provider-junos/issues/645))
+
+ENHANCEMENTS:
+
+* **data-source/junos_interfaces_physical_present**:  
+  * add `interfaces` block map attribute with same attributes as `interface_statuses` and additional `logical_interface_names` attribute (Fix [#641](https://github.com/jeremmfr/terraform-provider-junos/issues/641))
+  * deprecate `interface_statuses` attribute (read the `interfaces` attribute instead)
+* **resource/junos_evpn**: add `no_core_isolation` argument (Fix [#644](https://github.com/jeremmfr/terraform-provider-junos/issues/644))
+* **resource/junos_ospf_area**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_ospf**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_vlan**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+    some of config errors are now sent during Plan instead of during Apply  
+    optional boolean attributes doesn't accept value *false*  
+    optional string attributes doesn't accept *empty* value  
+    the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * `community_vlans` argument is now a Set of String (instead of Set of Number) to accept VLAN name in addition to VLAN id  
+    data in the state has been updated for the new format  
+    Number in config is automatically converted to String by Terraform
+  * `isolated_vlan` argument is now a String (instead of Number) to accept VLAN name in addition to VLAN id  
+    data in the state has been updated for the new format  
+    Number in config is automatically converted to String by Terraform
+  * `vlan_id` argument is now a String (instead of Number) to accept `all` or `none` in addition to VLAN id  
+    data in the state has been updated for the new format  
+    Number in config is automatically converted to String by Terraform
+  * add `routing_instance` argument (Partial fix [#646](https://github.com/jeremmfr/terraform-provider-junos/issues/646))  
+    and therefore `id` format has been changed to `<name>_-_<routing_instance>` (instead of `<name>`)
+  * add `no_arp_suppression` argument (Partial fix [#646](https://github.com/jeremmfr/terraform-provider-junos/issues/646))
+  * add `translation_vni` argument inside `vxlan` block argument
+
 ## v2.6.0 (2024-03-13)
 
 FEATURES:
