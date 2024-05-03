@@ -144,12 +144,12 @@ func (rsc *systemTacplusServer) Schema(
 }
 
 type systemTacplusServerData struct {
-	SingleConnection types.Bool   `tfsdk:"single_connection"`
 	ID               types.String `tfsdk:"id"`
 	Address          types.String `tfsdk:"address"`
 	Port             types.Int64  `tfsdk:"port"`
 	RoutingInstance  types.String `tfsdk:"routing_instance"`
 	Secret           types.String `tfsdk:"secret"`
+	SingleConnection types.Bool   `tfsdk:"single_connection"`
 	SourceAddress    types.String `tfsdk:"source_address"`
 	Timeout          types.Int64  `tfsdk:"timeout"`
 }

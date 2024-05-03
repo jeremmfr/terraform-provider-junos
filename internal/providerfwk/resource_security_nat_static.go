@@ -287,18 +287,18 @@ func (rsc *securityNatStatic) Schema(
 }
 
 type securityNatStaticData struct {
-	ConfigureRulesSingly types.Bool                   `tfsdk:"configure_rules_singly"`
 	ID                   types.String                 `tfsdk:"id"`
 	Name                 types.String                 `tfsdk:"name"`
+	ConfigureRulesSingly types.Bool                   `tfsdk:"configure_rules_singly"`
 	Description          types.String                 `tfsdk:"description"`
 	From                 *securityNatStaticBlockFrom  `tfsdk:"from"`
 	Rule                 []securityNatStaticBlockRule `tfsdk:"rule"`
 }
 
 type securityNatStaticConfig struct {
-	ConfigureRulesSingly types.Bool                        `tfsdk:"configure_rules_singly"`
 	ID                   types.String                      `tfsdk:"id"`
 	Name                 types.String                      `tfsdk:"name"`
+	ConfigureRulesSingly types.Bool                        `tfsdk:"configure_rules_singly"`
 	Description          types.String                      `tfsdk:"description"`
 	From                 *securityNatStaticBlockFromConfig `tfsdk:"from"`
 	Rule                 types.List                        `tfsdk:"rule"`

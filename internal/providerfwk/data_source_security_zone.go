@@ -195,17 +195,17 @@ func (dsc *securityZoneDataSource) Schema(
 }
 
 type securityZoneDataSourceData struct {
-	ApplicationTracking              types.Bool                             `tfsdk:"application_tracking"`
-	ReverseReroute                   types.Bool                             `tfsdk:"reverse_reroute"`
-	SourceIdentityLog                types.Bool                             `tfsdk:"source_identity_log"`
-	TCPRst                           types.Bool                             `tfsdk:"tcp_rst"`
 	ID                               types.String                           `tfsdk:"id"`
 	Name                             types.String                           `tfsdk:"name"`
 	AdvancePolicyBasedRoutingProfile types.String                           `tfsdk:"advance_policy_based_routing_profile"`
+	ApplicationTracking              types.Bool                             `tfsdk:"application_tracking"`
 	Description                      types.String                           `tfsdk:"description"`
 	Screen                           types.String                           `tfsdk:"screen"`
 	InboundProtocols                 []types.String                         `tfsdk:"inbound_protocols"`
 	InboundServices                  []types.String                         `tfsdk:"inbound_services"`
+	ReverseReroute                   types.Bool                             `tfsdk:"reverse_reroute"`
+	SourceIdentityLog                types.Bool                             `tfsdk:"source_identity_log"`
+	TCPRst                           types.Bool                             `tfsdk:"tcp_rst"`
 	AddressBook                      []securityZoneBlockAddressBook         `tfsdk:"address_book"`
 	AddressBookDNS                   []securityZoneBlockAddressBookDNS      `tfsdk:"address_book_dns"`
 	AddressBookRange                 []securityZoneBlockAddressBookRange    `tfsdk:"address_book_range"`

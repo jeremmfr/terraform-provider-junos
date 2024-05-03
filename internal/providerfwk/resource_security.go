@@ -868,16 +868,16 @@ func (rsc *security) Schema(
 									int64validator.Between(10240, 1073741824),
 								},
 							},
-							"no_world_readable": schema.BoolAttribute{
+							"world_readable": schema.BoolAttribute{
 								Optional:    true,
-								Description: "Don't allow any user to read the log file.",
+								Description: "Allow any user to read the log file.",
 								Validators: []validator.Bool{
 									tfvalidator.BoolTrue(),
 								},
 							},
-							"world_readable": schema.BoolAttribute{
+							"no_world_readable": schema.BoolAttribute{
 								Optional:    true,
-								Description: "Allow any user to read the log file.",
+								Description: "Don't allow any user to read the log file.",
 								Validators: []validator.Bool{
 									tfvalidator.BoolTrue(),
 								},
@@ -1275,8 +1275,8 @@ func (rsc *security) Schema(
 }
 
 type securityData struct {
-	CleanOnDestroy               types.Bool                                 `tfsdk:"clean_on_destroy"`
 	ID                           types.String                               `tfsdk:"id"`
+	CleanOnDestroy               types.Bool                                 `tfsdk:"clean_on_destroy"`
 	Alg                          *securityBlockAlg                          `tfsdk:"alg"`
 	Flow                         *securityBlockFlow                         `tfsdk:"flow"`
 	ForwardingOptions            *securityBlockForwardingOptions            `tfsdk:"forwarding_options"`
@@ -1292,8 +1292,8 @@ type securityData struct {
 }
 
 type securityConfig struct {
-	CleanOnDestroy               types.Bool                                 `tfsdk:"clean_on_destroy"`
 	ID                           types.String                               `tfsdk:"id"`
+	CleanOnDestroy               types.Bool                                 `tfsdk:"clean_on_destroy"`
 	Alg                          *securityBlockAlg                          `tfsdk:"alg"`
 	Flow                         *securityBlockFlow                         `tfsdk:"flow"`
 	ForwardingOptions            *securityBlockForwardingOptions            `tfsdk:"forwarding_options"`
@@ -1338,11 +1338,11 @@ type securityBlockFlow struct {
 	ForceIPReassembly                types.Bool                               `tfsdk:"force_ip_reassembly"`
 	IpsecPerformanceAcceleration     types.Bool                               `tfsdk:"ipsec_performance_acceleration"`
 	McastBufferEnhance               types.Bool                               `tfsdk:"mcast_buffer_enhance"`
-	PreserveIncomingFragmentSize     types.Bool                               `tfsdk:"preserve_incoming_fragment_size"`
-	SyncIcmpSession                  types.Bool                               `tfsdk:"sync_icmp_session"`
 	PendingSessQueueLength           types.String                             `tfsdk:"pending_sess_queue_length"`
+	PreserveIncomingFragmentSize     types.Bool                               `tfsdk:"preserve_incoming_fragment_size"`
 	RouteChangeTimeout               types.Int64                              `tfsdk:"route_change_timeout"`
 	SynFloodProtectionMode           types.String                             `tfsdk:"syn_flood_protection_mode"`
+	SyncIcmpSession                  types.Bool                               `tfsdk:"sync_icmp_session"`
 	AdvancedOptions                  *securityBlockFlowBlockAdvancedOptions   `tfsdk:"advanced_options"`
 	Aging                            *securityBlockFlowBlockAging             `tfsdk:"aging"`
 	EthernetSwitching                *securityBlockFlowBlockEthernetSwitching `tfsdk:"ethernet_switching"`
@@ -1406,13 +1406,13 @@ func (block *securityBlockFlowBlockTCPMss) isEmpty() bool {
 
 type securityBlockFlowBlockTCPSession struct {
 	FinInvalidateSession types.Bool                                          `tfsdk:"fin_invalidate_session"`
+	MaximumWindow        types.String                                        `tfsdk:"maximum_window"`
 	NoSequenceCheck      types.Bool                                          `tfsdk:"no_sequence_check"`
 	NoSynCheck           types.Bool                                          `tfsdk:"no_syn_check"`
 	NoSynCheckInTunnel   types.Bool                                          `tfsdk:"no_syn_check_in_tunnel"`
 	RstInvalidateSession types.Bool                                          `tfsdk:"rst_invalidate_session"`
 	RstSequenceCheck     types.Bool                                          `tfsdk:"rst_sequence_check"`
 	StrictSynCheck       types.Bool                                          `tfsdk:"strict_syn_check"`
-	MaximumWindow        types.String                                        `tfsdk:"maximum_window"`
 	TCPInitialTimeout    types.Int64                                         `tfsdk:"tcp_initial_timeout"`
 	TimeWaitState        *securityBlockFlowBlockTCPSessionBlockTimeWaitState `tfsdk:"time_wait_state"`
 }
@@ -1447,9 +1447,9 @@ func (block *securityBlockForwardingProcess) isEmpty() bool {
 
 type securityBlockIdpSecurityPackage struct {
 	AutomaticEnable           types.Bool   `tfsdk:"automatic_enable"`
-	InstallIgnoreVersionCheck types.Bool   `tfsdk:"install_ignore_version_check"`
 	AutomaticInterval         types.Int64  `tfsdk:"automatic_interval"`
 	AutomaticStartTime        types.String `tfsdk:"automatic_start_time"`
+	InstallIgnoreVersionCheck types.Bool   `tfsdk:"install_ignore_version_check"`
 	ProxyProfile              types.String `tfsdk:"proxy_profile"`
 	SourceAddress             types.String `tfsdk:"source_address"`
 	URL                       types.String `tfsdk:"url"`
@@ -1512,12 +1512,12 @@ func (block *securityBlockIkeTraceoptionsConfig) isEmpty() bool {
 }
 
 type securityBlockIkeTraceoptionsBlockFile struct {
-	NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
-	WorldReadable   types.Bool   `tfsdk:"world_readable"`
 	Name            types.String `tfsdk:"name"`
 	Files           types.Int64  `tfsdk:"files"`
 	Match           types.String `tfsdk:"match"`
 	Size            types.Int64  `tfsdk:"size"`
+	WorldReadable   types.Bool   `tfsdk:"world_readable"`
+	NoWorldReadable types.Bool   `tfsdk:"no_world_readable"`
 }
 
 func (block *securityBlockIkeTraceoptionsBlockFile) isEmpty() bool {
@@ -1526,16 +1526,16 @@ func (block *securityBlockIkeTraceoptionsBlockFile) isEmpty() bool {
 
 type securityBlockLog struct {
 	Disable           types.Bool                      `tfsdk:"disable"`
-	Report            types.Bool                      `tfsdk:"report"`
-	UtcTimestamp      types.Bool                      `tfsdk:"utc_timestamp"`
 	EventRate         types.Int64                     `tfsdk:"event_rate"`
 	FacilityOverride  types.String                    `tfsdk:"facility_override"`
 	Format            types.String                    `tfsdk:"format"`
 	MaxDatabaseRecord types.Int64                     `tfsdk:"max_database_record"`
 	Mode              types.String                    `tfsdk:"mode"`
 	RateCap           types.Int64                     `tfsdk:"rate_cap"`
+	Report            types.Bool                      `tfsdk:"report"`
 	SourceAddress     types.String                    `tfsdk:"source_address"`
 	SourceInterface   types.String                    `tfsdk:"source_interface"`
+	UtcTimestamp      types.Bool                      `tfsdk:"utc_timestamp"`
 	File              *securityBlockLogBlockFile      `tfsdk:"file"`
 	Transport         *securityBlockLogBlockTransport `tfsdk:"transport"`
 }
@@ -1563,17 +1563,17 @@ type securityBlockLogBlockTransport struct {
 
 type securityBlockNatSource struct {
 	AddressPersistent                  types.Bool  `tfsdk:"address_persistent"`
-	InterfacePortOverloadingOff        types.Bool  `tfsdk:"interface_port_overloading_off"`
-	PortRandomizationDisable           types.Bool  `tfsdk:"port_randomization_disable"`
-	SessionPersistenceScan             types.Bool  `tfsdk:"session_persistence_scan"`
 	InterfacePortOverloadingFactor     types.Int64 `tfsdk:"interface_port_overloading_factor"`
+	InterfacePortOverloadingOff        types.Bool  `tfsdk:"interface_port_overloading_off"`
 	PoolDefaultPortRange               types.Int64 `tfsdk:"pool_default_port_range"`
 	PoolDefaultPortRangeTo             types.Int64 `tfsdk:"pool_default_port_range_to"`
 	PoolDefaultTwinPortRange           types.Int64 `tfsdk:"pool_default_twin_port_range"`
 	PoolDefaultTwinPortRangeTo         types.Int64 `tfsdk:"pool_default_twin_port_range_to"`
 	PoolUtilizationAlarmClearThreshold types.Int64 `tfsdk:"pool_utilization_alarm_clear_threshold"`
 	PoolUtilizationAlarmRaiseThreshold types.Int64 `tfsdk:"pool_utilization_alarm_raise_threshold"`
+	PortRandomizationDisable           types.Bool  `tfsdk:"port_randomization_disable"`
 	SessionDropHoldDown                types.Int64 `tfsdk:"session_drop_hold_down"`
+	SessionPersistenceScan             types.Bool  `tfsdk:"session_persistence_scan"`
 }
 
 func (block *securityBlockNatSource) isEmpty() bool {

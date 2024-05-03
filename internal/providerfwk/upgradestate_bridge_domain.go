@@ -95,26 +95,26 @@ func upgradeBridgeDomainStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		DomainTypeBridge types.Bool     `tfsdk:"domain_type_bridge"`
 		ID               types.String   `tfsdk:"id"`
 		Name             types.String   `tfsdk:"name"`
 		RoutingInstance  types.String   `tfsdk:"routing_instance"`
 		CommunityVlans   []types.String `tfsdk:"community_vlans"`
 		Description      types.String   `tfsdk:"description"`
 		DomainID         types.Int64    `tfsdk:"domain_id"`
+		DomainTypeBridge types.Bool     `tfsdk:"domain_type_bridge"`
 		IsolatedVLAN     types.Int64    `tfsdk:"isolated_vlan"`
 		RoutingInterface types.String   `tfsdk:"routing_interface"`
 		ServiceID        types.Int64    `tfsdk:"service_id"`
 		VLANID           types.Int64    `tfsdk:"vlan_id"`
 		VLANIDList       []types.String `tfsdk:"vlan_id_list"`
 		VXLAN            []struct {
+			VNI                        types.Int64  `tfsdk:"vni"`
 			VNIExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
 			DecapsulateAcceptInnerVlan types.Bool   `tfsdk:"decapsulate_accept_inner_vlan"`
 			EncapsulateInnerVlan       types.Bool   `tfsdk:"encapsulate_inner_vlan"`
 			IngressNodeReplication     types.Bool   `tfsdk:"ingress_node_replication"`
-			OvsdbManaged               types.Bool   `tfsdk:"ovsdb_managed"`
-			VNI                        types.Int64  `tfsdk:"vni"`
 			MulticastGroup             types.String `tfsdk:"multicast_group"`
+			OvsdbManaged               types.Bool   `tfsdk:"ovsdb_managed"`
 			UnreachableVtepAgingTimer  types.Int64  `tfsdk:"unreachable_vtep_aging_timer"`
 		} `tfsdk:"vxlan"`
 	}

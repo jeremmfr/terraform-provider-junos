@@ -412,15 +412,15 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("network_address"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 	if !config.DNSName.IsNull() && !config.DNSName.IsUnknown() {
@@ -443,15 +443,15 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("dns_name"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 	if !config.RangeAddress.IsNull() && !config.RangeAddress.IsUnknown() {
@@ -466,15 +466,15 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
+			name := block.Name.ValueString()
 			if _, ok := addressName[block.Name.ValueString()]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("range_address"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 	if !config.WildcardAddress.IsNull() && !config.WildcardAddress.IsUnknown() {
@@ -489,15 +489,15 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("wildcard_address"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 	if !config.AddressSet.IsNull() && !config.AddressSet.IsUnknown() {
@@ -520,15 +520,15 @@ func (rsc *securityAddressBook) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_set"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses or address-sets with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses or address-sets with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 
@@ -748,6 +748,7 @@ func (rscData *securityAddressBookData) set(
 				fmt.Errorf("multiple addresses with the same name %q", name)
 		}
 		addressName[name] = struct{}{}
+
 		setPrefixAddr := setPrefix + "address " + name + " "
 		configSet = append(configSet, setPrefixAddr+block.Value.ValueString())
 		if v := block.Description.ValueString(); v != "" {
@@ -761,6 +762,7 @@ func (rscData *securityAddressBookData) set(
 				fmt.Errorf("multiple addresses with the same name %q", name)
 		}
 		addressName[name] = struct{}{}
+
 		setPrefixAddr := setPrefix + "address " + name + " "
 		configSet = append(configSet, setPrefixAddr+"dns-name "+block.Value.ValueString())
 		if block.IPv4Only.ValueBool() {
@@ -780,6 +782,7 @@ func (rscData *securityAddressBookData) set(
 				fmt.Errorf("multiple addresses with the same name %q", name)
 		}
 		addressName[name] = struct{}{}
+
 		setPrefixAddr := setPrefix + "address " + name + " "
 		configSet = append(configSet, setPrefixAddr+"range-address "+block.From.ValueString()+" to "+block.To.ValueString())
 		if v := block.Description.ValueString(); v != "" {
@@ -793,6 +796,7 @@ func (rscData *securityAddressBookData) set(
 				fmt.Errorf("multiple addresses with the same name %q", name)
 		}
 		addressName[name] = struct{}{}
+
 		setPrefixAddr := setPrefix + "address " + name + " "
 		configSet = append(configSet, setPrefixAddr+"wildcard-address "+block.Value.ValueString())
 		if v := block.Description.ValueString(); v != "" {
@@ -806,6 +810,7 @@ func (rscData *securityAddressBookData) set(
 				fmt.Errorf("multiple addresses or address-sets with the same name %q", name)
 		}
 		addressName[name] = struct{}{}
+
 		setPrefixAddrSet := setPrefix + "address-set " + name + " "
 		if len(block.Address) == 0 && len(block.AddressSet) == 0 {
 			return path.Root("address_set"),

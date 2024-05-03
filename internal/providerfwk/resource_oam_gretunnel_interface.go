@@ -44,7 +44,7 @@ func (rsc *oamGretunnelInterface) typeName() string {
 }
 
 func (rsc *oamGretunnelInterface) junosName() string {
-	return "protocol oam gre-tunnel interface"
+	return "oam gre-tunnel interface"
 }
 
 func (rsc *oamGretunnelInterface) junosClient() *junos.Client {

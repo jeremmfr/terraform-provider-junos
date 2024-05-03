@@ -761,18 +761,18 @@ func (rsc *firewallFilter) Schema(
 }
 
 type firewallFilterData struct {
-	InterfaceSpecific types.Bool                `tfsdk:"interface_specific"`
 	ID                types.String              `tfsdk:"id"`
 	Name              types.String              `tfsdk:"name"`
 	Family            types.String              `tfsdk:"family"`
+	InterfaceSpecific types.Bool                `tfsdk:"interface_specific"`
 	Term              []firewallFilterBlockTerm `tfsdk:"term"`
 }
 
 type firewallFilterConfig struct {
-	InterfaceSpecific types.Bool   `tfsdk:"interface_specific"`
 	ID                types.String `tfsdk:"id"`
 	Name              types.String `tfsdk:"name"`
 	Family            types.String `tfsdk:"family"`
+	InterfaceSpecific types.Bool   `tfsdk:"interface_specific"`
 	Term              types.List   `tfsdk:"term"`
 }
 
@@ -795,9 +795,6 @@ func (block *firewallFilterBlockTermConfig) isEmpty() bool {
 }
 
 type firewallFilterBlockTermBlockFrom struct {
-	IsFragment                  types.Bool     `tfsdk:"is_fragment"`
-	TCPEstablished              types.Bool     `tfsdk:"tcp_established"`
-	TCPInitial                  types.Bool     `tfsdk:"tcp_initial"`
 	Address                     []types.String `tfsdk:"address"`
 	AddressExcept               []types.String `tfsdk:"address_except"`
 	DestinationAddress          []types.String `tfsdk:"destination_address"`
@@ -815,6 +812,7 @@ type firewallFilterBlockTermBlockFrom struct {
 	IcmpType                    []types.String `tfsdk:"icmp_type"`
 	IcmpTypeExcept              []types.String `tfsdk:"icmp_type_except"`
 	Interface                   []types.String `tfsdk:"interface"`
+	IsFragment                  types.Bool     `tfsdk:"is_fragment"`
 	LossPriority                []types.String `tfsdk:"loss_priority"`
 	LossPriorityExcept          []types.String `tfsdk:"loss_priority_except"`
 	NextHeader                  []types.String `tfsdk:"next_header"`
@@ -837,13 +835,12 @@ type firewallFilterBlockTermBlockFrom struct {
 	SourcePortExcept            []types.String `tfsdk:"source_port_except"`
 	SourcePrefixList            []types.String `tfsdk:"source_prefix_list"`
 	SourcePrefixListExcept      []types.String `tfsdk:"source_prefix_list_except"`
+	TCPEstablished              types.Bool     `tfsdk:"tcp_established"`
 	TCPFlags                    types.String   `tfsdk:"tcp_flags"`
+	TCPInitial                  types.Bool     `tfsdk:"tcp_initial"`
 }
 
 type firewallFilterBlockTermBlockFromConfig struct {
-	IsFragment                  types.Bool   `tfsdk:"is_fragment"`
-	TCPEstablished              types.Bool   `tfsdk:"tcp_established"`
-	TCPInitial                  types.Bool   `tfsdk:"tcp_initial"`
 	Address                     types.Set    `tfsdk:"address"`
 	AddressExcept               types.Set    `tfsdk:"address_except"`
 	DestinationAddress          types.Set    `tfsdk:"destination_address"`
@@ -861,6 +858,7 @@ type firewallFilterBlockTermBlockFromConfig struct {
 	IcmpType                    types.Set    `tfsdk:"icmp_type"`
 	IcmpTypeExcept              types.Set    `tfsdk:"icmp_type_except"`
 	Interface                   types.Set    `tfsdk:"interface"`
+	IsFragment                  types.Bool   `tfsdk:"is_fragment"`
 	LossPriority                types.Set    `tfsdk:"loss_priority"`
 	LossPriorityExcept          types.Set    `tfsdk:"loss_priority_except"`
 	NextHeader                  types.Set    `tfsdk:"next_header"`
@@ -883,7 +881,9 @@ type firewallFilterBlockTermBlockFromConfig struct {
 	SourcePortExcept            types.Set    `tfsdk:"source_port_except"`
 	SourcePrefixList            types.Set    `tfsdk:"source_prefix_list"`
 	SourcePrefixListExcept      types.Set    `tfsdk:"source_prefix_list_except"`
+	TCPEstablished              types.Bool   `tfsdk:"tcp_established"`
 	TCPFlags                    types.String `tfsdk:"tcp_flags"`
+	TCPInitial                  types.Bool   `tfsdk:"tcp_initial"`
 }
 
 func (block *firewallFilterBlockTermBlockFromConfig) isEmpty() bool {
@@ -891,18 +891,18 @@ func (block *firewallFilterBlockTermBlockFromConfig) isEmpty() bool {
 }
 
 type firewallFilterBlockTermBlockThen struct {
-	Log               types.Bool   `tfsdk:"log"`
-	PacketMode        types.Bool   `tfsdk:"packet_mode"`
-	PortMirror        types.Bool   `tfsdk:"port_mirror"`
-	Sample            types.Bool   `tfsdk:"sample"`
-	ServiceAccounting types.Bool   `tfsdk:"service_accounting"`
-	Syslog            types.Bool   `tfsdk:"syslog"`
 	Action            types.String `tfsdk:"action"`
 	Count             types.String `tfsdk:"count"`
 	ForwardingClass   types.String `tfsdk:"forwarding_class"`
+	Log               types.Bool   `tfsdk:"log"`
 	LossPriority      types.String `tfsdk:"loss_priority"`
+	PacketMode        types.Bool   `tfsdk:"packet_mode"`
 	Policer           types.String `tfsdk:"policer"`
+	PortMirror        types.Bool   `tfsdk:"port_mirror"`
 	RoutingInstance   types.String `tfsdk:"routing_instance"`
+	Sample            types.Bool   `tfsdk:"sample"`
+	ServiceAccounting types.Bool   `tfsdk:"service_accounting"`
+	Syslog            types.Bool   `tfsdk:"syslog"`
 }
 
 func (block *firewallFilterBlockTermBlockThen) isEmpty() bool {
@@ -1701,11 +1701,11 @@ func (rscData *firewallFilterData) set(
 				fmt.Errorf("multiple term blocks with the same name %q", name)
 		}
 		termName[name] = struct{}{}
+
 		setPrefixTerm := setPrefix + "term \"" + name + "\" "
 		if v := block.Filter.ValueString(); v != "" {
 			configSet = append(configSet, setPrefixTerm+"filter \""+v+"\"")
 		}
-
 		if block.From != nil {
 			blockSet, pathErr, err := block.From.configSet(setPrefixTerm, path.Root("term").AtListIndex(i).AtName("from"))
 			if err != nil {
@@ -1944,7 +1944,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 }
 
 func (block *firewallFilterBlockTermBlockThen) configSet(setPrefix string) []string {
-	configSet := make([]string, 0, 100)
+	configSet := make([]string, 0, 1)
 	setPrefix += "then "
 
 	if v := block.Action.ValueString(); v != "" {

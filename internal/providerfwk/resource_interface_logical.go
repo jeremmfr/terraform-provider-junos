@@ -1012,56 +1012,56 @@ func (rsc *interfaceLogical) Schema(
 }
 
 type interfaceLogicalData struct {
-	St0AlsoOnDestroy         types.Bool                        `tfsdk:"st0_also_on_destroy"`
-	VlanNoCompute            types.Bool                        `tfsdk:"vlan_no_compute"`
-	Disable                  types.Bool                        `tfsdk:"disable"`
 	ID                       types.String                      `tfsdk:"id"`
 	Name                     types.String                      `tfsdk:"name"`
+	St0AlsoOnDestroy         types.Bool                        `tfsdk:"st0_also_on_destroy"`
 	Description              types.String                      `tfsdk:"description"`
+	Disable                  types.Bool                        `tfsdk:"disable"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
 	SecurityZone             types.String                      `tfsdk:"security_zone"`
 	VlanID                   types.Int64                       `tfsdk:"vlan_id"`
+	VlanNoCompute            types.Bool                        `tfsdk:"vlan_no_compute"`
 	FamilyInet               *interfaceLogicalBlockFamilyInet  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6 `tfsdk:"family_inet6"`
 	Tunnel                   *interfaceLogicalBlockTunnel      `tfsdk:"tunnel"`
 }
 
 type interfaceLogicalConfig struct {
-	St0AlsoOnDestroy         types.Bool                              `tfsdk:"st0_also_on_destroy"`
-	VlanNoCompute            types.Bool                              `tfsdk:"vlan_no_compute"`
-	Disable                  types.Bool                              `tfsdk:"disable"`
 	ID                       types.String                            `tfsdk:"id"`
 	Name                     types.String                            `tfsdk:"name"`
+	St0AlsoOnDestroy         types.Bool                              `tfsdk:"st0_also_on_destroy"`
 	Description              types.String                            `tfsdk:"description"`
+	Disable                  types.Bool                              `tfsdk:"disable"`
 	RoutingInstance          types.String                            `tfsdk:"routing_instance"`
 	SecurityInboundProtocols types.Set                               `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  types.Set                               `tfsdk:"security_inbound_services"`
 	SecurityZone             types.String                            `tfsdk:"security_zone"`
 	VlanID                   types.Int64                             `tfsdk:"vlan_id"`
+	VlanNoCompute            types.Bool                              `tfsdk:"vlan_no_compute"`
 	FamilyInet               *interfaceLogicalBlockFamilyInetConfig  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6Config `tfsdk:"family_inet6"`
 	Tunnel                   *interfaceLogicalBlockTunnel            `tfsdk:"tunnel"`
 }
 
 type interfaceLogicalBlockFamilyInet struct {
-	SamplingInput  types.Bool                                    `tfsdk:"sampling_input"`
-	SamplingOutput types.Bool                                    `tfsdk:"sampling_output"`
 	FilterInput    types.String                                  `tfsdk:"filter_input"`
 	FilterOutput   types.String                                  `tfsdk:"filter_output"`
 	Mtu            types.Int64                                   `tfsdk:"mtu"`
+	SamplingInput  types.Bool                                    `tfsdk:"sampling_input"`
+	SamplingOutput types.Bool                                    `tfsdk:"sampling_output"`
 	Address        []interfaceLogicalBlockFamilyInetBlockAddress `tfsdk:"address"`
 	DHCP           *interfaceLogicalBlockFamilyInetBlockDhcp     `tfsdk:"dhcp"`
 	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck     `tfsdk:"rpf_check"`
 }
 
 type interfaceLogicalBlockFamilyInetConfig struct {
-	SamplingInput  types.Bool                                `tfsdk:"sampling_input"`
-	SamplingOutput types.Bool                                `tfsdk:"sampling_output"`
 	FilterInput    types.String                              `tfsdk:"filter_input"`
 	FilterOutput   types.String                              `tfsdk:"filter_output"`
 	Mtu            types.Int64                               `tfsdk:"mtu"`
+	SamplingInput  types.Bool                                `tfsdk:"sampling_input"`
+	SamplingOutput types.Bool                                `tfsdk:"sampling_output"`
 	Address        types.List                                `tfsdk:"address"`
 	DHCP           *interfaceLogicalBlockFamilyInetBlockDhcp `tfsdk:"dhcp"`
 	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck `tfsdk:"rpf_check"`
@@ -1073,47 +1073,47 @@ type interfaceLogicalBlockFamilyBlockRPFCheck struct {
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddress struct {
+	CidrIP    types.String                                                `tfsdk:"cidr_ip"`
 	Preferred types.Bool                                                  `tfsdk:"preferred"`
 	Primary   types.Bool                                                  `tfsdk:"primary"`
-	CidrIP    types.String                                                `tfsdk:"cidr_ip"`
 	VRRPGroup []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddressConfig struct {
+	CidrIP    types.String `tfsdk:"cidr_ip"`
 	Preferred types.Bool   `tfsdk:"preferred"`
 	Primary   types.Bool   `tfsdk:"primary"`
-	CidrIP    types.String `tfsdk:"cidr_ip"`
 	VRRPGroup types.List   `tfsdk:"vrrp_group"`
 }
 
 //nolint:lll
 type interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup struct {
-	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
-	NoAcceptData            types.Bool                                                                 `tfsdk:"no_accept_data"`
-	Preempt                 types.Bool                                                                 `tfsdk:"preempt"`
-	NoPreempt               types.Bool                                                                 `tfsdk:"no_preempt"`
 	Identifier              types.Int64                                                                `tfsdk:"identifier"`
 	VirtualAddress          []types.String                                                             `tfsdk:"virtual_address"`
+	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
+	NoAcceptData            types.Bool                                                                 `tfsdk:"no_accept_data"`
 	AdvertiseInterval       types.Int64                                                                `tfsdk:"advertise_interval"`
 	AdvertisementsThreshold types.Int64                                                                `tfsdk:"advertisements_threshold"`
 	AuthenticationKey       types.String                                                               `tfsdk:"authentication_key"`
 	AuthenticationType      types.String                                                               `tfsdk:"authentication_type"`
+	Preempt                 types.Bool                                                                 `tfsdk:"preempt"`
+	NoPreempt               types.Bool                                                                 `tfsdk:"no_preempt"`
 	Priority                types.Int64                                                                `tfsdk:"priority"`
 	TrackInterface          []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface `tfsdk:"track_interface"`
 	TrackRoute              []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute     `tfsdk:"track_route"`
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroupConfig struct {
-	AcceptData              types.Bool   `tfsdk:"accept_data"`
-	NoAcceptData            types.Bool   `tfsdk:"no_accept_data"`
-	Preempt                 types.Bool   `tfsdk:"preempt"`
-	NoPreempt               types.Bool   `tfsdk:"no_preempt"`
 	Identifier              types.Int64  `tfsdk:"identifier"`
 	VirtualAddress          types.List   `tfsdk:"virtual_address"`
+	AcceptData              types.Bool   `tfsdk:"accept_data"`
+	NoAcceptData            types.Bool   `tfsdk:"no_accept_data"`
 	AdvertiseInterval       types.Int64  `tfsdk:"advertise_interval"`
 	AdvertisementsThreshold types.Int64  `tfsdk:"advertisements_threshold"`
 	AuthenticationKey       types.String `tfsdk:"authentication_key"`
 	AuthenticationType      types.String `tfsdk:"authentication_type"`
+	Preempt                 types.Bool   `tfsdk:"preempt"`
+	NoPreempt               types.Bool   `tfsdk:"no_preempt"`
 	Priority                types.Int64  `tfsdk:"priority"`
 	TrackInterface          types.List   `tfsdk:"track_interface"`
 	TrackRoute              types.List   `tfsdk:"track_route"`
@@ -1132,23 +1132,23 @@ type interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute struct
 
 type interfaceLogicalBlockFamilyInetBlockDhcp struct {
 	SrxOldOptionName                          types.Bool   `tfsdk:"srx_old_option_name"`
-	ClientIdentifierPrefixHostname            types.Bool   `tfsdk:"client_identifier_prefix_hostname"`
-	ClientIdentifierPrefixRoutingInstanceName types.Bool   `tfsdk:"client_identifier_prefix_routing_instance_name"`
-	ForceDiscover                             types.Bool   `tfsdk:"force_discover"`
-	LeaseTimeInfinite                         types.Bool   `tfsdk:"lease_time_infinite"`
-	NoDNSInstall                              types.Bool   `tfsdk:"no_dns_install"`
-	OptionsNoHostname                         types.Bool   `tfsdk:"options_no_hostname"`
-	UpdateServer                              types.Bool   `tfsdk:"update_server"`
 	ClientIdentifierASCII                     types.String `tfsdk:"client_identifier_ascii"`
 	ClientIdentifierHexadecimal               types.String `tfsdk:"client_identifier_hexadecimal"`
+	ClientIdentifierPrefixHostname            types.Bool   `tfsdk:"client_identifier_prefix_hostname"`
+	ClientIdentifierPrefixRoutingInstanceName types.Bool   `tfsdk:"client_identifier_prefix_routing_instance_name"`
 	ClientIdentifierUseInterfaceDescription   types.String `tfsdk:"client_identifier_use_interface_description"`
 	ClientIdentifierUseridASCII               types.String `tfsdk:"client_identifier_userid_ascii"`
 	ClientIdentifierUseridHexadecimal         types.String `tfsdk:"client_identifier_userid_hexadecimal"`
+	ForceDiscover                             types.Bool   `tfsdk:"force_discover"`
 	LeaseTime                                 types.Int64  `tfsdk:"lease_time"`
+	LeaseTimeInfinite                         types.Bool   `tfsdk:"lease_time_infinite"`
 	Metric                                    types.Int64  `tfsdk:"metric"`
+	NoDNSInstall                              types.Bool   `tfsdk:"no_dns_install"`
+	OptionsNoHostname                         types.Bool   `tfsdk:"options_no_hostname"`
 	RetransmissionAttempt                     types.Int64  `tfsdk:"retransmission_attempt"`
 	RetransmissionInterval                    types.Int64  `tfsdk:"retransmission_interval"`
 	ServerAddress                             types.String `tfsdk:"server_address"`
+	UpdateServer                              types.Bool   `tfsdk:"update_server"`
 	VendorID                                  types.String `tfsdk:"vendor_id"`
 }
 
@@ -1158,11 +1158,11 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) hasKnownValue() bool {
 
 type interfaceLogicalBlockFamilyInet6 struct {
 	DadDisable     types.Bool                                         `tfsdk:"dad_disable"`
-	SamplingInput  types.Bool                                         `tfsdk:"sampling_input"`
-	SamplingOutput types.Bool                                         `tfsdk:"sampling_output"`
 	FilterInput    types.String                                       `tfsdk:"filter_input"`
 	FilterOutput   types.String                                       `tfsdk:"filter_output"`
 	Mtu            types.Int64                                        `tfsdk:"mtu"`
+	SamplingInput  types.Bool                                         `tfsdk:"sampling_input"`
+	SamplingOutput types.Bool                                         `tfsdk:"sampling_output"`
 	Address        []interfaceLogicalBlockFamilyInet6BlockAddress     `tfsdk:"address"`
 	DHCPv6Client   *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client `tfsdk:"dhcpv6_client"`
 	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck          `tfsdk:"rpf_check"`
@@ -1170,70 +1170,70 @@ type interfaceLogicalBlockFamilyInet6 struct {
 
 type interfaceLogicalBlockFamilyInet6Config struct {
 	DadDisable     types.Bool                                               `tfsdk:"dad_disable"`
-	SamplingInput  types.Bool                                               `tfsdk:"sampling_input"`
-	SamplingOutput types.Bool                                               `tfsdk:"sampling_output"`
 	FilterInput    types.String                                             `tfsdk:"filter_input"`
 	FilterOutput   types.String                                             `tfsdk:"filter_output"`
 	Mtu            types.Int64                                              `tfsdk:"mtu"`
+	SamplingInput  types.Bool                                               `tfsdk:"sampling_input"`
+	SamplingOutput types.Bool                                               `tfsdk:"sampling_output"`
 	Address        types.List                                               `tfsdk:"address"`
 	DHCPv6Client   *interfaceLogicalBlockFamilyInet6BlockDhcpV6ClientConfig `tfsdk:"dhcpv6_client"`
 	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck                `tfsdk:"rpf_check"`
 }
 
 type interfaceLogicalBlockFamilyInet6BlockAddress struct {
+	CidrIP    types.String                                                 `tfsdk:"cidr_ip"`
 	Preferred types.Bool                                                   `tfsdk:"preferred"`
 	Primary   types.Bool                                                   `tfsdk:"primary"`
-	CidrIP    types.String                                                 `tfsdk:"cidr_ip"`
 	VRRPGroup []interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
 }
 
 type interfaceLogicalBlockFamilyInet6BlockAddressConfig struct {
+	CidrIP    types.String `tfsdk:"cidr_ip"`
 	Preferred types.Bool   `tfsdk:"preferred"`
 	Primary   types.Bool   `tfsdk:"primary"`
-	CidrIP    types.String `tfsdk:"cidr_ip"`
 	VRRPGroup types.List   `tfsdk:"vrrp_group"`
 }
 
 //nolint:lll
 type interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup struct {
-	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
-	NoAcceptData            types.Bool                                                                 `tfsdk:"no_accept_data"`
-	Preempt                 types.Bool                                                                 `tfsdk:"preempt"`
-	NoPreempt               types.Bool                                                                 `tfsdk:"no_preempt"`
 	Identifier              types.Int64                                                                `tfsdk:"identifier"`
 	VirtualAddress          []types.String                                                             `tfsdk:"virtual_address"`
 	VirutalLinkLocalAddress types.String                                                               `tfsdk:"virtual_link_local_address"`
+	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
+	NoAcceptData            types.Bool                                                                 `tfsdk:"no_accept_data"`
 	AdvertiseInterval       types.Int64                                                                `tfsdk:"advertise_interval"`
 	AdvertisementsThreshold types.Int64                                                                `tfsdk:"advertisements_threshold"`
+	Preempt                 types.Bool                                                                 `tfsdk:"preempt"`
+	NoPreempt               types.Bool                                                                 `tfsdk:"no_preempt"`
 	Priority                types.Int64                                                                `tfsdk:"priority"`
 	TrackInterface          []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface `tfsdk:"track_interface"`
 	TrackRoute              []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute     `tfsdk:"track_route"`
 }
 
 type interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroupConfig struct {
-	AcceptData              types.Bool   `tfsdk:"accept_data"`
-	NoAcceptData            types.Bool   `tfsdk:"no_accept_data"`
-	Preempt                 types.Bool   `tfsdk:"preempt"`
-	NoPreempt               types.Bool   `tfsdk:"no_preempt"`
 	Identifier              types.Int64  `tfsdk:"identifier"`
 	VirtualAddress          types.List   `tfsdk:"virtual_address"`
 	VirutalLinkLocalAddress types.String `tfsdk:"virtual_link_local_address"`
+	AcceptData              types.Bool   `tfsdk:"accept_data"`
+	NoAcceptData            types.Bool   `tfsdk:"no_accept_data"`
 	AdvertiseInterval       types.Int64  `tfsdk:"advertise_interval"`
 	AdvertisementsThreshold types.Int64  `tfsdk:"advertisements_threshold"`
+	Preempt                 types.Bool   `tfsdk:"preempt"`
+	NoPreempt               types.Bool   `tfsdk:"no_preempt"`
 	Priority                types.Int64  `tfsdk:"priority"`
 	TrackInterface          types.List   `tfsdk:"track_interface"`
 	TrackRoute              types.List   `tfsdk:"track_route"`
 }
 
 type interfaceLogicalBlockFamilyInet6BlockDhcpV6Client struct {
+	ClientIdentifierDuidType              types.String   `tfsdk:"client_identifier_duid_type"`
+	ClientType                            types.String   `tfsdk:"client_type"`
 	ClientIATypeNA                        types.Bool     `tfsdk:"client_ia_type_na"`
 	ClientIATypePD                        types.Bool     `tfsdk:"client_ia_type_pd"`
 	NoDNSInstall                          types.Bool     `tfsdk:"no_dns_install"`
-	RapidCommit                           types.Bool     `tfsdk:"rapid_commit"`
-	ClientIdentifierDuidType              types.String   `tfsdk:"client_identifier_duid_type"`
-	ClientType                            types.String   `tfsdk:"client_type"`
 	PrefixDelegatingPreferredPrefixLength types.Int64    `tfsdk:"prefix_delegating_preferred_prefix_length"`
 	PrefixDelegatingSubPrefixLength       types.Int64    `tfsdk:"prefix_delegating_sub_prefix_length"`
+	RapidCommit                           types.Bool     `tfsdk:"rapid_commit"`
 	ReqOption                             []types.String `tfsdk:"req_option"`
 	RetransmissionAttempt                 types.Int64    `tfsdk:"retransmission_attempt"`
 	UpdateRouterAdvertisementInterface    []types.String `tfsdk:"update_router_advertisement_interface"`
@@ -1241,14 +1241,14 @@ type interfaceLogicalBlockFamilyInet6BlockDhcpV6Client struct {
 }
 
 type interfaceLogicalBlockFamilyInet6BlockDhcpV6ClientConfig struct {
+	ClientIdentifierDuidType              types.String `tfsdk:"client_identifier_duid_type"`
+	ClientType                            types.String `tfsdk:"client_type"`
 	ClientIATypeNA                        types.Bool   `tfsdk:"client_ia_type_na"`
 	ClientIATypePD                        types.Bool   `tfsdk:"client_ia_type_pd"`
 	NoDNSInstall                          types.Bool   `tfsdk:"no_dns_install"`
-	RapidCommit                           types.Bool   `tfsdk:"rapid_commit"`
-	ClientIdentifierDuidType              types.String `tfsdk:"client_identifier_duid_type"`
-	ClientType                            types.String `tfsdk:"client_type"`
 	PrefixDelegatingPreferredPrefixLength types.Int64  `tfsdk:"prefix_delegating_preferred_prefix_length"`
 	PrefixDelegatingSubPrefixLength       types.Int64  `tfsdk:"prefix_delegating_sub_prefix_length"`
+	RapidCommit                           types.Bool   `tfsdk:"rapid_commit"`
 	ReqOption                             types.Set    `tfsdk:"req_option"`
 	RetransmissionAttempt                 types.Int64  `tfsdk:"retransmission_attempt"`
 	UpdateRouterAdvertisementInterface    types.Set    `tfsdk:"update_router_advertisement_interface"`
@@ -1260,13 +1260,13 @@ func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6ClientConfig) hasKnownVa
 }
 
 type interfaceLogicalBlockTunnel struct {
-	AllowFragmentation         types.Bool   `tfsdk:"allow_fragmentation"`
-	DoNotFragment              types.Bool   `tfsdk:"do_not_fragment"`
-	PathMtuDiscovery           types.Bool   `tfsdk:"path_mtu_discovery"`
-	NoPathMtuDiscovery         types.Bool   `tfsdk:"no_path_mtu_discovery"`
 	Destination                types.String `tfsdk:"destination"`
 	Source                     types.String `tfsdk:"source"`
+	AllowFragmentation         types.Bool   `tfsdk:"allow_fragmentation"`
+	DoNotFragment              types.Bool   `tfsdk:"do_not_fragment"`
 	FlowLabel                  types.Int64  `tfsdk:"flow_label"`
+	PathMtuDiscovery           types.Bool   `tfsdk:"path_mtu_discovery"`
+	NoPathMtuDiscovery         types.Bool   `tfsdk:"no_path_mtu_discovery"`
 	RoutingInstanceDestination types.String `tfsdk:"routing_instance_destination"`
 	TrafficClass               types.Int64  `tfsdk:"traffic_class"`
 	TTL                        types.Int64  `tfsdk:"ttl"`
@@ -1354,15 +1354,16 @@ func (rsc *interfaceLogical) ValidateConfig(
 			addressCIDRIP := make(map[string]struct{})
 			for i, address := range configAddress {
 				if !address.CidrIP.IsUnknown() {
-					if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
+					cidrIP := address.CidrIP.ValueString()
+					if _, ok := addressCIDRIP[cidrIP]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("family_inet").AtName("address").AtListIndex(i).AtName("cidr_ip"),
 							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple address blocks with the same cidr_ip %q in family_inet block",
-								address.CidrIP.ValueString()),
+							fmt.Sprintf("multiple address blocks with the same cidr_ip %q"+
+								" in family_inet block", cidrIP),
 						)
 					}
-					addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
+					addressCIDRIP[cidrIP] = struct{}{}
 				}
 				if !address.VRRPGroup.IsNull() && !address.VRRPGroup.IsUnknown() {
 					var configVRRPGroup []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroupConfig
@@ -1375,16 +1376,17 @@ func (rsc *interfaceLogical) ValidateConfig(
 					vrrpGroupID := make(map[int64]struct{})
 					for ii, vrrpGroup := range configVRRPGroup {
 						if !vrrpGroup.Identifier.IsUnknown() {
-							if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
+							identifier := vrrpGroup.Identifier.ValueInt64()
+							if _, ok := vrrpGroupID[identifier]; ok {
 								resp.Diagnostics.AddAttributeError(
 									path.Root("family_inet").AtName("address").AtListIndex(i).
 										AtName("vrrp_group").AtListIndex(ii).AtName("identifier"),
 									tfdiag.DuplicateConfigErrSummary,
-									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet block",
-										vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q"+
+										" in family_inet block", identifier, address.CidrIP.ValueString()),
 								)
 							}
-							vrrpGroupID[vrrpGroup.Identifier.ValueInt64()] = struct{}{}
+							vrrpGroupID[identifier] = struct{}{}
 						}
 
 						if !vrrpGroup.TrackInterface.IsNull() && !vrrpGroup.TrackInterface.IsUnknown() {
@@ -1400,18 +1402,19 @@ func (rsc *interfaceLogical) ValidateConfig(
 								if trackInterface.Interface.IsUnknown() {
 									continue
 								}
-								if _, ok := trackInterfaceInterface[trackInterface.Interface.ValueString()]; ok {
+								interFace := trackInterface.Interface.ValueString()
+								if _, ok := trackInterfaceInterface[interFace]; ok {
 									resp.Diagnostics.AddAttributeError(
 										path.Root("family_inet").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_interface").AtListIndex(iii).AtName("interface"),
 										tfdiag.DuplicateConfigErrSummary,
-										fmt.Sprintf("multiple track_interface blocks with the same interface %q "+
-											"in vrrp_group block %d in address block %q in family_inet block",
-											trackInterface.Interface.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+										fmt.Sprintf("multiple track_interface blocks with the same interface %q"+
+											" in vrrp_group block %d in address block %q in family_inet block",
+											interFace, vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 									)
 								}
-								trackInterfaceInterface[trackInterface.Interface.ValueString()] = struct{}{}
+								trackInterfaceInterface[interFace] = struct{}{}
 							}
 						}
 						if !vrrpGroup.TrackRoute.IsNull() && !vrrpGroup.TrackRoute.IsUnknown() {
@@ -1427,18 +1430,19 @@ func (rsc *interfaceLogical) ValidateConfig(
 								if trackRoute.Route.IsUnknown() {
 									continue
 								}
-								if _, ok := trackRouteRoute[trackRoute.Route.ValueString()]; ok {
+								route := trackRoute.Route.ValueString()
+								if _, ok := trackRouteRoute[route]; ok {
 									resp.Diagnostics.AddAttributeError(
 										path.Root("family_inet").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_route").AtListIndex(iii).AtName("route"),
 										tfdiag.DuplicateConfigErrSummary,
-										fmt.Sprintf("multiple track_route blocks with the same route %q "+
-											"in vrrp_group block %d in address block %q in family_inet block",
-											trackRoute.Route.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+										fmt.Sprintf("multiple track_route blocks with the same route %q"+
+											" in vrrp_group block %d in address block %q in family_inet block",
+											route, vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 									)
 								}
-								trackRouteRoute[trackRoute.Route.ValueString()] = struct{}{}
+								trackRouteRoute[route] = struct{}{}
 							}
 						}
 					}
@@ -1491,15 +1495,16 @@ func (rsc *interfaceLogical) ValidateConfig(
 			addressCIDRIP := make(map[string]struct{})
 			for i, address := range configAddress {
 				if !address.CidrIP.IsUnknown() {
-					if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
+					cidrIP := address.CidrIP.ValueString()
+					if _, ok := addressCIDRIP[cidrIP]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("family_inet6").AtName("address").AtListIndex(i).AtName("cidr_ip"),
 							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple address blocks with the same cidr_ip %q in family_inet6 block",
-								address.CidrIP.ValueString()),
+							fmt.Sprintf("multiple address blocks with the same cidr_ip %q"+
+								" in family_inet6 block", cidrIP),
 						)
 					}
-					addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
+					addressCIDRIP[cidrIP] = struct{}{}
 				}
 				if !address.VRRPGroup.IsNull() && !address.VRRPGroup.IsUnknown() {
 					var configVRRPGroup []interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroupConfig
@@ -1512,16 +1517,17 @@ func (rsc *interfaceLogical) ValidateConfig(
 					vrrpGroupID := make(map[int64]struct{})
 					for ii, vrrpGroup := range configVRRPGroup {
 						if !vrrpGroup.Identifier.IsUnknown() {
-							if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
+							identifier := vrrpGroup.Identifier.ValueInt64()
+							if _, ok := vrrpGroupID[identifier]; ok {
 								resp.Diagnostics.AddAttributeError(
 									path.Root("family_inet6").AtName("address").AtListIndex(i).
 										AtName("vrrp_group").AtListIndex(ii).AtName("identifier"),
 									tfdiag.DuplicateConfigErrSummary,
-									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet6 block",
-										vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+									fmt.Sprintf("multiple vrrp_group blocks with the same identifier %d"+
+										" in address block %q in family_inet6 block", identifier, address.CidrIP.ValueString()),
 								)
 							}
-							vrrpGroupID[vrrpGroup.Identifier.ValueInt64()] = struct{}{}
+							vrrpGroupID[identifier] = struct{}{}
 						}
 
 						if !vrrpGroup.TrackInterface.IsNull() && !vrrpGroup.TrackInterface.IsUnknown() {
@@ -1537,18 +1543,19 @@ func (rsc *interfaceLogical) ValidateConfig(
 								if trackInterface.Interface.IsUnknown() {
 									continue
 								}
-								if _, ok := trackInterfaceInterface[trackInterface.Interface.ValueString()]; ok {
+								interFace := trackInterface.Interface.ValueString()
+								if _, ok := trackInterfaceInterface[interFace]; ok {
 									resp.Diagnostics.AddAttributeError(
 										path.Root("family_inet6").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_interface").AtListIndex(iii).AtName("interface"),
 										tfdiag.DuplicateConfigErrSummary,
-										fmt.Sprintf("multiple track_interface blocks with the same interface %q "+
-											"in vrrp_group block %d in address block %q in family_inet6 block",
-											trackInterface.Interface.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+										fmt.Sprintf("multiple track_interface blocks with the same interface %q"+
+											" in vrrp_group block %d in address block %q in family_inet6 block",
+											interFace, vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 									)
 								}
-								trackInterfaceInterface[trackInterface.Interface.ValueString()] = struct{}{}
+								trackInterfaceInterface[interFace] = struct{}{}
 							}
 						}
 						if !vrrpGroup.TrackRoute.IsNull() && !vrrpGroup.TrackRoute.IsUnknown() {
@@ -1564,18 +1571,19 @@ func (rsc *interfaceLogical) ValidateConfig(
 								if trackRoute.Route.IsUnknown() {
 									continue
 								}
-								if _, ok := trackRouteRoute[trackRoute.Route.ValueString()]; ok {
+								route := trackRoute.Route.ValueString()
+								if _, ok := trackRouteRoute[route]; ok {
 									resp.Diagnostics.AddAttributeError(
 										path.Root("family_inet6").AtName("address").AtListIndex(i).
 											AtName("vrrp_group").AtListIndex(ii).
 											AtName("track_route").AtListIndex(iii).AtName("route"),
 										tfdiag.DuplicateConfigErrSummary,
-										fmt.Sprintf("multiple track_route blocks with the same route %q "+
-											"in vrrp_group block %d in address block %q in family_inet6 block",
-											trackRoute.Route.ValueString(), vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+										fmt.Sprintf("multiple track_route blocks with the same route %q"+
+											" in vrrp_group block %d in address block %q in family_inet6 block",
+											route, vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
 									)
 								}
-								trackRouteRoute[trackRoute.Route.ValueString()] = struct{}{}
+								trackRouteRoute[route] = struct{}{}
 							}
 						}
 					}
@@ -2302,11 +2310,14 @@ func (rscData *interfaceLogicalData) set(
 
 		addressCIDRIP := make(map[string]struct{})
 		for i, address := range rscData.FamilyInet.Address {
-			if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
+			cidrIP := address.CidrIP.ValueString()
+			if _, ok := addressCIDRIP[cidrIP]; ok {
 				return path.Root("family_inet").AtName("address").AtListIndex(i).AtName("cidr_ip"),
-					fmt.Errorf("multiple address blocks with the same cidr_ip %q in family_inet block", address.CidrIP.ValueString())
+					fmt.Errorf("multiple address blocks with the same cidr_ip %q"+
+						" in family_inet block", cidrIP)
 			}
-			addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
+			addressCIDRIP[cidrIP] = struct{}{}
+
 			blockSet, pathErr, err := address.configSet(setPrefix, path.Root("family_inet").AtName("address").AtListIndex(i))
 			if err != nil {
 				return pathErr, err
@@ -2347,11 +2358,14 @@ func (rscData *interfaceLogicalData) set(
 
 		addressCIDRIP := make(map[string]struct{})
 		for i, address := range rscData.FamilyInet6.Address {
-			if _, ok := addressCIDRIP[address.CidrIP.ValueString()]; ok {
+			cidrIP := address.CidrIP.ValueString()
+			if _, ok := addressCIDRIP[cidrIP]; ok {
 				return path.Root("family_inet6").AtName("address").AtListIndex(i).AtName("cidr_ip"),
-					fmt.Errorf("multiple address blocks with the same cidr_ip %q in family_inet6 block", address.CidrIP.ValueString())
+					fmt.Errorf("multiple address blocks with the same cidr_ip %q"+
+						" in family_inet6 block", cidrIP)
 			}
-			addressCIDRIP[address.CidrIP.ValueString()] = struct{}{}
+			addressCIDRIP[cidrIP] = struct{}{}
+
 			blockSet, pathErr, err := address.configSet(setPrefix, path.Root("family_inet6").AtName("address").AtListIndex(i))
 			if err != nil {
 				return pathErr, err
@@ -2469,12 +2483,13 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 				errors.New("vrrp not available on st0 interface")
 		}
 
-		if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
+		identifier := vrrpGroup.Identifier.ValueInt64()
+		if _, ok := vrrpGroupID[identifier]; ok {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("identifier"),
-				fmt.Errorf("multiple vrrp_group blocks with the same identifier %d in address block %q in family_inet block",
-					vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
+				fmt.Errorf("multiple vrrp_group blocks with the same identifier %d"+
+					" in address block %q in family_inet block", identifier, block.CidrIP.ValueString())
 		}
-		vrrpGroupID[vrrpGroup.Identifier.ValueInt64()] = struct{}{}
+		vrrpGroupID[identifier] = struct{}{}
 
 		setPrefixVRRPGroup := setPrefix + " vrrp-group " + utils.ConvI64toa(vrrpGroup.Identifier.ValueInt64()) + " "
 		for _, v := range vrrpGroup.VirtualAddress {
@@ -2512,34 +2527,30 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 		}
 		trackInterfaceInterface := make(map[string]struct{})
 		for ii, trackInterface := range vrrpGroup.TrackInterface {
-			if _, ok := trackInterfaceInterface[trackInterface.Interface.ValueString()]; ok {
+			interFace := trackInterface.Interface.ValueString()
+			if _, ok := trackInterfaceInterface[interFace]; ok {
 				return configSet,
 					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_interface").AtListIndex(ii).AtName("interface"),
-					fmt.Errorf("multiple track_interface blocks with the same interface %q "+
-						"in vrrp_group block %d in address block %q in family_inet block",
-						trackInterface.Interface.ValueString(),
-						vrrpGroup.Identifier.ValueInt64(),
-						block.CidrIP.ValueString(),
-					)
+					fmt.Errorf("multiple track_interface blocks with the same interface %q"+
+						" in vrrp_group block %d in address block %q in family_inet block",
+						interFace, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
 			}
-			trackInterfaceInterface[trackInterface.Interface.ValueString()] = struct{}{}
+			trackInterfaceInterface[interFace] = struct{}{}
 
 			configSet = append(configSet, setPrefixVRRPGroup+"track interface "+trackInterface.Interface.ValueString()+
 				" priority-cost "+utils.ConvI64toa(trackInterface.PriorityCost.ValueInt64()))
 		}
 		trackRouteRoute := make(map[string]struct{})
 		for ii, trackRoute := range vrrpGroup.TrackRoute {
-			if _, ok := trackRouteRoute[trackRoute.Route.ValueString()]; ok {
+			route := trackRoute.Route.ValueString()
+			if _, ok := trackRouteRoute[route]; ok {
 				return configSet,
 					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_route").AtListIndex(ii).AtName("route"),
-					fmt.Errorf("multiple track_route blocks with the same route %q "+
-						"in vrrp_group block %d in address block %q in family_inet block",
-						trackRoute.Route.ValueString(),
-						vrrpGroup.Identifier.ValueInt64(),
-						block.CidrIP.ValueString(),
-					)
+					fmt.Errorf("multiple track_route blocks with the same route %q"+
+						" in vrrp_group block %d in address block %q in family_inet block",
+						route, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
 			}
-			trackRouteRoute[trackRoute.Route.ValueString()] = struct{}{}
+			trackRouteRoute[route] = struct{}{}
 
 			configSet = append(configSet, setPrefixVRRPGroup+"track route "+trackRoute.Route.ValueString()+
 				" routing-instance "+trackRoute.RoutingInstance.ValueString()+
@@ -2575,12 +2586,13 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 				errors.New("vrrp not available on st0 interface")
 		}
 
-		if _, ok := vrrpGroupID[vrrpGroup.Identifier.ValueInt64()]; ok {
+		identifier := vrrpGroup.Identifier.ValueInt64()
+		if _, ok := vrrpGroupID[identifier]; ok {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("identifier"),
-				fmt.Errorf("multiple blocks vrrp_group with the same identifier %d in address block %q in family_inet6 block",
-					vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
+				fmt.Errorf("multiple blocks vrrp_group with the same identifier %d"+
+					" in address block %q in family_inet6 block", identifier, block.CidrIP.ValueString())
 		}
-		vrrpGroupID[vrrpGroup.Identifier.ValueInt64()] = struct{}{}
+		vrrpGroupID[identifier] = struct{}{}
 
 		setPrefixVRRPGroup := setPrefix + " vrrp-inet6-group " + utils.ConvI64toa(vrrpGroup.Identifier.ValueInt64()) + " "
 		for _, v := range vrrpGroup.VirtualAddress {
@@ -2615,34 +2627,30 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 		}
 		trackInterfaceInterface := make(map[string]struct{})
 		for ii, trackInterface := range vrrpGroup.TrackInterface {
-			if _, ok := trackInterfaceInterface[trackInterface.Interface.ValueString()]; ok {
+			interFace := trackInterface.Interface.ValueString()
+			if _, ok := trackInterfaceInterface[interFace]; ok {
 				return configSet,
 					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_interface").AtListIndex(ii).AtName("interface"),
-					fmt.Errorf("multiple track_interface blocks with the same interface %q "+
-						"in vrrp_group block %d in address block %q in family_inet6 block",
-						trackInterface.Interface.ValueString(),
-						vrrpGroup.Identifier.ValueInt64(),
-						block.CidrIP.ValueString(),
-					)
+					fmt.Errorf("multiple track_interface blocks with the same interface %q"+
+						" in vrrp_group block %d in address block %q in family_inet6 block",
+						interFace, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
 			}
-			trackInterfaceInterface[trackInterface.Interface.ValueString()] = struct{}{}
+			trackInterfaceInterface[interFace] = struct{}{}
 
 			configSet = append(configSet, setPrefixVRRPGroup+"track interface "+trackInterface.Interface.ValueString()+
 				" priority-cost "+utils.ConvI64toa(trackInterface.PriorityCost.ValueInt64()))
 		}
 		trackRouteRoute := make(map[string]struct{})
 		for ii, trackRoute := range vrrpGroup.TrackRoute {
-			if _, ok := trackRouteRoute[trackRoute.Route.ValueString()]; ok {
+			route := trackRoute.Route.ValueString()
+			if _, ok := trackRouteRoute[route]; ok {
 				return configSet,
 					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_route").AtListIndex(ii).AtName("route"),
-					fmt.Errorf("multiple track_route blocks with the same route %q "+
-						"in vrrp_group block %d in address block %q in family_inet6 block",
-						trackRoute.Route.ValueString(),
-						vrrpGroup.Identifier.ValueInt64(),
-						block.CidrIP.ValueString(),
-					)
+					fmt.Errorf("multiple track_route blocks with the same route %q"+
+						" in vrrp_group block %d in address block %q in family_inet6 block",
+						route, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
 			}
-			trackRouteRoute[trackRoute.Route.ValueString()] = struct{}{}
+			trackRouteRoute[route] = struct{}{}
 
 			configSet = append(configSet, setPrefixVRRPGroup+"track route "+trackRoute.Route.ValueString()+
 				" routing-instance "+trackRoute.RoutingInstance.ValueString()+

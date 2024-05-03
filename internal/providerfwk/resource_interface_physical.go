@@ -736,28 +736,28 @@ func (rsc *interfacePhysical) schemaEtherOptsAttributes() map[string]schema.Attr
 }
 
 type interfacePhysicalData struct {
-	NoDisableOnDestroy     types.Bool                             `tfsdk:"no_disable_on_destroy"`
-	Disable                types.Bool                             `tfsdk:"disable"`
-	FlexibleVlanTagging    types.Bool                             `tfsdk:"flexible_vlan_tagging"`
-	GratuitousArpReply     types.Bool                             `tfsdk:"gratuitous_arp_reply"`
-	NoGratuitousArpReply   types.Bool                             `tfsdk:"no_gratuitous_arp_reply"`
-	NoGratuitousArpRequest types.Bool                             `tfsdk:"no_gratuitous_arp_request"`
-	Trunk                  types.Bool                             `tfsdk:"trunk"`
-	TrunkNonELS            types.Bool                             `tfsdk:"trunk_non_els"`
-	VlanTagging            types.Bool                             `tfsdk:"vlan_tagging"`
 	ID                     types.String                           `tfsdk:"id"`
 	Name                   types.String                           `tfsdk:"name"`
+	NoDisableOnDestroy     types.Bool                             `tfsdk:"no_disable_on_destroy"`
 	Description            types.String                           `tfsdk:"description"`
+	Disable                types.Bool                             `tfsdk:"disable"`
 	Encapsulation          types.String                           `tfsdk:"encapsulation"`
+	FlexibleVlanTagging    types.Bool                             `tfsdk:"flexible_vlan_tagging"`
+	GratuitousArpReply     types.Bool                             `tfsdk:"gratuitous_arp_reply"`
 	HoldTimeDown           types.Int64                            `tfsdk:"hold_time_down"`
 	HoldTimeUp             types.Int64                            `tfsdk:"hold_time_up"`
 	LinkMode               types.String                           `tfsdk:"link_mode"`
 	Mtu                    types.Int64                            `tfsdk:"mtu"`
+	NoGratuitousArpReply   types.Bool                             `tfsdk:"no_gratuitous_arp_reply"`
+	NoGratuitousArpRequest types.Bool                             `tfsdk:"no_gratuitous_arp_request"`
 	Speed                  types.String                           `tfsdk:"speed"`
 	StormControl           types.String                           `tfsdk:"storm_control"`
+	Trunk                  types.Bool                             `tfsdk:"trunk"`
+	TrunkNonELS            types.Bool                             `tfsdk:"trunk_non_els"`
 	VlanMembers            []types.String                         `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                            `tfsdk:"vlan_native"`
 	VlanNativeNonELS       types.String                           `tfsdk:"vlan_native_non_els"`
+	VlanTagging            types.Bool                             `tfsdk:"vlan_tagging"`
 	ESI                    *interfacePhysicalBlockESI             `tfsdk:"esi"`
 	EtherOpts              *interfacePhysicalBlockEtherOpts       `tfsdk:"ether_opts"`
 	GigetherOpts           *interfacePhysicalBlockEtherOpts       `tfsdk:"gigether_opts"`
@@ -765,28 +765,28 @@ type interfacePhysicalData struct {
 }
 
 type interfacePhysicalConfig struct {
-	NoDisableOnDestroy     types.Bool                                   `tfsdk:"no_disable_on_destroy"`
-	Disable                types.Bool                                   `tfsdk:"disable"`
-	FlexibleVlanTagging    types.Bool                                   `tfsdk:"flexible_vlan_tagging"`
-	GratuitousArpReply     types.Bool                                   `tfsdk:"gratuitous_arp_reply"`
-	NoGratuitousArpReply   types.Bool                                   `tfsdk:"no_gratuitous_arp_reply"`
-	NoGratuitousArpRequest types.Bool                                   `tfsdk:"no_gratuitous_arp_request"`
-	Trunk                  types.Bool                                   `tfsdk:"trunk"`
-	TrunkNonELS            types.Bool                                   `tfsdk:"trunk_non_els"`
-	VlanTagging            types.Bool                                   `tfsdk:"vlan_tagging"`
 	ID                     types.String                                 `tfsdk:"id"`
 	Name                   types.String                                 `tfsdk:"name"`
+	NoDisableOnDestroy     types.Bool                                   `tfsdk:"no_disable_on_destroy"`
 	Description            types.String                                 `tfsdk:"description"`
+	Disable                types.Bool                                   `tfsdk:"disable"`
 	Encapsulation          types.String                                 `tfsdk:"encapsulation"`
+	FlexibleVlanTagging    types.Bool                                   `tfsdk:"flexible_vlan_tagging"`
+	GratuitousArpReply     types.Bool                                   `tfsdk:"gratuitous_arp_reply"`
 	HoldTimeDown           types.Int64                                  `tfsdk:"hold_time_down"`
 	HoldTimeUp             types.Int64                                  `tfsdk:"hold_time_up"`
 	LinkMode               types.String                                 `tfsdk:"link_mode"`
 	Mtu                    types.Int64                                  `tfsdk:"mtu"`
+	NoGratuitousArpReply   types.Bool                                   `tfsdk:"no_gratuitous_arp_reply"`
+	NoGratuitousArpRequest types.Bool                                   `tfsdk:"no_gratuitous_arp_request"`
 	Speed                  types.String                                 `tfsdk:"speed"`
 	StormControl           types.String                                 `tfsdk:"storm_control"`
+	Trunk                  types.Bool                                   `tfsdk:"trunk"`
+	TrunkNonELS            types.Bool                                   `tfsdk:"trunk_non_els"`
 	VlanMembers            types.List                                   `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                                  `tfsdk:"vlan_native"`
 	VlanNativeNonELS       types.String                                 `tfsdk:"vlan_native_non_els"`
+	VlanTagging            types.Bool                                   `tfsdk:"vlan_tagging"`
 	ESI                    *interfacePhysicalBlockESI                   `tfsdk:"esi"`
 	EtherOpts              *interfacePhysicalBlockEtherOpts             `tfsdk:"ether_opts"`
 	GigetherOpts           *interfacePhysicalBlockEtherOpts             `tfsdk:"gigether_opts"`
@@ -794,21 +794,21 @@ type interfacePhysicalConfig struct {
 }
 
 type interfacePhysicalBlockESI struct {
-	AutoDeriveLACP types.Bool   `tfsdk:"auto_derive_lacp"`
 	Mode           types.String `tfsdk:"mode"`
+	AutoDeriveLACP types.Bool   `tfsdk:"auto_derive_lacp"`
 	DFElectionType types.String `tfsdk:"df_election_type"`
 	Identifier     types.String `tfsdk:"identifier"`
 	SourceBMAC     types.String `tfsdk:"source_bmac"`
 }
 
 type interfacePhysicalBlockEtherOpts struct {
+	Ae8023ad          types.String `tfsdk:"ae_8023ad"`
 	AutoNegotiation   types.Bool   `tfsdk:"auto_negotiation"`
 	NoAutoNegotiation types.Bool   `tfsdk:"no_auto_negotiation"`
 	FlowControl       types.Bool   `tfsdk:"flow_control"`
 	NoFlowControl     types.Bool   `tfsdk:"no_flow_control"`
 	Loopback          types.Bool   `tfsdk:"loopback"`
 	NoLoopback        types.Bool   `tfsdk:"no_loopback"`
-	Ae8023ad          types.String `tfsdk:"ae_8023ad"`
 	RedundantParent   types.String `tfsdk:"redundant_parent"`
 }
 
@@ -825,12 +825,12 @@ type interfacePhysicalBlockParentEtherOpts struct {
 	NoFlowControl        types.Bool                                                      `tfsdk:"no_flow_control"`
 	Loopback             types.Bool                                                      `tfsdk:"loopback"`
 	NoLoopback           types.Bool                                                      `tfsdk:"no_loopback"`
-	SourceFiltering      types.Bool                                                      `tfsdk:"source_filtering"`
 	LinkSpeed            types.String                                                    `tfsdk:"link_speed"`
 	MinimumBandwidth     types.String                                                    `tfsdk:"minimum_bandwidth"`
 	MinimumLinks         types.Int64                                                     `tfsdk:"minimum_links"`
 	RedundancyGroup      types.Int64                                                     `tfsdk:"redundancy_group"`
 	SourceAddressFilter  []types.String                                                  `tfsdk:"source_address_filter"`
+	SourceFiltering      types.Bool                                                      `tfsdk:"source_filtering"`
 	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
 	LACP                 *interfacePhysicalBlockParentEtherOptsBlockLACP                 `tfsdk:"lacp"`
 	MCAE                 *interfacePhysicalBlockParentEtherOptsBlockMCAE                 `tfsdk:"mc_ae"`
@@ -841,12 +841,12 @@ type interfacePhysicalBlockParentEtherOptsConfig struct {
 	NoFlowControl        types.Bool                                                      `tfsdk:"no_flow_control"`
 	Loopback             types.Bool                                                      `tfsdk:"loopback"`
 	NoLoopback           types.Bool                                                      `tfsdk:"no_loopback"`
-	SourceFiltering      types.Bool                                                      `tfsdk:"source_filtering"`
 	LinkSpeed            types.String                                                    `tfsdk:"link_speed"`
 	MinimumBandwidth     types.String                                                    `tfsdk:"minimum_bandwidth"`
 	MinimumLinks         types.Int64                                                     `tfsdk:"minimum_links"`
 	RedundancyGroup      types.Int64                                                     `tfsdk:"redundancy_group"`
 	SourceAddressFilter  types.List                                                      `tfsdk:"source_address_filter"`
+	SourceFiltering      types.Bool                                                      `tfsdk:"source_filtering"`
 	BFDLivenessDetection *interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection `tfsdk:"bfd_liveness_detection"`
 	LACP                 *interfacePhysicalBlockParentEtherOptsBlockLACP                 `tfsdk:"lacp"`
 	MCAE                 *interfacePhysicalBlockParentEtherOptsBlockMCAE                 `tfsdk:"mc_ae"`
@@ -861,17 +861,17 @@ func (block *interfacePhysicalBlockParentEtherOptsConfig) hasKnownValue() bool {
 }
 
 type interfacePhysicalBlockParentEtherOptsBlockBFDLivenessDetection struct {
-	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
-	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
 	LocalAddress                    types.String `tfsdk:"local_address"`
 	AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
 	AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
+	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
 	DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
 	HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
 	MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
 	MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
 	Multiplier                      types.Int64  `tfsdk:"multiplier"`
 	Neighbor                        types.String `tfsdk:"neighbor"`
+	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
 	TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
 	TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
 	Version                         types.String `tfsdk:"version"`
@@ -888,11 +888,11 @@ type interfacePhysicalBlockParentEtherOptsBlockLACP struct {
 
 //nolint:lll
 type interfacePhysicalBlockParentEtherOptsBlockMCAE struct {
-	EnhancedConvergence types.Bool                                                             `tfsdk:"enhanced_convergence"`
 	ChassisID           types.Int64                                                            `tfsdk:"chassis_id"`
 	MCAEID              types.Int64                                                            `tfsdk:"mc_ae_id"`
 	Mode                types.String                                                           `tfsdk:"mode"`
 	StatusControl       types.String                                                           `tfsdk:"status_control"`
+	EnhancedConvergence types.Bool                                                             `tfsdk:"enhanced_convergence"`
 	InitDelayTime       types.Int64                                                            `tfsdk:"init_delay_time"`
 	RedundancyGroup     types.Int64                                                            `tfsdk:"redundancy_group"`
 	RevertTime          types.Int64                                                            `tfsdk:"revert_time"`
@@ -1047,8 +1047,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 					resp.Diagnostics.AddAttributeError(
 						path.Root("parent_ether_opts").AtName("*"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("parent_ether_opts not compatible with this interface %q "+
-							"(need to be ae* or reth* interface)", v),
+						fmt.Sprintf("parent_ether_opts not compatible with this interface %q"+
+							" (need to be ae* or reth* interface)", v),
 					)
 				}
 			}
@@ -1109,8 +1109,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 					resp.Diagnostics.AddAttributeError(
 						path.Root("parent_ether_opts").AtName("mc_ae").AtName("*"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("mc_ae in parent_ether_opts block not compatible with this interface %q "+
-							"(need to be ae* interface)", v),
+						fmt.Sprintf("mc_ae in parent_ether_opts block not compatible with this interface %q"+
+							" (need to be ae* interface)", v),
 					)
 				}
 			}
@@ -1149,8 +1149,8 @@ func (rsc *interfacePhysical) ValidateConfig(
 					resp.Diagnostics.AddAttributeError(
 						path.Root("parent_ether_opts").AtName("redundancy_group"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("redundancy_group in parent_ether_opts block not compatible with this interface %q "+
-							"(need to be reth* interface)", v),
+						fmt.Sprintf("redundancy_group in parent_ether_opts block not compatible with this interface %q"+
+							" (need to be reth* interface)", v),
 					)
 				}
 			}
@@ -1971,8 +1971,8 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 	default:
 		return configSet,
 			path.Root("parent_ether_opts").AtName("*"),
-			fmt.Errorf("parent_ether_opts not compatible with this interface %q "+
-				"(need to be ae* or reth* interface)", interfaceName)
+			fmt.Errorf("parent_ether_opts not compatible with this interface %q"+
+				" (need to be ae* or reth* interface)", interfaceName)
 	}
 
 	if block.BFDLivenessDetection != nil {
@@ -2067,8 +2067,8 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 		if !strings.HasPrefix(interfaceName, "ae") {
 			return configSet,
 				path.Root("parent_ether_opts").AtName("mc_ae").AtName("*"),
-				fmt.Errorf("mc_ae in parent_ether_opts block not compatible with this interface %q "+
-					"(need to be ae* interface)", interfaceName)
+				fmt.Errorf("mc_ae in parent_ether_opts block not compatible with this interface %q"+
+					" (need to be ae* interface)", interfaceName)
 		}
 		configSet = append(configSet, setPrefix+"mc-ae chassis-id "+
 			utils.ConvI64toa(block.MCAE.ChassisID.ValueInt64()))
@@ -2121,8 +2121,8 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 		if !strings.HasPrefix(interfaceName, "reth") {
 			return configSet,
 				path.Root("parent_ether_opts").AtName("redundancy_group"),
-				fmt.Errorf("redundancy_group in parent_ether_opts block not compatible with this interface %q "+
-					"(need to be reth* interface)", interfaceName)
+				fmt.Errorf("redundancy_group in parent_ether_opts block not compatible with this interface %q"+
+					" (need to be reth* interface)", interfaceName)
 		}
 		configSet = append(configSet, setPrefix+"redundancy-group "+
 			utils.ConvI64toa(block.RedundancyGroup.ValueInt64()))

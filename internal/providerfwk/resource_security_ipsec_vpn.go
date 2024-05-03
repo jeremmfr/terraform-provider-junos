@@ -377,10 +377,10 @@ func (rsc *securityIpsecVpn) Schema(
 }
 
 type securityIpsecVpnData struct {
-	CopyOuterDscp          types.Bool                             `tfsdk:"copy_outer_dscp"`
 	ID                     types.String                           `tfsdk:"id"`
 	Name                   types.String                           `tfsdk:"name"`
 	BindInterface          types.String                           `tfsdk:"bind_interface"`
+	CopyOuterDscp          types.Bool                             `tfsdk:"copy_outer_dscp"`
 	DfBit                  types.String                           `tfsdk:"df_bit"`
 	EstablishTunnels       types.String                           `tfsdk:"establish_tunnels"`
 	Ike                    *securityIpsecVpnBlockIke              `tfsdk:"ike"`
@@ -392,10 +392,10 @@ type securityIpsecVpnData struct {
 }
 
 type securityIpsecVpnConfig struct {
-	CopyOuterDscp          types.Bool                           `tfsdk:"copy_outer_dscp"`
 	ID                     types.String                         `tfsdk:"id"`
 	Name                   types.String                         `tfsdk:"name"`
 	BindInterface          types.String                         `tfsdk:"bind_interface"`
+	CopyOuterDscp          types.Bool                           `tfsdk:"copy_outer_dscp"`
 	DfBit                  types.String                         `tfsdk:"df_bit"`
 	EstablishTunnels       types.String                         `tfsdk:"establish_tunnels"`
 	Ike                    *securityIpsecVpnBlockIke            `tfsdk:"ike"`
@@ -446,10 +446,10 @@ type securityIpsecVpnBlockUDPEncapsulate struct {
 }
 
 type securityIpsecVpnBlockVpnMonitor struct {
-	Optimized           types.Bool   `tfsdk:"optimized"`
-	SourceInterfaceAuto types.Bool   `tfsdk:"source_interface_auto"`
 	DestinationIP       types.String `tfsdk:"destination_ip"`
+	Optimized           types.Bool   `tfsdk:"optimized"`
 	SourceInterface     types.String `tfsdk:"source_interface"`
+	SourceInterfaceAuto types.Bool   `tfsdk:"source_interface_auto"`
 }
 
 func (block *securityIpsecVpnBlockVpnMonitor) hasKnownValue() bool {
@@ -629,15 +629,15 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := names[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := names[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("traffic_selector").AtListIndex(i).AtName("name"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple traffic_selector blocks with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple traffic_selector blocks with the same name %q", name),
 				)
-			} else {
-				names[block.Name.ValueString()] = struct{}{}
 			}
+			names[name] = struct{}{}
 		}
 	}
 	if !config.MultiSaForwardingClass.IsNull() && !config.MultiSaForwardingClass.IsUnknown() &&
@@ -970,11 +970,13 @@ func (rscData *securityIpsecVpnData) set(
 	}
 	trafficSelectorNames := make(map[string]struct{})
 	for i, block := range rscData.TrafficSelector {
-		if _, ok := trafficSelectorNames[block.Name.ValueString()]; ok {
+		name := block.Name.ValueString()
+		if _, ok := trafficSelectorNames[name]; ok {
 			return path.Root("traffic_selector").AtListIndex(i).AtName("name"),
-				fmt.Errorf("multiple traffic_selector blocks with the same name %q", block.Name.ValueString())
+				fmt.Errorf("multiple traffic_selector blocks with the same name %q", name)
 		}
-		trafficSelectorNames[block.Name.ValueString()] = struct{}{}
+		trafficSelectorNames[name] = struct{}{}
+
 		configSet = append(configSet,
 			setPrefix+"traffic-selector \""+block.Name.ValueString()+"\" local-ip "+block.LocalIP.ValueString())
 		configSet = append(configSet,

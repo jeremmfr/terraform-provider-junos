@@ -762,6 +762,10 @@ func (rsc *bgpGroup) schemaFamilyPrefixLimitAttributes() map[string]schema.Attri
 }
 
 type bgpGroupData struct {
+	ID                           types.String                  `tfsdk:"id"`
+	Name                         types.String                  `tfsdk:"name"`
+	RoutingInstance              types.String                  `tfsdk:"routing_instance"`
+	Type                         types.String                  `tfsdk:"type"`
 	AcceptRemoteNexthop          types.Bool                    `tfsdk:"accept_remote_nexthop"`
 	AdvertiseExternal            types.Bool                    `tfsdk:"advertise_external"`
 	AdvertiseExternalConditional types.Bool                    `tfsdk:"advertise_external_conditional"`
@@ -769,45 +773,41 @@ type bgpGroupData struct {
 	AdvertisePeerAS              types.Bool                    `tfsdk:"advertise_peer_as"`
 	NoAdvertisePeerAS            types.Bool                    `tfsdk:"no_advertise_peer_as"`
 	ASOverride                   types.Bool                    `tfsdk:"as_override"`
-	Damping                      types.Bool                    `tfsdk:"damping"`
-	KeepAll                      types.Bool                    `tfsdk:"keep_all"`
-	KeepNone                     types.Bool                    `tfsdk:"keep_none"`
-	LocalASAlias                 types.Bool                    `tfsdk:"local_as_alias"`
-	LocalASNoPrependGlobalAS     types.Bool                    `tfsdk:"local_as_no_prepend_global_as"`
-	LocalASPrivate               types.Bool                    `tfsdk:"local_as_private"`
-	LogUpdown                    types.Bool                    `tfsdk:"log_updown"`
-	MetricOutIgp                 types.Bool                    `tfsdk:"metric_out_igp"`
-	MetricOutIgpDelayMedUpdate   types.Bool                    `tfsdk:"metric_out_igp_delay_med_update"`
-	MetricOutMinimumIgp          types.Bool                    `tfsdk:"metric_out_minimum_igp"`
-	MtuDiscovery                 types.Bool                    `tfsdk:"mtu_discovery"`
-	Multihop                     types.Bool                    `tfsdk:"multihop"`
-	NoClientReflect              types.Bool                    `tfsdk:"no_client_reflect"`
-	Passive                      types.Bool                    `tfsdk:"passive"`
-	RemovePrivate                types.Bool                    `tfsdk:"remove_private"`
-	TCPAggressiveTransmission    types.Bool                    `tfsdk:"tcp_aggressive_transmission"`
 	AuthenticationAlgorithm      types.String                  `tfsdk:"authentication_algorithm"`
 	AuthenticationKey            types.String                  `tfsdk:"authentication_key"`
 	AuthenticationKeyChain       types.String                  `tfsdk:"authentication_key_chain"`
 	Cluster                      types.String                  `tfsdk:"cluster"`
+	Damping                      types.Bool                    `tfsdk:"damping"`
 	Description                  types.String                  `tfsdk:"description"`
 	Export                       []types.String                `tfsdk:"export"`
 	HoldTime                     types.Int64                   `tfsdk:"hold_time"`
-	ID                           types.String                  `tfsdk:"id"`
 	Import                       []types.String                `tfsdk:"import"`
+	KeepAll                      types.Bool                    `tfsdk:"keep_all"`
+	KeepNone                     types.Bool                    `tfsdk:"keep_none"`
 	LocalAddress                 types.String                  `tfsdk:"local_address"`
 	LocalAS                      types.String                  `tfsdk:"local_as"`
+	LocalASAlias                 types.Bool                    `tfsdk:"local_as_alias"`
 	LocalASLoops                 types.Int64                   `tfsdk:"local_as_loops"`
+	LocalASNoPrependGlobalAS     types.Bool                    `tfsdk:"local_as_no_prepend_global_as"`
+	LocalASPrivate               types.Bool                    `tfsdk:"local_as_private"`
 	LocalInterface               types.String                  `tfsdk:"local_interface"`
 	LocalPreference              types.Int64                   `tfsdk:"local_preference"`
+	LogUpdown                    types.Bool                    `tfsdk:"log_updown"`
 	MetricOut                    types.Int64                   `tfsdk:"metric_out"`
+	MetricOutIgp                 types.Bool                    `tfsdk:"metric_out_igp"`
+	MetricOutIgpDelayMedUpdate   types.Bool                    `tfsdk:"metric_out_igp_delay_med_update"`
 	MetricOutIgpOffset           types.Int64                   `tfsdk:"metric_out_igp_offset"`
+	MetricOutMinimumIgp          types.Bool                    `tfsdk:"metric_out_minimum_igp"`
 	MetricOutMinimumIgpOffset    types.Int64                   `tfsdk:"metric_out_minimum_igp_offset"`
-	Name                         types.String                  `tfsdk:"name"`
+	MtuDiscovery                 types.Bool                    `tfsdk:"mtu_discovery"`
+	Multihop                     types.Bool                    `tfsdk:"multihop"`
+	NoClientReflect              types.Bool                    `tfsdk:"no_client_reflect"`
 	OutDelay                     types.Int64                   `tfsdk:"out_delay"`
+	Passive                      types.Bool                    `tfsdk:"passive"`
 	PeerAS                       types.String                  `tfsdk:"peer_as"`
 	Preference                   types.Int64                   `tfsdk:"preference"`
-	RoutingInstance              types.String                  `tfsdk:"routing_instance"`
-	Type                         types.String                  `tfsdk:"type"`
+	RemovePrivate                types.Bool                    `tfsdk:"remove_private"`
+	TCPAggressiveTransmission    types.Bool                    `tfsdk:"tcp_aggressive_transmission"`
 	BfdLivenessDetection         *bgpBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
 	BgpErrorTolerance            *bgpBlockBgpErrorTolerance    `tfsdk:"bgp_error_tolerance"`
 	BgpMultipath                 *bgpBlockBgpMultipath         `tfsdk:"bgp_multipath"`
@@ -818,6 +818,10 @@ type bgpGroupData struct {
 }
 
 type bgpGroupConfig struct {
+	ID                           types.String                  `tfsdk:"id"`
+	Name                         types.String                  `tfsdk:"name"`
+	RoutingInstance              types.String                  `tfsdk:"routing_instance"`
+	Type                         types.String                  `tfsdk:"type"`
 	AcceptRemoteDesktop          types.Bool                    `tfsdk:"accept_remote_nexthop"`
 	AdvertiseExternal            types.Bool                    `tfsdk:"advertise_external"`
 	AdvertiseExternalConditional types.Bool                    `tfsdk:"advertise_external_conditional"`
@@ -825,45 +829,41 @@ type bgpGroupConfig struct {
 	AdvertisePeerAS              types.Bool                    `tfsdk:"advertise_peer_as"`
 	NoAdvertisePeerAS            types.Bool                    `tfsdk:"no_advertise_peer_as"`
 	ASOverride                   types.Bool                    `tfsdk:"as_override"`
-	Damping                      types.Bool                    `tfsdk:"damping"`
-	KeepAll                      types.Bool                    `tfsdk:"keep_all"`
-	KeepNone                     types.Bool                    `tfsdk:"keep_none"`
-	LocalASAlias                 types.Bool                    `tfsdk:"local_as_alias"`
-	LocalASNoPrependGlobalAS     types.Bool                    `tfsdk:"local_as_no_prepend_global_as"`
-	LocalASPrivate               types.Bool                    `tfsdk:"local_as_private"`
-	LogUpdown                    types.Bool                    `tfsdk:"log_updown"`
-	MetricOutIgp                 types.Bool                    `tfsdk:"metric_out_igp"`
-	MetricOutIgpDelayMedUpdate   types.Bool                    `tfsdk:"metric_out_igp_delay_med_update"`
-	MetricOutMinimumIgp          types.Bool                    `tfsdk:"metric_out_minimum_igp"`
-	MtuDiscovery                 types.Bool                    `tfsdk:"mtu_discovery"`
-	Multihop                     types.Bool                    `tfsdk:"multihop"`
-	NoClientReflect              types.Bool                    `tfsdk:"no_client_reflect"`
-	Passive                      types.Bool                    `tfsdk:"passive"`
-	RemotePrivate                types.Bool                    `tfsdk:"remove_private"`
-	TCPAggressiveTransmission    types.Bool                    `tfsdk:"tcp_aggressive_transmission"`
 	AuthenticationAlgorithm      types.String                  `tfsdk:"authentication_algorithm"`
 	AuthenticationKey            types.String                  `tfsdk:"authentication_key"`
 	AuthenticationKeyChain       types.String                  `tfsdk:"authentication_key_chain"`
 	Cluster                      types.String                  `tfsdk:"cluster"`
+	Damping                      types.Bool                    `tfsdk:"damping"`
 	Description                  types.String                  `tfsdk:"description"`
 	Export                       types.List                    `tfsdk:"export"`
 	HoldTime                     types.Int64                   `tfsdk:"hold_time"`
-	ID                           types.String                  `tfsdk:"id"`
 	Import                       types.List                    `tfsdk:"import"`
+	KeepAll                      types.Bool                    `tfsdk:"keep_all"`
+	KeepNone                     types.Bool                    `tfsdk:"keep_none"`
 	LocalAddress                 types.String                  `tfsdk:"local_address"`
 	LocalAS                      types.String                  `tfsdk:"local_as"`
+	LocalASAlias                 types.Bool                    `tfsdk:"local_as_alias"`
 	LocalASLoops                 types.Int64                   `tfsdk:"local_as_loops"`
+	LocalASNoPrependGlobalAS     types.Bool                    `tfsdk:"local_as_no_prepend_global_as"`
+	LocalASPrivate               types.Bool                    `tfsdk:"local_as_private"`
 	LocalInterface               types.String                  `tfsdk:"local_interface"`
 	LocalPreference              types.Int64                   `tfsdk:"local_preference"`
+	LogUpdown                    types.Bool                    `tfsdk:"log_updown"`
 	MetricOut                    types.Int64                   `tfsdk:"metric_out"`
+	MetricOutIgp                 types.Bool                    `tfsdk:"metric_out_igp"`
+	MetricOutIgpDelayMedUpdate   types.Bool                    `tfsdk:"metric_out_igp_delay_med_update"`
 	MetricOutIgpOffset           types.Int64                   `tfsdk:"metric_out_igp_offset"`
+	MetricOutMinimumIgp          types.Bool                    `tfsdk:"metric_out_minimum_igp"`
 	MetricOutMinimumIgpOffset    types.Int64                   `tfsdk:"metric_out_minimum_igp_offset"`
-	Name                         types.String                  `tfsdk:"name"`
+	MtuDiscovery                 types.Bool                    `tfsdk:"mtu_discovery"`
+	Multihop                     types.Bool                    `tfsdk:"multihop"`
+	NoClientReflect              types.Bool                    `tfsdk:"no_client_reflect"`
 	OutDelay                     types.Int64                   `tfsdk:"out_delay"`
+	Passive                      types.Bool                    `tfsdk:"passive"`
 	PeerAS                       types.String                  `tfsdk:"peer_as"`
 	Preference                   types.Int64                   `tfsdk:"preference"`
-	RoutingInstance              types.String                  `tfsdk:"routing_instance"`
-	Type                         types.String                  `tfsdk:"type"`
+	RemotePrivate                types.Bool                    `tfsdk:"remove_private"`
+	TCPAggressiveTransmission    types.Bool                    `tfsdk:"tcp_aggressive_transmission"`
 	BfdLivenessDetection         *bgpBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
 	BgpErrorTolerance            *bgpBlockBgpErrorTolerance    `tfsdk:"bgp_error_tolerance"`
 	BgpMultipah                  *bgpBlockBgpMultipath         `tfsdk:"bgp_multipath"`
@@ -1065,9 +1065,8 @@ func (rsc *bgpGroup) ValidateConfig(
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple family_evpn blocks with the same nlri_type %q", nlriType),
 					)
-				} else {
-					familyEvpnNlriType[nlriType] = struct{}{}
 				}
+				familyEvpnNlriType[nlriType] = struct{}{}
 			}
 			if block.AcceptedPrefixLimit != nil {
 				if block.AcceptedPrefixLimit.Maximum.IsNull() {
@@ -1129,9 +1128,8 @@ func (rsc *bgpGroup) ValidateConfig(
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple family_inet blocks with the same nlri_type %q", nlriType),
 					)
-				} else {
-					familyInetNlriType[nlriType] = struct{}{}
 				}
+				familyInetNlriType[nlriType] = struct{}{}
 			}
 			if block.AcceptedPrefixLimit != nil {
 				if block.AcceptedPrefixLimit.Maximum.IsNull() {
@@ -1193,9 +1191,8 @@ func (rsc *bgpGroup) ValidateConfig(
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple family_inet6 blocks with the same nlri_type %q", nlriType),
 					)
-				} else {
-					familyInet6NlriType[nlriType] = struct{}{}
 				}
+				familyInet6NlriType[nlriType] = struct{}{}
 			}
 			if block.AcceptedPrefixLimit != nil {
 				if block.AcceptedPrefixLimit.Maximum.IsNull() {

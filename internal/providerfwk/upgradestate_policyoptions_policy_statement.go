@@ -228,9 +228,9 @@ func upgradePolicyoptionsPolicyStatementStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		AddItToForwardingTableExport types.Bool                              `tfsdk:"add_it_to_forwarding_table_export"`
 		ID                           types.String                            `tfsdk:"id"`
 		Name                         types.String                            `tfsdk:"name"`
+		AddItToForwardingTableExport types.Bool                              `tfsdk:"add_it_to_forwarding_table_export"`
 		From                         []policyoptionsPolicyStatementBlockFrom `tfsdk:"from"`
 		To                           []policyoptionsPolicyStatementBlockTo   `tfsdk:"to"`
 		Then                         []struct {

@@ -376,18 +376,18 @@ func (rsc *securityZone) Schema(
 }
 
 type securityZoneData struct {
-	AddressBookConfigureSingly       types.Bool                             `tfsdk:"address_book_configure_singly"`
-	ApplicationTracking              types.Bool                             `tfsdk:"application_tracking"`
-	ReverseReroute                   types.Bool                             `tfsdk:"reverse_reroute"`
-	SourceIdentityLog                types.Bool                             `tfsdk:"source_identity_log"`
-	TCPRst                           types.Bool                             `tfsdk:"tcp_rst"`
 	ID                               types.String                           `tfsdk:"id"`
 	Name                             types.String                           `tfsdk:"name"`
+	AddressBookConfigureSingly       types.Bool                             `tfsdk:"address_book_configure_singly"`
 	AdvancePolicyBasedRoutingProfile types.String                           `tfsdk:"advance_policy_based_routing_profile"`
+	ApplicationTracking              types.Bool                             `tfsdk:"application_tracking"`
 	Description                      types.String                           `tfsdk:"description"`
-	Screen                           types.String                           `tfsdk:"screen"`
 	InboundProtocols                 []types.String                         `tfsdk:"inbound_protocols"`
 	InboundServices                  []types.String                         `tfsdk:"inbound_services"`
+	ReverseReroute                   types.Bool                             `tfsdk:"reverse_reroute"`
+	Screen                           types.String                           `tfsdk:"screen"`
+	SourceIdentityLog                types.Bool                             `tfsdk:"source_identity_log"`
+	TCPRst                           types.Bool                             `tfsdk:"tcp_rst"`
 	AddressBook                      []securityZoneBlockAddressBook         `tfsdk:"address_book"`
 	AddressBookDNS                   []securityZoneBlockAddressBookDNS      `tfsdk:"address_book_dns"`
 	AddressBookRange                 []securityZoneBlockAddressBookRange    `tfsdk:"address_book_range"`
@@ -397,18 +397,18 @@ type securityZoneData struct {
 }
 
 type securityZoneConfig struct {
-	AddressBookConfigureSingly       types.Bool   `tfsdk:"address_book_configure_singly"`
-	ApplicationTracking              types.Bool   `tfsdk:"application_tracking"`
-	ReverseReroute                   types.Bool   `tfsdk:"reverse_reroute"`
-	SourceIdentityLog                types.Bool   `tfsdk:"source_identity_log"`
-	TCPRst                           types.Bool   `tfsdk:"tcp_rst"`
 	ID                               types.String `tfsdk:"id"`
 	Name                             types.String `tfsdk:"name"`
+	AddressBookConfigureSingly       types.Bool   `tfsdk:"address_book_configure_singly"`
 	AdvancePolicyBasedRoutingProfile types.String `tfsdk:"advance_policy_based_routing_profile"`
+	ApplicationTracking              types.Bool   `tfsdk:"application_tracking"`
 	Description                      types.String `tfsdk:"description"`
-	Screen                           types.String `tfsdk:"screen"`
 	InboundProtocols                 types.Set    `tfsdk:"inbound_protocols"`
 	InboundServices                  types.Set    `tfsdk:"inbound_services"`
+	ReverseReroute                   types.Bool   `tfsdk:"reverse_reroute"`
+	Screen                           types.String `tfsdk:"screen"`
+	SourceIdentityLog                types.Bool   `tfsdk:"source_identity_log"`
+	TCPRst                           types.Bool   `tfsdk:"tcp_rst"`
 	AddressBook                      types.Set    `tfsdk:"address_book"`
 	AddressBookDNS                   types.Set    `tfsdk:"address_book_dns"`
 	AddressBookRange                 types.Set    `tfsdk:"address_book_range"`
@@ -492,15 +492,15 @@ func (rsc *securityZone) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 	if !config.AddressBookDNS.IsNull() && !config.AddressBookDNS.IsUnknown() {
@@ -523,15 +523,15 @@ func (rsc *securityZone) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_dns"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 	if !config.AddressBookRange.IsNull() && !config.AddressBookRange.IsUnknown() {
@@ -546,15 +546,15 @@ func (rsc *securityZone) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_range"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 	if !config.AddressBookSet.IsNull() && !config.AddressBookSet.IsUnknown() {
@@ -577,15 +577,15 @@ func (rsc *securityZone) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_set"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses or address-sets with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses or address-sets with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 	if !config.AddressBookWildcard.IsNull() && !config.AddressBookWildcard.IsUnknown() {
@@ -600,15 +600,15 @@ func (rsc *securityZone) ValidateConfig(
 			if block.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := addressName[block.Name.ValueString()]; ok {
+			name := block.Name.ValueString()
+			if _, ok := addressName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("address_book_wildcard"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple addresses with the same name %q", block.Name.ValueString()),
+					fmt.Sprintf("multiple addresses with the same name %q", name),
 				)
-			} else {
-				addressName[block.Name.ValueString()] = struct{}{}
 			}
+			addressName[name] = struct{}{}
 		}
 	}
 }
@@ -883,6 +883,7 @@ func (rscData *securityZoneData) set(
 					fmt.Errorf("multiple addresses with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
+
 			configSet = append(configSet, setPrefix+"address-book address "+name+" "+block.Network.ValueString())
 			if v := block.Description.ValueString(); v != "" {
 				configSet = append(configSet, setPrefix+"address-book address "+name+" description \""+v+"\"")
@@ -895,6 +896,7 @@ func (rscData *securityZoneData) set(
 					fmt.Errorf("multiple addresses with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
+
 			setLine := setPrefix + "address-book address " + name + " dns-name " + block.FQDN.ValueString()
 			configSet = append(configSet, setLine)
 			if block.IPv4Only.ValueBool() {
@@ -914,6 +916,7 @@ func (rscData *securityZoneData) set(
 					fmt.Errorf("multiple addresses with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
+
 			configSet = append(configSet, setPrefix+"address-book address "+
 				name+" range-address "+block.From.ValueString()+
 				" to "+block.To.ValueString())
@@ -928,6 +931,7 @@ func (rscData *securityZoneData) set(
 					fmt.Errorf("multiple addresses or address-sets with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
+
 			if len(block.Address) == 0 &&
 				len(block.AddressSet) == 0 {
 				return path.Root("address_book_set"),
@@ -950,6 +954,7 @@ func (rscData *securityZoneData) set(
 					fmt.Errorf("multiple addresses with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
+
 			configSet = append(configSet, setPrefix+"address-book address "+
 				name+" wildcard-address "+block.Network.ValueString())
 			if v := block.Description.ValueString(); v != "" {

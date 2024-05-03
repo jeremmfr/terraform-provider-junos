@@ -270,29 +270,29 @@ func (dsc *interfacePhysicalDataSource) Schema(
 }
 
 type interfacePhysicalDataSourceData struct {
-	Disable                types.Bool                             `tfsdk:"disable"`
-	FlexibleVlanTagging    types.Bool                             `tfsdk:"flexible_vlan_tagging"`
-	GratuitousArpReply     types.Bool                             `tfsdk:"gratuitous_arp_reply"`
-	NoGratuitousArpReply   types.Bool                             `tfsdk:"no_gratuitous_arp_reply"`
-	NoGratuitousArpRequest types.Bool                             `tfsdk:"no_gratuitous_arp_request"`
-	Trunk                  types.Bool                             `tfsdk:"trunk"`
-	TrunkNonELS            types.Bool                             `tfsdk:"trunk_non_els"`
-	VlanTagging            types.Bool                             `tfsdk:"vlan_tagging"`
 	ID                     types.String                           `tfsdk:"id"`
 	ConfigInterface        types.String                           `tfsdk:"config_interface"`
 	Match                  types.String                           `tfsdk:"match"`
 	Name                   types.String                           `tfsdk:"name"`
 	Description            types.String                           `tfsdk:"description"`
+	Disable                types.Bool                             `tfsdk:"disable"`
 	Encapsulation          types.String                           `tfsdk:"encapsulation"`
+	FlexibleVlanTagging    types.Bool                             `tfsdk:"flexible_vlan_tagging"`
+	GratuitousArpReply     types.Bool                             `tfsdk:"gratuitous_arp_reply"`
+	NoGratuitousArpReply   types.Bool                             `tfsdk:"no_gratuitous_arp_reply"`
 	HoldTimeDown           types.Int64                            `tfsdk:"hold_time_down"`
 	HoldTimeUp             types.Int64                            `tfsdk:"hold_time_up"`
 	LinkMode               types.String                           `tfsdk:"link_mode"`
 	Mtu                    types.Int64                            `tfsdk:"mtu"`
+	NoGratuitousArpRequest types.Bool                             `tfsdk:"no_gratuitous_arp_request"`
 	Speed                  types.String                           `tfsdk:"speed"`
 	StormControl           types.String                           `tfsdk:"storm_control"`
+	Trunk                  types.Bool                             `tfsdk:"trunk"`
+	TrunkNonELS            types.Bool                             `tfsdk:"trunk_non_els"`
 	VlanMembers            []types.String                         `tfsdk:"vlan_members"`
 	VlanNative             types.Int64                            `tfsdk:"vlan_native"`
 	VlanNativeNonELS       types.String                           `tfsdk:"vlan_native_non_els"`
+	VlanTagging            types.Bool                             `tfsdk:"vlan_tagging"`
 	ESI                    *interfacePhysicalBlockESI             `tfsdk:"esi"`
 	EtherOpts              *interfacePhysicalBlockEtherOpts       `tfsdk:"ether_opts"`
 	GigetherOpts           *interfacePhysicalBlockEtherOpts       `tfsdk:"gigether_opts"`

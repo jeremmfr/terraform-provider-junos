@@ -99,11 +99,24 @@ func (dsc *interfacesPhysicalPresentDataSource) Schema(
 			"interface_names": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
-				Description: "List of interface names found.",
+				Description: "Found interface names.",
+			},
+			"interfaces": schema.MapAttribute{
+				Computed:    true,
+				Description: "Dictionary of found interfaces with interface name as key.",
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":                    types.StringType,
+						"admin_status":            types.StringType,
+						"oper_status":             types.StringType,
+						"logical_interface_names": types.ListType{}.WithElementType(types.StringType),
+					},
+				},
 			},
 			"interface_statuses": schema.ListAttribute{
-				Computed:    true,
-				Description: "For each interface name.",
+				Computed:           true,
+				DeprecationMessage: "Use the \"interfaces\" attribute instead.",
+				Description:        "For each found interface name, its status.",
 				ElementType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"name":         types.StringType,
@@ -117,12 +130,13 @@ func (dsc *interfacesPhysicalPresentDataSource) Schema(
 }
 
 type interfacesPhysicalPresentDataSourceData struct {
-	ID                types.String                                                `tfsdk:"id"`
-	MatchName         types.String                                                `tfsdk:"match_name"`
-	MatchAdminUp      types.Bool                                                  `tfsdk:"match_admin_up"`
-	MatchOperUp       types.Bool                                                  `tfsdk:"match_oper_up"`
-	InterfaceNames    []types.String                                              `tfsdk:"interface_names"`
-	InterfaceStatuses []interfacesPhysicalPresentDataSourceBlockInterfaceStatuses `tfsdk:"interface_statuses"`
+	ID                types.String                                                  `tfsdk:"id"`
+	MatchName         types.String                                                  `tfsdk:"match_name"`
+	MatchAdminUp      types.Bool                                                    `tfsdk:"match_admin_up"`
+	MatchOperUp       types.Bool                                                    `tfsdk:"match_oper_up"`
+	InterfaceNames    []types.String                                                `tfsdk:"interface_names"`
+	Interfaces        map[string]interfacesPhysicalPresentDataSourceBlockInterfaces `tfsdk:"interfaces"`
+	InterfaceStatuses []interfacesPhysicalPresentDataSourceBlockInterfaceStatuses   `tfsdk:"interface_statuses"`
 }
 
 type interfacesPhysicalPresentDataSourceConfig struct {
@@ -131,7 +145,15 @@ type interfacesPhysicalPresentDataSourceConfig struct {
 	MatchAdminUp      types.Bool   `tfsdk:"match_admin_up"`
 	MatchOperUp       types.Bool   `tfsdk:"match_oper_up"`
 	InterfaceNames    types.List   `tfsdk:"interface_names"`
+	Interfaces        types.Map    `tfsdk:"interfaces"`
 	InterfaceStatuses types.List   `tfsdk:"interface_statuses"`
+}
+
+type interfacesPhysicalPresentDataSourceBlockInterfaces struct {
+	Name                  types.String   `tfsdk:"name"`
+	AdminStatus           types.String   `tfsdk:"admin_status"`
+	OperStatus            types.String   `tfsdk:"oper_status"`
+	LogicalInterfaceNames []types.String `tfsdk:"logical_interface_names"`
 }
 
 type interfacesPhysicalPresentDataSourceBlockInterfaceStatuses struct {
@@ -195,6 +217,12 @@ func (dscData *interfacesPhysicalPresentDataSourceData) read(
 	if err != nil {
 		return fmt.Errorf("unmarshaling xml reply %q: %w", replyData, err)
 	}
+
+	dscData.InterfaceNames = make([]types.String, 0, len(reply.PhysicalInterface))
+	dscData.Interfaces = make(map[string]interfacesPhysicalPresentDataSourceBlockInterfaces)
+	dscData.InterfaceStatuses = make(
+		[]interfacesPhysicalPresentDataSourceBlockInterfaceStatuses, 0, len(reply.PhysicalInterface),
+	)
 	for _, iFace := range reply.PhysicalInterface {
 		if matchName != "" {
 			matched, err := regexp.MatchString(matchName, strings.TrimSpace(iFace.Name))
@@ -212,6 +240,16 @@ func (dscData *interfacesPhysicalPresentDataSourceData) read(
 			continue
 		}
 		dscData.InterfaceNames = append(dscData.InterfaceNames, types.StringValue(strings.TrimSpace(iFace.Name)))
+		logicalInterfaceNames := make([]types.String, len(iFace.LogicalInterface))
+		for i, loIface := range iFace.LogicalInterface {
+			logicalInterfaceNames[i] = types.StringValue(strings.TrimSpace(loIface.Name))
+		}
+		dscData.Interfaces[strings.TrimSpace(iFace.Name)] = interfacesPhysicalPresentDataSourceBlockInterfaces{
+			Name:                  types.StringValue(strings.TrimSpace(iFace.Name)),
+			AdminStatus:           types.StringValue(strings.TrimSpace(iFace.AdminStatus)),
+			OperStatus:            types.StringValue(strings.TrimSpace(iFace.OperStatus)),
+			LogicalInterfaceNames: logicalInterfaceNames,
+		}
 		dscData.InterfaceStatuses = append(dscData.InterfaceStatuses,
 			interfacesPhysicalPresentDataSourceBlockInterfaceStatuses{
 				Name:        types.StringValue(strings.TrimSpace(iFace.Name)),

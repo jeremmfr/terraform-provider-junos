@@ -1776,32 +1776,32 @@ func (rsc *system) Schema(
 
 //nolint:lll
 type systemData struct {
-	AutoSnapshot                            types.Bool                        `tfsdk:"auto_snapshot"`
-	DefaultAddressSelection                 types.Bool                        `tfsdk:"default_address_selection"`
-	NoMulticastEcho                         types.Bool                        `tfsdk:"no_multicast_echo"`
-	NoPingRecordRoute                       types.Bool                        `tfsdk:"no_ping_record_route"`
-	NoPingTimestamp                         types.Bool                        `tfsdk:"no_ping_time_stamp"`
-	NoRedirects                             types.Bool                        `tfsdk:"no_redirects"`
-	NoRedirectsIPv6                         types.Bool                        `tfsdk:"no_redirects_ipv6"`
-	RadiusOptionsEnhancedAccounting         types.Bool                        `tfsdk:"radius_options_enhanced_accounting"`
-	RadiusOptionsPasswordProtocolMschapv2   types.Bool                        `tfsdk:"radius_options_password_protocol_mschapv2"`
-	TacplusOptionsEnhancedAccounting        types.Bool                        `tfsdk:"tacplus_options_enhanced_accounting"`
-	TacplusOptionsExcludeCmdAttribute       types.Bool                        `tfsdk:"tacplus_options_exclude_cmd_attribute"`
-	TacplusOptionsNoCmdAttributeValue       types.Bool                        `tfsdk:"tacplus_options_no_cmd_attribute_value"`
-	TacplusOptionsStrictAuthorization       types.Bool                        `tfsdk:"tacplus_options_strict_authorization"`
-	TacplusOptionsNoStrictAuthorization     types.Bool                        `tfsdk:"tacplus_options_no_strict_authorization"`
-	TacplusOptionsTimestampAndTimezone      types.Bool                        `tfsdk:"tacplus_options_timestamp_and_timezone"`
 	ID                                      types.String                      `tfsdk:"id"`
 	AuthenticationOrder                     []types.String                    `tfsdk:"authentication_order"`
+	AutoSnapshot                            types.Bool                        `tfsdk:"auto_snapshot"`
+	DefaultAddressSelection                 types.Bool                        `tfsdk:"default_address_selection"`
 	DomainName                              types.String                      `tfsdk:"domain_name"`
 	HostName                                types.String                      `tfsdk:"host_name"`
 	MaxConfigurationRollbacks               types.Int64                       `tfsdk:"max_configuration_rollbacks"`
 	MaxConfigurationsOnFlash                types.Int64                       `tfsdk:"max_configurations_on_flash"`
 	NameServer                              []types.String                    `tfsdk:"name_server"`
+	NoMulticastEcho                         types.Bool                        `tfsdk:"no_multicast_echo"`
+	NoPingRecordRoute                       types.Bool                        `tfsdk:"no_ping_record_route"`
+	NoPingTimestamp                         types.Bool                        `tfsdk:"no_ping_time_stamp"`
+	NoRedirects                             types.Bool                        `tfsdk:"no_redirects"`
+	NoRedirectsIPv6                         types.Bool                        `tfsdk:"no_redirects_ipv6"`
 	RadiusOptionsAttributesNasID            types.String                      `tfsdk:"radius_options_attributes_nas_id"`
 	RadiusOptionsAttributesNasIpaddress     types.String                      `tfsdk:"radius_options_attributes_nas_ipaddress"`
+	RadiusOptionsEnhancedAccounting         types.Bool                        `tfsdk:"radius_options_enhanced_accounting"`
+	RadiusOptionsPasswordProtocolMschapv2   types.Bool                        `tfsdk:"radius_options_password_protocol_mschapv2"`
 	TacplusOptionsAuthorizationTimeInterval types.Int64                       `tfsdk:"tacplus_options_authorization_time_interval"`
+	TacplusOptionsEnhancedAccounting        types.Bool                        `tfsdk:"tacplus_options_enhanced_accounting"`
+	TacplusOptionsExcludeCmdAttribute       types.Bool                        `tfsdk:"tacplus_options_exclude_cmd_attribute"`
+	TacplusOptionsNoCmdAttributeValue       types.Bool                        `tfsdk:"tacplus_options_no_cmd_attribute_value"`
 	TacplusOptionsServiceName               types.String                      `tfsdk:"tacplus_options_service_name"`
+	TacplusOptionsStrictAuthorization       types.Bool                        `tfsdk:"tacplus_options_strict_authorization"`
+	TacplusOptionsNoStrictAuthorization     types.Bool                        `tfsdk:"tacplus_options_no_strict_authorization"`
+	TacplusOptionsTimestampAndTimezone      types.Bool                        `tfsdk:"tacplus_options_timestamp_and_timezone"`
 	TimeZone                                types.String                      `tfsdk:"time_zone"`
 	TracingDestOverrideSyslogHost           types.String                      `tfsdk:"tracing_dest_override_syslog_host"`
 	Accounting                              *systemBlockAccounting            `tfsdk:"accounting"`
@@ -1819,32 +1819,32 @@ type systemData struct {
 
 //nolint:lll
 type systemConfig struct {
-	AutoSnapshot                            types.Bool                              `tfsdk:"auto_snapshot"`
-	DefaultAddressSelection                 types.Bool                              `tfsdk:"default_address_selection"`
-	NoMulticastEcho                         types.Bool                              `tfsdk:"no_multicast_echo"`
-	NoPingRecordRoute                       types.Bool                              `tfsdk:"no_ping_record_route"`
-	NoPingTimestamp                         types.Bool                              `tfsdk:"no_ping_time_stamp"`
-	NoRedirects                             types.Bool                              `tfsdk:"no_redirects"`
-	NoRedirectsIPv6                         types.Bool                              `tfsdk:"no_redirects_ipv6"`
-	RadiusOptionsEnhancedAccounting         types.Bool                              `tfsdk:"radius_options_enhanced_accounting"`
-	RadiusOptionsPasswordProtocolMschapv2   types.Bool                              `tfsdk:"radius_options_password_protocol_mschapv2"`
-	TacplusOptionsEnhancedAccounting        types.Bool                              `tfsdk:"tacplus_options_enhanced_accounting"`
-	TacplusOptionsExcludeCmdAttribute       types.Bool                              `tfsdk:"tacplus_options_exclude_cmd_attribute"`
-	TacplusOptionsNoCmdAttributeValue       types.Bool                              `tfsdk:"tacplus_options_no_cmd_attribute_value"`
-	TacplusOptionsStrictAuthorization       types.Bool                              `tfsdk:"tacplus_options_strict_authorization"`
-	TacplusOptionsNoStrictAuthorization     types.Bool                              `tfsdk:"tacplus_options_no_strict_authorization"`
-	TacplusOptionsTimestampAndTimezone      types.Bool                              `tfsdk:"tacplus_options_timestamp_and_timezone"`
 	ID                                      types.String                            `tfsdk:"id"`
 	AuthenticationOrder                     types.List                              `tfsdk:"authentication_order"`
+	AutoSnapshot                            types.Bool                              `tfsdk:"auto_snapshot"`
+	DefaultAddressSelection                 types.Bool                              `tfsdk:"default_address_selection"`
 	DomainName                              types.String                            `tfsdk:"domain_name"`
 	HostName                                types.String                            `tfsdk:"host_name"`
 	MaxConfigurationRollbacks               types.Int64                             `tfsdk:"max_configuration_rollbacks"`
 	MaxConfigurationsOnFlash                types.Int64                             `tfsdk:"max_configurations_on_flash"`
 	NameServer                              types.List                              `tfsdk:"name_server"`
+	NoMulticastEcho                         types.Bool                              `tfsdk:"no_multicast_echo"`
+	NoPingRecordRoute                       types.Bool                              `tfsdk:"no_ping_record_route"`
+	NoPingTimestamp                         types.Bool                              `tfsdk:"no_ping_time_stamp"`
+	NoRedirects                             types.Bool                              `tfsdk:"no_redirects"`
+	NoRedirectsIPv6                         types.Bool                              `tfsdk:"no_redirects_ipv6"`
 	RadiusOptionsAttributesNasID            types.String                            `tfsdk:"radius_options_attributes_nas_id"`
 	RadiusOptionsAttributesNasIpaddress     types.String                            `tfsdk:"radius_options_attributes_nas_ipaddress"`
+	RadiusOptionsEnhancedAccounting         types.Bool                              `tfsdk:"radius_options_enhanced_accounting"`
+	RadiusOptionsPasswordProtocolMschapv2   types.Bool                              `tfsdk:"radius_options_password_protocol_mschapv2"`
 	TacplusOptionsAuthorizationTimeInterval types.Int64                             `tfsdk:"tacplus_options_authorization_time_interval"`
+	TacplusOptionsEnhancedAccounting        types.Bool                              `tfsdk:"tacplus_options_enhanced_accounting"`
+	TacplusOptionsExcludeCmdAttribute       types.Bool                              `tfsdk:"tacplus_options_exclude_cmd_attribute"`
+	TacplusOptionsNoCmdAttributeValue       types.Bool                              `tfsdk:"tacplus_options_no_cmd_attribute_value"`
 	TacplusOptionsServiceName               types.String                            `tfsdk:"tacplus_options_service_name"`
+	TacplusOptionsStrictAuthorization       types.Bool                              `tfsdk:"tacplus_options_strict_authorization"`
+	TacplusOptionsNoStrictAuthorization     types.Bool                              `tfsdk:"tacplus_options_no_strict_authorization"`
+	TacplusOptionsTimestampAndTimezone      types.Bool                              `tfsdk:"tacplus_options_timestamp_and_timezone"`
 	TimeZone                                types.String                            `tfsdk:"time_zone"`
 	TracingDestOverrideSyslogHost           types.String                            `tfsdk:"tracing_dest_override_syslog_host"`
 	Accounting                              *systemBlockAccountingConfig            `tfsdk:"accounting"`
@@ -1861,19 +1861,19 @@ type systemConfig struct {
 }
 
 type systemBlockAccounting struct {
+	Events                   []types.String                                       `tfsdk:"events"`
 	DestinationRadius        types.Bool                                           `tfsdk:"destination_radius"`
 	DestinationTacplus       types.Bool                                           `tfsdk:"destination_tacplus"`
 	EnhancedAvsMax           types.Int64                                          `tfsdk:"enhanced_avs_max"`
-	Events                   []types.String                                       `tfsdk:"events"`
 	DestinationRadiusServer  []systemBlockAccountingBlockDestinationRadiusServer  `tfsdk:"destination_radius_server"`
 	DestinationTacplusServer []systemBlockAccountingBlockDestinationTacplusServer `tfsdk:"destination_tacplus_server"`
 }
 
 type systemBlockAccountingConfig struct {
+	Events                   types.Set   `tfsdk:"events"`
 	DestinationRadius        types.Bool  `tfsdk:"destination_radius"`
 	DestinationTacplus       types.Bool  `tfsdk:"destination_tacplus"`
 	EnhancedAvsMax           types.Int64 `tfsdk:"enhanced_avs_max"`
-	Events                   types.Set   `tfsdk:"events"`
 	DestinationRadiusServer  types.List  `tfsdk:"destination_radius_server"`
 	DestinationTacplusServer types.List  `tfsdk:"destination_tacplus_server"`
 }
@@ -1896,24 +1896,24 @@ type systemBlockAccountingBlockDestinationRadiusServer struct {
 }
 
 type systemBlockAccountingBlockDestinationTacplusServer struct {
-	SingleConnection types.Bool   `tfsdk:"single_connection"`
 	Address          types.String `tfsdk:"address"`
 	Port             types.Int64  `tfsdk:"port"`
 	RoutingInstance  types.String `tfsdk:"routing_instance"`
 	Secret           types.String `tfsdk:"secret"`
+	SingleConnection types.Bool   `tfsdk:"single_connection"`
 	SourceAddress    types.String `tfsdk:"source_address"`
 	Timeout          types.Int64  `tfsdk:"timeout"`
 }
 
 type systemBlockArchivalConfiguration struct {
-	TransferOnCommit types.Bool                                         `tfsdk:"transfer_on_commit"`
 	TransferInterval types.Int64                                        `tfsdk:"transfer_interval"`
+	TransferOnCommit types.Bool                                         `tfsdk:"transfer_on_commit"`
 	ArchiveSite      []systemBlockArchivalConfigurationBlockArchiveSite `tfsdk:"archive_site"`
 }
 
 type systemBlockArchivalConfigurationConfig struct {
-	TransferOnCommit types.Bool  `tfsdk:"transfer_on_commit"`
 	TransferInterval types.Int64 `tfsdk:"transfer_interval"`
+	TransferOnCommit types.Bool  `tfsdk:"transfer_on_commit"`
 	ArchiveSite      types.List  `tfsdk:"archive_site"`
 }
 
@@ -1938,21 +1938,21 @@ type systemBlockInternetOptions struct {
 	NoGrePathMtuDiscovery               types.Bool                                    `tfsdk:"no_gre_path_mtu_discovery"`
 	IpipPathMtuDiscovery                types.Bool                                    `tfsdk:"ipip_path_mtu_discovery"`
 	NoIpipPathMtuDiscovery              types.Bool                                    `tfsdk:"no_ipip_path_mtu_discovery"`
+	IPv6DuplicateAddrDetectionTransmits types.Int64                                   `tfsdk:"ipv6_duplicate_addr_detection_transmits"`
 	IPv6PathMtuDiscovery                types.Bool                                    `tfsdk:"ipv6_path_mtu_discovery"`
 	NoIPv6PathMtuDiscovery              types.Bool                                    `tfsdk:"no_ipv6_path_mtu_discovery"`
+	IPv6PathMtuDiscoveryTimeout         types.Int64                                   `tfsdk:"ipv6_path_mtu_discovery_timeout"`
 	IPv6RejectZeroHopLimit              types.Bool                                    `tfsdk:"ipv6_reject_zero_hop_limit"`
 	NoIPv6RejectZeroHopLimit            types.Bool                                    `tfsdk:"no_ipv6_reject_zero_hop_limit"`
+	NoTCPReset                          types.String                                  `tfsdk:"no_tcp_reset"`
 	NoTCPRFC1323                        types.Bool                                    `tfsdk:"no_tcp_rfc1323"`
 	NoTCPRFC1323Paws                    types.Bool                                    `tfsdk:"no_tcp_rfc1323_paws"`
 	PathMtuDiscovery                    types.Bool                                    `tfsdk:"path_mtu_discovery"`
 	NoPathMtuDiscovery                  types.Bool                                    `tfsdk:"no_path_mtu_discovery"`
+	SourcePortUpperLimit                types.Int64                                   `tfsdk:"source_port_upper_limit"`
 	SourceQuench                        types.Bool                                    `tfsdk:"source_quench"`
 	NoSourceQuench                      types.Bool                                    `tfsdk:"no_source_quench"`
 	TCPDropSynfinSet                    types.Bool                                    `tfsdk:"tcp_drop_synfin_set"`
-	IPv6DuplicateAddrDetectionTransmits types.Int64                                   `tfsdk:"ipv6_duplicate_addr_detection_transmits"`
-	IPv6PathMtuDiscoveryTimeout         types.Int64                                   `tfsdk:"ipv6_path_mtu_discovery_timeout"`
-	NoTCPReset                          types.String                                  `tfsdk:"no_tcp_reset"`
-	SourcePortUpperLimit                types.Int64                                   `tfsdk:"source_port_upper_limit"`
 	TCPMss                              types.Int64                                   `tfsdk:"tcp_mss"`
 	IcmpV4RateLimit                     *systemBlockInternetOptionsBlockIcmpRateLimit `tfsdk:"icmpv4_rate_limit"`
 	IcmpV6RateLimit                     *systemBlockInternetOptionsBlockIcmpRateLimit `tfsdk:"icmpv6_rate_limit"`
@@ -2046,10 +2046,10 @@ func (block *systemBlockLoginBlockRetryOptions) isEmpty() bool {
 }
 
 type systemBlockNtp struct {
-	BroadcastClient        types.Bool   `tfsdk:"broadcast_client"`
-	MulticastClient        types.Bool   `tfsdk:"multicast_client"`
 	BootServer             types.String `tfsdk:"boot_server"`
+	BroadcastClient        types.Bool   `tfsdk:"broadcast_client"`
 	IntervalRange          types.Int64  `tfsdk:"interval_range"`
+	MulticastClient        types.Bool   `tfsdk:"multicast_client"`
 	MulticastClientAddress types.String `tfsdk:"multicast_client_address"`
 	ThresholdAction        types.String `tfsdk:"threshold_action"`
 	ThresholdValue         types.Int64  `tfsdk:"threshold_value"`
@@ -2060,15 +2060,15 @@ func (block *systemBlockNtp) isEmpty() bool {
 }
 
 type systemBlockPorts struct {
+	AuxiliaryAuthenticationOrder []types.String `tfsdk:"auxiliary_authentication_order"`
 	AuxiliaryDisable             types.Bool     `tfsdk:"auxiliary_disable"`
 	AuxiliaryInsecure            types.Bool     `tfsdk:"auxiliary_insecure"`
 	AuxiliaryLogoutOnDisconnect  types.Bool     `tfsdk:"auxiliary_logout_on_disconnect"`
+	AuxiliaryType                types.String   `tfsdk:"auxiliary_type"`
+	ConsoleAuthenticationOrder   []types.String `tfsdk:"console_authentication_order"`
 	ConsoleDisable               types.Bool     `tfsdk:"console_disable"`
 	ConsoleInsecure              types.Bool     `tfsdk:"console_insecure"`
 	ConsoleLogoutOnDisconnect    types.Bool     `tfsdk:"console_logout_on_disconnect"`
-	AuxiliaryAuthenticationOrder []types.String `tfsdk:"auxiliary_authentication_order"`
-	AuxiliaryType                types.String   `tfsdk:"auxiliary_type"`
-	ConsoleAuthenticationOrder   []types.String `tfsdk:"console_authentication_order"`
 	ConsoleType                  types.String   `tfsdk:"console_type"`
 }
 
@@ -2077,15 +2077,15 @@ func (block *systemBlockPorts) isEmpty() bool {
 }
 
 type systemBlockPortsConfig struct {
+	AuxiliaryAuthenticationOrder types.List   `tfsdk:"auxiliary_authentication_order"`
 	AuxiliaryDisable             types.Bool   `tfsdk:"auxiliary_disable"`
 	AuxiliaryInsecure            types.Bool   `tfsdk:"auxiliary_insecure"`
 	AuxiliaryLogoutOnDisconnect  types.Bool   `tfsdk:"auxiliary_logout_on_disconnect"`
+	AuxiliaryType                types.String `tfsdk:"auxiliary_type"`
+	ConsoleAuthenticationOrder   types.List   `tfsdk:"console_authentication_order"`
 	ConsoleDisable               types.Bool   `tfsdk:"console_disable"`
 	ConsoleInsecure              types.Bool   `tfsdk:"console_insecure"`
 	ConsoleLogoutOnDisconnect    types.Bool   `tfsdk:"console_logout_on_disconnect"`
-	AuxiliaryAuthenticationOrder types.List   `tfsdk:"auxiliary_authentication_order"`
-	AuxiliaryType                types.String `tfsdk:"auxiliary_type"`
-	ConsoleAuthenticationOrder   types.List   `tfsdk:"console_authentication_order"`
 	ConsoleType                  types.String `tfsdk:"console_type"`
 }
 
@@ -2135,15 +2135,15 @@ func (block *systemBlockServicesBlockNetconfSSH) isEmpty() bool {
 }
 
 type systemBlockServicesBlockNetconfTraceoptions struct {
-	FileWorldReadable   types.Bool     `tfsdk:"file_world_readable"`
-	FileNoWorldReadable types.Bool     `tfsdk:"file_no_world_readable"`
-	NoRemoteTrace       types.Bool     `tfsdk:"no_remote_trace"`
-	OnDemand            types.Bool     `tfsdk:"on_demand"`
 	FileName            types.String   `tfsdk:"file_name"`
 	FileFiles           types.Int64    `tfsdk:"file_files"`
 	FileMatch           types.String   `tfsdk:"file_match"`
 	FileSize            types.Int64    `tfsdk:"file_size"`
+	FileWorldReadable   types.Bool     `tfsdk:"file_world_readable"`
+	FileNoWorldReadable types.Bool     `tfsdk:"file_no_world_readable"`
 	Flag                []types.String `tfsdk:"flag"`
+	NoRemoteTrace       types.Bool     `tfsdk:"no_remote_trace"`
+	OnDemand            types.Bool     `tfsdk:"on_demand"`
 }
 
 func (block *systemBlockServicesBlockNetconfTraceoptions) isEmpty() bool {
@@ -2151,15 +2151,15 @@ func (block *systemBlockServicesBlockNetconfTraceoptions) isEmpty() bool {
 }
 
 type systemBlockServicesBlockNetconfTraceoptionsConfig struct {
-	FileWorldReadable   types.Bool   `tfsdk:"file_world_readable"`
-	FileNoWorldReadable types.Bool   `tfsdk:"file_no_world_readable"`
-	NoRemoteTrace       types.Bool   `tfsdk:"no_remote_trace"`
-	OnDemand            types.Bool   `tfsdk:"on_demand"`
 	FileName            types.String `tfsdk:"file_name"`
 	FileFiles           types.Int64  `tfsdk:"file_files"`
 	FileMatch           types.String `tfsdk:"file_match"`
 	FileSize            types.Int64  `tfsdk:"file_size"`
+	FileWorldReadable   types.Bool   `tfsdk:"file_world_readable"`
+	FileNoWorldReadable types.Bool   `tfsdk:"file_no_world_readable"`
 	Flag                types.Set    `tfsdk:"flag"`
+	NoRemoteTrace       types.Bool   `tfsdk:"no_remote_trace"`
+	OnDemand            types.Bool   `tfsdk:"on_demand"`
 }
 
 func (block *systemBlockServicesBlockNetconfTraceoptionsConfig) isEmpty() bool {
@@ -2167,11 +2167,6 @@ func (block *systemBlockServicesBlockNetconfTraceoptionsConfig) isEmpty() bool {
 }
 
 type systemBlockServicesBlockSSH struct {
-	LogKeyChanges               types.Bool     `tfsdk:"log_key_changes"`
-	NoPasswords                 types.Bool     `tfsdk:"no_passwords"`
-	NoPublicKeys                types.Bool     `tfsdk:"no_public_keys"`
-	TCPForwarding               types.Bool     `tfsdk:"tcp_forwarding"`
-	NoTCPForwarding             types.Bool     `tfsdk:"no_tcp_forwarding"`
 	AuthenticationOrder         []types.String `tfsdk:"authentication_order"`
 	Ciphers                     []types.String `tfsdk:"ciphers"`
 	ClientAliveCountMax         types.Int64    `tfsdk:"client_alive_count_max"`
@@ -2180,13 +2175,18 @@ type systemBlockServicesBlockSSH struct {
 	FingerprintHash             types.String   `tfsdk:"fingerprint_hash"`
 	HostkeyAlgorithm            []types.String `tfsdk:"hostkey_algorithm"`
 	KeyExchange                 []types.String `tfsdk:"key_exchange"`
+	LogKeyChanges               types.Bool     `tfsdk:"log_key_changes"`
 	Macs                        []types.String `tfsdk:"macs"`
 	MaxPreAuthenticationPackets types.Int64    `tfsdk:"max_pre_authentication_packets"`
 	MaxSessionsPerConnection    types.Int64    `tfsdk:"max_sessions_per_connection"`
+	NoPasswords                 types.Bool     `tfsdk:"no_passwords"`
+	NoPublicKeys                types.Bool     `tfsdk:"no_public_keys"`
 	Port                        types.Int64    `tfsdk:"port"`
 	ProtocolVersion             []types.String `tfsdk:"protocol_version"`
 	RateLimit                   types.Int64    `tfsdk:"rate_limit"`
 	RootLogin                   types.String   `tfsdk:"root_login"`
+	TCPForwarding               types.Bool     `tfsdk:"tcp_forwarding"`
+	NoTCPForwarding             types.Bool     `tfsdk:"no_tcp_forwarding"`
 }
 
 func (block *systemBlockServicesBlockSSH) isEmpty() bool {
@@ -2194,11 +2194,6 @@ func (block *systemBlockServicesBlockSSH) isEmpty() bool {
 }
 
 type systemBlockServicesBlockSSHConfig struct {
-	LogKeyChanges               types.Bool   `tfsdk:"log_key_changes"`
-	NoPasswords                 types.Bool   `tfsdk:"no_passwords"`
-	NoPublicKeys                types.Bool   `tfsdk:"no_public_keys"`
-	TCPForwarding               types.Bool   `tfsdk:"tcp_forwarding"`
-	NoTCPForwarding             types.Bool   `tfsdk:"no_tcp_forwarding"`
 	AuthenticationOrder         types.List   `tfsdk:"authentication_order"`
 	Ciphers                     types.Set    `tfsdk:"ciphers"`
 	ClientAliveCountMax         types.Int64  `tfsdk:"client_alive_count_max"`
@@ -2207,13 +2202,18 @@ type systemBlockServicesBlockSSHConfig struct {
 	FingerprintHash             types.String `tfsdk:"fingerprint_hash"`
 	HostkeyAlgorithm            types.Set    `tfsdk:"hostkey_algorithm"`
 	KeyExchange                 types.Set    `tfsdk:"key_exchange"`
+	LogKeyChanges               types.Bool   `tfsdk:"log_key_changes"`
 	Macs                        types.Set    `tfsdk:"macs"`
 	MaxPreAuthenticationPackets types.Int64  `tfsdk:"max_pre_authentication_packets"`
 	MaxSessionsPerConnection    types.Int64  `tfsdk:"max_sessions_per_connection"`
+	NoPasswords                 types.Bool   `tfsdk:"no_passwords"`
+	NoPublicKeys                types.Bool   `tfsdk:"no_public_keys"`
 	Port                        types.Int64  `tfsdk:"port"`
 	ProtocolVersion             types.Set    `tfsdk:"protocol_version"`
 	RateLimit                   types.Int64  `tfsdk:"rate_limit"`
 	RootLogin                   types.String `tfsdk:"root_login"`
+	TCPForwarding               types.Bool   `tfsdk:"tcp_forwarding"`
+	NoTCPForwarding             types.Bool   `tfsdk:"no_tcp_forwarding"`
 }
 
 func (block *systemBlockServicesBlockSSHConfig) isEmpty() bool {
@@ -2231,26 +2231,26 @@ type systemBlockServicesBlockWebManagementHTTPConfig struct {
 }
 
 type systemBlockServicesBlockWebManagementHTTPS struct {
-	SystemGeneratedCertificate types.Bool     `tfsdk:"system_generated_certificate"`
 	Interface                  []types.String `tfsdk:"interface"`
 	LocalCertificate           types.String   `tfsdk:"local_certificate"`
 	PkiLocalCertificate        types.String   `tfsdk:"pki_local_certificate"`
 	Port                       types.Int64    `tfsdk:"port"`
+	SystemGeneratedCertificate types.Bool     `tfsdk:"system_generated_certificate"`
 }
 
 type systemBlockServicesBlockWebManagementHTTPSConfig struct {
-	SystemGeneratedCertificate types.Bool   `tfsdk:"system_generated_certificate"`
 	Interface                  types.Set    `tfsdk:"interface"`
 	LocalCertificate           types.String `tfsdk:"local_certificate"`
 	PkiLocalCertificate        types.String `tfsdk:"pki_local_certificate"`
 	Port                       types.Int64  `tfsdk:"port"`
+	SystemGeneratedCertificate types.Bool   `tfsdk:"system_generated_certificate"`
 }
 
 type systemBlockSyslog struct {
-	TimeFormatMillisecond types.Bool                     `tfsdk:"time_format_millisecond"`
-	TimeFormatYear        types.Bool                     `tfsdk:"time_format_year"`
 	LogRotateFrequency    types.Int64                    `tfsdk:"log_rotate_frequency"`
 	SourceAddress         types.String                   `tfsdk:"source_address"`
+	TimeFormatMillisecond types.Bool                     `tfsdk:"time_format_millisecond"`
+	TimeFormatYear        types.Bool                     `tfsdk:"time_format_year"`
 	Archive               *systemBlockSyslogBlockArchive `tfsdk:"archive"`
 	Console               *systemBlockSyslogBlockConsole `tfsdk:"console"`
 }
@@ -2262,10 +2262,10 @@ func (block *systemBlockSyslog) isEmpty() bool {
 type systemBlockSyslogBlockArchive struct {
 	BinaryData      types.Bool  `tfsdk:"binary_data"`
 	NoBinaryData    types.Bool  `tfsdk:"no_binary_data"`
-	WorldReadable   types.Bool  `tfsdk:"world_readable"`
-	NoWorldReadable types.Bool  `tfsdk:"no_world_readable"`
 	Files           types.Int64 `tfsdk:"files"`
 	Size            types.Int64 `tfsdk:"size"`
+	WorldReadable   types.Bool  `tfsdk:"world_readable"`
+	NoWorldReadable types.Bool  `tfsdk:"no_world_readable"`
 }
 
 type systemBlockSyslogBlockConsole struct {
@@ -2363,15 +2363,16 @@ func (rsc *system) ValidateConfig(
 					if block.Address.IsUnknown() {
 						continue
 					}
-					if _, ok := destinationRadiusServerAddress[block.Address.ValueString()]; ok {
+					address := block.Address.ValueString()
+					if _, ok := destinationRadiusServerAddress[address]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("address"),
 							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple destination_radius_server blocks with the same address %q in accounting block",
-								block.Address.ValueString()),
+							fmt.Sprintf("multiple destination_radius_server blocks with the same address %q"+
+								" in accounting block", address),
 						)
 					}
-					destinationRadiusServerAddress[block.Address.ValueString()] = struct{}{}
+					destinationRadiusServerAddress[address] = struct{}{}
 				}
 			}
 		}
@@ -2397,15 +2398,16 @@ func (rsc *system) ValidateConfig(
 					if block.Address.IsUnknown() {
 						continue
 					}
-					if _, ok := destinationTacplusServerAddress[block.Address.ValueString()]; ok {
+					address := block.Address.ValueString()
+					if _, ok := destinationTacplusServerAddress[address]; ok {
 						resp.Diagnostics.AddAttributeError(
 							path.Root("accounting").AtName("destination_tacplus_server").AtListIndex(i).AtName("address"),
 							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple destination_tacplus_server blocks with the same address %q in accounting block",
-								block.Address.ValueString()),
+							fmt.Sprintf("multiple destination_tacplus_server blocks with the same address %q"+
+								" in accounting block", address),
 						)
 					}
-					destinationTacplusServerAddress[block.Address.ValueString()] = struct{}{}
+					destinationTacplusServerAddress[address] = struct{}{}
 				}
 			}
 		}
@@ -2436,9 +2438,8 @@ func (rsc *system) ValidateConfig(
 							fmt.Sprintf("multiple archive_site blocks with the same url %q"+
 								" in archival_configuration block", url),
 						)
-					} else {
-						archiveSiteURL[url] = struct{}{}
 					}
+					archiveSiteURL[url] = struct{}{}
 				}
 			}
 		}

@@ -132,16 +132,16 @@ func (rsc *policyoptionsASPathGroup) Schema(
 }
 
 type policyoptionsASPathGroupData struct {
-	DynamicDB types.Bool                            `tfsdk:"dynamic_db"`
 	ID        types.String                          `tfsdk:"id"`
 	Name      types.String                          `tfsdk:"name"`
+	DynamicDB types.Bool                            `tfsdk:"dynamic_db"`
 	ASPath    []policyoptionsASPathGroupBlockASPAth `tfsdk:"as_path"`
 }
 
 type policyoptionsASPathGroupConfig struct {
-	DynamicDB types.Bool   `tfsdk:"dynamic_db"`
 	ID        types.String `tfsdk:"id"`
 	Name      types.String `tfsdk:"name"`
+	DynamicDB types.Bool   `tfsdk:"dynamic_db"`
 	ASPath    types.List   `tfsdk:"as_path"`
 }
 
@@ -181,15 +181,15 @@ func (rsc *policyoptionsASPathGroup) ValidateConfig(
 			if asPath.Name.IsUnknown() {
 				continue
 			}
-			if _, ok := asPathName[asPath.Name.ValueString()]; ok {
+			name := asPath.Name.ValueString()
+			if _, ok := asPathName[name]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("as_path").AtListIndex(i).AtName("name"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple as_path blocks with the same name %q",
-						asPath.Name.ValueString()),
+					fmt.Sprintf("multiple as_path blocks with the same name %q", name),
 				)
 			}
-			asPathName[asPath.Name.ValueString()] = struct{}{}
+			asPathName[name] = struct{}{}
 		}
 	}
 }
@@ -365,11 +365,13 @@ func (rscData *policyoptionsASPathGroupData) set(
 
 	asPathName := make(map[string]struct{})
 	for i, block := range rscData.ASPath {
-		if _, ok := asPathName[block.Name.ValueString()]; ok {
+		name := block.Name.ValueString()
+		if _, ok := asPathName[name]; ok {
 			return path.Root("as_path").AtListIndex(i).AtName("name"),
-				fmt.Errorf("multiple as_path blocks with the same name %q", block.Name.ValueString())
+				fmt.Errorf("multiple as_path blocks with the same name %q", name)
 		}
-		asPathName[block.Name.ValueString()] = struct{}{}
+		asPathName[name] = struct{}{}
+
 		configSet = append(configSet, setPrefix+
 			"as-path \""+block.Name.ValueString()+"\""+
 			" \""+block.Path.ValueString()+"\"")

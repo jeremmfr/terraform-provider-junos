@@ -97,6 +97,13 @@ func (rsc *eventoptionsGenerateEvent) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"no_drift": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Avoid event generation delay propagating to next event.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"start_time": schema.StringAttribute{
 				Optional:    true,
 				Description: "Start-time to generate event.",
@@ -124,21 +131,14 @@ func (rsc *eventoptionsGenerateEvent) Schema(
 					),
 				},
 			},
-			"no_drift": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Avoid event generation delay propagating to next event.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
-			},
 		},
 	}
 }
 
 type eventoptionsGenerateEventData struct {
-	NoDrift      types.Bool   `tfsdk:"no_drift"`
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
+	NoDrift      types.Bool   `tfsdk:"no_drift"`
 	StartTime    types.String `tfsdk:"start_time"`
 	TimeInterval types.Int64  `tfsdk:"time_interval"`
 	TimeOfDay    types.String `tfsdk:"time_of_day"`
@@ -349,6 +349,9 @@ func (rscData *eventoptionsGenerateEventData) set(
 	configSet := make([]string, 0)
 	setPrefix := "set event-options generate-event \"" + rscData.Name.ValueString() + "\" "
 
+	if rscData.NoDrift.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-drift")
+	}
 	if v := rscData.StartTime.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"start-time "+v)
 	}
@@ -358,9 +361,6 @@ func (rscData *eventoptionsGenerateEventData) set(
 	}
 	if v := rscData.TimeOfDay.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"time-of-day "+v)
-	}
-	if rscData.NoDrift.ValueBool() {
-		configSet = append(configSet, setPrefix+"no-drift")
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
@@ -388,6 +388,8 @@ func (rscData *eventoptionsGenerateEventData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
+			case itemTrim == "no-drift":
+				rscData.NoDrift = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "start-time "):
 				rscData.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 			case balt.CutPrefixInString(&itemTrim, "time-interval "):
@@ -397,8 +399,6 @@ func (rscData *eventoptionsGenerateEventData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "time-of-day "):
 				rscData.TimeOfDay = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
-			case itemTrim == "no-drift":
-				rscData.NoDrift = types.BoolValue(true)
 			}
 		}
 	}

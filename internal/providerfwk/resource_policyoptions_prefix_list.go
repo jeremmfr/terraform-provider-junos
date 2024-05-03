@@ -125,10 +125,10 @@ func (rsc *policyoptionsPrefixList) Schema(
 }
 
 type policyoptionsPrefixListData struct {
-	DynamicDB types.Bool     `tfsdk:"dynamic_db"`
 	ID        types.String   `tfsdk:"id"`
 	Name      types.String   `tfsdk:"name"`
 	ApplyPath types.String   `tfsdk:"apply_path"`
+	DynamicDB types.Bool     `tfsdk:"dynamic_db"`
 	Prefix    []types.String `tfsdk:"prefix"`
 }
 

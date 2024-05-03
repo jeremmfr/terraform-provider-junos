@@ -386,58 +386,58 @@ type securityPolicyConfig struct {
 
 //nolint:lll
 type securityPolicyBlockPolicy struct {
+	Name                            types.String                                             `tfsdk:"name"`
+	MatchSourceAddress              []types.String                                           `tfsdk:"match_source_address"`
+	MatchDestinationAddress         []types.String                                           `tfsdk:"match_destination_address"`
+	Then                            types.String                                             `tfsdk:"then"`
 	Count                           types.Bool                                               `tfsdk:"count"`
 	LogInit                         types.Bool                                               `tfsdk:"log_init"`
 	LogClose                        types.Bool                                               `tfsdk:"log_close"`
+	MatchApplication                []types.String                                           `tfsdk:"match_application"`
 	MatchDestinationAddressExcluded types.Bool                                               `tfsdk:"match_destination_address_excluded"`
+	MatchDynamicApplication         []types.String                                           `tfsdk:"match_dynamic_application"`
 	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
-	Name                            types.String                                             `tfsdk:"name"`
-	Then                            types.String                                             `tfsdk:"then"`
 	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
 	PermitTunnelIpsecVpn            types.String                                             `tfsdk:"permit_tunnel_ipsec_vpn"`
-	MatchSourceAddress              []types.String                                           `tfsdk:"match_source_address"`
-	MatchDestinationAddress         []types.String                                           `tfsdk:"match_destination_address"`
-	MatchApplication                []types.String                                           `tfsdk:"match_application"`
-	MatchDynamicApplication         []types.String                                           `tfsdk:"match_dynamic_application"`
 	PermitApplicationServices       *securityPolicyBlockPolicyBlockPermitApplicationServices `tfsdk:"permit_application_services"`
 }
 
 //nolint:lll
 type securityPolicyBlockPolicyConfig struct {
+	Name                            types.String                                             `tfsdk:"name"`
+	MatchSourceAddress              types.Set                                                `tfsdk:"match_source_address"`
+	MatchDestinationAddress         types.Set                                                `tfsdk:"match_destination_address"`
+	Then                            types.String                                             `tfsdk:"then"`
 	Count                           types.Bool                                               `tfsdk:"count"`
 	LogInit                         types.Bool                                               `tfsdk:"log_init"`
 	LogClose                        types.Bool                                               `tfsdk:"log_close"`
+	MatchApplication                types.Set                                                `tfsdk:"match_application"`
 	MatchDestinationAddressExcluded types.Bool                                               `tfsdk:"match_destination_address_excluded"`
+	MatchDynamicApplication         types.Set                                                `tfsdk:"match_dynamic_application"`
 	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
-	Name                            types.String                                             `tfsdk:"name"`
-	Then                            types.String                                             `tfsdk:"then"`
 	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
 	PermitTunnelIpsecVpn            types.String                                             `tfsdk:"permit_tunnel_ipsec_vpn"`
-	MatchSourceAddress              types.Set                                                `tfsdk:"match_source_address"`
-	MatchDestinationAddress         types.Set                                                `tfsdk:"match_destination_address"`
-	MatchApplication                types.Set                                                `tfsdk:"match_application"`
-	MatchDynamicApplication         types.Set                                                `tfsdk:"match_dynamic_application"`
 	PermitApplicationServices       *securityPolicyBlockPolicyBlockPermitApplicationServices `tfsdk:"permit_application_services"`
 }
 
 type securityPolicyBlockPolicyBlockPermitApplicationServices struct {
-	Idp                              types.Bool   `tfsdk:"idp"`
-	RedirectWx                       types.Bool   `tfsdk:"redirect_wx"`
-	ReverseRedirectWx                types.Bool   `tfsdk:"reverse_redirect_wx"`
 	AdvancedAntiMalwarePolicy        types.String `tfsdk:"advanced_anti_malware_policy"`
 	ApplicationFirewallRuleSet       types.String `tfsdk:"application_firewall_rule_set"`
 	ApplicationTrafficControlRuleSet types.String `tfsdk:"application_traffic_control_rule_set"`
 	GprsGtpProfile                   types.String `tfsdk:"gprs_gtp_profile"`
 	GprsSctpProfile                  types.String `tfsdk:"gprs_sctp_profile"`
+	Idp                              types.Bool   `tfsdk:"idp"`
 	IdpPolicy                        types.String `tfsdk:"idp_policy"`
+	RedirectWx                       types.Bool   `tfsdk:"redirect_wx"`
+	ReverseRedirectWx                types.Bool   `tfsdk:"reverse_redirect_wx"`
 	SecurityIntelligencePolicy       types.String `tfsdk:"security_intelligence_policy"`
+	UtmPolicy                        types.String `tfsdk:"utm_policy"`
 	SSLProxy                         *struct {
 		ProfileName types.String `tfsdk:"profile_name"`
 	} `tfsdk:"ssl_proxy"`
 	UacPolicy *struct {
 		CaptivePortal types.String `tfsdk:"captive_portal"`
 	} `tfsdk:"uac_policy"`
-	UtmPolicy types.String `tfsdk:"utm_policy"`
 }
 
 func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) isEmpty() bool {
@@ -474,14 +474,15 @@ func (rsc *securityPolicy) ValidateConfig(
 		policyName := make(map[string]struct{})
 		for i, block := range configPolicy {
 			if !block.Name.IsUnknown() {
-				if _, ok := policyName[block.Name.ValueString()]; ok {
+				name := block.Name.ValueString()
+				if _, ok := policyName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple policy blocks with the same name %q", block.Name.ValueString()),
+						fmt.Sprintf("multiple policy blocks with the same name %q", name),
 					)
 				}
-				policyName[block.Name.ValueString()] = struct{}{}
+				policyName[name] = struct{}{}
 			}
 			if block.MatchApplication.IsNull() && block.MatchDynamicApplication.IsNull() {
 				resp.Diagnostics.AddAttributeError(
@@ -803,6 +804,7 @@ func (rscData *securityPolicyData) set(
 				fmt.Errorf("multiple policy blocks with the same name %q", name)
 		}
 		policyName[name] = struct{}{}
+
 		setPrefixPolicy := setPrefix + name + " "
 		for _, v := range block.MatchSourceAddress {
 			configSet = append(configSet, setPrefixPolicy+"match source-address \""+v.ValueString()+"\"")
@@ -1043,6 +1045,8 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) read(
 		block.ReverseRedirectWx = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "security-intelligence-policy "):
 		block.SecurityIntelligencePolicy = types.StringValue(strings.Trim(itemTrim, "\""))
+	case balt.CutPrefixInString(&itemTrim, "utm-policy "):
+		block.UtmPolicy = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "ssl-proxy"):
 		if balt.CutPrefixInString(&itemTrim, " profile-name ") {
 			block.SSLProxy = &struct {
@@ -1067,8 +1071,6 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) read(
 				CaptivePortal types.String `tfsdk:"captive_portal"`
 			}{}
 		}
-	case balt.CutPrefixInString(&itemTrim, "utm-policy "):
-		block.UtmPolicy = types.StringValue(strings.Trim(itemTrim, "\""))
 	}
 }
 

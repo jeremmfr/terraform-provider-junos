@@ -175,21 +175,21 @@ func (rsc *forwardingoptionsStormControlProfile) Schema(
 }
 
 type forwardingoptionsStormControlProfileData struct {
-	ActionShutdown types.Bool                                    `tfsdk:"action_shutdown"`
 	ID             types.String                                  `tfsdk:"id"`
 	Name           types.String                                  `tfsdk:"name"`
+	ActionShutdown types.Bool                                    `tfsdk:"action_shutdown"`
 	All            *forwardingoptionsStormControlProfileBlockAll `tfsdk:"all"`
 }
 
 type forwardingoptionsStormControlProfileBlockAll struct {
+	BandwidthLevel          types.Int64 `tfsdk:"bandwidth_level"`
+	BandwidthPercentage     types.Int64 `tfsdk:"bandwidth_percentage"`
+	BurstSize               types.Int64 `tfsdk:"burst_size"`
 	NoBroadcast             types.Bool  `tfsdk:"no_broadcast"`
 	NoMulticast             types.Bool  `tfsdk:"no_multicast"`
 	NoRegisteredMulticast   types.Bool  `tfsdk:"no_registered_multicast"`
 	NoUnknownUnicast        types.Bool  `tfsdk:"no_unknown_unicast"`
 	NoUnregisteredMulticast types.Bool  `tfsdk:"no_unregistered_multicast"`
-	BandwidthLevel          types.Int64 `tfsdk:"bandwidth_level"`
-	BandwidthPercentage     types.Int64 `tfsdk:"bandwidth_percentage"`
-	BurstSize               types.Int64 `tfsdk:"burst_size"`
 }
 
 func (rsc *forwardingoptionsStormControlProfile) ValidateConfig(

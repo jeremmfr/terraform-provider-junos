@@ -210,17 +210,14 @@ func upgradeFirewallFilterStateV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
-		InterfaceSpecific types.Bool   `tfsdk:"interface_specific"`
 		ID                types.String `tfsdk:"id"`
 		Name              types.String `tfsdk:"name"`
 		Family            types.String `tfsdk:"family"`
+		InterfaceSpecific types.Bool   `tfsdk:"interface_specific"`
 		Term              []struct {
 			Name   types.String `tfsdk:"name"`
 			Filter types.String `tfsdk:"filter"`
 			From   []struct {
-				IsFragment                  types.Bool     `tfsdk:"is_fragment"`
-				TCPEstablished              types.Bool     `tfsdk:"tcp_established"`
-				TCPInitial                  types.Bool     `tfsdk:"tcp_initial"`
 				Address                     []types.String `tfsdk:"address"`
 				AddressExcept               []types.String `tfsdk:"address_except"`
 				DestinationAddress          []types.String `tfsdk:"destination_address"`
@@ -233,6 +230,7 @@ func upgradeFirewallFilterStateV0toV1(
 				IcmpCodeExcept              []types.String `tfsdk:"icmp_code_except"`
 				IcmpType                    []types.String `tfsdk:"icmp_type"`
 				IcmpTypeExcept              []types.String `tfsdk:"icmp_type_except"`
+				IsFragment                  types.Bool     `tfsdk:"is_fragment"`
 				NextHeader                  []types.String `tfsdk:"next_header"`
 				NextHeaderExcept            []types.String `tfsdk:"next_header_except"`
 				Port                        []types.String `tfsdk:"port"`
@@ -247,19 +245,21 @@ func upgradeFirewallFilterStateV0toV1(
 				SourcePortExcept            []types.String `tfsdk:"source_port_except"`
 				SourcePrefixList            []types.String `tfsdk:"source_prefix_list"`
 				SourcePrefixListExcept      []types.String `tfsdk:"source_prefix_list_except"`
+				TCPEstablished              types.Bool     `tfsdk:"tcp_established"`
 				TCPFlags                    types.String   `tfsdk:"tcp_flags"`
+				TCPInitial                  types.Bool     `tfsdk:"tcp_initial"`
 			} `tfsdk:"from"`
 			Then []struct {
+				Action            types.String `tfsdk:"action"`
+				Count             types.String `tfsdk:"count"`
 				Log               types.Bool   `tfsdk:"log"`
 				PacketMode        types.Bool   `tfsdk:"packet_mode"`
+				Policer           types.String `tfsdk:"policer"`
 				PortMirror        types.Bool   `tfsdk:"port_mirror"`
+				RoutingInstance   types.String `tfsdk:"routing_instance"`
 				Sample            types.Bool   `tfsdk:"sample"`
 				ServiceAccounting types.Bool   `tfsdk:"service_accounting"`
 				Syslog            types.Bool   `tfsdk:"syslog"`
-				Action            types.String `tfsdk:"action"`
-				Count             types.String `tfsdk:"count"`
-				Policer           types.String `tfsdk:"policer"`
-				RoutingInstance   types.String `tfsdk:"routing_instance"`
 			} `tfsdk:"then"`
 		} `tfsdk:"term"`
 	}

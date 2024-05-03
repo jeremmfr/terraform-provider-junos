@@ -180,10 +180,10 @@ func (rsc *snmpCommunity) Schema(
 }
 
 type snmpCommunityData struct {
-	AuthorizationReadOnly  types.Bool                          `tfsdk:"authorization_read_only"`
-	AuthorizationReadWrite types.Bool                          `tfsdk:"authorization_read_write"`
 	ID                     types.String                        `tfsdk:"id"`
 	Name                   types.String                        `tfsdk:"name"`
+	AuthorizationReadOnly  types.Bool                          `tfsdk:"authorization_read_only"`
+	AuthorizationReadWrite types.Bool                          `tfsdk:"authorization_read_write"`
 	ClientListName         types.String                        `tfsdk:"client_list_name"`
 	Clients                []types.String                      `tfsdk:"clients"`
 	View                   types.String                        `tfsdk:"view"`
@@ -191,10 +191,10 @@ type snmpCommunityData struct {
 }
 
 type snmpCommunityConfig struct {
-	AuthorizationReadOnly  types.Bool   `tfsdk:"authorization_read_only"`
-	AuthorizationReadWrite types.Bool   `tfsdk:"authorization_read_write"`
 	ID                     types.String `tfsdk:"id"`
 	Name                   types.String `tfsdk:"name"`
+	AuthorizationReadOnly  types.Bool   `tfsdk:"authorization_read_only"`
+	AuthorizationReadWrite types.Bool   `tfsdk:"authorization_read_write"`
 	ClientListName         types.String `tfsdk:"client_list_name"`
 	Clients                types.Set    `tfsdk:"clients"`
 	View                   types.String `tfsdk:"view"`
@@ -483,6 +483,7 @@ func (rscData *snmpCommunityData) set(
 				fmt.Errorf("multiple routing_instance blocks with the same name %q", name)
 		}
 		routingInstanceName[name] = struct{}{}
+
 		configSet = append(configSet, setPrefix+"routing-instance "+name)
 		if v := block.ClientListName.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"routing-instance "+name+" client-list-name \""+v+"\"")

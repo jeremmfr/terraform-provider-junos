@@ -376,9 +376,9 @@ func upgradeForwardingoptionsSamplingInstanceStateV0toV1(
 ) {
 	//nolint:lll
 	type modelV0 struct {
-		Disable         types.Bool   `tfsdk:"disable"`
 		ID              types.String `tfsdk:"id"`
 		Name            types.String `tfsdk:"name"`
+		Disable         types.Bool   `tfsdk:"disable"`
 		FamilyInetInput []struct {
 			MaxPacketsPerSecond types.Int64 `tfsdk:"max_packets_per_second"`
 			MaximumPacketLength types.Int64 `tfsdk:"maximum_packet_length"`
@@ -393,19 +393,19 @@ func upgradeForwardingoptionsSamplingInstanceStateV0toV1(
 			InlineJflowExportRate    types.Int64    `tfsdk:"inline_jflow_export_rate"`
 			InlineJflowSourceAddress types.String   `tfsdk:"inline_jflow_source_address"`
 			FlowServer               []struct {
+				Hostname                                         types.String `tfsdk:"hostname"`
+				Port                                             types.Int64  `tfsdk:"port"`
 				AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 				AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 				AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
 				AggregationSourceDestinationPrefix               types.Bool   `tfsdk:"aggregation_source_destination_prefix"`
 				AggregationSourceDestinationPrefixCaidaCompliant types.Bool   `tfsdk:"aggregation_source_destination_prefix_caida_compliant"`
 				AggregationSourcePrefix                          types.Bool   `tfsdk:"aggregation_source_prefix"`
-				LocalDump                                        types.Bool   `tfsdk:"local_dump"`
-				NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
-				Hostname                                         types.String `tfsdk:"hostname"`
-				Port                                             types.Int64  `tfsdk:"port"`
 				AutonomousSystemType                             types.String `tfsdk:"autonomous_system_type"`
 				Dscp                                             types.Int64  `tfsdk:"dscp"`
 				ForwardingClass                                  types.String `tfsdk:"forwarding_class"`
+				LocalDump                                        types.Bool   `tfsdk:"local_dump"`
+				NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
 				RoutingInstance                                  types.String `tfsdk:"routing_instance"`
 				SourceAddress                                    types.String `tfsdk:"source_address"`
 				Version                                          types.Int64  `tfsdk:"version"`
@@ -428,19 +428,19 @@ func upgradeForwardingoptionsSamplingInstanceStateV0toV1(
 			InlineJflowExportRate    types.Int64    `tfsdk:"inline_jflow_export_rate"`
 			InlineJflowSourceAddress types.String   `tfsdk:"inline_jflow_source_address"`
 			FlowServer               []struct {
+				Hostname                                         types.String `tfsdk:"hostname"`
+				Port                                             types.Int64  `tfsdk:"port"`
 				AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 				AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 				AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
 				AggregationSourceDestinationPrefix               types.Bool   `tfsdk:"aggregation_source_destination_prefix"`
 				AggregationSourceDestinationPrefixCaidaCompliant types.Bool   `tfsdk:"aggregation_source_destination_prefix_caida_compliant"`
 				AggregationSourcePrefix                          types.Bool   `tfsdk:"aggregation_source_prefix"`
-				LocalDump                                        types.Bool   `tfsdk:"local_dump"`
-				NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
-				Hostname                                         types.String `tfsdk:"hostname"`
-				Port                                             types.Int64  `tfsdk:"port"`
 				AutonomousSystemType                             types.String `tfsdk:"autonomous_system_type"`
 				Dscp                                             types.Int64  `tfsdk:"dscp"`
 				ForwardingClass                                  types.String `tfsdk:"forwarding_class"`
+				LocalDump                                        types.Bool   `tfsdk:"local_dump"`
+				NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
 				RoutingInstance                                  types.String `tfsdk:"routing_instance"`
 				SourceAddress                                    types.String `tfsdk:"source_address"`
 				Version9Template                                 types.String `tfsdk:"version9_template"`
@@ -461,19 +461,19 @@ func upgradeForwardingoptionsSamplingInstanceStateV0toV1(
 			InlineJflowExportRate    types.Int64  `tfsdk:"inline_jflow_export_rate"`
 			InlineJflowSourceAddress types.String `tfsdk:"inline_jflow_source_address"`
 			FlowServer               []struct {
+				Hostname                                         types.String `tfsdk:"hostname"`
+				Port                                             types.Int64  `tfsdk:"port"`
 				AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 				AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
 				AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
 				AggregationSourceDestinationPrefix               types.Bool   `tfsdk:"aggregation_source_destination_prefix"`
 				AggregationSourceDestinationPrefixCaidaCompliant types.Bool   `tfsdk:"aggregation_source_destination_prefix_caida_compliant"`
 				AggregationSourcePrefix                          types.Bool   `tfsdk:"aggregation_source_prefix"`
-				LocalDump                                        types.Bool   `tfsdk:"local_dump"`
-				NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
-				Hostname                                         types.String `tfsdk:"hostname"`
-				Port                                             types.Int64  `tfsdk:"port"`
 				AutonomousSystemType                             types.String `tfsdk:"autonomous_system_type"`
 				Dscp                                             types.Int64  `tfsdk:"dscp"`
 				ForwardingClass                                  types.String `tfsdk:"forwarding_class"`
+				LocalDump                                        types.Bool   `tfsdk:"local_dump"`
+				NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
 				RoutingInstance                                  types.String `tfsdk:"routing_instance"`
 				SourceAddress                                    types.String `tfsdk:"source_address"`
 				Version9Template                                 types.String `tfsdk:"version9_template"`

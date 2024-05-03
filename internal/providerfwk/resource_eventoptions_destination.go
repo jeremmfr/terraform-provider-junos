@@ -183,15 +183,15 @@ func (rsc *eventoptionsDestination) ValidateConfig(
 			if block.URL.IsUnknown() {
 				continue
 			}
-			if _, ok := archiveSiteURL[block.URL.ValueString()]; ok {
+			url := block.URL.ValueString()
+			if _, ok := archiveSiteURL[url]; ok {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("archive_site").AtListIndex(i).AtName("url"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple archive_site blocks with the same url %q",
-						block.URL.ValueString()),
+					fmt.Sprintf("multiple archive_site blocks with the same url %q", url),
 				)
 			}
-			archiveSiteURL[block.URL.ValueString()] = struct{}{}
+			archiveSiteURL[url] = struct{}{}
 		}
 	}
 }

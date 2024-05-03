@@ -24,14 +24,14 @@ resource "junos_ospf" "ospf" {
 
 The following arguments are supported:
 
-- **routing_instance** (Optional, String, Forces new resource)  
-  Routing instance.  
-  Need to be `default` (for root level) or the name of routing instance.  
-  Defaults to `default`.
 - **version** (Optional, String)  
   Version of ospf.  
   Need to be `v2` or `v3`.  
   Defaults to `v2`.
+- **routing_instance** (Optional, String, Forces new resource)  
+  Routing instance.  
+  Need to be `default` (for root level) or the name of routing instance.  
+  Defaults to `default`.
 - **database_protection** (Optional, Block)  
   Declare `database-protection` configuration.
   - **maximum_lsa** (Required, Number)  
@@ -77,7 +77,7 @@ The following arguments are supported:
 - **labeled_preference** (Optional, Number)  
   Preference of labeled routes.
 - **lsa_refresh_interval** (Optional, Number)  
-  LSA refresh interval (minutes) (25..50).
+  LSA refresh interval (25..50 minutes).
 - **no_nssa_abr** (Optional, Boolean)  
   Disable full NSSA functionality at ABR.
 - **no_rfc1583** (Optional, Boolean)  

@@ -35,9 +35,20 @@ The following attributes are exported:
 - **id** (String)  
   An identifier for the data source.
 - **interface_names** (List of String)  
-  List of interface names found.
-- **interface_statuses** (Block List)  
-  For each interface name.
+  Found interface names.
+- **interfaces** (Block Map)  
+  Dictionary of found interfaces with interface name as key.
+  - **name** (String)  
+    Interface name (as the map key).
+  - **admin_status** (String)  
+    Admin status.
+  - **oper_status** (String)  
+    Operational status.
+  - **logical_interface_names** (List of String)  
+    Logical interface names under this physical interface.
+- **interface_statuses** (Block List, **Deprecated**)  
+  For each found interface name, its status.  
+  Deprecated attribute, use the `interfaces` attribute instead.
   - **name** (String)  
     Interface name.
   - **admin_status** (String)  

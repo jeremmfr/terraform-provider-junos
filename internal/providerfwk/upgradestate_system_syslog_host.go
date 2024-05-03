@@ -114,11 +114,11 @@ func upgradeSystemSyslogHostV0toV1(
 	ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse,
 ) {
 	type modelV0 struct {
+		ID                          types.String   `tfsdk:"id"`
+		Host                        types.String   `tfsdk:"host"`
 		AllowDuplicates             types.Bool     `tfsdk:"allow_duplicates"`
 		ExcludeHostname             types.Bool     `tfsdk:"exclude_hostname"`
 		ExplicitPriority            types.Bool     `tfsdk:"explicit_priority"`
-		ID                          types.String   `tfsdk:"id"`
-		Host                        types.String   `tfsdk:"host"`
 		FacilityOverride            types.String   `tfsdk:"facility_override"`
 		LogPrefix                   types.String   `tfsdk:"log_prefix"`
 		Match                       types.String   `tfsdk:"match"`

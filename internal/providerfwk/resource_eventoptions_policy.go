@@ -609,9 +609,9 @@ type eventoptionsPolicyConfig struct {
 
 type eventoptionsPolicyBlockThen struct {
 	Ignore                   types.Bool                                          `tfsdk:"ignore"`
-	RaiseTrap                types.Bool                                          `tfsdk:"raise_trap"`
 	PriorityOverrideFacility types.String                                        `tfsdk:"priority_override_facility"`
 	PriorityOverrideSeverity types.String                                        `tfsdk:"priority_override_severity"`
+	RaiseTrap                types.Bool                                          `tfsdk:"raise_trap"`
 	ChangeConfiguration      *eventoptionsPolicyBlockThenBlockChangeConfigurtion `tfsdk:"change_configuration"`
 	EventScript              []eventoptionsPolicyBlockThenBlockEventScript       `tfsdk:"event_script"`
 	ExecuteCommands          *eventoptionsPolicyBlockThenBlockExecuteCommands    `tfsdk:"execute_commands"`
@@ -624,9 +624,9 @@ func (block *eventoptionsPolicyBlockThen) isEmpty() bool {
 
 type eventoptionsPolicyBlockThenConfig struct {
 	Ignore                   types.Bool                                                `tfsdk:"ignore"`
-	RaiseTrap                types.Bool                                                `tfsdk:"raise_trap"`
 	PriorityOverrideFacility types.String                                              `tfsdk:"priority_override_facility"`
 	PriorityOverrideSeverity types.String                                              `tfsdk:"priority_override_severity"`
+	RaiseTrap                types.Bool                                                `tfsdk:"raise_trap"`
 	ChangeConfiguration      *eventoptionsPolicyBlockThenBlockChangeConfigurtionConfig `tfsdk:"change_configuration"`
 	EventScript              types.List                                                `tfsdk:"event_script"`
 	ExecuteCommands          *eventoptionsPolicyBlockThenBlockExecuteCommandsConfig    `tfsdk:"execute_commands"`
@@ -638,24 +638,24 @@ func (block *eventoptionsPolicyBlockThenConfig) isEmpty() bool {
 }
 
 type eventoptionsPolicyBlockThenBlockChangeConfigurtion struct {
+	Commands                      []types.String `tfsdk:"commands"`
 	CommitOptionsCheck            types.Bool     `tfsdk:"commit_options_check"`
 	CommitOptionsCheckSynchronize types.Bool     `tfsdk:"commit_options_check_synchronize"`
 	CommitOptionsForce            types.Bool     `tfsdk:"commit_options_force"`
-	CommitOptionsSynchronize      types.Bool     `tfsdk:"commit_options_synchronize"`
-	Commands                      []types.String `tfsdk:"commands"`
 	CommitOptionsLog              types.String   `tfsdk:"commit_options_log"`
+	CommitOptionsSynchronize      types.Bool     `tfsdk:"commit_options_synchronize"`
 	RetryCount                    types.Int64    `tfsdk:"retry_count"`
 	RetryInterval                 types.Int64    `tfsdk:"retry_interval"`
 	Username                      types.String   `tfsdk:"user_name"`
 }
 
 type eventoptionsPolicyBlockThenBlockChangeConfigurtionConfig struct {
+	Commands                      types.List   `tfsdk:"commands"`
 	CommitOptionsCheck            types.Bool   `tfsdk:"commit_options_check"`
 	CommitOptionsCheckSynchronize types.Bool   `tfsdk:"commit_options_check_synchronize"`
 	CommitOptionsForce            types.Bool   `tfsdk:"commit_options_force"`
-	CommitOptionsSynchronize      types.Bool   `tfsdk:"commit_options_synchronize"`
-	Commands                      types.List   `tfsdk:"commands"`
 	CommitOptionsLog              types.String `tfsdk:"commit_options_log"`
+	CommitOptionsSynchronize      types.Bool   `tfsdk:"commit_options_synchronize"`
 	RetryCount                    types.Int64  `tfsdk:"retry_count"`
 	RetryInterval                 types.Int64  `tfsdk:"retry_interval"`
 	Username                      types.String `tfsdk:"user_name"`

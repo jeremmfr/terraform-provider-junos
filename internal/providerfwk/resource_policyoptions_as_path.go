@@ -112,9 +112,9 @@ func (rsc *policyoptionsASPath) Schema(
 }
 
 type policyoptionsASPathData struct {
-	DynamicDB types.Bool   `tfsdk:"dynamic_db"`
 	ID        types.String `tfsdk:"id"`
 	Name      types.String `tfsdk:"name"`
+	DynamicDB types.Bool   `tfsdk:"dynamic_db"`
 	Path      types.String `tfsdk:"path"`
 }
 

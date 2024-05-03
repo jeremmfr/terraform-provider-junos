@@ -17,9 +17,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v5
         with:
-          version: 'v1.56.1'
+          version: 'v1.57.1'
           args: -c .golangci.yml -v
 
   markdown-lint:

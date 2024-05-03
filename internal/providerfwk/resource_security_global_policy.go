@@ -375,39 +375,39 @@ type securityGlobalPolicyConfig struct {
 
 //nolint:lll
 type securityGlobalPolicyBlockPolicy struct {
-	Count                           types.Bool                                               `tfsdk:"count"`
-	LogInit                         types.Bool                                               `tfsdk:"log_init"`
-	LogClose                        types.Bool                                               `tfsdk:"log_close"`
-	MatchDestinationAddressExcluded types.Bool                                               `tfsdk:"match_destination_address_excluded"`
-	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
 	Name                            types.String                                             `tfsdk:"name"`
-	Then                            types.String                                             `tfsdk:"then"`
-	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
 	MatchSourceAddress              []types.String                                           `tfsdk:"match_source_address"`
 	MatchDestinationAddress         []types.String                                           `tfsdk:"match_destination_address"`
 	MatchFromZone                   []types.String                                           `tfsdk:"match_from_zone"`
 	MatchToZone                     []types.String                                           `tfsdk:"match_to_zone"`
+	Then                            types.String                                             `tfsdk:"then"`
+	Count                           types.Bool                                               `tfsdk:"count"`
+	LogInit                         types.Bool                                               `tfsdk:"log_init"`
+	LogClose                        types.Bool                                               `tfsdk:"log_close"`
 	MatchApplication                []types.String                                           `tfsdk:"match_application"`
+	MatchDestinationAddressExcluded types.Bool                                               `tfsdk:"match_destination_address_excluded"`
 	MatchDynamicApplication         []types.String                                           `tfsdk:"match_dynamic_application"`
+	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
+	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
 	PermitApplicationServices       *securityPolicyBlockPolicyBlockPermitApplicationServices `tfsdk:"permit_application_services"`
 }
 
 //nolint:lll
 type securityGlobalPolicyBlockPolicyConfig struct {
-	Count                           types.Bool                                               `tfsdk:"count"`
-	LogInit                         types.Bool                                               `tfsdk:"log_init"`
-	LogClose                        types.Bool                                               `tfsdk:"log_close"`
-	MatchDestinationAddressExcluded types.Bool                                               `tfsdk:"match_destination_address_excluded"`
-	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
 	Name                            types.String                                             `tfsdk:"name"`
-	Then                            types.String                                             `tfsdk:"then"`
-	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
 	MatchSourceAddress              types.Set                                                `tfsdk:"match_source_address"`
 	MatchDestinationAddress         types.Set                                                `tfsdk:"match_destination_address"`
 	MatchFromZone                   types.Set                                                `tfsdk:"match_from_zone"`
 	MatchToZone                     types.Set                                                `tfsdk:"match_to_zone"`
+	Then                            types.String                                             `tfsdk:"then"`
+	Count                           types.Bool                                               `tfsdk:"count"`
+	LogInit                         types.Bool                                               `tfsdk:"log_init"`
+	LogClose                        types.Bool                                               `tfsdk:"log_close"`
 	MatchApplication                types.Set                                                `tfsdk:"match_application"`
+	MatchDestinationAddressExcluded types.Bool                                               `tfsdk:"match_destination_address_excluded"`
 	MatchDynamicApplication         types.Set                                                `tfsdk:"match_dynamic_application"`
+	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
+	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
 	PermitApplicationServices       *securityPolicyBlockPolicyBlockPermitApplicationServices `tfsdk:"permit_application_services"`
 }
 
@@ -437,14 +437,15 @@ func (rsc *securityGlobalPolicy) ValidateConfig(
 		policyName := make(map[string]struct{})
 		for i, block := range configPolicy {
 			if !block.Name.IsUnknown() {
-				if _, ok := policyName[block.Name.ValueString()]; ok {
+				name := block.Name.ValueString()
+				if _, ok := policyName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("policy").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple policy blocks with the same name %q", block.Name.ValueString()),
+						fmt.Sprintf("multiple policy blocks with the same name %q", name),
 					)
 				}
-				policyName[block.Name.ValueString()] = struct{}{}
+				policyName[name] = struct{}{}
 			}
 			if block.MatchApplication.IsNull() && block.MatchDynamicApplication.IsNull() {
 				resp.Diagnostics.AddAttributeError(
@@ -613,6 +614,7 @@ func (rscData *securityGlobalPolicyData) set(
 				fmt.Errorf("multiple policy blocks with the same name %q", name)
 		}
 		policyName[name] = struct{}{}
+
 		setPrefixPolicy := setPrefix + name + " "
 		for _, v := range block.MatchSourceAddress {
 			configSet = append(configSet, setPrefixPolicy+"match source-address \""+v.ValueString()+"\"")

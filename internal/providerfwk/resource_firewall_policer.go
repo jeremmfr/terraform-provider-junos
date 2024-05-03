@@ -240,13 +240,13 @@ func (rsc *firewallPolicer) Schema(
 }
 
 type firewallPolicerData struct {
+	ID                       types.String                        `tfsdk:"id"`
+	Name                     types.String                        `tfsdk:"name"`
 	FilterSpecific           types.Bool                          `tfsdk:"filter_specific"`
 	LogicalBandwidthPolicer  types.Bool                          `tfsdk:"logical_bandwidth_policer"`
 	LogicalInterfacePolicer  types.Bool                          `tfsdk:"logical_interface_policer"`
 	PhysicalInterfacePolicer types.Bool                          `tfsdk:"physical_interface_policer"`
 	SharedBandwidthPolicer   types.Bool                          `tfsdk:"shared_bandwidth_policer"`
-	ID                       types.String                        `tfsdk:"id"`
-	Name                     types.String                        `tfsdk:"name"`
 	IfExceeding              *firewallPolicerBlockIfExceeding    `tfsdk:"if_exceeding"`
 	IfExceedingPPS           *firewallPolicerBlockIfExceedingPPS `tfsdk:"if_exceeding_pps"`
 	Then                     *firewallPolicerBlockThen           `tfsdk:"then"`
@@ -273,9 +273,9 @@ func (block *firewallPolicerBlockIfExceedingPPS) hasKnownValue() bool {
 
 type firewallPolicerBlockThen struct {
 	Discard         types.Bool   `tfsdk:"discard"`
-	OutOfProfile    types.Bool   `tfsdk:"out_of_profile"`
 	ForwardingClass types.String `tfsdk:"forwarding_class"`
 	LossPriority    types.String `tfsdk:"loss_priority"`
+	OutOfProfile    types.Bool   `tfsdk:"out_of_profile"`
 }
 
 func (block *firewallPolicerBlockThen) isEmpty() bool {

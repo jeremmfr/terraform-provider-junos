@@ -239,6 +239,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newEvpnResource,
 		newFirewallFilterResource,
 		newFirewallPolicerResource,
+		newForwardingoptionsEvpnVxlanResource,
 		newForwardingoptionsSamplingResource,
 		newForwardingoptionsSamplingInstanceResource,
 		newForwardingoptionsStormControlProfileResource,
@@ -252,6 +253,8 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newMultichassisResource,
 		newMultichassisProtectionPeerResource,
 		newOamGretunnelInterfaceResource,
+		newOspfResource,
+		newOspfAreaResource,
 		newPolicyoptionsASPathResource,
 		newPolicyoptionsASPathGroupResource,
 		newPolicyoptionsCommunityResource,
@@ -297,6 +300,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSystemSyslogUserResource,
 		newSystemTacplusServerResource,
 		newVirtualChassisResource,
+		newVlanResource,
 	}
 }
 
