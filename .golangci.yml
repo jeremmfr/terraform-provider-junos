@@ -5,15 +5,6 @@ linters:
   enable-all: true
   disable:
     # deprecated
-    - interfacer # deprecated 1.38.0
-    - maligned # deprecated 1.38.0
-    - scopelint # deprecated 1.39.0
-    - golint # deprecated 1.41.0
-    - exhaustivestruct # deprecated 1.46.0
-    - ifshort # deprecated 1.48.0
-    - deadcode # deprecated 1.49.0
-    - structcheck # deprecated 1.49.0
-    - varcheck # deprecated 1.49.0
     - execinquery # deprecated 1.58.0
     - gomnd # deprecated 1.58.0
     # unwanted
@@ -33,7 +24,6 @@ linters:
     - musttag
     - nestif
     - nonamedreturns
-    - nosnakecase
     - paralleltest
     - varnamelen
     - wsl
