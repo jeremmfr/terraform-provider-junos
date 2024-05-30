@@ -262,6 +262,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newPolicyoptionsPrefixListResource,
 		newRoutingInstanceResource,
 		newRstpResource,
+		newRstpInterfaceResource,
 		newSecurityResource,
 		newSecurityAddressBookResource,
 		newSecurityGlobalPolicyResource,
