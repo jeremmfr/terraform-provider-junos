@@ -225,11 +225,6 @@ func Provider() *schema.Provider {
 			"junos_system_ntp_server":                      resourceSystemNtpServer(),
 			"junos_system_root_authentication":             resourceSystemRootAuthentication(),
 			"junos_system_services_dhcp_localserver_group": resourceSystemServicesDhcpLocalServerGroup(),
-
-			"junos_vstp":            resourceVstp(),
-			"junos_vstp_interface":  resourceVstpInterface(),
-			"junos_vstp_vlan":       resourceVstpVlan(),
-			"junos_vstp_vlan_group": resourceVstpVlanGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"junos_system_information": dataSourceSystemInformation(),

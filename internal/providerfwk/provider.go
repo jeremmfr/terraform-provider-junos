@@ -303,6 +303,10 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSystemTacplusServerResource,
 		newVirtualChassisResource,
 		newVlanResource,
+		newVstpResource,
+		newVstpInterfaceResource,
+		newVstpVlanResource,
+		newVstpVlanGroupResource,
 	}
 }
 
