@@ -261,7 +261,7 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_type"),
 				tfdiag.MissingConfigErrSummary,
-				"authentication_key or authentication_password must be specified when authentication_type != authentication-none ",
+				"authentication_key or authentication_password must be specified when authentication_type != authentication-none",
 			)
 		}
 	} else if config.AuthenticationType.IsNull() || config.AuthenticationType.ValueString() == "authentication-none" {
@@ -294,7 +294,7 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("privacy_type"),
 				tfdiag.MissingConfigErrSummary,
-				"privacy_key or privacy_password must be specified when privacy_type != privacy-none ",
+				"privacy_key or privacy_password must be specified when privacy_type != privacy-none",
 			)
 		}
 	} else if config.PrivacyType.IsNull() || config.PrivacyType.ValueString() == "privacy-none" {
@@ -586,41 +586,36 @@ func checkSnmpV3UsmUserExists(
 ) (
 	bool, error,
 ) {
+	showPrefix := junos.CmdShowConfig + "snmp v3 usm "
 	switch engineType {
 	case "local":
-		showConfig, err := junSess.Command(junos.CmdShowConfig +
-			"snmp v3 usm local-engine user \"" + name + "\"" + junos.PipeDisplaySet)
-		if err != nil {
-			return false, err
-		}
-		if showConfig == junos.EmptyW {
-			return false, nil
-		}
+		showPrefix += "local-engine "
 	case "remote":
-		showConfig, err := junSess.Command(junos.CmdShowConfig +
-			"snmp v3 usm remote-engine \"" + engineID + "\" user \"" + name + "\"" + junos.PipeDisplaySet)
-		if err != nil {
-			return false, err
-		}
-		if showConfig == junos.EmptyW {
-			return false, nil
-		}
+		showPrefix += "remote-engine \"" + engineID + "\" "
 	default:
 		return false, fmt.Errorf("can't check config with engine_type %q", engineType)
+	}
+	showConfig, err := junSess.Command(showPrefix +
+		"user \"" + name + "\"" + junos.PipeDisplaySet)
+	if err != nil {
+		return false, err
+	}
+	if showConfig == junos.EmptyW {
+		return false, nil
 	}
 
 	return true, nil
 }
 
 func (rscData *snmpV3UsmUserData) fillID() {
-	switch rscData.EngineType.ValueString() {
-	case "remote":
-		rscData.ID = types.StringValue(
-			"remote" + junos.IDSeparator + rscData.EngineID.ValueString() + junos.IDSeparator + rscData.Name.ValueString(),
-		)
+	switch v := rscData.EngineType.ValueString(); v {
 	case "local":
 		rscData.ID = types.StringValue(
-			"local" + junos.IDSeparator + rscData.Name.ValueString(),
+			v + junos.IDSeparator + rscData.Name.ValueString(),
+		)
+	case "remote":
+		rscData.ID = types.StringValue(
+			v + junos.IDSeparator + rscData.EngineID.ValueString() + junos.IDSeparator + rscData.Name.ValueString(),
 		)
 	}
 }
@@ -634,16 +629,17 @@ func (rscData *snmpV3UsmUserData) set(
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set snmp v3 usm " +
-		"local-engine user \"" + rscData.Name.ValueString() + "\" "
-	if v := rscData.EngineType.ValueString(); v == "remote" {
-		setPrefix = "set snmp v3 usm " +
-			"remote-engine \"" + rscData.EngineID.ValueString() + "\" " +
-			"user \"" + rscData.Name.ValueString() + "\" "
-	} else if v != "local" {
+	configSet := make([]string, 0)
+	setPrefix := "set snmp v3 usm "
+	switch v := rscData.EngineType.ValueString(); v {
+	case "local":
+		setPrefix += "local-engine "
+	case "remote":
+		setPrefix += "remote-engine \"" + rscData.EngineID.ValueString() + "\" "
+	default:
 		return path.Root("engine_type"), fmt.Errorf("can't set config with engine_type %q", v)
 	}
-	configSet := make([]string, 0)
+	setPrefix += "user \"" + rscData.Name.ValueString() + "\" "
 
 	if authenticationType := rscData.AuthenticationType.ValueString(); authenticationType != "authentication-none" {
 		if rscData.AuthenticationKey.ValueString() == "" && rscData.AuthenticationPassword.ValueString() == "" {
@@ -700,18 +696,19 @@ func (rscData *snmpV3UsmUserData) set(
 
 func (rscData *snmpV3UsmUserData) read(
 	_ context.Context, name, engineType, engineID string, junSess *junos.Session,
-) (
-	err error,
-) {
-	showCommand := junos.CmdShowConfig +
-		"snmp v3 usm local-engine user \"" + name + "\"" + junos.PipeDisplaySetRelative
-	if engineType == "remote" {
-		showCommand = junos.CmdShowConfig +
-			"snmp v3 usm remote-engine \"" + engineID + "\" user \"" + name + "\"" + junos.PipeDisplaySetRelative
-	} else {
-		engineType = "local"
+) error {
+	showPrefix := junos.CmdShowConfig + "snmp v3 usm "
+	switch engineType {
+	case "remote":
+		showPrefix += "remote-engine \"" + engineID + "\" "
+	default:
+		if engineType != "local" {
+			engineType = "local"
+		}
+		showPrefix += "local-engine "
 	}
-	showConfig, err := junSess.Command(showCommand)
+	showConfig, err := junSess.Command(showPrefix +
+		"user \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -759,14 +756,18 @@ func (rscData *snmpV3UsmUserData) read(
 func (rscData *snmpV3UsmUserData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := []string{
-		"delete snmp v3 usm " +
-			"local-engine user \"" + rscData.Name.ValueString() + "\"",
+	delPrefix := junos.DeleteLS + "snmp v3 usm "
+	switch v := rscData.EngineType.ValueString(); v {
+	case "local":
+		delPrefix += "local-engine "
+	case "remote":
+		delPrefix += "remote-engine \"" + rscData.EngineID.ValueString() + "\" "
+	default:
+		return fmt.Errorf("can't del config with engine_type %q", v)
 	}
-	if rscData.EngineType.ValueString() == "remote" {
-		configSet[0] = "delete snmp v3 usm " +
-			"remote-engine \"" + rscData.EngineID.ValueString() + "\" " +
-			"user \"" + rscData.Name.ValueString() + "\""
+
+	configSet := []string{
+		delPrefix + "user \"" + rscData.Name.ValueString() + "\"",
 	}
 
 	return junSess.ConfigSet(configSet)

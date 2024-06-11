@@ -358,9 +358,7 @@ func (rscData *applicationSetData) set(
 
 func (rscData *applicationSetData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"applications application-set " + name + junos.PipeDisplaySetRelative)
 	if err != nil {

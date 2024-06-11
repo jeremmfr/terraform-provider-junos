@@ -219,6 +219,13 @@ func (rsc *bridgeDomain) Schema(
 							int64validator.Between(0, 16777214),
 						},
 					},
+					"vni_extend_evpn": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Extend VNI to EVPN.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
 					"decapsulate_accept_inner_vlan": schema.BoolAttribute{
 						Optional:    true,
 						Description: "Accept VXLAN packets with inner VLAN.",
@@ -259,13 +266,6 @@ func (rsc *bridgeDomain) Schema(
 						Description: "Unreachable VXLAN tunnel endpoint removal timer.",
 						Validators: []validator.Int64{
 							int64validator.Between(300, 1800),
-						},
-					},
-					"vni_extend_evpn": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Extend VNI to EVPN.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
 						},
 					},
 				},
@@ -316,14 +316,14 @@ func (rscConfig *bridgeDomainConfig) isEmpty() bool {
 }
 
 type bridgeDomainBlockVXLAN struct {
-	VNI                        types.Int64  `tfsdk:"vni"`
+	Vni                        types.Int64  `tfsdk:"vni"`
+	VniExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
 	DecapsulateAcceptInnerVlan types.Bool   `tfsdk:"decapsulate_accept_inner_vlan"`
 	EncapsulateInnerVlan       types.Bool   `tfsdk:"encapsulate_inner_vlan"`
 	IngressNodeReplication     types.Bool   `tfsdk:"ingress_node_replication"`
 	MulticastGroup             types.String `tfsdk:"multicast_group"`
 	OvsdbManaged               types.Bool   `tfsdk:"ovsdb_managed"`
 	UnreachableVtepAgingTimer  types.Int64  `tfsdk:"unreachable_vtep_aging_timer"`
-	VNIExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
 }
 
 func (rsc *bridgeDomain) ValidateConfig(
@@ -352,7 +352,7 @@ func (rsc *bridgeDomain) ValidateConfig(
 		)
 	}
 	if config.VXLAN != nil {
-		if config.VXLAN.VNI.IsNull() {
+		if config.VXLAN.Vni.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("vxlan").AtName("vni"),
 				tfdiag.MissingConfigErrSummary,
@@ -554,17 +554,17 @@ func (rsc *bridgeDomain) ImportState(
 func checkBridgeDomainExists(
 	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix + "bridge-domains \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(showPrefix +
+		"bridge-domains \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
-
 	if showConfig == junos.EmptyW {
 		return false, nil
 	}
@@ -590,12 +590,11 @@ func (rscData *bridgeDomainData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := junos.SetLS
-	routingInstance := rscData.RoutingInstance.ValueString()
-	if routingInstance != "" && routingInstance != junos.DefaultW {
-		setPrefix += junos.RoutingInstancesWS + routingInstance + " "
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		setPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	setPrefixProtocolsEvpn := setPrefix + "protocols evpn "
 	setPrefix += "bridge-domains \"" + rscData.Name.ValueString() + "\" "
 
 	for _, v := range rscData.CommunityVlans {
@@ -634,16 +633,11 @@ func (rscData *bridgeDomainData) set(
 	}
 	if rscData.VXLAN != nil {
 		configSet = append(configSet, setPrefix+"vxlan vni "+
-			utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
+			utils.ConvI64toa(rscData.VXLAN.Vni.ValueInt64()))
 
-		if rscData.VXLAN.VNIExtendEvpn.ValueBool() {
-			if routingInstance != "" && routingInstance != junos.DefaultW {
-				configSet = append(configSet, junos.SetRoutingInstances+routingInstance+" protocols evpn extended-vni-list "+
-					utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			} else {
-				configSet = append(configSet, "set protocols evpn extended-vni-list "+
-					utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			}
+		if rscData.VXLAN.VniExtendEvpn.ValueBool() {
+			configSet = append(configSet, setPrefixProtocolsEvpn+"extended-vni-list "+
+				utils.ConvI64toa(rscData.VXLAN.Vni.ValueInt64()))
 		}
 		if rscData.VXLAN.DecapsulateAcceptInnerVlan.ValueBool() {
 			configSet = append(configSet, setPrefix+"vxlan decapsulate-accept-inner-vlan")
@@ -671,18 +665,16 @@ func (rscData *bridgeDomainData) set(
 
 func (rscData *bridgeDomainData) read(
 	_ context.Context, name, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix + "bridge-domains \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(showPrefix +
+		"bridge-domains \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		rscData.Name = types.StringValue(name)
 		if routingInstance == "" {
@@ -738,19 +730,14 @@ func (rscData *bridgeDomainData) read(
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "vni "):
-					rscData.VXLAN.VNI, err = tfdata.ConvAtoi64Value(itemTrim)
+					rscData.VXLAN.Vni, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
 						return err
 					}
-					showPrefixEvpn := junos.CmdShowConfig
-					if routingInstance != "" && routingInstance != junos.DefaultW {
-						showPrefixEvpn += junos.RoutingInstancesWS + routingInstance + " "
-					}
-					showConfigEvpn, err := junSess.Command(showPrefixEvpn + "protocols evpn" + junos.PipeDisplaySetRelative)
+					showConfigEvpn, err := junSess.Command(showPrefix + "protocols evpn" + junos.PipeDisplaySetRelative)
 					if err != nil {
 						return err
 					}
-
 					if showConfigEvpn != junos.EmptyW {
 						for _, itemEvpn := range strings.Split(showConfigEvpn, "\n") {
 							if strings.Contains(itemEvpn, junos.XMLStartTagConfigOut) {
@@ -760,7 +747,7 @@ func (rscData *bridgeDomainData) read(
 								break
 							}
 							if strings.HasPrefix(itemEvpn, junos.SetLS+"extended-vni-list "+itemTrim) {
-								rscData.VXLAN.VNIExtendEvpn = types.BoolValue(true)
+								rscData.VXLAN.VniExtendEvpn = types.BoolValue(true)
 
 								break
 							}
@@ -794,8 +781,9 @@ func (rscData *bridgeDomainData) delOpts(
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		delPrefix = junos.DelRoutingInstances + v + " "
+		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	delPrefixProtocolsEvpn := delPrefix + "protocols evpn "
 	delPrefix += "bridge-domains \"" + rscData.Name.ValueString() + "\" "
 
 	configSet := []string{
@@ -814,14 +802,9 @@ func (rscData *bridgeDomainData) delOpts(
 		configSet = append(configSet, delPrefix+"interface "+v.ValueString())
 	}
 	if rscData.VXLAN != nil {
-		if rscData.VXLAN.VNIExtendEvpn.ValueBool() {
-			if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-				configSet = append(configSet, junos.DelRoutingInstances+v+" "+
-					"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			} else {
-				configSet = append(configSet, junos.DeleteLS+
-					"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			}
+		if rscData.VXLAN.VniExtendEvpn.ValueBool() {
+			configSet = append(configSet, delPrefixProtocolsEvpn+
+				"extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.Vni.ValueInt64()))
 		}
 	}
 
@@ -831,22 +814,18 @@ func (rscData *bridgeDomainData) delOpts(
 func (rscData *bridgeDomainData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 0, 1)
+	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		configSet = append(configSet, junos.DelRoutingInstances+v+
-			" bridge-domains \""+rscData.Name.ValueString()+"\"")
-	} else {
-		configSet = append(configSet, "delete bridge-domains \""+rscData.Name.ValueString()+"\"")
+		delPrefix += junos.RoutingInstancesWS + v + " "
+	}
+
+	configSet := []string{
+		delPrefix + "bridge-domains \"" + rscData.Name.ValueString() + "\"",
 	}
 	if rscData.VXLAN != nil {
-		if rscData.VXLAN.VNIExtendEvpn.ValueBool() {
-			if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-				configSet = append(configSet, junos.DelRoutingInstances+v+" "+
-					"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			} else {
-				configSet = append(configSet, junos.DeleteLS+
-					"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			}
+		if rscData.VXLAN.VniExtendEvpn.ValueBool() {
+			configSet = append(configSet, delPrefix+
+				"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.Vni.ValueInt64()))
 		}
 	}
 

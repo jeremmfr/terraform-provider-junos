@@ -788,7 +788,7 @@ func setForwardingOptionsDhcpRelay( //nolint:gocognit,gocyclo
 
 	setPrefix := junos.SetLS
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + d.Get("routing_instance").(string) + " "
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	if d.Get("version").(string) == "v6" {
 		setPrefix += "forwarding-options dhcp-relay dhcpv6 "
@@ -1555,9 +1555,9 @@ func delForwardingOptionsDhcpRelay(instance, version string, junSess *junos.Sess
 	case instance == junos.DefaultW && version == "v4":
 		delPrefix = junos.DeleteLS + "forwarding-options dhcp-relay "
 	case instance != junos.DefaultW && version == "v6":
-		delPrefix = junos.DelRoutingInstances + instance + " forwarding-options dhcp-relay dhcpv6 "
+		delPrefix = delRoutingInstances + instance + " forwarding-options dhcp-relay dhcpv6 "
 	case instance != junos.DefaultW && version == "v4":
-		delPrefix = junos.DelRoutingInstances + instance + " forwarding-options dhcp-relay "
+		delPrefix = delRoutingInstances + instance + " forwarding-options dhcp-relay "
 	}
 	listLinesToDelete := []string{
 		"access-profile",

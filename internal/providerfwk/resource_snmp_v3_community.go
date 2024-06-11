@@ -313,6 +313,7 @@ func (rscData *snmpV3CommunityData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set snmp v3 snmp-community \"" + rscData.CommunityIndex.ValueString() + "\" "
+
 	configSet := []string{
 		setPrefix + "security-name \"" + rscData.SecurityName.ValueString() + "\"",
 	}
@@ -332,9 +333,7 @@ func (rscData *snmpV3CommunityData) set(
 
 func (rscData *snmpV3CommunityData) read(
 	_ context.Context, communityIndex string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"snmp v3 snmp-community \"" + communityIndex + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

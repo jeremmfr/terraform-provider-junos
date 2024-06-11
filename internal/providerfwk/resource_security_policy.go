@@ -945,9 +945,7 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) configSet(
 
 func (rscData *securityPolicyData) read(
 	_ context.Context, fromZone, toZone string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security policies from-zone " + fromZone + " to-zone " + toZone + junos.PipeDisplaySetRelative)
 	if err != nil {

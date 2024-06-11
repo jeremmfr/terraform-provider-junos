@@ -238,9 +238,7 @@ func (rscData *switchOptionsData) set(
 
 func (rscData *switchOptionsData) read(
 	_ context.Context, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"switch-options" + junos.PipeDisplaySetRelative)
 	if err != nil {

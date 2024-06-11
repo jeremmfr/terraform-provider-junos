@@ -1072,7 +1072,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, junSess *juno
 
 	setPrefix := junos.SetLS
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + d.Get("routing_instance").(string) + " "
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	if d.Get("version").(string) == "v6" {
 		setPrefix += "system services dhcp-local-server dhcpv6 group " + d.Get("name").(string) + " "
@@ -2090,10 +2090,10 @@ func delSystemServicesDhcpLocalServerGroup(name, instance, version string, junSe
 	case instance == junos.DefaultW && version == "v4":
 		configSet = append(configSet, "delete system services dhcp-local-server group "+name)
 	case instance != junos.DefaultW && version == "v6":
-		configSet = append(configSet, junos.DelRoutingInstances+instance+" "+
+		configSet = append(configSet, delRoutingInstances+instance+" "+
 			"system services dhcp-local-server dhcpv6 group "+name)
 	case instance != junos.DefaultW && version == "v4":
-		configSet = append(configSet, junos.DelRoutingInstances+instance+" "+
+		configSet = append(configSet, delRoutingInstances+instance+" "+
 			"system services dhcp-local-server group "+name)
 	}
 

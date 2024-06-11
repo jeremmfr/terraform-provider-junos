@@ -351,9 +351,7 @@ func (rscData *policyoptionsCommunityData) set(
 
 func (rscData *policyoptionsCommunityData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"policy-options community \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

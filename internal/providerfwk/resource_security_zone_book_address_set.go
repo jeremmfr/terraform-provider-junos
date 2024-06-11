@@ -411,9 +411,7 @@ func (rscData *securityZoneBookAddressSetData) set(
 
 func (rscData *securityZoneBookAddressSetData) read(
 	_ context.Context, zone, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security zones security-zone " + zone + " address-book address-set " + name + junos.PipeDisplaySetRelative)
 	if err != nil {

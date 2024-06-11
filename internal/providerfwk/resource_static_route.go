@@ -798,9 +798,10 @@ func (rsc *staticRoute) ImportState(
 	)
 }
 
-func checkStaticRouteExists(_ context.Context, destination, routingInstance string, junSess *junos.Session,
+func checkStaticRouteExists(
+	_ context.Context, destination, routingInstance string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showPrefix := junos.CmdShowConfig
 	switch routingInstance {
@@ -815,11 +816,11 @@ func checkStaticRouteExists(_ context.Context, destination, routingInstance stri
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix + "static route " + destination + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(showPrefix +
+		"static route " + destination + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
-
 	if showConfig == junos.EmptyW {
 		return false, nil
 	}
@@ -959,9 +960,7 @@ func (rscData *staticRouteData) set(
 
 func (rscData *staticRouteData) read(
 	_ context.Context, destination, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showPrefix := junos.CmdShowConfig
 	switch routingInstance {
 	case junos.DefaultW, "":
@@ -975,16 +974,17 @@ func (rscData *staticRouteData) read(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix + "static route " + destination + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(showPrefix +
+		"static route " + destination + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		rscData.Destination = types.StringValue(destination)
-		rscData.RoutingInstance = types.StringValue(routingInstance)
-		if rscData.RoutingInstance.ValueString() == "" {
+		if routingInstance == "" {
 			rscData.RoutingInstance = types.StringValue(junos.DefaultW)
+		} else {
+			rscData.RoutingInstance = types.StringValue(routingInstance)
 		}
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -1097,6 +1097,7 @@ func (rscData *staticRouteData) del(
 			delPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
+
 	configSet := []string{
 		delPrefix + "static route " + rscData.Destination.ValueString(),
 	}

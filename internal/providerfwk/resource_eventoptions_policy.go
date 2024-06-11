@@ -1316,8 +1316,8 @@ func (block *eventoptionsPolicyBlockThen) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix += "then "
 	configSet := make([]string, 0)
+	setPrefix += "then "
 
 	if block.Ignore.ValueBool() {
 		configSet = append(configSet, setPrefix+"ignore")
@@ -1389,8 +1389,8 @@ func (block *eventoptionsPolicyBlockThenBlockChangeConfigurtion) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix += "change-configuration "
 	configSet := make([]string, 0, len(block.Commands))
+	setPrefix += "change-configuration "
 
 	for _, v := range block.Commands {
 		configSet = append(configSet, setPrefix+"commands \""+v.ValueString()+"\"")
@@ -1443,6 +1443,7 @@ func (block *eventoptionsPolicyBlockThenBlockEventScript) configSet(
 	error, // error
 ) {
 	setPrefix += "event-script \"" + block.Filename.ValueString() + "\" "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -1486,8 +1487,8 @@ func (block *eventoptionsPolicyBlockThenBlockExecuteCommands) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix += "execute-commands "
 	configSet := make([]string, 0, len(block.Commands))
+	setPrefix += "execute-commands "
 
 	for _, v := range block.Commands {
 		configSet = append(configSet, setPrefix+"commands \""+v.ValueString()+"\"")
@@ -1521,6 +1522,7 @@ func (block *eventoptionsPolicyBlockThenBlockUpload) configSet(
 ) {
 	setPrefix += "upload filename \"" + block.Filename.ValueString() + "\"" +
 		" destination \"" + block.Destination.ValueString() + "\" "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -1558,6 +1560,7 @@ func (block *eventoptionsPolicyBlockThenBlockDestination) configSet(
 	error, // error
 ) {
 	setPrefix += "destination \"" + block.Name.ValueString() + "\" "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -1591,8 +1594,8 @@ func (block *eventoptionsPolicyBlockWithin) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix += "within " + utils.ConvI64toa(block.TimeInterval.ValueInt64()) + " "
 	configSet := make([]string, 0)
+	setPrefix += "within " + utils.ConvI64toa(block.TimeInterval.ValueInt64()) + " "
 
 	for _, v := range block.Events {
 		configSet = append(configSet, setPrefix+"events \""+v.ValueString()+"\"")
@@ -1619,9 +1622,7 @@ func (block *eventoptionsPolicyBlockWithin) configSet(
 
 func (rscData *eventoptionsPolicyData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"event-options policy \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

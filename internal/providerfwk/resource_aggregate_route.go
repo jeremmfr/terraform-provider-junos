@@ -493,7 +493,7 @@ func (rsc *aggregateRoute) ImportState(
 func checkAggregateRouteExists(
 	_ context.Context, destination, routingInstance string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showPrefix := junos.CmdShowConfig
 	switch routingInstance {
@@ -508,11 +508,11 @@ func checkAggregateRouteExists(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix + "aggregate route " + destination + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(showPrefix +
+		"aggregate route " + destination + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
-
 	if showConfig == junos.EmptyW {
 		return false, nil
 	}
@@ -551,6 +551,7 @@ func (rscData *aggregateRouteData) set(
 		}
 	}
 	setPrefix += "aggregate route " + rscData.Destination.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -603,9 +604,7 @@ func (rscData *aggregateRouteData) set(
 
 func (rscData *aggregateRouteData) read(
 	_ context.Context, destination, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showPrefix := junos.CmdShowConfig
 	switch routingInstance {
 	case junos.DefaultW, "":
@@ -619,16 +618,17 @@ func (rscData *aggregateRouteData) read(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix + "aggregate route " + destination + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(showPrefix +
+		"aggregate route " + destination + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		rscData.Destination = types.StringValue(destination)
-		rscData.RoutingInstance = types.StringValue(routingInstance)
-		if rscData.RoutingInstance.ValueString() == "" {
+		if routingInstance == "" {
 			rscData.RoutingInstance = types.StringValue(junos.DefaultW)
+		} else {
+			rscData.RoutingInstance = types.StringValue(routingInstance)
 		}
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -700,6 +700,7 @@ func (rscData *aggregateRouteData) del(
 			delPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
+
 	configSet := []string{
 		delPrefix + "aggregate route " + rscData.Destination.ValueString(),
 	}

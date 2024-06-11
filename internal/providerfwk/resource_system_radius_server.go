@@ -351,7 +351,7 @@ func (rsc *systemRadiusServer) ImportState(
 func checkSystemRadiusServerExists(
 	_ context.Context, address string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"system radius-server " + address + junos.PipeDisplaySet)
@@ -379,6 +379,7 @@ func (rscData *systemRadiusServerData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set system radius-server " + rscData.Address.ValueString() + " "
+
 	configSet := []string{
 		setPrefix + "secret \"" + rscData.Secret.ValueString() + "\"",
 	}
@@ -434,9 +435,7 @@ func (rscData *systemRadiusServerData) set(
 
 func (rscData *systemRadiusServerData) read(
 	_ context.Context, address string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"system radius-server " + address + junos.PipeDisplaySetRelative)
 	if err != nil {

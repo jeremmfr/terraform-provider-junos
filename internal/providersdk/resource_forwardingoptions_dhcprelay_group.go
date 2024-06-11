@@ -885,7 +885,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, junSess *junos.S
 
 	setPrefix := junos.SetLS
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + d.Get("routing_instance").(string) + " "
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	if d.Get("version").(string) == "v6" {
 		setPrefix += "forwarding-options dhcp-relay dhcpv6 group " + d.Get("name").(string) + " "
@@ -1675,10 +1675,10 @@ func delForwardingOptionsDhcpRelayGroup(name, instance, version string, junSess 
 	case instance == junos.DefaultW && version == "v4":
 		configSet = append(configSet, junos.DeleteLS+"forwarding-options dhcp-relay group "+name)
 	case instance != junos.DefaultW && version == "v6":
-		configSet = append(configSet, junos.DelRoutingInstances+instance+" "+
+		configSet = append(configSet, delRoutingInstances+instance+" "+
 			"forwarding-options dhcp-relay dhcpv6 group "+name)
 	case instance != junos.DefaultW && version == "v4":
-		configSet = append(configSet, junos.DelRoutingInstances+instance+" "+
+		configSet = append(configSet, delRoutingInstances+instance+" "+
 			"forwarding-options dhcp-relay group "+name)
 	}
 

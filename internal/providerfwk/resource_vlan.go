@@ -606,7 +606,6 @@ func checkVlanExists(
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-
 	showConfig, err := junSess.Command(showPrefix +
 		"vlans " + name + junos.PipeDisplaySet)
 	if err != nil {
@@ -716,14 +715,11 @@ func (rscData *vlanData) set(
 
 func (rscData *vlanData) read(
 	_ context.Context, name, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-
 	showConfig, err := junSess.Command(showPrefix +
 		"vlans " + name + junos.PipeDisplaySetRelative)
 	if err != nil {

@@ -589,6 +589,7 @@ func (rscData *securityNatStaticRuleData) set(
 	setPrefix := "set security nat static " +
 		"rule-set " + rscData.RuleSet.ValueString() +
 		" rule " + rscData.Name.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}

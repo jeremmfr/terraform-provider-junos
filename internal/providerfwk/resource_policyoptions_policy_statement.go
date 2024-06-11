@@ -1804,7 +1804,7 @@ func (rsc *policyoptionsPolicyStatement) ImportState(
 func checkPolicyoptionsPolicyStatementExists(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"policy-options policy-statement \"" + name + "\"" + junos.PipeDisplaySet)
@@ -2236,9 +2236,7 @@ func (block *policyoptionsPolicyStatementBlockThen) configSet(
 
 func (rscData *policyoptionsPolicyStatementData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"policy-options policy-statement \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

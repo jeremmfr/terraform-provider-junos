@@ -108,8 +108,8 @@ func upgradeBridgeDomainStateV0toV1(
 		VLANID           types.Int64    `tfsdk:"vlan_id"`
 		VLANIDList       []types.String `tfsdk:"vlan_id_list"`
 		VXLAN            []struct {
-			VNI                        types.Int64  `tfsdk:"vni"`
-			VNIExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
+			Vni                        types.Int64  `tfsdk:"vni"`
+			VniExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
 			DecapsulateAcceptInnerVlan types.Bool   `tfsdk:"decapsulate_accept_inner_vlan"`
 			EncapsulateInnerVlan       types.Bool   `tfsdk:"encapsulate_inner_vlan"`
 			IngressNodeReplication     types.Bool   `tfsdk:"ingress_node_replication"`
@@ -140,12 +140,12 @@ func upgradeBridgeDomainStateV0toV1(
 	dataV1.VLANIDList = dataV0.VLANIDList
 	if len(dataV0.VXLAN) > 0 {
 		dataV1.VXLAN = &bridgeDomainBlockVXLAN{
-			VNIExtendEvpn:              dataV0.VXLAN[0].VNIExtendEvpn,
+			Vni:                        dataV0.VXLAN[0].Vni,
+			VniExtendEvpn:              dataV0.VXLAN[0].VniExtendEvpn,
 			DecapsulateAcceptInnerVlan: dataV0.VXLAN[0].DecapsulateAcceptInnerVlan,
 			EncapsulateInnerVlan:       dataV0.VXLAN[0].EncapsulateInnerVlan,
 			IngressNodeReplication:     dataV0.VXLAN[0].IngressNodeReplication,
 			OvsdbManaged:               dataV0.VXLAN[0].OvsdbManaged,
-			VNI:                        dataV0.VXLAN[0].VNI,
 			MulticastGroup:             dataV0.VXLAN[0].MulticastGroup,
 			UnreachableVtepAgingTimer:  dataV0.VXLAN[0].UnreachableVtepAgingTimer,
 		}

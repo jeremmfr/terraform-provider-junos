@@ -806,10 +806,9 @@ func (rscData *ospfData) set(
 ) {
 	configSet := make([]string, 0)
 	setPrefix := junos.SetLS
-
 	routingInstance := rscData.RoutingInstance.ValueString()
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + routingInstance + " "
+		setPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
 	ospfVersion := junos.OspfV2
 	if rscData.Version.ValueString() == "v3" {
@@ -910,6 +909,7 @@ func (rscData *ospfData) set(
 
 func (block *ospfBlockDatabaseProtection) configSet(setPrefix string) []string {
 	setPrefix += "database-protection "
+
 	configSet := []string{
 		setPrefix + "maximum-lsa " + utils.ConvI64toa(block.MaximumLsa.ValueInt64()),
 	}
@@ -978,6 +978,7 @@ func (block *ospfBlockGracefulRestart) configSet(
 
 func (block *ospfBlockOverload) configSet(setPrefix string) []string {
 	setPrefix += "overload "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -1024,30 +1025,30 @@ func (block *ospfBlockSpfOptions) configSet(setPrefix string) []string {
 
 func (rscData *ospfData) read(
 	_ context.Context, version, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
-	var showConfig string
+) error {
 	ospfVersion := junos.OspfV2
 	if version == "v3" {
 		ospfVersion = junos.OspfV3
 	}
-	if routingInstance == junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"protocols " + ospfVersion + junos.PipeDisplaySetRelative)
-		if err != nil {
-			return err
-		}
-	} else {
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
-			"protocols " + ospfVersion + junos.PipeDisplaySetRelative)
-		if err != nil {
-			return err
-		}
+	showPrefix := junos.CmdShowConfig
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-
-	rscData.Version = types.StringValue(version)
-	rscData.RoutingInstance = types.StringValue(routingInstance)
+	showConfig, err := junSess.Command(showPrefix +
+		"protocols " + ospfVersion + junos.PipeDisplaySetRelative)
+	if err != nil {
+		return err
+	}
+	if version == "v3" {
+		rscData.Version = types.StringValue(version)
+	} else {
+		rscData.Version = types.StringValue("v2")
+	}
+	if routingInstance == "" {
+		rscData.RoutingInstance = types.StringValue(junos.DefaultW)
+	} else {
+		rscData.RoutingInstance = types.StringValue(routingInstance)
+	}
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -1259,7 +1260,7 @@ func (rscData *ospfData) del(
 	}
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != junos.DefaultW {
-		delPrefix = junos.DelRoutingInstances + v + " "
+		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
 	delPrefix += "protocols " + ospfVersion + " "
 
@@ -1284,6 +1285,7 @@ func (rscData *ospfData) del(
 		"sham-link",
 		"spf-options",
 	}
+
 	configSet := make([]string, len(listLinesToDelete))
 	for k, line := range listLinesToDelete {
 		configSet[k] = delPrefix + line

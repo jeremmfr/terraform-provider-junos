@@ -1770,6 +1770,7 @@ func (rscData *interfacePhysicalData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set interfaces " + rscData.Name.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -1962,7 +1963,6 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 	error, // error
 ) {
 	configSet := make([]string, 0)
-
 	switch {
 	case strings.HasPrefix(interfaceName, "ae"):
 		setPrefix += "aggregated-ether-options "
@@ -2162,7 +2162,6 @@ func (rscData *interfacePhysicalData) read(
 	if err != nil {
 		return err
 	}
-
 	rscData.Name = types.StringValue(name)
 	rscData.fillID()
 	if showConfig != junos.EmptyW {

@@ -898,9 +898,7 @@ func (rscData *securityNatStaticData) set(
 
 func (rscData *securityNatStaticData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security nat static rule-set " + name + junos.PipeDisplaySetRelative)
 	if err != nil {

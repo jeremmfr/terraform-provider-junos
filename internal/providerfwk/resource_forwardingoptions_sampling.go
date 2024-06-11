@@ -1377,11 +1377,11 @@ func (rscData *forwardingoptionsSamplingData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-	setPrefix := "set forwarding-options sampling "
-
+	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + v + " forwarding-options sampling "
+		setPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	setPrefix += "forwarding-options sampling "
 
 	if rscData.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+"disable")
@@ -1824,18 +1824,13 @@ func (block *forwardingoptionsSamplingBlockOutputBlockInterface) configSet(setPr
 
 func (rscData *forwardingoptionsSamplingData) read(
 	_ context.Context, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
-	var showConfig string
+) error {
+	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			junos.RoutingInstancesWS + routingInstance + " " +
-			"forwarding-options sampling" + junos.PipeDisplaySetRelative)
-	} else {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"forwarding-options sampling" + junos.PipeDisplaySetRelative)
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
+	showConfig, err := junSess.Command(showPrefix +
+		"forwarding-options sampling" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2246,10 +2241,12 @@ func (block *forwardingoptionsSamplingBlockOutputBlockInterface) read(itemTrim s
 func (rscData *forwardingoptionsSamplingData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	delPrefix := "delete forwarding-options sampling "
+	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		delPrefix = junos.DelRoutingInstances + v + " forwarding-options sampling "
+		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	delPrefix += "forwarding-options sampling "
+
 	configSet := []string{
 		delPrefix + junos.DisableW,
 		delPrefix + "pre-rewrite-tos",

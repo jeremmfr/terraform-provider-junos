@@ -418,7 +418,7 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, junSess *junos.Session) error {
 
 	setPrefix := junos.SetLS
 	if rI := d.Get("routing_instance").(string); rI != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + rI + " "
+		setPrefix = setRoutingInstances + rI + " "
 	}
 	setPrefix += "protocols igmp-snooping vlan " + d.Get("name").(string) + " "
 
@@ -586,7 +586,7 @@ func delIgmpSnoopingVlan(name, routingInstance string, junSess *junos.Session) e
 	if routingInstance == junos.DefaultW {
 		configSet = append(configSet, "delete protocols igmp-snooping vlan "+name)
 	} else {
-		configSet = append(configSet, junos.DelRoutingInstances+routingInstance+" protocols igmp-snooping vlan "+name)
+		configSet = append(configSet, delRoutingInstances+routingInstance+" protocols igmp-snooping vlan "+name)
 	}
 
 	return junSess.ConfigSet(configSet)

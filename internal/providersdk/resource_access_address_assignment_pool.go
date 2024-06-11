@@ -752,7 +752,7 @@ func setAccessAddressAssignPool(d *schema.ResourceData, junSess *junos.Session) 
 
 	setPrefix := junos.SetLS
 	if d.Get("routing_instance").(string) != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + d.Get("routing_instance").(string) + " "
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	setPrefix += "access address-assignment pool " + d.Get("name").(string) + " "
 
@@ -1366,7 +1366,7 @@ func delAccessAddressAssignPool(name, instance string, junSess *junos.Session) e
 	if instance == junos.DefaultW {
 		configSet = append(configSet, "delete access address-assignment pool "+name)
 	} else {
-		configSet = append(configSet, junos.DelRoutingInstances+instance+" access address-assignment pool "+name)
+		configSet = append(configSet, delRoutingInstances+instance+" access address-assignment pool "+name)
 	}
 
 	return junSess.ConfigSet(configSet)

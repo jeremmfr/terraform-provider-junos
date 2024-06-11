@@ -1292,17 +1292,14 @@ func (rsc *forwardingoptionsSamplingInstance) ImportState(
 func checkForwardingoptionsSamplingInstanceExists(
 	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
-	var showConfig string
+	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			junos.RoutingInstancesWS + routingInstance + " " +
-			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
-	} else {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
+	showConfig, err := junSess.Command(showPrefix +
+		"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1331,12 +1328,11 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-	setPrefix := "set forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\" "
-
+	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + v +
-			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\" "
+		setPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	setPrefix += "forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\" "
 
 	if rscData.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+"disable")
@@ -1762,18 +1758,13 @@ func (block *forwardingoptionsSamplingInstanceBlockOutputBlockInterface) configS
 
 func (rscData *forwardingoptionsSamplingInstanceData) read(
 	_ context.Context, name, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
-	var showConfig string
+) error {
+	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			junos.RoutingInstancesWS + routingInstance + " " +
-			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
-	} else {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
+	showConfig, err := junSess.Command(showPrefix +
+		"forwarding-options sampling instance \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2153,13 +2144,13 @@ func (block *forwardingoptionsSamplingInstanceBlockOutputBlockInterface) read(it
 func (rscData *forwardingoptionsSamplingInstanceData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 1)
+	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		configSet[0] = junos.DelRoutingInstances + v +
-			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\""
-	} else {
-		configSet[0] = junos.DeleteW +
-			" forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\""
+		delPrefix += junos.RoutingInstancesWS + v + " "
+	}
+
+	configSet := []string{
+		delPrefix + "forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\"",
 	}
 
 	return junSess.ConfigSet(configSet)
