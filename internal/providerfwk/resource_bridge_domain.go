@@ -746,7 +746,7 @@ func (rscData *bridgeDomainData) read(
 							if strings.Contains(itemEvpn, junos.XMLEndTagConfigOut) {
 								break
 							}
-							if strings.HasPrefix(itemEvpn, junos.SetLS+"extended-vni-list "+itemTrim) {
+							if itemEvpn == junos.SetLS+"extended-vni-list "+itemTrim {
 								rscData.VXLAN.VniExtendEvpn = types.BoolValue(true)
 
 								break
