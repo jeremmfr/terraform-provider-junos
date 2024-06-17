@@ -389,9 +389,7 @@ func (rscData *eventoptionsDestinationData) set(
 
 func (rscData *eventoptionsDestinationData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"event-options destinations \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

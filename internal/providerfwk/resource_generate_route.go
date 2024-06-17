@@ -511,7 +511,7 @@ func (rsc *generateRoute) ImportState(
 func checkGenerateRouteExists(
 	_ context.Context, destination, routingInstance string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showPrefix := junos.CmdShowConfig
 	switch routingInstance {
@@ -526,11 +526,11 @@ func checkGenerateRouteExists(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix + "generate route " + destination + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(showPrefix +
+		"generate route " + destination + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
-
 	if showConfig == junos.EmptyW {
 		return false, nil
 	}
@@ -569,6 +569,7 @@ func (rscData *generateRouteData) set(
 		}
 	}
 	setPrefix += "generate route " + rscData.Destination.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -624,9 +625,7 @@ func (rscData *generateRouteData) set(
 
 func (rscData *generateRouteData) read(
 	_ context.Context, destination, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showPrefix := junos.CmdShowConfig
 	switch routingInstance {
 	case junos.DefaultW, "":
@@ -640,14 +639,18 @@ func (rscData *generateRouteData) read(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix + "generate route " + destination + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(showPrefix +
+		"generate route " + destination + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		rscData.Destination = types.StringValue(destination)
-		rscData.RoutingInstance = types.StringValue(routingInstance)
+		if routingInstance == "" {
+			rscData.RoutingInstance = types.StringValue(junos.DefaultW)
+		} else {
+			rscData.RoutingInstance = types.StringValue(routingInstance)
+		}
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
@@ -720,6 +723,7 @@ func (rscData *generateRouteData) del(
 			delPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
+
 	configSet := []string{
 		delPrefix + "generate route " + rscData.Destination.ValueString(),
 	}

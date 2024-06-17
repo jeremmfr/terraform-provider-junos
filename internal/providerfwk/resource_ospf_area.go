@@ -1697,40 +1697,27 @@ func (rsc *ospfArea) ImportState(
 func checkOspfAreaExists(
 	_ context.Context, areaID, version, realm, routingInstance string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
-	var showConfig string
-	ospfVersion := junos.OspfV2
-	if version == "v3" {
-		ospfVersion = junos.OspfV3
-	} else if realm != "" {
-		return false, errors.New("realm can't set if version != v3")
+	showPrefix := junos.CmdShowConfig
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	switch {
-	case (routingInstance == junos.DefaultW || routingInstance == "") && realm == "":
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"protocols " + ospfVersion + " area " + areaID + junos.PipeDisplaySet)
-		if err != nil {
-			return false, err
+	if version == "v3" {
+		showPrefix += "protocols " + junos.OspfV3 + " "
+	} else {
+		showPrefix += "protocols " + junos.OspfV2 + " "
+		if realm != "" {
+			return false, errors.New("realm can't set if version != v3")
 		}
-	case (routingInstance == junos.DefaultW || routingInstance == "") && realm != "":
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"protocols " + ospfVersion + " realm " + realm + " area " + areaID + junos.PipeDisplaySet)
-		if err != nil {
-			return false, err
-		}
-	case realm != "":
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
-			"protocols " + ospfVersion + " realm " + realm + " area " + areaID + junos.PipeDisplaySet)
-		if err != nil {
-			return false, err
-		}
-	default:
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
-			"protocols " + ospfVersion + " area " + areaID + junos.PipeDisplaySet)
-		if err != nil {
-			return false, err
-		}
+	}
+	if realm != "" {
+		showPrefix += "realm " + realm + " "
+	}
+	showConfig, err := junSess.Command(showPrefix +
+		"area " + areaID + junos.PipeDisplaySet)
+	if err != nil {
+		return false, err
 	}
 	if showConfig == junos.EmptyW {
 		return false, nil
@@ -1772,15 +1759,16 @@ func (rscData *ospfAreaData) set(
 	configSet := make([]string, 0)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + v + " "
+		setPrefix += junos.RoutingInstancesWS + v + " "
 	}
-	ospfVersion := junos.OspfV2
 	if rscData.Version.ValueString() == "v3" {
-		ospfVersion = junos.OspfV3
-	} else if rscData.Realm.ValueString() != "" {
-		return path.Root("realm"), errors.New("realm can't set if version != v3")
+		setPrefix += "protocols " + junos.OspfV3 + " "
+	} else {
+		setPrefix += "protocols " + junos.OspfV2 + " "
+		if rscData.Realm.ValueString() != "" {
+			return path.Root("realm"), errors.New("realm can't set if version != v3")
+		}
 	}
-	setPrefix += "protocols " + ospfVersion + " "
 	if v := rscData.Realm.ValueString(); v != "" {
 		setPrefix += "realm " + v + " "
 	}
@@ -1876,6 +1864,7 @@ func (block *ospfAreaBlockInterface) configSet(
 	error, // error
 ) {
 	setPrefix += "interface " + block.Name.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2135,6 +2124,7 @@ func (block *ospfAreaBlockInterfaceBlockBfdLivenessDetection) configSet(setPrefi
 
 func (block *ospfAreaBlockAreaRange) configSet(setPrefix string) []string {
 	setPrefix += "area-range " + block.Range.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2161,6 +2151,7 @@ func (block *ospfAreaBlockNssa) configSet(
 	error, // error
 ) {
 	setPrefix += "nssa "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2208,6 +2199,7 @@ func (block *ospfAreaBlockVirtualLink) configSet(setPrefix string) []string {
 		" neighbor-id " + block.NeighborID.ValueString() +
 		" transit-area " + block.TransitArea.ValueString() +
 		" "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2250,43 +2242,27 @@ func (block *ospfAreaBlockVirtualLink) configSet(setPrefix string) []string {
 
 func (rscData *ospfAreaData) read(
 	_ context.Context, areaID, version, realm, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
-	var showConfig string
-	ospfVersion := junos.OspfV2
+) error {
+	showPrefix := junos.CmdShowConfig
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
+	}
 	if version == "v3" {
-		ospfVersion = junos.OspfV3
-	} else if realm != "" {
-		return errors.New("realm can't set if version != v3")
-	}
-	switch {
-	case (routingInstance == junos.DefaultW || routingInstance == "") && realm == "":
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"protocols " + ospfVersion + " area " + areaID + junos.PipeDisplaySetRelative)
-		if err != nil {
-			return err
-		}
-	case (routingInstance == junos.DefaultW || routingInstance == "") && realm != "":
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"protocols " + ospfVersion + " realm " + realm + " area " + areaID + junos.PipeDisplaySetRelative)
-		if err != nil {
-			return err
-		}
-	case realm != "":
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
-			"protocols " + ospfVersion + " realm " + realm + " area " + areaID + junos.PipeDisplaySetRelative)
-		if err != nil {
-			return err
-		}
-	default:
-		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
-			"protocols " + ospfVersion + " area " + areaID + junos.PipeDisplaySetRelative)
-		if err != nil {
-			return err
+		showPrefix += "protocols " + junos.OspfV3 + " "
+	} else {
+		showPrefix += "protocols " + junos.OspfV2 + " "
+		if realm != "" {
+			return errors.New("realm can't set if version != v3")
 		}
 	}
-
+	if realm != "" {
+		showPrefix += "realm " + realm + " "
+	}
+	showConfig, err := junSess.Command(showPrefix +
+		"area " + areaID + junos.PipeDisplaySetRelative)
+	if err != nil {
+		return err
+	}
 	if showConfig != junos.EmptyW {
 		rscData.AreaID = types.StringValue(areaID)
 		if version == "v3" {
@@ -2707,31 +2683,24 @@ func (block *ospfAreaBlockNssa) read(itemTrim string) (err error) {
 func (rscData *ospfAreaData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 0, 1)
-	ospfVersion := junos.OspfV2
+	delPrefix := junos.DeleteLS
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		delPrefix += junos.RoutingInstancesWS + v + " "
+	}
 	if rscData.Version.ValueString() == "v3" {
-		ospfVersion = junos.OspfV3
-	} else if rscData.Realm.ValueString() != "" {
-		return errors.New("realm can't set if version != v3")
+		delPrefix += "protocols " + junos.OspfV3 + " "
+	} else {
+		delPrefix += "protocols " + junos.OspfV2 + " "
+		if rscData.Realm.ValueString() != "" {
+			return errors.New("realm can't set if version != v3")
+		}
 	}
-	routingInstance := junos.DefaultW
-	if v := rscData.RoutingInstance.ValueString(); v != "" {
-		routingInstance = v
+	if v := rscData.Realm.ValueString(); v != "" {
+		delPrefix += "realm " + v + " "
 	}
-	realm := rscData.Realm.ValueString()
-	switch {
-	case (routingInstance == junos.DefaultW || routingInstance == "") && realm == "":
-		configSet = append(configSet, junos.DeleteW+
-			" protocols "+ospfVersion+" area "+rscData.AreaID.ValueString())
-	case (routingInstance == junos.DefaultW || routingInstance == "") && realm != "":
-		configSet = append(configSet, junos.DeleteW+
-			" protocols "+ospfVersion+" realm "+realm+" area "+rscData.AreaID.ValueString())
-	case realm != "":
-		configSet = append(configSet, junos.DelRoutingInstances+routingInstance+
-			" protocols "+ospfVersion+" realm "+realm+" area "+rscData.AreaID.ValueString())
-	default:
-		configSet = append(configSet, junos.DelRoutingInstances+routingInstance+
-			" protocols "+ospfVersion+" area "+rscData.AreaID.ValueString())
+
+	configSet := []string{
+		delPrefix + "area " + rscData.AreaID.ValueString(),
 	}
 
 	return junSess.ConfigSet(configSet)

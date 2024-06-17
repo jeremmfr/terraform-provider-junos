@@ -2291,6 +2291,7 @@ func (rscData *interfaceLogicalData) set(
 	}
 
 	setPrefix := "set interfaces " + rscData.Name.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2405,7 +2406,7 @@ func (rscData *interfaceLogicalData) set(
 		}
 	}
 	if v := rscData.RoutingInstance.ValueString(); v != "" {
-		configSet = append(configSet, junos.SetRoutingInstances+v+" interface "+rscData.Name.ValueString())
+		configSet = append(configSet, junos.SetLS+junos.RoutingInstancesWS+v+" interface "+rscData.Name.ValueString())
 	}
 	if securityZone := rscData.SecurityZone.ValueString(); securityZone != "" {
 		configSet = append(configSet, "set security zones security-zone "+securityZone+
@@ -2466,6 +2467,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 	error, // error
 ) {
 	setPrefix += "family inet address " + block.CidrIP.ValueString()
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2569,6 +2571,7 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 	error, // error
 ) {
 	setPrefix += "family inet6 address " + block.CidrIP.ValueString()
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2668,6 +2671,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) configSet(setPrefix strin
 	} else {
 		setPrefix += " "
 	}
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2736,6 +2740,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) configSet(setPrefix strin
 
 func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client) configSet(setPrefix string) []string {
 	setPrefix += "family inet6 dhcpv6-client "
+
 	configSet := []string{
 		setPrefix + "client-identifier duid-type " + block.ClientIdentifierDuidType.ValueString(),
 		setPrefix + "client-type " + block.ClientType.ValueString(),
@@ -2786,7 +2791,6 @@ func (rscData *interfaceLogicalData) read(
 	if err != nil {
 		return err
 	}
-
 	rscData.Name = types.StringValue(name)
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
@@ -3288,7 +3292,6 @@ func (rscData *interfaceLogicalData) readSecurityZoneInboundTraffic(
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
@@ -3345,6 +3348,7 @@ func (rscData *interfaceLogicalData) delOpts(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete interfaces " + rscData.Name.ValueString() + " "
+
 	configSet := []string{
 		delPrefix + "description",
 		delPrefix + "disable",
@@ -3372,7 +3376,7 @@ func (rscData *interfaceLogicalData) delRoutingInstance(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
-		junos.DelRoutingInstances + rscData.RoutingInstance.ValueString() +
+		junos.DeleteLS + junos.RoutingInstancesWS + rscData.RoutingInstance.ValueString() +
 			" interface " + rscData.Name.ValueString(),
 	}
 

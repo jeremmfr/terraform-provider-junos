@@ -313,6 +313,7 @@ func (rscData *oamGretunnelInterfaceData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set protocols oam gre-tunnel interface " + rscData.Name.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -331,9 +332,7 @@ func (rscData *oamGretunnelInterfaceData) set(
 
 func (rscData *oamGretunnelInterfaceData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySetRelative)
 	if err != nil {

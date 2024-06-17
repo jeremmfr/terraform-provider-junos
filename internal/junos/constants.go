@@ -13,9 +13,7 @@ const (
 	PipeDisplaySet         = " | display set"
 	PipeDisplaySetRelative = PipeDisplaySet + " relative"
 
-	RoutingInstancesWS  = "routing-instances " // routing-instances word + space
-	SetRoutingInstances = SetLS + RoutingInstancesWS
-	DelRoutingInstances = DeleteLS + RoutingInstancesWS
+	RoutingInstancesWS = "routing-instances " // routing-instances word + space
 
 	RoutingOptionsWS = "routing-options "
 	RibInet60WS      = "rib inet6.0 "

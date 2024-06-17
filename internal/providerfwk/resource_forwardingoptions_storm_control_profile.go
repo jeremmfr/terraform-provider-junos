@@ -394,7 +394,7 @@ func (rsc *forwardingoptionsStormControlProfile) ImportState(
 func checkForwardingoptionsStormControlProfileExists(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"forwarding-options storm-control-profiles \"" + name + "\"" + junos.PipeDisplaySet)
@@ -464,9 +464,7 @@ func (rscData *forwardingoptionsStormControlProfileData) set(
 
 func (rscData *forwardingoptionsStormControlProfileData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"forwarding-options storm-control-profiles \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

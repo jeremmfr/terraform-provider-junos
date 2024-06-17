@@ -547,7 +547,7 @@ func (rsc *firewallPolicer) ImportState(
 func checkFirewallPolicerExists(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"firewall policer \"" + name + "\"" + junos.PipeDisplaySet)
@@ -629,9 +629,7 @@ func (rscData *firewallPolicerData) set(
 
 func (rscData *firewallPolicerData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"firewall policer \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

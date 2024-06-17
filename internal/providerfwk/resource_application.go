@@ -692,6 +692,7 @@ func (block *applicationBlockTerm) configSet(
 	error, // error
 ) {
 	setPrefix += "term " + block.Name.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 		setPrefix + "protocol " + block.Protocol.ValueString(),
@@ -742,9 +743,7 @@ func (block *applicationBlockTerm) configSet(
 
 func (rscData *applicationData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"applications application " + name + junos.PipeDisplaySetRelative)
 	if err != nil {

@@ -565,7 +565,7 @@ func (rsc *securityIkeGateway) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("access_profile"),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of access_profile or client_username/client_password must be specifiedin aaa block ",
+				"only one of access_profile or client_username/client_password must be specifiedin aaa block",
 			)
 		}
 		if config.Aaa.ClientUsername.IsNull() && !config.Aaa.ClientPassword.IsNull() {
@@ -954,9 +954,7 @@ func (rscData *securityIkeGatewayData) set(
 
 func (rscData *securityIkeGatewayData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ike gateway \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

@@ -264,6 +264,7 @@ func (rscData *multichassisData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set multi-chassis "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -281,15 +282,12 @@ func (rscData *multichassisData) set(
 
 func (rscData *multichassisData) read(
 	_ context.Context, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"multi-chassis" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {

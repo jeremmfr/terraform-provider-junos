@@ -333,9 +333,7 @@ func (rscData *snmpV3VacmSecuritytogroupData) set(
 
 func (rscData *snmpV3VacmSecuritytogroupData) read(
 	_ context.Context, model, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"snmp v3 vacm security-to-group security-model " + model + " security-name \"" + name + "\"" +
 		junos.PipeDisplaySetRelative)

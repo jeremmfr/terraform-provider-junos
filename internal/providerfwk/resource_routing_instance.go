@@ -536,7 +536,7 @@ func (rscData *routingInstanceData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-	setPrefix := junos.SetRoutingInstances + rscData.Name.ValueString() + " "
+	setPrefix := junos.SetLS + junos.RoutingInstancesWS + rscData.Name.ValueString() + " "
 
 	if rscData.ConfigureTypeSingly.ValueBool() {
 		if rscData.Type.ValueString() != "" {
@@ -595,9 +595,7 @@ func (rscData *routingInstanceData) set(
 
 func (rscData *routingInstanceData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		junos.RoutingInstancesWS + name + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -661,7 +659,7 @@ func (rscData *routingInstanceData) delOpts(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
-	setPrefix := junos.DelRoutingInstances + rscData.Name.ValueString() + " "
+	setPrefix := junos.DeleteLS + junos.RoutingInstancesWS + rscData.Name.ValueString() + " "
 	configSet = append(configSet,
 		setPrefix+"description",
 		setPrefix+junos.RoutingOptionsWS+"autonomous-system",
@@ -689,7 +687,7 @@ func (rscData *routingInstanceData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
-		junos.DelRoutingInstances + rscData.Name.ValueString(),
+		junos.DeleteLS + junos.RoutingInstancesWS + rscData.Name.ValueString(),
 	}
 
 	return junSess.ConfigSet(configSet)

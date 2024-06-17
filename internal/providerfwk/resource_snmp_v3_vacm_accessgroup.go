@@ -564,8 +564,8 @@ func (rscData *snmpV3VacmAccessgroupData) set(
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set snmp v3 vacm access group \"" + rscData.Name.ValueString() + "\" "
 	configSet := make([]string, 0)
+	setPrefix := "set snmp v3 vacm access group \"" + rscData.Name.ValueString() + "\" "
 
 	defaultContextPrefixModelLevel := make(map[string]struct{})
 	for _, block := range rscData.DefaultContextPrefix {
@@ -642,9 +642,7 @@ func (rscData *snmpV3VacmAccessgroupData) set(
 
 func (rscData *snmpV3VacmAccessgroupData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"snmp v3 vacm access group \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

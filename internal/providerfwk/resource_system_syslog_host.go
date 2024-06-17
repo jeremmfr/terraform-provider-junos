@@ -583,9 +583,7 @@ func (rscData *systemSyslogHostData) set(
 
 func (rscData *systemSyslogHostData) read(
 	_ context.Context, host string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"system syslog host " + host + junos.PipeDisplaySetRelative)
 	if err != nil {

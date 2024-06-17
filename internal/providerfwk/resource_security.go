@@ -2094,8 +2094,8 @@ func (rscData *securityData) set(
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set security "
 	configSet := make([]string, 0)
+	setPrefix := "set security "
 
 	if rscData.Alg != nil {
 		if rscData.Alg.isEmpty() {
@@ -2217,8 +2217,8 @@ func (rscData *securityData) set(
 }
 
 func (block *securityBlockAlg) configSet() []string {
-	setPrefix := "set security alg "
 	configSet := make([]string, 0)
+	setPrefix := "set security alg "
 
 	if block.DNSDisable.ValueBool() {
 		configSet = append(configSet, setPrefix+"dns disable")
@@ -2271,8 +2271,8 @@ func (block *securityBlockFlow) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix := "set security flow "
 	configSet := make([]string, 0)
+	setPrefix := "set security flow "
 
 	if block.AdvancedOptions != nil {
 		if block.AdvancedOptions.isEmpty() {
@@ -2449,8 +2449,8 @@ func (block *securityBlockFlow) configSet() (
 }
 
 func (block *securityBlockForwardingOptions) configSet() []string {
-	setPrefix := "set security forwarding-options "
 	configSet := make([]string, 0)
+	setPrefix := "set security forwarding-options "
 
 	if v := block.Inet6Mode.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"family inet6 mode "+v)
@@ -2466,8 +2466,8 @@ func (block *securityBlockForwardingOptions) configSet() []string {
 }
 
 func (block *securityBlockIdpSecurityPackage) configSet() []string {
-	setPrefix := "set security idp security-package "
 	configSet := make([]string, 0)
+	setPrefix := "set security idp security-package "
 
 	if block.AutomaticEnable.ValueBool() {
 		configSet = append(configSet, setPrefix+"automatic enable")
@@ -2496,8 +2496,8 @@ func (block *securityBlockIdpSecurityPackage) configSet() []string {
 }
 
 func (block *securityBlockIdpSensorConfiguration) configSet() []string {
-	setPrefix := "set security idp sensor-configuration "
 	configSet := make([]string, 0)
+	setPrefix := "set security idp sensor-configuration "
 
 	if !block.LogCacheSize.IsNull() {
 		configSet = append(configSet, setPrefix+"log cache-size "+
@@ -2563,8 +2563,8 @@ func (block *securityBlockIkeTraceoptions) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix := "set security ike traceoptions "
 	configSet := make([]string, 0)
+	setPrefix := "set security ike traceoptions "
 
 	if block.File != nil {
 		if block.File.isEmpty() {
@@ -2618,8 +2618,8 @@ func (block *securityBlockLog) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix := "set security log "
 	configSet := make([]string, 0)
+	setPrefix := "set security log "
 
 	if block.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+"disable")
@@ -2697,8 +2697,8 @@ func (block *securityBlockLog) configSet() (
 }
 
 func (block *securityBlockNatSource) configSet() []string {
-	setPrefix := "set security nat source "
 	configSet := make([]string, 0)
+	setPrefix := "set security nat source "
 
 	if block.AddressPersistent.ValueBool() {
 		configSet = append(configSet, setPrefix+"address-persistent")
@@ -2749,8 +2749,8 @@ func (block *securityBlockNatSource) configSet() []string {
 }
 
 func (block *securityBlockUserIdentificationAuthSource) configSet() []string {
-	setPrefix := "set security user-identification authentication-source "
 	configSet := make([]string, 0)
+	setPrefix := "set security user-identification authentication-source "
 
 	if !block.ADAuthPriority.IsNull() {
 		configSet = append(configSet, setPrefix+"active-directory-authentication-table priority "+
@@ -2777,8 +2777,8 @@ func (block *securityBlockUserIdentificationAuthSource) configSet() []string {
 }
 
 func (block *securityBlockUtm) configSet() []string {
-	setPrefix := "set security utm "
 	configSet := make([]string, 0)
+	setPrefix := "set security utm "
 
 	if v := block.FeatureProfileWebFilteringType.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"feature-profile web-filtering type "+v)
@@ -2807,9 +2807,7 @@ func (block *securityBlockUtm) configSet() []string {
 
 func (rscData *securityData) read(
 	_ context.Context, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security" + junos.PipeDisplaySetRelative)
 	if err != nil {

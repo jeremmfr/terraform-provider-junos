@@ -431,9 +431,7 @@ func (rscData *securityIkePolicyData) set(
 
 func (rscData *securityIkePolicyData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ike policy \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

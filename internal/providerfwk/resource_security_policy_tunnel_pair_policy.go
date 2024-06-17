@@ -397,9 +397,7 @@ func (rscData *securityPolicyTunnelPairPolicyData) set(
 
 func (rscData *securityPolicyTunnelPairPolicyData) read(
 	_ context.Context, zoneA, policyAtoB, zoneB, policyBtoA string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security policies from-zone " + zoneA + " to-zone " + zoneB + " policy " + policyAtoB +
 		" then permit tunnel pair-policy" + junos.PipeDisplaySet)

@@ -498,7 +498,7 @@ func setRipGroup(d *schema.ResourceData, junSess *junos.Session) error {
 
 	setPrefix := junos.SetLS
 	if rI := d.Get("routing_instance").(string); rI != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + rI + " "
+		setPrefix = setRoutingInstances + rI + " "
 	}
 	if d.Get("ng").(bool) {
 		setPrefix += "protocols ripng group "
@@ -726,7 +726,7 @@ func delRipGroup(
 ) error {
 	delPrefix := junos.DeleteLS
 	if routingInstance != junos.DefaultW {
-		delPrefix = junos.DelRoutingInstances + routingInstance + " "
+		delPrefix = delRoutingInstances + routingInstance + " "
 	}
 	if ripNg {
 		delPrefix += "protocols ripng group "

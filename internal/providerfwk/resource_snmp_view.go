@@ -329,8 +329,8 @@ func (rscData *snmpViewData) set(
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set snmp view \"" + rscData.Name.ValueString() + "\" "
 	configSet := make([]string, 0)
+	setPrefix := "set snmp view \"" + rscData.Name.ValueString() + "\" "
 
 	for _, v := range rscData.OIDInclude {
 		configSet = append(configSet, setPrefix+"oid \""+v.ValueString()+"\" include")
@@ -344,9 +344,7 @@ func (rscData *snmpViewData) set(
 
 func (rscData *snmpViewData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"snmp view \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

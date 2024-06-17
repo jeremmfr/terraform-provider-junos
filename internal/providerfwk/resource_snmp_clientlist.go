@@ -288,6 +288,7 @@ func (rscData *snmpClientlistData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set snmp client-list \"" + rscData.Name.ValueString() + "\" "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -301,9 +302,7 @@ func (rscData *snmpClientlistData) set(
 
 func (rscData *snmpClientlistData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"snmp client-list \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

@@ -317,9 +317,7 @@ func (rscData *policyoptionsPrefixListData) set(
 
 func (rscData *policyoptionsPrefixListData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"policy-options prefix-list \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

@@ -341,6 +341,7 @@ func (rscData *securityNatDestinationPoolData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set security nat destination pool " + rscData.Name.ValueString() + " "
+
 	configSet := []string{
 		setPrefix + "address " + rscData.Address.ValueString(),
 	}

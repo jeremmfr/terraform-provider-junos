@@ -368,9 +368,7 @@ func (rscData *eventoptionsGenerateEventData) set(
 
 func (rscData *eventoptionsGenerateEventData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"event-options generate-event \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
