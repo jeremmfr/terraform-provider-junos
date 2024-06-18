@@ -109,6 +109,16 @@ func (dsc *routingInstanceDataSource) Schema(
 				Computed:    true,
 				Description: "List of interfaces in routing instance.",
 			},
+			"remote_vtep_list": schema.SetAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+				Description: "Static remote VXLAN tunnel endpoints.",
+			},
+			"remote_vtep_v6_list": schema.SetAttribute{
+				ElementType: types.StringType,
+				Computed:    true,
+				Description: "Static ipv6 remote VXLAN tunnel endpoints.",
+			},
 			"route_distinguisher": schema.StringAttribute{
 				Computed:    true,
 				Description: "Route distinguisher for this instance.",
@@ -160,6 +170,8 @@ type routingInstanceDataSourceData struct {
 	InstanceExport      []types.String `tfsdk:"instance_export"`
 	InstanceImport      []types.String `tfsdk:"instance_import"`
 	Interface           []types.String `tfsdk:"interface"`
+	RemoteVtepList      []types.String `tfsdk:"remote_vtep_list"`
+	RemoteVtepV6List    []types.String `tfsdk:"remote_vtep_v6_list"`
 	RouteDistinguisher  types.String   `tfsdk:"route_distinguisher"`
 	RouterID            types.String   `tfsdk:"router_id"`
 	VRFExport           []types.String `tfsdk:"vrf_export"`
@@ -207,6 +219,8 @@ func (dscData *routingInstanceDataSourceData) copyFromResourceData(data any) {
 	dscData.InstanceExport = rscData.InstanceExport
 	dscData.InstanceImport = rscData.InstanceImport
 	dscData.Interface = rscData.Interface
+	dscData.RemoteVtepList = rscData.RemoteVtepList
+	dscData.RemoteVtepV6List = rscData.RemoteVtepV6List
 	dscData.RouteDistinguisher = rscData.RouteDistinguisher
 	dscData.RouterID = rscData.RouterID
 	dscData.VRFExport = rscData.VRFExport
