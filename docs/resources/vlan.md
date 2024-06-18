@@ -60,6 +60,8 @@ The following arguments are supported:
   Declare vxlan configuration.
   - **vni** (Required, Number)  
     VXLAN identifier (0..16777214).
+  - **vni_extend_evpn** (Optional, Boolean)  
+    Extend VNI to EVPN.
   - **encapsulate_inner_vlan** (Optional, Boolean)  
     Retain inner VLAN in the packet.
   - **ingress_node_replication** (Optional, Boolean)  
@@ -68,10 +70,10 @@ The following arguments are supported:
     Multicast group registered for VXLAN segment.
   - **ovsdb_managed** (Optional, Boolean)  
     Bridge-domain is managed remotely via VXLAN OVSDB Controller.
+  - **static_remote_vtep_list** (Optional, Set of String)  
+    Configure vlan specific static remote VXLAN tunnel endpoints.
   - **translation_vni** (Optional, Number)  
     Translated VXLAN identifier (1..16777214).
-  - **vni_extend_evpn** (Optional, Boolean)  
-    Extend VNI to EVPN.
   - **unreachable_vtep_aging_timer** (Optional, Number)  
     Unreachable VXLAN tunnel endpoint removal timer (300..1800 seconds).
 
