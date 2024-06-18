@@ -25,6 +25,10 @@ The following arguments are supported:
 
 - **clean_on_destroy** (Optional, Boolean)  
   Clean supported lines when destroy this resource.
+- **remote_vtep_list** (Optional, Set of String)  
+  Configure static remote VXLAN tunnel endpoints.
+- **remote_vtep_v6_list** (Optional, Set of String)  
+  Configure static ipv6 remote VXLAN tunnel endpoints.
 - **service_id** (Optional, Number)  
   Service ID required if multi-chassis AE is part of a bridge-domain (1..65535).
 - **vtep_source_interface** (Optional, String)  
