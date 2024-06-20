@@ -130,6 +130,14 @@ func (rsc *interfaceLogical) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"encapsulation": schema.StringAttribute{
+				Optional:    true,
+				Description: "Logical link-layer encapsulation.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				},
+			},
 			"routing_instance": schema.StringAttribute{
 				Optional:    true,
 				Description: "Add this interface in routing_instance.",
@@ -1017,6 +1025,7 @@ type interfaceLogicalData struct {
 	St0AlsoOnDestroy         types.Bool                        `tfsdk:"st0_also_on_destroy"`
 	Description              types.String                      `tfsdk:"description"`
 	Disable                  types.Bool                        `tfsdk:"disable"`
+	Encapsulation            types.String                      `tfsdk:"encapsulation"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
@@ -1034,6 +1043,7 @@ type interfaceLogicalConfig struct {
 	St0AlsoOnDestroy         types.Bool                              `tfsdk:"st0_also_on_destroy"`
 	Description              types.String                            `tfsdk:"description"`
 	Disable                  types.Bool                              `tfsdk:"disable"`
+	Encapsulation            types.String                            `tfsdk:"encapsulation"`
 	RoutingInstance          types.String                            `tfsdk:"routing_instance"`
 	SecurityInboundProtocols types.Set                               `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  types.Set                               `tfsdk:"security_inbound_services"`
@@ -2306,6 +2316,9 @@ func (rscData *interfaceLogicalData) set(
 		}
 		configSet = append(configSet, setPrefix+"disable")
 	}
+	if v := rscData.Encapsulation.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"encapsulation "+v)
+	}
 	if rscData.FamilyInet != nil {
 		configSet = append(configSet, setPrefix+"family inet")
 
@@ -2811,6 +2824,8 @@ func (rscData *interfaceLogicalData) read(
 				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			case itemTrim == "disable":
 				rscData.Disable = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "encapsulation "):
+				rscData.Encapsulation = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "family inet6"):
 				if rscData.FamilyInet6 == nil {
 					rscData.FamilyInet6 = &interfaceLogicalBlockFamilyInet6{}
@@ -3352,6 +3367,7 @@ func (rscData *interfaceLogicalData) delOpts(
 	configSet := []string{
 		delPrefix + "description",
 		delPrefix + "disable",
+		delPrefix + "encapsulation",
 		delPrefix + "family inet",
 		delPrefix + "family inet6",
 		delPrefix + "tunnel",
