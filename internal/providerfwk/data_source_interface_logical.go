@@ -103,6 +103,10 @@ func (dsc *interfaceLogicalDataSource) Schema(
 				Computed:    true,
 				Description: "Interface disabled.",
 			},
+			"encapsulation": schema.StringAttribute{
+				Computed:    true,
+				Description: "Logical link-layer encapsulation.",
+			},
 			"routing_instance": schema.StringAttribute{
 				Computed:    true,
 				Description: "Routing_instance where the interface is.",
@@ -271,6 +275,7 @@ type interfaceLogicalDataSourceData struct {
 	Name                     types.String                      `tfsdk:"name"`
 	Description              types.String                      `tfsdk:"description"`
 	Disable                  types.Bool                        `tfsdk:"disable"`
+	Encapsulation            types.String                      `tfsdk:"encapsulation"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
@@ -414,6 +419,7 @@ func (dscData *interfaceLogicalDataSourceData) copyFromResourceData(rscData inte
 	dscData.Name = rscData.Name
 	dscData.Description = rscData.Description
 	dscData.Disable = rscData.Disable
+	dscData.Encapsulation = rscData.Encapsulation
 	dscData.FamilyInet = rscData.FamilyInet
 	dscData.FamilyInet6 = rscData.FamilyInet6
 	dscData.RoutingInstance = rscData.RoutingInstance
