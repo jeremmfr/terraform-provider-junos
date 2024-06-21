@@ -8,3 +8,7 @@ resource "junos_security_log_stream" "testacc_logstream" {
   }
   filter_threat_attack = true
 }
+resource "junos_security_log_stream" "testacc_logstream2" {
+  name = "testacc_logstream2"
+  transport {}
+}

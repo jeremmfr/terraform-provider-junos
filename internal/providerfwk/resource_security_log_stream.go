@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -215,32 +216,64 @@ func (rsc *securityLogStream) Schema(
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
+			"transport": schema.SingleNestedBlock{
+				Description: "Set security log transport settings.",
+				Attributes: map[string]schema.Attribute{
+					"protocol": schema.StringAttribute{
+						Optional:    true,
+						Description: "Set security log transport protocol for the device.",
+						Validators: []validator.String{
+							stringvalidator.OneOf("tcp", "tls", "udp"),
+						},
+					},
+					"tcp_connections": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Set tcp connection number per-stream.",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 5),
+						},
+					},
+					"tls_profile": schema.StringAttribute{
+						Optional:    true,
+						Description: "TLS profile.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
 		},
 	}
 }
 
 type securityLogStreamData struct {
-	ID                 types.String                `tfsdk:"id"`
-	Name               types.String                `tfsdk:"name"`
-	Category           []types.String              `tfsdk:"category"`
-	FilterThreatAttack types.Bool                  `tfsdk:"filter_threat_attack"`
-	Format             types.String                `tfsdk:"format"`
-	RateLimit          types.Int64                 `tfsdk:"rate_limit"`
-	Severity           types.String                `tfsdk:"severity"`
-	File               *securityLogStreamBlockFile `tfsdk:"file"`
-	Host               *securityLogStreamBlockHost `tfsdk:"host"`
+	ID                 types.String                     `tfsdk:"id"`
+	Name               types.String                     `tfsdk:"name"`
+	Category           []types.String                   `tfsdk:"category"`
+	FilterThreatAttack types.Bool                       `tfsdk:"filter_threat_attack"`
+	Format             types.String                     `tfsdk:"format"`
+	RateLimit          types.Int64                      `tfsdk:"rate_limit"`
+	Severity           types.String                     `tfsdk:"severity"`
+	File               *securityLogStreamBlockFile      `tfsdk:"file"`
+	Host               *securityLogStreamBlockHost      `tfsdk:"host"`
+	Transport          *securityLogStreamBlockTransport `tfsdk:"transport"`
 }
 
 type securityLogStreamConfig struct {
-	ID                 types.String                `tfsdk:"id"`
-	Name               types.String                `tfsdk:"name"`
-	Category           types.List                  `tfsdk:"category"`
-	FilterThreatAttack types.Bool                  `tfsdk:"filter_threat_attack"`
-	Format             types.String                `tfsdk:"format"`
-	RateLimit          types.Int64                 `tfsdk:"rate_limit"`
-	Severity           types.String                `tfsdk:"severity"`
-	File               *securityLogStreamBlockFile `tfsdk:"file"`
-	Host               *securityLogStreamBlockHost `tfsdk:"host"`
+	ID                 types.String                     `tfsdk:"id"`
+	Name               types.String                     `tfsdk:"name"`
+	Category           types.List                       `tfsdk:"category"`
+	FilterThreatAttack types.Bool                       `tfsdk:"filter_threat_attack"`
+	Format             types.String                     `tfsdk:"format"`
+	RateLimit          types.Int64                      `tfsdk:"rate_limit"`
+	Severity           types.String                     `tfsdk:"severity"`
+	File               *securityLogStreamBlockFile      `tfsdk:"file"`
+	Host               *securityLogStreamBlockHost      `tfsdk:"host"`
+	Transport          *securityLogStreamBlockTransport `tfsdk:"transport"`
 }
 
 type securityLogStreamBlockFile struct {
@@ -262,6 +295,12 @@ type securityLogStreamBlockHost struct {
 
 func (block *securityLogStreamBlockHost) hasKnownValue() bool {
 	return tfdata.CheckBlockHasKnownValue(block)
+}
+
+type securityLogStreamBlockTransport struct {
+	Protocol       types.String `tfsdk:"protocol"`
+	TCPConnections types.Int64  `tfsdk:"tcp_connections"`
+	TLSProfile     types.String `tfsdk:"tls_profile"`
 }
 
 func (rsc *securityLogStream) ValidateConfig(
@@ -301,6 +340,17 @@ func (rsc *securityLogStream) ValidateConfig(
 			path.Root("host").AtName("ip_address"),
 			tfdiag.MissingConfigErrSummary,
 			"ip_address must be specified in host block",
+		)
+	}
+	if config.Transport != nil &&
+		!config.Transport.Protocol.IsNull() && !config.Transport.Protocol.IsUnknown() &&
+		config.Transport.Protocol.ValueString() != "tls" &&
+		!config.Transport.TLSProfile.IsNull() && !config.Transport.TLSProfile.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("transport").AtName("protocol"),
+			tfdiag.ConflictConfigErrSummary,
+			"protocol must be 'tls' with tls_profile"+
+				" in transport block",
 		)
 	}
 }
@@ -525,6 +575,24 @@ func (rscData *securityLogStreamData) set(
 			configSet = append(configSet, setPrefix+"host routing-instance "+v)
 		}
 	}
+	if rscData.Transport != nil {
+		configSet = append(configSet, setPrefix+"transport")
+		if v := rscData.Transport.Protocol.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"transport protocol "+v)
+			if v != "tls" && rscData.Transport.TLSProfile.ValueString() != "" {
+				return path.Root("transport").AtName("protocol"),
+					errors.New("protocol must be 'tls' with tls_profile" +
+						" in transport block")
+			}
+		}
+		if !rscData.Transport.TCPConnections.IsNull() {
+			configSet = append(configSet, setPrefix+"transport tcp-connections "+
+				utils.ConvI64toa(rscData.Transport.TCPConnections.ValueInt64()))
+		}
+		if v := rscData.Transport.TLSProfile.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"transport tls-profile \""+v+"\"")
+		}
+	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
@@ -596,6 +664,21 @@ func (rscData *securityLogStreamData) read(
 					rscData.Host.RoutingInstance = types.StringValue(itemTrim)
 				default:
 					rscData.Host.IPAddress = types.StringValue(strings.Trim(itemTrim, "\""))
+				}
+			case balt.CutPrefixInString(&itemTrim, "transport"):
+				if rscData.Transport == nil {
+					rscData.Transport = &securityLogStreamBlockTransport{}
+				}
+				switch {
+				case balt.CutPrefixInString(&itemTrim, " protocol "):
+					rscData.Transport.Protocol = types.StringValue(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, " tcp-connections "):
+					rscData.Transport.TCPConnections, err = tfdata.ConvAtoi64Value(itemTrim)
+					if err != nil {
+						return err
+					}
+				case balt.CutPrefixInString(&itemTrim, " tls-profile "):
+					rscData.Transport.TLSProfile = types.StringValue(strings.Trim(itemTrim, "\""))
 				}
 			}
 		}
