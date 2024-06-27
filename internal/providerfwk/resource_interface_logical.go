@@ -130,6 +130,14 @@ func (rsc *interfaceLogical) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"encapsulation": schema.StringAttribute{
+				Optional:    true,
+				Description: "Logical link-layer encapsulation.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				},
+			},
 			"routing_instance": schema.StringAttribute{
 				Optional:    true,
 				Description: "Add this interface in routing_instance.",
@@ -1017,6 +1025,7 @@ type interfaceLogicalData struct {
 	St0AlsoOnDestroy         types.Bool                        `tfsdk:"st0_also_on_destroy"`
 	Description              types.String                      `tfsdk:"description"`
 	Disable                  types.Bool                        `tfsdk:"disable"`
+	Encapsulation            types.String                      `tfsdk:"encapsulation"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
@@ -1034,6 +1043,7 @@ type interfaceLogicalConfig struct {
 	St0AlsoOnDestroy         types.Bool                              `tfsdk:"st0_also_on_destroy"`
 	Description              types.String                            `tfsdk:"description"`
 	Disable                  types.Bool                              `tfsdk:"disable"`
+	Encapsulation            types.String                            `tfsdk:"encapsulation"`
 	RoutingInstance          types.String                            `tfsdk:"routing_instance"`
 	SecurityInboundProtocols types.Set                               `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  types.Set                               `tfsdk:"security_inbound_services"`
@@ -2291,6 +2301,7 @@ func (rscData *interfaceLogicalData) set(
 	}
 
 	setPrefix := "set interfaces " + rscData.Name.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2304,6 +2315,9 @@ func (rscData *interfaceLogicalData) set(
 				"because the provider might consider the resource deleted")
 		}
 		configSet = append(configSet, setPrefix+"disable")
+	}
+	if v := rscData.Encapsulation.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"encapsulation "+v)
 	}
 	if rscData.FamilyInet != nil {
 		configSet = append(configSet, setPrefix+"family inet")
@@ -2405,7 +2419,7 @@ func (rscData *interfaceLogicalData) set(
 		}
 	}
 	if v := rscData.RoutingInstance.ValueString(); v != "" {
-		configSet = append(configSet, junos.SetRoutingInstances+v+" interface "+rscData.Name.ValueString())
+		configSet = append(configSet, junos.SetLS+junos.RoutingInstancesWS+v+" interface "+rscData.Name.ValueString())
 	}
 	if securityZone := rscData.SecurityZone.ValueString(); securityZone != "" {
 		configSet = append(configSet, "set security zones security-zone "+securityZone+
@@ -2466,6 +2480,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 	error, // error
 ) {
 	setPrefix += "family inet address " + block.CidrIP.ValueString()
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2569,6 +2584,7 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 	error, // error
 ) {
 	setPrefix += "family inet6 address " + block.CidrIP.ValueString()
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2668,6 +2684,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) configSet(setPrefix strin
 	} else {
 		setPrefix += " "
 	}
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -2736,6 +2753,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) configSet(setPrefix strin
 
 func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client) configSet(setPrefix string) []string {
 	setPrefix += "family inet6 dhcpv6-client "
+
 	configSet := []string{
 		setPrefix + "client-identifier duid-type " + block.ClientIdentifierDuidType.ValueString(),
 		setPrefix + "client-type " + block.ClientType.ValueString(),
@@ -2786,7 +2804,6 @@ func (rscData *interfaceLogicalData) read(
 	if err != nil {
 		return err
 	}
-
 	rscData.Name = types.StringValue(name)
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
@@ -2807,6 +2824,8 @@ func (rscData *interfaceLogicalData) read(
 				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			case itemTrim == "disable":
 				rscData.Disable = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "encapsulation "):
+				rscData.Encapsulation = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "family inet6"):
 				if rscData.FamilyInet6 == nil {
 					rscData.FamilyInet6 = &interfaceLogicalBlockFamilyInet6{}
@@ -3288,7 +3307,6 @@ func (rscData *interfaceLogicalData) readSecurityZoneInboundTraffic(
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
@@ -3345,9 +3363,11 @@ func (rscData *interfaceLogicalData) delOpts(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete interfaces " + rscData.Name.ValueString() + " "
+
 	configSet := []string{
 		delPrefix + "description",
 		delPrefix + "disable",
+		delPrefix + "encapsulation",
 		delPrefix + "family inet",
 		delPrefix + "family inet6",
 		delPrefix + "tunnel",
@@ -3372,7 +3392,7 @@ func (rscData *interfaceLogicalData) delRoutingInstance(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
-		junos.DelRoutingInstances + rscData.RoutingInstance.ValueString() +
+		junos.DeleteLS + junos.RoutingInstancesWS + rscData.RoutingInstance.ValueString() +
 			" interface " + rscData.Name.ValueString(),
 	}
 

@@ -261,6 +261,8 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newPolicyoptionsPolicyStatementResource,
 		newPolicyoptionsPrefixListResource,
 		newRoutingInstanceResource,
+		newRstpResource,
+		newRstpInterfaceResource,
 		newSecurityResource,
 		newSecurityAddressBookResource,
 		newSecurityGlobalPolicyResource,
@@ -270,6 +272,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSecurityIpsecPolicyResource,
 		newSecurityIpsecProposalResource,
 		newSecurityIpsecVpnResource,
+		newSecurityLogStreamResource,
 		newSecurityNatDestinationResource,
 		newSecurityNatDestinationPoolResource,
 		newSecurityNatSourceResource,
@@ -301,6 +304,10 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSystemTacplusServerResource,
 		newVirtualChassisResource,
 		newVlanResource,
+		newVstpResource,
+		newVstpInterfaceResource,
+		newVstpVlanResource,
+		newVstpVlanGroupResource,
 	}
 }
 

@@ -223,6 +223,7 @@ func (rscData *iccpData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set protocols iccp "
+
 	configSet := []string{
 		setPrefix + "local-ip-addr " + rscData.LocalIPAddr.ValueString(),
 	}
@@ -240,15 +241,12 @@ func (rscData *iccpData) set(
 
 func (rscData *iccpData) read(
 	_ context.Context, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"protocols iccp" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {

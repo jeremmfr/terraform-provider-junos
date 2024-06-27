@@ -194,15 +194,11 @@ func Provider() *schema.Provider {
 
 			"junos_routing_options": resourceRoutingOptions(),
 
-			"junos_rstp":           resourceRstp(),
-			"junos_rstp_interface": resourceRstpInterface(),
-
 			"junos_security_dynamic_address_feed_server":                 resourceSecurityDynamicAddressFeedServer(),
 			"junos_security_dynamic_address_name":                        resourceSecurityDynamicAddressName(),
 			"junos_security_idp_custom_attack":                           resourceSecurityIdpCustomAttack(),
 			"junos_security_idp_custom_attack_group":                     resourceSecurityIdpCustomAttackGroup(),
 			"junos_security_idp_policy":                                  resourceSecurityIdpPolicy(),
-			"junos_security_log_stream":                                  resourceSecurityLogStream(),
 			"junos_security_screen":                                      resourceSecurityScreen(),
 			"junos_security_screen_whitelist":                            resourceSecurityScreenWhiteList(),
 			"junos_security_utm_custom_url_category":                     resourceSecurityUtmCustomURLCategory(),
@@ -228,11 +224,6 @@ func Provider() *schema.Provider {
 			"junos_system_ntp_server":                      resourceSystemNtpServer(),
 			"junos_system_root_authentication":             resourceSystemRootAuthentication(),
 			"junos_system_services_dhcp_localserver_group": resourceSystemServicesDhcpLocalServerGroup(),
-
-			"junos_vstp":            resourceVstp(),
-			"junos_vstp_interface":  resourceVstpInterface(),
-			"junos_vstp_vlan":       resourceVstpVlan(),
-			"junos_vstp_vlan_group": resourceVstpVlanGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"junos_system_information": dataSourceSystemInformation(),

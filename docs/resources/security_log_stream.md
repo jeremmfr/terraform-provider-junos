@@ -61,6 +61,15 @@ The following arguments are supported:
   Rate-limit for security logs.
 - **severity** (Optional, String)  
   Severity threshold for security logs.
+- **transport** (Optional, Block)  
+  Set security log transport settings.
+  - **protocol** (Optional, String)  
+    Set security log transport protocol for the device.  
+    Need to be `tcp`, `tls` or `udp`.
+  - **tcp_connections** (Optional, Number)  
+    Set tcp connection number per-stream (1..5).
+  - **tls_profile** (Optional, String)  
+    TLS profile.
 
 ## Attribute Reference
 

@@ -26,11 +26,11 @@ The following arguments are supported:
   Need to be `default` (for root level) or name of routing instance.  
   Defaults to `default`.
 - **vlan** (Required, Set of String)  
-  VLAN IDs or VLAN ID ranges [1..4094].
+  VLAN IDs or VLAN ID ranges (1..4094).
 - **backup_bridge_priority** (Optional, String)  
-  Priority of the bridge (in increments of 4k - 4k,8k,..60k) (4096..61440).
+  Priority of the bridge (in increments of 4k - 4k,8k,..60k).
 - **bridge_priority** (Optional, String)  
-  Priority of the bridge (in increments of 4k - 0,4k,8k,..60k) (0..61440).
+  Priority of the bridge (in increments of 4k - 0,4k,8k,..60k).
 - **forward_delay** (Optional, Number)  
   Time spent in listening or learning state (4..30 seconds).
 - **hello_time** (Optional, Number)  

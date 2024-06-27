@@ -293,7 +293,7 @@ func (rsc *systemTacplusServer) ImportState(
 func checkSystemTacplusServerExists(
 	_ context.Context, address string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"system tacplus-server " + address + junos.PipeDisplaySet)
@@ -321,6 +321,7 @@ func (rscData *systemTacplusServerData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set system tacplus-server " + rscData.Address.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -351,9 +352,7 @@ func (rscData *systemTacplusServerData) set(
 
 func (rscData *systemTacplusServerData) read(
 	_ context.Context, address string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"system tacplus-server " + address + junos.PipeDisplaySetRelative)
 	if err != nil {

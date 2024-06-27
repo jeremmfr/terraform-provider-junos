@@ -44,6 +44,8 @@ The following attributes are exported:
   Description for interface.
 - **disable** (Boolean)  
   Interface disabled.
+- **encapsulation** (String)  
+  Logical link-layer encapsulation.
 - **family_inet** (Block)  
   Family inet enabled and possible configuration.
   - **address** (Block List)  

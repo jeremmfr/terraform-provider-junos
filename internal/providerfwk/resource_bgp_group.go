@@ -888,7 +888,7 @@ func (rsc *bgpGroup) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("advertise_peer_as"),
 			tfdiag.ConflictConfigErrSummary,
-			"advertise_peer_as and no_advertise_peer_as can't be true in same time ",
+			"advertise_peer_as and no_advertise_peer_as can't be true in same time",
 		)
 	}
 	if !config.KeepAll.IsNull() && !config.KeepAll.IsUnknown() &&
@@ -896,7 +896,7 @@ func (rsc *bgpGroup) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("keep_all"),
 			tfdiag.ConflictConfigErrSummary,
-			"keep_all and keep_none can't be true in same time ",
+			"keep_all and keep_none can't be true in same time",
 		)
 	}
 	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() {
@@ -1084,7 +1084,7 @@ func (rsc *bgpGroup) ValidateConfig(
 						path.Root("family_evpn").AtListIndex(i).AtName("accepted_prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
 						"teardown_idle_timeout and teardown_idle_timeout_forever cannot be configured together"+
-							" in accepted_prefix_limit block in family_evpn block ",
+							" in accepted_prefix_limit block in family_evpn block",
 					)
 				}
 			}
@@ -1104,7 +1104,7 @@ func (rsc *bgpGroup) ValidateConfig(
 						path.Root("family_evpn").AtListIndex(i).AtName("prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
 						"teardown_idle_timeout and teardown_idle_timeout_forever cannot be configured together"+
-							" in prefix_limit block family_evpn block ",
+							" in prefix_limit block family_evpn block",
 					)
 				}
 			}
@@ -1147,7 +1147,7 @@ func (rsc *bgpGroup) ValidateConfig(
 						path.Root("family_inet").AtListIndex(i).AtName("accepted_prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
 						"teardown_idle_timeout and teardown_idle_timeout_forever cannot be configured together"+
-							" in accepted_prefix_limit block in family_inet block ",
+							" in accepted_prefix_limit block in family_inet block",
 					)
 				}
 			}
@@ -1167,7 +1167,7 @@ func (rsc *bgpGroup) ValidateConfig(
 						path.Root("family_inet").AtListIndex(i).AtName("prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
 						"teardown_idle_timeout and teardown_idle_timeout_forever cannot be configured together"+
-							" in prefix_limit block family_inet block ",
+							" in prefix_limit block family_inet block",
 					)
 				}
 			}
@@ -1210,7 +1210,7 @@ func (rsc *bgpGroup) ValidateConfig(
 						path.Root("family_inet6").AtListIndex(i).AtName("accepted_prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
 						"teardown_idle_timeout and teardown_idle_timeout_forever cannot be configured together"+
-							" in accepted_prefix_limit block in family_inet6 block ",
+							" in accepted_prefix_limit block in family_inet6 block",
 					)
 				}
 			}
@@ -1230,7 +1230,7 @@ func (rsc *bgpGroup) ValidateConfig(
 						path.Root("family_inet6").AtListIndex(i).AtName("prefix_limit").AtName("teardown_idle_timeout"),
 						tfdiag.ConflictConfigErrSummary,
 						"teardown_idle_timeout and teardown_idle_timeout_forever cannot be configured together"+
-							" in prefix_limit block family_inet6 block ",
+							" in prefix_limit block family_inet6 block",
 					)
 				}
 			}
@@ -1537,22 +1537,16 @@ func checkBgpGroupExists(
 	routingInstance string,
 	junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
-	var showConfig string
-	if routingInstance == "" || routingInstance == junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"protocols bgp group \"" + name + "\"" + junos.PipeDisplaySet)
-		if err != nil {
-			return false, err
-		}
-	} else {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			junos.RoutingInstancesWS + routingInstance + " " +
-			"protocols bgp group \"" + name + "\"" + junos.PipeDisplaySet)
-		if err != nil {
-			return false, err
-		}
+	showPrefix := junos.CmdShowConfig
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
+	}
+	showConfig, err := junSess.Command(showPrefix +
+		"protocols bgp group \"" + name + "\"" + junos.PipeDisplaySet)
+	if err != nil {
+		return false, err
 	}
 	if showConfig == junos.EmptyW {
 		return false, nil
@@ -1578,11 +1572,12 @@ func (rscData *bgpGroupData) set(
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set protocols bgp group \"" + rscData.Name.ValueString() + "\" "
+	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + v +
-			" protocols bgp group \"" + rscData.Name.ValueString() + "\" "
+		setPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	setPrefix += "protocols bgp group \"" + rscData.Name.ValueString() + "\" "
+
 	configSet := []string{
 		setPrefix + "type " + rscData.Type.ValueString(),
 	}
@@ -1789,23 +1784,15 @@ func (rscData *bgpGroupData) set(
 
 func (rscData *bgpGroupData) read(
 	_ context.Context, name, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
-	var showConfig string
-	if routingInstance == "" || routingInstance == junos.DefaultW {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			"protocols bgp group \"" + name + "\"" + junos.PipeDisplaySetRelative)
-		if err != nil {
-			return err
-		}
-	} else {
-		showConfig, err = junSess.Command(junos.CmdShowConfig +
-			junos.RoutingInstancesWS + routingInstance + " " +
-			"protocols bgp group \"" + name + "\"" + junos.PipeDisplaySetRelative)
-		if err != nil {
-			return err
-		}
+) error {
+	showPrefix := junos.CmdShowConfig
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
+	}
+	showConfig, err := junSess.Command(showPrefix +
+		"protocols bgp group \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	if err != nil {
+		return err
 	}
 	if showConfig != junos.EmptyW {
 		rscData.Name = types.StringValue(name)
@@ -2020,11 +2007,11 @@ func (rscData *bgpGroupData) delOpts(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := make([]string, 0)
-	delPrefix := "delete protocols bgp group \"" + rscData.Name.ValueString() + "\" "
+	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		delPrefix = junos.DelRoutingInstances + v +
-			" protocols bgp group \"" + rscData.Name.ValueString() + "\" "
+		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	delPrefix += "protocols bgp group \"" + rscData.Name.ValueString() + "\" "
 
 	configSet = append(configSet,
 		delPrefix+"accept-remote-nexthop",
@@ -2073,13 +2060,13 @@ func (rscData *bgpGroupData) delOpts(
 func (rscData *bgpGroupData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 1)
+	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		configSet[0] = junos.DelRoutingInstances + v +
-			" protocols bgp group \"" + rscData.Name.ValueString() + "\""
-	} else {
-		configSet[0] = junos.DeleteW +
-			" protocols bgp group \"" + rscData.Name.ValueString() + "\""
+		delPrefix += junos.RoutingInstancesWS + v + " "
+	}
+
+	configSet := []string{
+		delPrefix + "protocols bgp group \"" + rscData.Name.ValueString() + "\"",
 	}
 
 	return junSess.ConfigSet(configSet)

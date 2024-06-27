@@ -40,6 +40,10 @@ The following attributes are exported:
   Import policy for instance RIBs.
 - **interface** (Set of String)  
   List of interfaces in routing instance.
+- **remote_vtep_list** (Set of String)  
+  Static remote VXLAN tunnel endpoints.
+- **remote_vtep_v6_list** (Set of String)  
+  Static ipv6 remote VXLAN tunnel endpoints.
 - **route_distinguisher** (String)  
   Route distinguisher for this instance.
 - **router_id** (String)  

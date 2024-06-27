@@ -1989,9 +1989,7 @@ func (block *firewallFilterBlockTermBlockThen) configSet(setPrefix string) []str
 
 func (rscData *firewallFilterData) read(
 	_ context.Context, name, family string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"firewall family " + family + " filter \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

@@ -385,9 +385,7 @@ func (rscData *policyoptionsASPathGroupData) set(
 
 func (rscData *policyoptionsASPathGroupData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"policy-options as-path-group \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

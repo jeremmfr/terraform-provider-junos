@@ -1010,9 +1010,7 @@ func (rscData *securityIpsecVpnData) set(
 
 func (rscData *securityIpsecVpnData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security ipsec vpn \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

@@ -995,9 +995,7 @@ func (rscData *securityZoneData) set(
 
 func (rscData *securityZoneData) read(
 	_ context.Context, name string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security zones security-zone " + name + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -1155,6 +1153,7 @@ func (rscData *securityZoneData) delOpts(
 		listLinesToDelete = append(listLinesToDelete, "address-book")
 	}
 	delPrefix := "delete security zones security-zone " + rscData.Name.ValueString() + " "
+
 	configSet := make([]string, len(listLinesToDelete))
 	for k, line := range listLinesToDelete {
 		configSet[k] = delPrefix + line

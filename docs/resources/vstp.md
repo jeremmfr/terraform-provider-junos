@@ -28,11 +28,11 @@ The following arguments are supported:
   Need to be `default` (for root level) or the name of routing instance.  
   Defaults to `default`.
 - **bpdu_block_on_edge** (Optional, Boolean)  
-  Block BPDU on all interfaces configured as edge (BPDU Protect)
+  Block BPDU on all interfaces configured as edge (BPDU Protect).
 - **disable** (Optional, Boolean)  
   Disable STP.
 - **force_version_stp** (Optional, Boolean)  
-  Force protocol version stp.
+  Force protocol version STP.
 - **priority_hold_time** (Optional, Number)  
   Hold time before switching to primary priority when core domain becomes up (1..255 seconds).
 - **system_id** (Optional, Block Set)  

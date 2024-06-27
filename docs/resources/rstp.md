@@ -30,7 +30,7 @@ The following arguments are supported:
 - **backup_bridge_priority** (Optional, String)  
   Priority of the bridge (in increments of 4k - 4k,8k,..60k).
 - **bpdu_block_on_edge** (Optional, Boolean)  
-  Block BPDU on all interfaces configured as edge (BPDU Protect)
+  Block BPDU on all interfaces configured as edge (BPDU Protect).
 - **bpdu_destination_mac_address_provider_bridge_group** (Optional, Boolean)  
   Destination MAC address in the spanning tree BPDUs is 802.1ad provider bridge group address.
 - **bridge_priority** (Optional, String)  
@@ -40,7 +40,7 @@ The following arguments are supported:
 - **extended_system_id** (Optional, Number)  
   Extended system identifier (0..4095).
 - **force_version_stp** (Optional, Boolean)  
-  Force protocol version stp.
+  Force protocol version STP.
 - **forward_delay** (Optional, Number)  
   Time spent in listening or learning state (4..30 seconds).
 - **hello_time** (Optional, Number)  

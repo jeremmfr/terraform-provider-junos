@@ -219,6 +219,13 @@ func (rsc *bridgeDomain) Schema(
 							int64validator.Between(0, 16777214),
 						},
 					},
+					"vni_extend_evpn": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Extend VNI to EVPN.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
 					"decapsulate_accept_inner_vlan": schema.BoolAttribute{
 						Optional:    true,
 						Description: "Accept VXLAN packets with inner VLAN.",
@@ -254,18 +261,22 @@ func (rsc *bridgeDomain) Schema(
 							tfvalidator.BoolTrue(),
 						},
 					},
+					"static_remote_vtep_list": schema.SetAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+						Description: "Configure bridge domain specific static remote VXLAN tunnel endpoints.",
+						Validators: []validator.Set{
+							setvalidator.SizeAtLeast(1),
+							setvalidator.ValueStringsAre(
+								tfvalidator.StringIPAddress().IPv4Only(),
+							),
+						},
+					},
 					"unreachable_vtep_aging_timer": schema.Int64Attribute{
 						Optional:    true,
 						Description: "Unreachable VXLAN tunnel endpoint removal timer.",
 						Validators: []validator.Int64{
 							int64validator.Between(300, 1800),
-						},
-					},
-					"vni_extend_evpn": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Extend VNI to EVPN.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
 						},
 					},
 				},
@@ -289,41 +300,54 @@ type bridgeDomainData struct {
 	IsolatedVLAN     types.Int64             `tfsdk:"isolated_vlan"`
 	RoutingInterface types.String            `tfsdk:"routing_interface"`
 	ServiceID        types.Int64             `tfsdk:"service_id"`
-	VLANID           types.Int64             `tfsdk:"vlan_id"`
-	VLANIDList       []types.String          `tfsdk:"vlan_id_list"`
-	VXLAN            *bridgeDomainBlockVXLAN `tfsdk:"vxlan"`
+	VlanID           types.Int64             `tfsdk:"vlan_id"`
+	VlanIDList       []types.String          `tfsdk:"vlan_id_list"`
+	Vxlan            *bridgeDomainBlockVxlan `tfsdk:"vxlan"`
 }
 
 type bridgeDomainConfig struct {
-	ID               types.String            `tfsdk:"id"`
-	Name             types.String            `tfsdk:"name"`
-	RoutingInstance  types.String            `tfsdk:"routing_instance"`
-	CommunityVlans   types.Set               `tfsdk:"community_vlans"`
-	Description      types.String            `tfsdk:"description"`
-	DomainID         types.Int64             `tfsdk:"domain_id"`
-	DomainTypeBridge types.Bool              `tfsdk:"domain_type_bridge"`
-	Interface        types.Set               `tfsdk:"interface"`
-	IsolatedVLAN     types.Int64             `tfsdk:"isolated_vlan"`
-	RoutingInterface types.String            `tfsdk:"routing_interface"`
-	ServiceID        types.Int64             `tfsdk:"service_id"`
-	VLANID           types.Int64             `tfsdk:"vlan_id"`
-	VLANIDList       types.Set               `tfsdk:"vlan_id_list"`
-	VXLAN            *bridgeDomainBlockVXLAN `tfsdk:"vxlan"`
+	ID               types.String                  `tfsdk:"id"`
+	Name             types.String                  `tfsdk:"name"`
+	RoutingInstance  types.String                  `tfsdk:"routing_instance"`
+	CommunityVlans   types.Set                     `tfsdk:"community_vlans"`
+	Description      types.String                  `tfsdk:"description"`
+	DomainID         types.Int64                   `tfsdk:"domain_id"`
+	DomainTypeBridge types.Bool                    `tfsdk:"domain_type_bridge"`
+	Interface        types.Set                     `tfsdk:"interface"`
+	IsolatedVLAN     types.Int64                   `tfsdk:"isolated_vlan"`
+	RoutingInterface types.String                  `tfsdk:"routing_interface"`
+	ServiceID        types.Int64                   `tfsdk:"service_id"`
+	VlanID           types.Int64                   `tfsdk:"vlan_id"`
+	VlanIDList       types.Set                     `tfsdk:"vlan_id_list"`
+	Vxlan            *bridgeDomainBlockVxlanConfig `tfsdk:"vxlan"`
 }
 
 func (rscConfig *bridgeDomainConfig) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(rscConfig, "ID", "Name", "RoutingInstance")
 }
 
-type bridgeDomainBlockVXLAN struct {
-	VNI                        types.Int64  `tfsdk:"vni"`
+type bridgeDomainBlockVxlan struct {
+	Vni                        types.Int64    `tfsdk:"vni"`
+	VniExtendEvpn              types.Bool     `tfsdk:"vni_extend_evpn"`
+	DecapsulateAcceptInnerVlan types.Bool     `tfsdk:"decapsulate_accept_inner_vlan"`
+	EncapsulateInnerVlan       types.Bool     `tfsdk:"encapsulate_inner_vlan"`
+	IngressNodeReplication     types.Bool     `tfsdk:"ingress_node_replication"`
+	MulticastGroup             types.String   `tfsdk:"multicast_group"`
+	OvsdbManaged               types.Bool     `tfsdk:"ovsdb_managed"`
+	StaticRemoteVtepList       []types.String `tfsdk:"static_remote_vtep_list"`
+	UnreachableVtepAgingTimer  types.Int64    `tfsdk:"unreachable_vtep_aging_timer"`
+}
+
+type bridgeDomainBlockVxlanConfig struct {
+	Vni                        types.Int64  `tfsdk:"vni"`
+	VniExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
 	DecapsulateAcceptInnerVlan types.Bool   `tfsdk:"decapsulate_accept_inner_vlan"`
 	EncapsulateInnerVlan       types.Bool   `tfsdk:"encapsulate_inner_vlan"`
 	IngressNodeReplication     types.Bool   `tfsdk:"ingress_node_replication"`
 	MulticastGroup             types.String `tfsdk:"multicast_group"`
 	OvsdbManaged               types.Bool   `tfsdk:"ovsdb_managed"`
+	StaticRemoteVtepList       types.Set    `tfsdk:"static_remote_vtep_list"`
 	UnreachableVtepAgingTimer  types.Int64  `tfsdk:"unreachable_vtep_aging_timer"`
-	VNIExtendEvpn              types.Bool   `tfsdk:"vni_extend_evpn"`
 }
 
 func (rsc *bridgeDomain) ValidateConfig(
@@ -343,16 +367,16 @@ func (rsc *bridgeDomain) ValidateConfig(
 		)
 	}
 
-	if !config.VLANID.IsNull() && !config.VLANID.IsUnknown() &&
-		!config.VLANIDList.IsNull() && !config.VLANIDList.IsUnknown() {
+	if !config.VlanID.IsNull() && !config.VlanID.IsUnknown() &&
+		!config.VlanIDList.IsNull() && !config.VlanIDList.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("vlan_id"),
 			tfdiag.ConflictConfigErrSummary,
 			"vlan_id and vlan_id_list cannot be configured together",
 		)
 	}
-	if config.VXLAN != nil {
-		if config.VXLAN.VNI.IsNull() {
+	if config.Vxlan != nil {
+		if config.Vxlan.Vni.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("vxlan").AtName("vni"),
 				tfdiag.MissingConfigErrSummary,
@@ -554,17 +578,17 @@ func (rsc *bridgeDomain) ImportState(
 func checkBridgeDomainExists(
 	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
-	_ bool, err error,
+	bool, error,
 ) {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix + "bridge-domains \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(showPrefix +
+		"bridge-domains \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
-
 	if showConfig == junos.EmptyW {
 		return false, nil
 	}
@@ -590,12 +614,11 @@ func (rscData *bridgeDomainData) set(
 	path.Path, error,
 ) {
 	configSet := make([]string, 0)
-
 	setPrefix := junos.SetLS
-	routingInstance := rscData.RoutingInstance.ValueString()
-	if routingInstance != "" && routingInstance != junos.DefaultW {
-		setPrefix += junos.RoutingInstancesWS + routingInstance + " "
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+		setPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	setPrefixProtocolsEvpn := setPrefix + "protocols evpn "
 	setPrefix += "bridge-domains \"" + rscData.Name.ValueString() + "\" "
 
 	for _, v := range rscData.CommunityVlans {
@@ -625,44 +648,42 @@ func (rscData *bridgeDomainData) set(
 		configSet = append(configSet, setPrefix+"service-id "+
 			utils.ConvI64toa(rscData.ServiceID.ValueInt64()))
 	}
-	if !rscData.VLANID.IsNull() {
+	if !rscData.VlanID.IsNull() {
 		configSet = append(configSet, setPrefix+"vlan-id "+
-			utils.ConvI64toa(rscData.VLANID.ValueInt64()))
+			utils.ConvI64toa(rscData.VlanID.ValueInt64()))
 	}
-	for _, v := range rscData.VLANIDList {
+	for _, v := range rscData.VlanIDList {
 		configSet = append(configSet, setPrefix+"vlan-id-list "+v.ValueString())
 	}
-	if rscData.VXLAN != nil {
+	if rscData.Vxlan != nil {
 		configSet = append(configSet, setPrefix+"vxlan vni "+
-			utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
+			utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 
-		if rscData.VXLAN.VNIExtendEvpn.ValueBool() {
-			if routingInstance != "" && routingInstance != junos.DefaultW {
-				configSet = append(configSet, junos.SetRoutingInstances+routingInstance+" protocols evpn extended-vni-list "+
-					utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			} else {
-				configSet = append(configSet, "set protocols evpn extended-vni-list "+
-					utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			}
+		if rscData.Vxlan.VniExtendEvpn.ValueBool() {
+			configSet = append(configSet, setPrefixProtocolsEvpn+"extended-vni-list "+
+				utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 		}
-		if rscData.VXLAN.DecapsulateAcceptInnerVlan.ValueBool() {
+		if rscData.Vxlan.DecapsulateAcceptInnerVlan.ValueBool() {
 			configSet = append(configSet, setPrefix+"vxlan decapsulate-accept-inner-vlan")
 		}
-		if rscData.VXLAN.EncapsulateInnerVlan.ValueBool() {
+		if rscData.Vxlan.EncapsulateInnerVlan.ValueBool() {
 			configSet = append(configSet, setPrefix+"vxlan encapsulate-inner-vlan")
 		}
-		if rscData.VXLAN.IngressNodeReplication.ValueBool() {
+		if rscData.Vxlan.IngressNodeReplication.ValueBool() {
 			configSet = append(configSet, setPrefix+"vxlan ingress-node-replication")
 		}
-		if v := rscData.VXLAN.MulticastGroup.ValueString(); v != "" {
+		if v := rscData.Vxlan.MulticastGroup.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"vxlan multicast-group "+v)
 		}
-		if rscData.VXLAN.OvsdbManaged.ValueBool() {
+		if rscData.Vxlan.OvsdbManaged.ValueBool() {
 			configSet = append(configSet, setPrefix+"vxlan ovsdb-managed")
 		}
-		if !rscData.VXLAN.UnreachableVtepAgingTimer.IsNull() {
+		for _, v := range rscData.Vxlan.StaticRemoteVtepList {
+			configSet = append(configSet, setPrefix+"vxlan static-remote-vtep-list "+v.ValueString())
+		}
+		if !rscData.Vxlan.UnreachableVtepAgingTimer.IsNull() {
 			configSet = append(configSet, setPrefix+"vxlan unreachable-vtep-aging-timer "+
-				utils.ConvI64toa(rscData.VXLAN.UnreachableVtepAgingTimer.ValueInt64()))
+				utils.ConvI64toa(rscData.Vxlan.UnreachableVtepAgingTimer.ValueInt64()))
 		}
 	}
 
@@ -671,18 +692,16 @@ func (rscData *bridgeDomainData) set(
 
 func (rscData *bridgeDomainData) read(
 	_ context.Context, name, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix + "bridge-domains \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(showPrefix +
+		"bridge-domains \"" + name + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
 		rscData.Name = types.StringValue(name)
 		if routingInstance == "" {
@@ -726,31 +745,26 @@ func (rscData *bridgeDomainData) read(
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "vlan-id "):
-				rscData.VLANID, err = tfdata.ConvAtoi64Value(itemTrim)
+				rscData.VlanID, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "vlan-id-list "):
-				rscData.VLANIDList = append(rscData.VLANIDList, types.StringValue(itemTrim))
+				rscData.VlanIDList = append(rscData.VlanIDList, types.StringValue(itemTrim))
 			case balt.CutPrefixInString(&itemTrim, "vxlan "):
-				if rscData.VXLAN == nil {
-					rscData.VXLAN = &bridgeDomainBlockVXLAN{}
+				if rscData.Vxlan == nil {
+					rscData.Vxlan = &bridgeDomainBlockVxlan{}
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "vni "):
-					rscData.VXLAN.VNI, err = tfdata.ConvAtoi64Value(itemTrim)
+					rscData.Vxlan.Vni, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
 						return err
 					}
-					showPrefixEvpn := junos.CmdShowConfig
-					if routingInstance != "" && routingInstance != junos.DefaultW {
-						showPrefixEvpn += junos.RoutingInstancesWS + routingInstance + " "
-					}
-					showConfigEvpn, err := junSess.Command(showPrefixEvpn + "protocols evpn" + junos.PipeDisplaySetRelative)
+					showConfigEvpn, err := junSess.Command(showPrefix + "protocols evpn" + junos.PipeDisplaySetRelative)
 					if err != nil {
 						return err
 					}
-
 					if showConfigEvpn != junos.EmptyW {
 						for _, itemEvpn := range strings.Split(showConfigEvpn, "\n") {
 							if strings.Contains(itemEvpn, junos.XMLStartTagConfigOut) {
@@ -759,25 +773,27 @@ func (rscData *bridgeDomainData) read(
 							if strings.Contains(itemEvpn, junos.XMLEndTagConfigOut) {
 								break
 							}
-							if strings.HasPrefix(itemEvpn, junos.SetLS+"extended-vni-list "+itemTrim) {
-								rscData.VXLAN.VNIExtendEvpn = types.BoolValue(true)
+							if itemEvpn == junos.SetLS+"extended-vni-list "+itemTrim {
+								rscData.Vxlan.VniExtendEvpn = types.BoolValue(true)
 
 								break
 							}
 						}
 					}
 				case itemTrim == "decapsulate-accept-inner-vlan":
-					rscData.VXLAN.DecapsulateAcceptInnerVlan = types.BoolValue(true)
+					rscData.Vxlan.DecapsulateAcceptInnerVlan = types.BoolValue(true)
 				case itemTrim == "encapsulate-inner-vlan":
-					rscData.VXLAN.EncapsulateInnerVlan = types.BoolValue(true)
+					rscData.Vxlan.EncapsulateInnerVlan = types.BoolValue(true)
 				case itemTrim == "ingress-node-replication":
-					rscData.VXLAN.IngressNodeReplication = types.BoolValue(true)
+					rscData.Vxlan.IngressNodeReplication = types.BoolValue(true)
 				case balt.CutPrefixInString(&itemTrim, "multicast-group "):
-					rscData.VXLAN.MulticastGroup = types.StringValue(itemTrim)
+					rscData.Vxlan.MulticastGroup = types.StringValue(itemTrim)
 				case itemTrim == "ovsdb-managed":
-					rscData.VXLAN.OvsdbManaged = types.BoolValue(true)
+					rscData.Vxlan.OvsdbManaged = types.BoolValue(true)
+				case balt.CutPrefixInString(&itemTrim, "static-remote-vtep-list "):
+					rscData.Vxlan.StaticRemoteVtepList = append(rscData.Vxlan.StaticRemoteVtepList, types.StringValue(itemTrim))
 				case balt.CutPrefixInString(&itemTrim, "unreachable-vtep-aging-timer "):
-					rscData.VXLAN.UnreachableVtepAgingTimer, err = tfdata.ConvAtoi64Value(itemTrim)
+					rscData.Vxlan.UnreachableVtepAgingTimer, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
 						return err
 					}
@@ -794,8 +810,9 @@ func (rscData *bridgeDomainData) delOpts(
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		delPrefix = junos.DelRoutingInstances + v + " "
+		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
+	delPrefixProtocolsEvpn := delPrefix + "protocols evpn "
 	delPrefix += "bridge-domains \"" + rscData.Name.ValueString() + "\" "
 
 	configSet := []string{
@@ -813,15 +830,10 @@ func (rscData *bridgeDomainData) delOpts(
 	for _, v := range rscData.Interface {
 		configSet = append(configSet, delPrefix+"interface "+v.ValueString())
 	}
-	if rscData.VXLAN != nil {
-		if rscData.VXLAN.VNIExtendEvpn.ValueBool() {
-			if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-				configSet = append(configSet, junos.DelRoutingInstances+v+" "+
-					"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			} else {
-				configSet = append(configSet, junos.DeleteLS+
-					"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			}
+	if rscData.Vxlan != nil {
+		if rscData.Vxlan.VniExtendEvpn.ValueBool() {
+			configSet = append(configSet, delPrefixProtocolsEvpn+
+				"extended-vni-list "+utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 		}
 	}
 
@@ -831,22 +843,18 @@ func (rscData *bridgeDomainData) delOpts(
 func (rscData *bridgeDomainData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 0, 1)
+	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		configSet = append(configSet, junos.DelRoutingInstances+v+
-			" bridge-domains \""+rscData.Name.ValueString()+"\"")
-	} else {
-		configSet = append(configSet, "delete bridge-domains \""+rscData.Name.ValueString()+"\"")
+		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
-	if rscData.VXLAN != nil {
-		if rscData.VXLAN.VNIExtendEvpn.ValueBool() {
-			if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-				configSet = append(configSet, junos.DelRoutingInstances+v+" "+
-					"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			} else {
-				configSet = append(configSet, junos.DeleteLS+
-					"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.VXLAN.VNI.ValueInt64()))
-			}
+
+	configSet := []string{
+		delPrefix + "bridge-domains \"" + rscData.Name.ValueString() + "\"",
+	}
+	if rscData.Vxlan != nil {
+		if rscData.Vxlan.VniExtendEvpn.ValueBool() {
+			configSet = append(configSet, delPrefix+
+				"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 		}
 	}
 

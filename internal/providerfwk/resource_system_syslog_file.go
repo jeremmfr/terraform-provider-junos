@@ -810,9 +810,7 @@ func (rscData *systemSyslogFileData) set(
 
 func (rscData *systemSyslogFileData) read(
 	_ context.Context, filename string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"system syslog file \"" + filename + "\"" + junos.PipeDisplaySetRelative)
 	if err != nil {

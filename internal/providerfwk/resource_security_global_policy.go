@@ -691,9 +691,7 @@ func (rscData *securityGlobalPolicyData) set(
 
 func (rscData *securityGlobalPolicyData) read(
 	_ context.Context, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security policies global" + junos.PipeDisplaySetRelative)
 	if err != nil {

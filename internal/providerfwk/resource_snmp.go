@@ -482,8 +482,8 @@ func (rscData *snmpData) set(
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set snmp "
 	configSet := make([]string, 0)
+	setPrefix := "set snmp "
 
 	if rscData.ARP.ValueBool() {
 		configSet = append(configSet, setPrefix+"arp")
@@ -561,9 +561,7 @@ func (rscData *snmpData) set(
 
 func (rscData *snmpData) read(
 	_ context.Context, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"snmp" + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -662,6 +660,7 @@ func (rscData *snmpData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete snmp "
+
 	configSet := []string{
 		delPrefix + "arp",
 		delPrefix + "contact",

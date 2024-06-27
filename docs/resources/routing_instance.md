@@ -40,6 +40,10 @@ The following arguments are supported:
   Export policy for instance RIBs.
 - **instance_import** (Optional, List of String)  
   Import policy for instance RIBs.
+- **remote_vtep_list** (Optional, Set of String)  
+  Configure static remote VXLAN tunnel endpoints.
+- **remote_vtep_v6_list** (Optional, Set of String)  
+  Configure static ipv6 remote VXLAN tunnel endpoints.
 - **route_distinguisher** (Optional, String)  
   Route distinguisher for this instance.
 - **router_id** (Optional, String)  

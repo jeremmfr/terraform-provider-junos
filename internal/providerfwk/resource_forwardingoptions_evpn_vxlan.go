@@ -311,7 +311,7 @@ func (rscData *forwardingoptionsEvpnVxlanData) set(
 	configSet := make([]string, 0)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		setPrefix = junos.SetRoutingInstances + v + " "
+		setPrefix += junos.RoutingInstancesWS + v + " "
 	}
 	setPrefix += "forwarding-options evpn-vxlan "
 
@@ -324,14 +324,11 @@ func (rscData *forwardingoptionsEvpnVxlanData) set(
 
 func (rscData *forwardingoptionsEvpnVxlanData) read(
 	_ context.Context, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-
 	showConfig, err := junSess.Command(showPrefix +
 		"forwarding-options evpn-vxlan" + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -366,7 +363,7 @@ func (rscData *forwardingoptionsEvpnVxlanData) del(
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
-		delPrefix = junos.DelRoutingInstances + v + " "
+		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
 	delPrefix += "forwarding-options evpn-vxlan "
 

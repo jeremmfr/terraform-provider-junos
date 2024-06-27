@@ -604,8 +604,8 @@ func (rscData *virtualChassisData) set(
 ) (
 	path.Path, error,
 ) {
-	setPrefix := "set virtual-chassis "
 	configSet := make([]string, 0)
+	setPrefix := "set virtual-chassis "
 
 	if rscData.AutoSWUpdate.ValueBool() {
 		configSet = append(configSet, setPrefix+"auto-sw-update")
@@ -689,8 +689,8 @@ func (rscData *virtualChassisData) set(
 }
 
 func (block *virtualChassisBlockMember) configSet() []string {
-	setPrefix := "set virtual-chassis member " + utils.ConvI64toa(block.ID.ValueInt64()) + " "
 	configSet := make([]string, 0, 1)
+	setPrefix := "set virtual-chassis member " + utils.ConvI64toa(block.ID.ValueInt64()) + " "
 
 	if v := block.Location.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"location \""+v+"\"")
@@ -714,6 +714,7 @@ func (block *virtualChassisBlockMember) configSet() []string {
 
 func (block *virtualChassisBlockTraceoptionsBlockFile) configSet() []string {
 	setPrefix := "set virtual-chassis traceoptions file "
+
 	configSet := []string{
 		setPrefix + "\"" + block.Name.ValueString() + "\"",
 	}
@@ -744,9 +745,7 @@ func (block *virtualChassisBlockTraceoptionsBlockFile) configSet() []string {
 
 func (rscData *virtualChassisData) read(
 	_ context.Context, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"virtual-chassis" + junos.PipeDisplaySetRelative)
 	if err != nil {

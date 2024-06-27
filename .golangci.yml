@@ -1,44 +1,39 @@
 run:
   timeout: 5m
+
 linters:
   enable-all: true
   disable:
-    - maligned # deprecated 1.38
-    - interfacer # deprecated 1.38
-    - scopelint # deprecated 1.39
-    - golint # deprecated 1.41
-    - exhaustivestruct # deprecated 1.46
-    - ifshort # deprecated 1.48
-    - deadcode # deprecated 1.49
-    - structcheck # deprecated 1.49
-    - varcheck # deprecated 1.49
-    - funlen
-    - dupl
-    - wsl
-    - gomnd
-    - goerr113 
-    - nestif
-    - exhaustruct
-    - paralleltest
+    # deprecated
+    - execinquery # deprecated 1.58.0
+    - gomnd # deprecated 1.58.0
+    # unwanted
     - cyclop
-    - forcetypeassert
-    - gomoddirectives
-    - varnamelen
-    - nonamedreturns
-    - maintidx
-    - execinquery
-    - nosnakecase
-    - musttag
     - depguard
+    - dupl
+    - err113
+    - exhaustruct
+    - forcetypeassert
+    - funlen
+    - gomoddirectives
     - gosec
     - inamedparam
     - ireturn
+    - maintidx
+    - mnd
+    - musttag
+    - nestif
+    - nonamedreturns
+    - paralleltest
+    - varnamelen
+    - wsl
+
 linters-settings:
   gci:
     custom-order: true
     sections:
       - standard
-      - prefix(github.com/jeremmfr/terraform-provider-junos/)
+      - localModule
       - default
   gocognit:
     # minimal code complexity to report, 30 by default
@@ -52,8 +47,6 @@ linters-settings:
     # minimal code complexity to report, 30 by default
     min-complexity: 100
   gofumpt:
-    module-path: github.com/jeremmfr/terraform-provider-junos
-    # Choose whether to use the extra rules.
     extra-rules: true
   govet:
     enable-all: true
@@ -91,6 +84,7 @@ linters-settings:
       - name: import-alias-naming
       - name: import-shadowing
       - name: unhandled-error
+
 issues:
   exclude-rules:
     - text: "github.com/jeremmfr/terraform-provider-junos/internal"

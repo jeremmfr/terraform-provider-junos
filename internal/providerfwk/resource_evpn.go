@@ -581,7 +581,11 @@ func (rsc *evpn) ImportState(
 }
 
 func (rscData *evpnData) fillID() {
-	rscData.ID = types.StringValue(rscData.RoutingInstance.ValueString())
+	if v := rscData.RoutingInstance.ValueString(); v != "" {
+		rscData.ID = types.StringValue(v)
+	} else {
+		rscData.ID = types.StringValue(junos.DefaultW)
+	}
 }
 
 func (rscData *evpnData) nullID() bool {
@@ -593,6 +597,7 @@ func (rscData *evpnData) set(
 ) (
 	path.Path, error,
 ) {
+	configSet := make([]string, 0)
 	setPrefix := junos.SetLS
 	setSwitchRIPrefix := junos.SetLS
 	switch routingInstance := rscData.RoutingInstance.ValueString(); routingInstance {
@@ -609,14 +614,12 @@ func (rscData *evpnData) set(
 			return path.Root("default_gateway"),
 				fmt.Errorf("default_gateway cannot be configured when routing_instance = %q", junos.DefaultW)
 		}
-		setPrefix += "protocols evpn "
 		setSwitchRIPrefix += "switch-options "
 	default:
-		setPrefix += junos.RoutingInstancesWS + routingInstance + " protocols evpn "
+		setPrefix += junos.RoutingInstancesWS + routingInstance + " "
 		setSwitchRIPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-
-	configSet := make([]string, 0)
+	setPrefix += "protocols evpn "
 
 	if rscData.RoutingInstanceEvpn.ValueBool() {
 		if rscData.SwitchOrRIOptions == nil {
@@ -686,31 +689,30 @@ func (rscData *evpnData) set(
 
 func (rscData *evpnData) read(
 	_ context.Context, routingInstance string, junSess *junos.Session,
-) (
-	err error,
-) {
+) error {
 	showPrefix := junos.CmdShowConfig
-	showSwitchRIPrefix := junos.CmdShowConfig
-	switch routingInstance {
-	case junos.DefaultW, "":
-		showPrefix += "protocols evpn"
-		showSwitchRIPrefix += "switch-options"
-	default:
-		showPrefix += junos.RoutingInstancesWS + routingInstance + " protocols evpn"
-		showSwitchRIPrefix += junos.RoutingInstancesWS + routingInstance
+	showSwitchRI := junos.CmdShowConfig
+	if routingInstance != "" && routingInstance != junos.DefaultW {
+		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
+		showSwitchRI += junos.RoutingInstancesWS + routingInstance
+	} else {
+		showSwitchRI += "switch-options"
 	}
-
-	showConfig, err := junSess.Command(showPrefix + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(showPrefix +
+		"protocols evpn" + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-	showConfigSwitchRI, err := junSess.Command(showSwitchRIPrefix + junos.PipeDisplaySetRelative)
+	showConfigSwitchRI, err := junSess.Command(showSwitchRI + junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-
 	if showConfig != junos.EmptyW {
-		rscData.RoutingInstance = types.StringValue(routingInstance)
+		if routingInstance == "" {
+			rscData.RoutingInstance = types.StringValue(junos.DefaultW)
+		} else {
+			rscData.RoutingInstance = types.StringValue(routingInstance)
+		}
 		rscData.fillID()
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
@@ -801,12 +803,12 @@ func (rscData *evpnData) delOpts(
 	delSwitchRIPrefix := junos.DeleteLS
 	switch routingInstance := rscData.RoutingInstance.ValueString(); routingInstance {
 	case junos.DefaultW, "":
-		delPrefix += "protocols evpn "
 		delSwitchRIPrefix += "switch-options "
 	default:
-		delPrefix += junos.RoutingInstancesWS + routingInstance + " protocols evpn "
+		delPrefix += junos.RoutingInstancesWS + routingInstance + " "
 		delSwitchRIPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
+	delPrefix += "protocols evpn "
 
 	configSet := []string{
 		delPrefix + "default-gateway",
@@ -835,19 +837,18 @@ func (rscData *evpnData) delOpts(
 func (rscData *evpnData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	delLine := junos.DeleteLS
+	delPrefix := junos.DeleteLS
 	delSwitchRIPrefix := junos.DeleteLS
 	switch routingInstance := rscData.RoutingInstance.ValueString(); routingInstance {
 	case junos.DefaultW, "":
-		delLine += "protocols evpn"
 		delSwitchRIPrefix += "switch-options "
 	default:
-		delLine += junos.RoutingInstancesWS + routingInstance + " protocols evpn"
+		delPrefix += junos.RoutingInstancesWS + routingInstance + " "
 		delSwitchRIPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
 
 	configSet := []string{
-		delLine,
+		delPrefix + "protocols evpn",
 	}
 
 	if rscData.RoutingInstanceEvpn.ValueBool() {

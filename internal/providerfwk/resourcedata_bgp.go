@@ -116,6 +116,7 @@ func (block *bgpBlockBfdLivenessDetection) configSet(setPrefix string) []string 
 
 func (block *bgpBlockBgpErrorTolerance) configSet(setPrefix string) []string {
 	setPrefix += "bgp-error-tolerance"
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -137,6 +138,7 @@ func (block *bgpBlockBgpErrorTolerance) configSet(setPrefix string) []string {
 
 func (block *bgpBlockBgpMultipath) configSet(setPrefix string) []string {
 	setPrefix += "multipath"
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -162,6 +164,7 @@ func (block *bgpBlockFamily) configSet(
 	error, // error
 ) {
 	setPrefix += block.NlriType.ValueString() + " "
+
 	configSet := []string{
 		setPrefix,
 	}
@@ -216,6 +219,7 @@ func (block *bgpBlockFamily) configSet(
 
 func (block *bgpBlockGracefulRestart) configSet(setPrefix string) []string {
 	setPrefix += "graceful-restart"
+
 	configSet := []string{
 		setPrefix,
 	}
