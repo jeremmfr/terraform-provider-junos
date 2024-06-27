@@ -32,6 +32,7 @@ resource "junos_routing_instance" "testacc_bridge_ri" {
   route_distinguisher   = "10:11"
   vrf_target            = "target:1:200"
   vtep_source_interface = junos_interface_logical.testacc_bridge_ri.name
+  remote_vtep_list      = ["192.0.2.136", "192.0.2.36"]
 }
 resource "junos_evpn" "testacc_bridge_ri" {
   routing_instance = junos_routing_instance.testacc_bridge_ri.name

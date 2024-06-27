@@ -10,6 +10,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -87,6 +88,28 @@ func (rsc *switchOptions) Schema(
 				Optional:    true,
 				Description: "Clean supported lines when destroy this resource.",
 			},
+			"remote_vtep_list": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Configure static remote VXLAN tunnel endpoints.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.ValueStringsAre(
+						tfvalidator.StringIPAddress().IPv4Only(),
+					),
+				},
+			},
+			"remote_vtep_v6_list": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Configure static ipv6 remote VXLAN tunnel endpoints.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.ValueStringsAre(
+						tfvalidator.StringIPAddress().IPv6Only(),
+					),
+				},
+			},
 			"service_id": schema.Int64Attribute{
 				Optional:    true,
 				Description: "Service ID required if multi-chassis AE is part of a bridge-domain.",
@@ -108,10 +131,12 @@ func (rsc *switchOptions) Schema(
 }
 
 type switchOptionsData struct {
-	ID                  types.String `tfsdk:"id"`
-	CleanOnDestroy      types.Bool   `tfsdk:"clean_on_destroy"`
-	ServiceID           types.Int64  `tfsdk:"service_id"`
-	VTEPSourceInterface types.String `tfsdk:"vtep_source_interface"`
+	ID                  types.String   `tfsdk:"id"`
+	CleanOnDestroy      types.Bool     `tfsdk:"clean_on_destroy"`
+	RemoteVtepList      []types.String `tfsdk:"remote_vtep_list"`
+	RemoteVtepV6List    []types.String `tfsdk:"remote_vtep_v6_list"`
+	ServiceID           types.Int64    `tfsdk:"service_id"`
+	VTEPSourceInterface types.String   `tfsdk:"vtep_source_interface"`
 }
 
 func (rsc *switchOptions) Create(
@@ -225,6 +250,12 @@ func (rscData *switchOptionsData) set(
 	configSet := make([]string, 0)
 	setPrefix := "set switch-options "
 
+	for _, v := range rscData.RemoteVtepList {
+		configSet = append(configSet, setPrefix+"remote-vtep-list "+v.ValueString())
+	}
+	for _, v := range rscData.RemoteVtepV6List {
+		configSet = append(configSet, setPrefix+"remote-vtep-v6-list "+v.ValueString())
+	}
 	if !rscData.ServiceID.IsNull() {
 		configSet = append(configSet, setPrefix+"service-id "+
 			utils.ConvI64toa(rscData.ServiceID.ValueInt64()))
@@ -255,6 +286,10 @@ func (rscData *switchOptionsData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
+			case balt.CutPrefixInString(&itemTrim, "remote-vtep-list "):
+				rscData.RemoteVtepList = append(rscData.RemoteVtepList, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "remote-vtep-v6-list "):
+				rscData.RemoteVtepV6List = append(rscData.RemoteVtepV6List, types.StringValue(itemTrim))
 			case balt.CutPrefixInString(&itemTrim, "service-id "):
 				rscData.ServiceID, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
@@ -275,6 +310,8 @@ func (rscData *switchOptionsData) del(
 	delPrefix := "delete switch-options "
 
 	configSet := []string{
+		delPrefix + "remote-vtep-list",
+		delPrefix + "remote-vtep-v6-list",
 		delPrefix + "service-id",
 		delPrefix + "vtep-source-interface",
 	}

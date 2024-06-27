@@ -11,6 +11,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -169,6 +170,28 @@ func (rsc *routingInstance) Schema(
 					),
 				},
 			},
+			"remote_vtep_list": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Configure static remote VXLAN tunnel endpoints.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.ValueStringsAre(
+						tfvalidator.StringIPAddress().IPv4Only(),
+					),
+				},
+			},
+			"remote_vtep_v6_list": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Configure static ipv6 remote VXLAN tunnel endpoints.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.ValueStringsAre(
+						tfvalidator.StringIPAddress().IPv6Only(),
+					),
+				},
+			},
 			"route_distinguisher": schema.StringAttribute{
 				Optional:    true,
 				Description: "Route distinguisher for this instance.",
@@ -270,6 +293,8 @@ type routingInstanceData struct {
 	Description             types.String   `tfsdk:"description"`
 	InstanceExport          []types.String `tfsdk:"instance_export"`
 	InstanceImport          []types.String `tfsdk:"instance_import"`
+	RemoteVtepList          []types.String `tfsdk:"remote_vtep_list"`
+	RemoteVtepV6List        []types.String `tfsdk:"remote_vtep_v6_list"`
 	RouteDistinguisher      types.String   `tfsdk:"route_distinguisher"`
 	RouterID                types.String   `tfsdk:"router_id"`
 	VRFExport               []types.String `tfsdk:"vrf_export"`
@@ -292,6 +317,8 @@ type routingInstanceConfig struct {
 	Description             types.String `tfsdk:"description"`
 	InstanceExport          types.List   `tfsdk:"instance_export"`
 	InstanceImport          types.List   `tfsdk:"instance_import"`
+	RemoteVtepList          types.Set    `tfsdk:"remote_vtep_list"`
+	RemoteVtepV6List        types.Set    `tfsdk:"remote_vtep_v6_list"`
 	RouteDistinguisher      types.String `tfsdk:"route_distinguisher"`
 	RouterID                types.String `tfsdk:"router_id"`
 	VRFExport               types.List   `tfsdk:"vrf_export"`
@@ -586,6 +613,12 @@ func (rscData *routingInstanceData) set(
 	for _, v := range rscData.InstanceImport {
 		configSet = append(configSet, setPrefix+junos.RoutingOptionsWS+"instance-import \""+v.ValueString()+"\"")
 	}
+	for _, v := range rscData.RemoteVtepList {
+		configSet = append(configSet, setPrefix+"remote-vtep-list "+v.ValueString())
+	}
+	for _, v := range rscData.RemoteVtepV6List {
+		configSet = append(configSet, setPrefix+"remote-vtep-v6-list "+v.ValueString())
+	}
 	if v := rscData.VTEPSourceInterface.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"vtep-source-interface "+v)
 	}
@@ -617,6 +650,10 @@ func (rscData *routingInstanceData) read(
 				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "instance-type "):
 				rscData.Type = types.StringValue(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "remote-vtep-list "):
+				rscData.RemoteVtepList = append(rscData.RemoteVtepList, types.StringValue(itemTrim))
+			case balt.CutPrefixInString(&itemTrim, "remote-vtep-v6-list "):
+				rscData.RemoteVtepV6List = append(rscData.RemoteVtepV6List, types.StringValue(itemTrim))
 			case balt.CutPrefixInString(&itemTrim, "route-distinguisher "):
 				rscData.RouteDistinguisher = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, junos.RoutingOptionsWS+"autonomous-system "):
@@ -658,25 +695,27 @@ func (rscData *routingInstanceData) read(
 func (rscData *routingInstanceData) delOpts(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 0)
-	setPrefix := junos.DeleteLS + junos.RoutingInstancesWS + rscData.Name.ValueString() + " "
+	configSet := make([]string, 0, 50)
+	delPrefix := junos.DeleteLS + junos.RoutingInstancesWS + rscData.Name.ValueString() + " "
 	configSet = append(configSet,
-		setPrefix+"description",
-		setPrefix+junos.RoutingOptionsWS+"autonomous-system",
-		setPrefix+junos.RoutingOptionsWS+"instance-export",
-		setPrefix+junos.RoutingOptionsWS+"instance-import",
-		setPrefix+junos.RoutingOptionsWS+"router-id",
-		setPrefix+"vtep-source-interface",
+		delPrefix+"description",
+		delPrefix+junos.RoutingOptionsWS+"autonomous-system",
+		delPrefix+junos.RoutingOptionsWS+"instance-export",
+		delPrefix+junos.RoutingOptionsWS+"instance-import",
+		delPrefix+"remote-vtep-list",
+		delPrefix+"remote-vtep-v6-list",
+		delPrefix+junos.RoutingOptionsWS+"router-id",
+		delPrefix+"vtep-source-interface",
 	)
 	if !rscData.ConfigureTypeSingly.ValueBool() {
-		configSet = append(configSet, setPrefix+"instance-type")
+		configSet = append(configSet, delPrefix+"instance-type")
 	}
 	if !rscData.ConfigureRDVrfOptSingly.ValueBool() {
 		configSet = append(configSet,
-			setPrefix+"route-distinguisher",
-			setPrefix+"vrf-export",
-			setPrefix+"vrf-import",
-			setPrefix+"vrf_target",
+			delPrefix+"route-distinguisher",
+			delPrefix+"vrf-export",
+			delPrefix+"vrf-import",
+			delPrefix+"vrf_target",
 		)
 	}
 

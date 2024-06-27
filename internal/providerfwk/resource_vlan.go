@@ -270,6 +270,17 @@ func (rsc *vlan) Schema(
 							tfvalidator.BoolTrue(),
 						},
 					},
+					"static_remote_vtep_list": schema.SetAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+						Description: "Configure vlan specific static remote VXLAN tunnel endpoints.",
+						Validators: []validator.Set{
+							setvalidator.SizeAtLeast(1),
+							setvalidator.ValueStringsAre(
+								tfvalidator.StringIPAddress().IPv4Only(),
+							),
+						},
+					},
 					"translation_vni": schema.Int64Attribute{
 						Optional:    true,
 						Description: "Translated VXLAN identifier.",
@@ -313,22 +324,22 @@ type vlanData struct {
 }
 
 type vlanConfig struct {
-	ID                  types.String    `tfsdk:"id"`
-	Name                types.String    `tfsdk:"name"`
-	RoutingInstance     types.String    `tfsdk:"routing_instance"`
-	CommunityVlans      types.Set       `tfsdk:"community_vlans"`
-	Description         types.String    `tfsdk:"description"`
-	ForwardFilterInput  types.String    `tfsdk:"forward_filter_input"`
-	ForwardFilterOutput types.String    `tfsdk:"forward_filter_output"`
-	ForwardFloodInput   types.String    `tfsdk:"forward_flood_input"`
-	IsolatedVlan        types.String    `tfsdk:"isolated_vlan"`
-	L3Interface         types.String    `tfsdk:"l3_interface"`
-	NoARPSuppression    types.Bool      `tfsdk:"no_arp_suppression"`
-	PrivateVlan         types.String    `tfsdk:"private_vlan"`
-	ServiceID           types.Int64     `tfsdk:"service_id"`
-	VlanID              types.String    `tfsdk:"vlan_id"`
-	VlanIDList          types.Set       `tfsdk:"vlan_id_list"`
-	Vxlan               *vlanBlockVxlan `tfsdk:"vxlan"`
+	ID                  types.String          `tfsdk:"id"`
+	Name                types.String          `tfsdk:"name"`
+	RoutingInstance     types.String          `tfsdk:"routing_instance"`
+	CommunityVlans      types.Set             `tfsdk:"community_vlans"`
+	Description         types.String          `tfsdk:"description"`
+	ForwardFilterInput  types.String          `tfsdk:"forward_filter_input"`
+	ForwardFilterOutput types.String          `tfsdk:"forward_filter_output"`
+	ForwardFloodInput   types.String          `tfsdk:"forward_flood_input"`
+	IsolatedVlan        types.String          `tfsdk:"isolated_vlan"`
+	L3Interface         types.String          `tfsdk:"l3_interface"`
+	NoARPSuppression    types.Bool            `tfsdk:"no_arp_suppression"`
+	PrivateVlan         types.String          `tfsdk:"private_vlan"`
+	ServiceID           types.Int64           `tfsdk:"service_id"`
+	VlanID              types.String          `tfsdk:"vlan_id"`
+	VlanIDList          types.Set             `tfsdk:"vlan_id_list"`
+	Vxlan               *vlanBlockVxlanConfig `tfsdk:"vxlan"`
 }
 
 func (rscConfig *vlanConfig) isEmpty() bool {
@@ -336,12 +347,25 @@ func (rscConfig *vlanConfig) isEmpty() bool {
 }
 
 type vlanBlockVxlan struct {
+	Vni                       types.Int64    `tfsdk:"vni"`
+	VniExtendEvpn             types.Bool     `tfsdk:"vni_extend_evpn"`
+	EncapsulateInnerVlan      types.Bool     `tfsdk:"encapsulate_inner_vlan"`
+	IngressNodeReplication    types.Bool     `tfsdk:"ingress_node_replication"`
+	MulticastGroup            types.String   `tfsdk:"multicast_group"`
+	OvsdbManaged              types.Bool     `tfsdk:"ovsdb_managed"`
+	StaticRemoteVtepList      []types.String `tfsdk:"static_remote_vtep_list"`
+	TranslationVni            types.Int64    `tfsdk:"translation_vni"`
+	UnreachableVtepAgingTimer types.Int64    `tfsdk:"unreachable_vtep_aging_timer"`
+}
+
+type vlanBlockVxlanConfig struct {
 	Vni                       types.Int64  `tfsdk:"vni"`
 	VniExtendEvpn             types.Bool   `tfsdk:"vni_extend_evpn"`
 	EncapsulateInnerVlan      types.Bool   `tfsdk:"encapsulate_inner_vlan"`
 	IngressNodeReplication    types.Bool   `tfsdk:"ingress_node_replication"`
 	MulticastGroup            types.String `tfsdk:"multicast_group"`
 	OvsdbManaged              types.Bool   `tfsdk:"ovsdb_managed"`
+	StaticRemoteVtepList      types.Set    `tfsdk:"static_remote_vtep_list"`
 	TranslationVni            types.Int64  `tfsdk:"translation_vni"`
 	UnreachableVtepAgingTimer types.Int64  `tfsdk:"unreachable_vtep_aging_timer"`
 }
@@ -700,6 +724,9 @@ func (rscData *vlanData) set(
 		if rscData.Vxlan.OvsdbManaged.ValueBool() {
 			configSet = append(configSet, setPrefix+"vxlan ovsdb-managed")
 		}
+		for _, v := range rscData.Vxlan.StaticRemoteVtepList {
+			configSet = append(configSet, setPrefix+"vxlan static-remote-vtep-list "+v.ValueString())
+		}
 		if !rscData.Vxlan.TranslationVni.IsNull() {
 			configSet = append(configSet, setPrefix+"vxlan translation-vni "+
 				utils.ConvI64toa(rscData.Vxlan.TranslationVni.ValueInt64()))
@@ -804,6 +831,8 @@ func (rscData *vlanData) read(
 					rscData.Vxlan.MulticastGroup = types.StringValue(itemTrim)
 				case itemTrim == "ovsdb-managed":
 					rscData.Vxlan.OvsdbManaged = types.BoolValue(true)
+				case balt.CutPrefixInString(&itemTrim, "static-remote-vtep-list "):
+					rscData.Vxlan.StaticRemoteVtepList = append(rscData.Vxlan.StaticRemoteVtepList, types.StringValue(itemTrim))
 				case balt.CutPrefixInString(&itemTrim, "translation-vni "):
 					rscData.Vxlan.TranslationVni, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
