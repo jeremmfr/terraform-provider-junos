@@ -35,6 +35,8 @@ The following arguments are supported:
   Description for interface.
 - **disable** (Optional, Boolean)  
   Disable this logical interface.
+- **encapsulation** (Optional, String)  
+  Logical link-layer encapsulation.
 - **family_inet** (Optional, Block)  
   Enable family inet and add configurations if specified.
   - **address** (Optional, Block List)  

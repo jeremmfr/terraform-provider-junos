@@ -44,5 +44,6 @@ resource "junos_interface_logical" "testacc_interface_logical" {
   }
 }
 resource "junos_interface_logical" "testacc_interface_logical2" {
-  name = "${junos_interface_physical.testacc_interface_logical_phy.name}.101"
+  name          = "${junos_interface_physical.testacc_interface_logical_phy.name}.101"
+  encapsulation = "dix"
 }
