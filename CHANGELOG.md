@@ -1,6 +1,43 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.8.0 (2024-06-27)
+
+ENHANCEMENTS:
+
+* **resource/junos_bridge_domain**:  add `static_remote_vtep_list` argument inside `vxlan` block argument (Fix [#672](https://github.com/jeremmfr/terraform-provider-junos/issues/672))
+* **resource/junos_interface_logical**: add `encapsulation` argument (Fix [#674](https://github.com/jeremmfr/terraform-provider-junos/issues/674))
+* **data-source/junos_interface_logical**: add `encapsulation` attribute like resource
+* **resource/junos_routing_instance**:  add `remote_vtep_list` and `remote_vtep_v6_list` arguments (Fix [#673](https://github.com/jeremmfr/terraform-provider-junos/issues/673))
+* **data-source/junos_routing_instance**: add `remote_vtep_list` and `remote_vtep_v6_list` attributes like resource
+* **resource/junos_rstp**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*
+* **resource/junos_rstp_interface**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*
+* **resource/junos_security_log_stream**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `transport` block argument (Fix [#675](https://github.com/jeremmfr/terraform-provider-junos/issues/675))
+* **resource/junos_switch_options**:  add `remote_vtep_list` and `remote_vtep_v6_list` arguments
+* **resource/junos_vlan**:  add `static_remote_vtep_list` argument inside `vxlan` block argument
+* **resource/junos_vstp**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*
+* **resource/junos_vstp_interface**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*
+* **resource/junos_vstp_vlan**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*
+* **resource/junos_vstp_vlan_group**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*
+
 ## v2.7.0 (2024-05-03)
 
 FEATURES:
