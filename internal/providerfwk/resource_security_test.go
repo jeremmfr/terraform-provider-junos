@@ -22,8 +22,7 @@ func TestAccResourceSecurity_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					ConfigDirectory:    config.TestStepDirectory(),
-					ExpectNonEmptyPlan: true,
+					ConfigDirectory: config.TestStepDirectory(),
 				},
 				{
 					ConfigDirectory: config.TestStepDirectory(),
