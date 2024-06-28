@@ -401,6 +401,7 @@ func (rsc *interfacePhysical) Schema(
 				},
 				Blocks: map[string]schema.Block{
 					"bfd_liveness_detection": schema.SingleNestedBlock{
+						Description: "Declare bfd-liveness-detection in aggregated-ether-options configuration.",
 						Attributes: map[string]schema.Attribute{
 							"local_address": schema.StringAttribute{
 								Required:    false, // true when SingleNestedBlock is specified
@@ -514,6 +515,7 @@ func (rsc *interfacePhysical) Schema(
 						},
 					},
 					"lacp": schema.SingleNestedBlock{
+						Description: "Declare lacp configuration.",
 						Attributes: map[string]schema.Attribute{
 							"mode": schema.StringAttribute{
 								Required: false, // true when SingleNestedBlock is specified
