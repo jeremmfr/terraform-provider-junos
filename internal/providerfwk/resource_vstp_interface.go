@@ -490,7 +490,7 @@ func (rsc *vstpInterface) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Name.ValueString(),
 			state.RoutingInstance.ValueString(),
 			state.Vlan.ValueString(),

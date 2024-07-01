@@ -330,7 +330,7 @@ func (rsc *systemSyslogUser) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Username.ValueString(),
 		},
 		&data,

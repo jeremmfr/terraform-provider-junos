@@ -195,7 +195,7 @@ func (rsc *multichassisProtectionPeer) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.IPAddress.ValueString(),
 		},
 		&data,

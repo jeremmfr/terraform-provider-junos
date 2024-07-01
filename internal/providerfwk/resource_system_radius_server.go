@@ -287,7 +287,7 @@ func (rsc *systemRadiusServer) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Address.ValueString(),
 		},
 		&data,

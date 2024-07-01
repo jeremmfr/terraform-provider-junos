@@ -1445,7 +1445,7 @@ func (rsc *bgpGroup) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Name.ValueString(),
 			state.RoutingInstance.ValueString(),
 		},
@@ -1532,10 +1532,7 @@ func (rsc *bgpGroup) ImportState(
 }
 
 func checkBgpGroupExists(
-	_ context.Context,
-	name,
-	routingInstance string,
-	junSess *junos.Session,
+	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -2006,53 +2003,52 @@ func (rscData *bgpGroupData) read(
 func (rscData *bgpGroupData) delOpts(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 0)
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
 	delPrefix += "protocols bgp group \"" + rscData.Name.ValueString() + "\" "
 
-	configSet = append(configSet,
-		delPrefix+"accept-remote-nexthop",
-		delPrefix+"advertise-external",
-		delPrefix+"advertise-inactive",
-		delPrefix+"advertise-peer-as",
-		delPrefix+"no-advertise-peer-as",
-		delPrefix+"as-override",
-		delPrefix+"authentication-algorithm",
-		delPrefix+"authentication-key",
-		delPrefix+"authentication-key-chain",
-		delPrefix+"cluster",
-		delPrefix+"damping",
-		delPrefix+"description",
-		delPrefix+"export",
-		delPrefix+"hold-time",
-		delPrefix+"import",
-		delPrefix+"keep",
-		delPrefix+"local-address",
-		delPrefix+"local-as",
-		delPrefix+"local-interface",
-		delPrefix+"local-preference",
-		delPrefix+"log-updown",
-		delPrefix+"metric-out",
-		delPrefix+"mtu-discovery",
-		delPrefix+"multihop",
-		delPrefix+"multipath",
-		delPrefix+"no-client-reflect",
-		delPrefix+"out-delay",
-		delPrefix+"passive",
-		delPrefix+"peer-as",
-		delPrefix+"preference",
-		delPrefix+"remove-private",
-		delPrefix+"tcp-aggressive-transmission",
-		delPrefix+"bfd-liveness-detection",
-		delPrefix+"bgp-error-tolerance",
-		delPrefix+"family evpn",
-		delPrefix+"family inet",
-		delPrefix+"family inet6",
-		delPrefix+"graceful-restart",
-	)
+	configSet := []string{
+		delPrefix + "accept-remote-nexthop",
+		delPrefix + "advertise-external",
+		delPrefix + "advertise-inactive",
+		delPrefix + "advertise-peer-as",
+		delPrefix + "no-advertise-peer-as",
+		delPrefix + "as-override",
+		delPrefix + "authentication-algorithm",
+		delPrefix + "authentication-key",
+		delPrefix + "authentication-key-chain",
+		delPrefix + "cluster",
+		delPrefix + "damping",
+		delPrefix + "description",
+		delPrefix + "export",
+		delPrefix + "hold-time",
+		delPrefix + "import",
+		delPrefix + "keep",
+		delPrefix + "local-address",
+		delPrefix + "local-as",
+		delPrefix + "local-interface",
+		delPrefix + "local-preference",
+		delPrefix + "log-updown",
+		delPrefix + "metric-out",
+		delPrefix + "mtu-discovery",
+		delPrefix + "multihop",
+		delPrefix + "multipath",
+		delPrefix + "no-client-reflect",
+		delPrefix + "out-delay",
+		delPrefix + "passive",
+		delPrefix + "peer-as",
+		delPrefix + "preference",
+		delPrefix + "remove-private",
+		delPrefix + "tcp-aggressive-transmission",
+		delPrefix + "bfd-liveness-detection",
+		delPrefix + "bgp-error-tolerance",
+		delPrefix + "family evpn",
+		delPrefix + "family inet",
+		delPrefix + "family inet6",
+		delPrefix + "graceful-restart",
+	}
 
 	return junSess.ConfigSet(configSet)
 }

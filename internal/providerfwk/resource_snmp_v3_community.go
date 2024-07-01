@@ -221,7 +221,7 @@ func (rsc *snmpV3Community) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.CommunityIndex.ValueString(),
 		},
 		&data,

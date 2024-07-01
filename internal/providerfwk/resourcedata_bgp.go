@@ -274,13 +274,13 @@ func (block *bgpBlockBfdLivenessDetection) read(itemTrim string) (err error) {
 		}
 	case balt.CutPrefixInString(&itemTrim, "session-mode "):
 		block.SessionMode = types.StringValue(itemTrim)
-	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
-		block.TransmitIntervalThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
+		block.TransmitIntervalMinimumInterval, err = tfdata.ConvAtoi64Value(itemTrim)
 		if err != nil {
 			return err
 		}
-	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
-		block.TransmitIntervalMinimumInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
+		block.TransmitIntervalThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
 		if err != nil {
 			return err
 		}

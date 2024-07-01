@@ -567,7 +567,7 @@ func (rsc *securityNatStatic) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Name.ValueString(),
 		},
 		&data,

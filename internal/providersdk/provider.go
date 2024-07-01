@@ -189,7 +189,6 @@ func Provider() *schema.Provider {
 
 			"junos_rib_group": resourceRibGroup(),
 
-			"junos_rip_group":    resourceRipGroup(),
 			"junos_rip_neighbor": resourceRipNeighbor(),
 
 			"junos_routing_options": resourceRoutingOptions(),

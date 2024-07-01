@@ -36,6 +36,11 @@ type resourceDataReadFrom3String interface {
 	read(context.Context, string, string, string, *junos.Session) error
 }
 
+type resourceDataReadFrom1String1Bool1String interface {
+	resourceDataNullID
+	read(context.Context, string, bool, string, *junos.Session) error
+}
+
 type resourceDataReadFrom4String interface {
 	resourceDataNullID
 	read(context.Context, string, string, string, string, *junos.Session) error
@@ -143,7 +148,7 @@ func defaultResourceCreate(
 func defaultResourceRead(
 	ctx context.Context,
 	rsc junosResource,
-	mainAttrValues []string,
+	mainAttrValues []any,
 	data resourceDataNullID,
 	beforeSetState func(),
 	resp *resource.ReadResponse,
@@ -161,16 +166,47 @@ func defaultResourceRead(
 		err = data0.read(ctx, junSess)
 	}
 	if data1, ok := data.(resourceDataReadFrom1String); ok {
-		err = data1.read(ctx, mainAttrValues[0], junSess)
+		err = data1.read(
+			ctx,
+			mainAttrValues[0].(string),
+			junSess,
+		)
 	}
 	if data2, ok := data.(resourceDataReadFrom2String); ok {
-		err = data2.read(ctx, mainAttrValues[0], mainAttrValues[1], junSess)
+		err = data2.read(
+			ctx,
+			mainAttrValues[0].(string),
+			mainAttrValues[1].(string),
+			junSess,
+		)
 	}
 	if data3, ok := data.(resourceDataReadFrom3String); ok {
-		err = data3.read(ctx, mainAttrValues[0], mainAttrValues[1], mainAttrValues[2], junSess)
+		err = data3.read(
+			ctx,
+			mainAttrValues[0].(string),
+			mainAttrValues[1].(string),
+			mainAttrValues[2].(string),
+			junSess,
+		)
+	}
+	if data3, ok := data.(resourceDataReadFrom1String1Bool1String); ok {
+		err = data3.read(
+			ctx,
+			mainAttrValues[0].(string),
+			mainAttrValues[1].(bool),
+			mainAttrValues[2].(string),
+			junSess,
+		)
 	}
 	if data4, ok := data.(resourceDataReadFrom4String); ok {
-		err = data4.read(ctx, mainAttrValues[0], mainAttrValues[1], mainAttrValues[2], mainAttrValues[3], junSess)
+		err = data4.read(
+			ctx,
+			mainAttrValues[0].(string),
+			mainAttrValues[1].(string),
+			mainAttrValues[2].(string),
+			mainAttrValues[3].(string),
+			junSess,
+		)
 	}
 	junos.MutexUnlock()
 	if err != nil {

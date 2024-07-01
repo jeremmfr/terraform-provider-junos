@@ -225,7 +225,7 @@ func (rsc *snmpV3VacmSecuritytogroup) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Model.ValueString(),
 			state.Name.ValueString(),
 		},

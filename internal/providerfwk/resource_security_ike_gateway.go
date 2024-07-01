@@ -735,7 +735,7 @@ func (rsc *securityIkeGateway) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Name.ValueString(),
 		},
 		&data,

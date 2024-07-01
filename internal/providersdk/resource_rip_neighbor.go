@@ -592,6 +592,30 @@ func resourceRipNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
+func checkRipGroupExists(name string, ripNg bool, routingInstance string, junSess *junos.Session,
+) (_ bool, err error) {
+	var showConfig string
+	protoRipGroup := "protocols rip group \"" + name + "\""
+	if ripNg {
+		protoRipGroup = "protocols ripng group \"" + name + "\""
+	}
+	if routingInstance == junos.DefaultW {
+		showConfig, err = junSess.Command(junos.CmdShowConfig +
+			protoRipGroup + junos.PipeDisplaySet)
+	} else {
+		showConfig, err = junSess.Command(junos.CmdShowConfig + junos.RoutingInstancesWS + routingInstance + " " +
+			protoRipGroup + junos.PipeDisplaySet)
+	}
+	if err != nil {
+		return false, err
+	}
+	if showConfig == junos.EmptyW {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func checkRipNeighborExists(
 	name, group string, ripNg bool, routingInstance string, junSess *junos.Session,
 ) (_ bool, err error) {

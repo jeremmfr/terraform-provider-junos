@@ -271,7 +271,7 @@ func (rsc *eventoptionsDestination) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Name.ValueString(),
 		},
 		&data,

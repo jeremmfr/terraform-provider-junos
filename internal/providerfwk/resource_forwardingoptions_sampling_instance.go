@@ -1204,7 +1204,7 @@ func (rsc *forwardingoptionsSamplingInstance) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Name.ValueString(),
 			state.RoutingInstance.ValueString(),
 		},

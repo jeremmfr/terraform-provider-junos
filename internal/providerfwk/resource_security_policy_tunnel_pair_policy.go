@@ -284,7 +284,7 @@ func (rsc *securityPolicyTunnelPairPolicy) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.ZoneA.ValueString(),
 			state.PolicyAtoB.ValueString(),
 			state.ZoneB.ValueString(),

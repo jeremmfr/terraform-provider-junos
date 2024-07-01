@@ -1594,7 +1594,7 @@ func (rsc *firewallFilter) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]interface{}{
 			state.Name.ValueString(),
 			state.Family.ValueString(),
 		},
