@@ -46,6 +46,11 @@ type resourceDataReadFrom4String interface {
 	read(context.Context, string, string, string, string, *junos.Session) error
 }
 
+type resourceDataReadFrom2String1Bool1String interface {
+	resourceDataNullID
+	read(context.Context, string, string, bool, string, *junos.Session) error
+}
+
 // resourceCreateCheck: func to pre and post check when creating a resource
 // need to return true if OK and false if NOT OK.
 type resourceCreateCheck func(context.Context, *junos.Session) bool
@@ -204,6 +209,16 @@ func defaultResourceRead(
 			mainAttrValues[0].(string),
 			mainAttrValues[1].(string),
 			mainAttrValues[2].(string),
+			mainAttrValues[3].(string),
+			junSess,
+		)
+	}
+	if data4, ok := data.(resourceDataReadFrom2String1Bool1String); ok {
+		err = data4.read(
+			ctx,
+			mainAttrValues[0].(string),
+			mainAttrValues[1].(string),
+			mainAttrValues[2].(bool),
 			mainAttrValues[3].(string),
 			junSess,
 		)

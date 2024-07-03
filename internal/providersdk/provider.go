@@ -189,8 +189,6 @@ func Provider() *schema.Provider {
 
 			"junos_rib_group": resourceRibGroup(),
 
-			"junos_rip_neighbor": resourceRipNeighbor(),
-
 			"junos_routing_options": resourceRoutingOptions(),
 
 			"junos_security_dynamic_address_feed_server":                 resourceSecurityDynamicAddressFeedServer(),
