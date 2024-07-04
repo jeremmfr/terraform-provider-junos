@@ -636,7 +636,7 @@ func (rsc *securityAddressBook) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

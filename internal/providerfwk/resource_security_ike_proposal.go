@@ -243,7 +243,7 @@ func (rsc *securityIkeProposal) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

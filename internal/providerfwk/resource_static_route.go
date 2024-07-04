@@ -735,7 +735,7 @@ func (rsc *staticRoute) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Destination.ValueString(),
 			state.RoutingInstance.ValueString(),
 		},

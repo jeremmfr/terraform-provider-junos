@@ -438,7 +438,7 @@ func (rsc *securityLogStream) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

@@ -1733,7 +1733,7 @@ func (rsc *policyoptionsPolicyStatement) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

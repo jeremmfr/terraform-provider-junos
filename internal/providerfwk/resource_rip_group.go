@@ -487,7 +487,7 @@ func (rsc *ripGroup) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 			state.Ng.ValueBool(),
 			state.RoutingInstance.ValueString(),

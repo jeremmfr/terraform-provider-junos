@@ -1479,7 +1479,7 @@ func (rsc *bgpNeighbor) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.IP.ValueString(),
 			state.RoutingInstance.ValueString(),
 			state.Group.ValueString(),

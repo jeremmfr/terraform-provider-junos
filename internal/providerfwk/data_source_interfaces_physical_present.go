@@ -180,7 +180,7 @@ func (dsc *interfacesPhysicalPresentDataSource) Read(
 	defaultDataSourceRead(
 		ctx,
 		dsc,
-		[]interface{}{
+		[]any{
 			config.MatchName.ValueString(),
 			config.MatchAdminUp.ValueBool(),
 			config.MatchOperUp.ValueBool(),

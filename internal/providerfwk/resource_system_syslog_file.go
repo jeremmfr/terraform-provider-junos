@@ -597,7 +597,7 @@ func (rsc *systemSyslogFile) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Filename.ValueString(),
 		},
 		&data,

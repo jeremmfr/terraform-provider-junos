@@ -212,7 +212,7 @@ func (rsc *policyoptionsASPath) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

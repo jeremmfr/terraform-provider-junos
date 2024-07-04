@@ -442,7 +442,7 @@ func (rsc *servicesFlowMonitoringV9Template) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

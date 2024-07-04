@@ -817,7 +817,7 @@ func (rsc *ripNeighbor) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 			state.Group.ValueString(),
 			state.Ng.ValueBool(),

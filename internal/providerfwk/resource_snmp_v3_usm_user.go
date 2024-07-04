@@ -469,7 +469,7 @@ func (rsc *snmpV3UsmUser) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 			state.EngineType.ValueString(),
 			state.EngineID.ValueString(),

@@ -473,7 +473,7 @@ func (rsc *snmpV3VacmAccessgroup) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

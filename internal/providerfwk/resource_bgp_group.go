@@ -1445,7 +1445,7 @@ func (rsc *bgpGroup) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Name.ValueString(),
 			state.RoutingInstance.ValueString(),
 		},

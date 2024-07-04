@@ -404,7 +404,7 @@ func (rsc *systemSyslogHost) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]interface{}{
+		[]any{
 			state.Host.ValueString(),
 		},
 		&data,
