@@ -10,7 +10,6 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -311,93 +310,7 @@ func (rsc *ripNeighbor) Schema(
 					},
 				},
 			},
-			"bfd_liveness_detection": schema.SingleNestedBlock{
-				Description: "Define Bidirectional Forwarding Detection (BFD) options.",
-				Attributes: map[string]schema.Attribute{
-					"authentication_algorithm": schema.StringAttribute{
-						Optional:    true,
-						Description: "Authentication algorithm name.",
-						Validators: []validator.String{
-							stringvalidator.LengthAtLeast(1),
-							tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-						},
-					},
-					"authentication_key_chain": schema.StringAttribute{
-						Optional:    true,
-						Description: "Authentication key chain name.",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 128),
-							tfvalidator.StringDoubleQuoteExclusion(),
-						},
-					},
-					"authentication_loose_check": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Verify authentication only if authentication is negotiated.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"detection_time_threshold": schema.Int64Attribute{
-						Optional:    true,
-						Description: "High detection-time triggering a trap (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 4294967295),
-						},
-					},
-					"minimum_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Minimum transmit and receive interval (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255000),
-						},
-					},
-					"minimum_receive_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Minimum receive interval (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255000),
-						},
-					},
-					"multiplier": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Detection time multiplier.",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255),
-						},
-					},
-					"no_adaptation": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Disable adaptation.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"transmit_interval_minimum_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Minimum transmit interval (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255000),
-						},
-					},
-					"transmit_interval_threshold": schema.Int64Attribute{
-						Optional:    true,
-						Description: "High transmit interval triggering a trap (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 4294967295),
-						},
-					},
-					"version": schema.StringAttribute{
-						Optional:    true,
-						Description: "BFD protocol version number.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("0", "1", "automatic"),
-						},
-					},
-				},
-				PlanModifiers: []planmodifier.Object{
-					tfplanmodifier.BlockRemoveNull(),
-				},
-			},
+			"bfd_liveness_detection": ripBlockBfdLivenessDetection{}.resourceSchema(),
 		},
 	}
 }
