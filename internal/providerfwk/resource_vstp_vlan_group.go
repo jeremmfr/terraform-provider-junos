@@ -592,19 +592,14 @@ func (rscData *vstpVlanGroupData) delOpts(
 	}
 	delPrefix += "protocols vstp vlan-group group " + rscData.Name.ValueString() + " "
 
-	listLinesToDelete := []string{
-		"backup-bridge-priority",
-		"bridge-priority",
-		"forward-delay",
-		"hello-time",
-		"max-age",
-		"system-identifier",
-		"vlan",
-	}
-
-	configSet := make([]string, len(listLinesToDelete))
-	for k, line := range listLinesToDelete {
-		configSet[k] = delPrefix + line
+	configSet := []string{
+		delPrefix + "backup-bridge-priority",
+		delPrefix + "bridge-priority",
+		delPrefix + "forward-delay",
+		delPrefix + "hello-time",
+		delPrefix + "max-age",
+		delPrefix + "system-identifier",
+		delPrefix + "vlan",
 	}
 
 	return junSess.ConfigSet(configSet)

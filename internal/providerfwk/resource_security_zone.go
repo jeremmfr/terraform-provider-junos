@@ -1139,24 +1139,20 @@ func (rscData *securityZoneData) read(
 func (rscData *securityZoneData) delOpts(
 	_ context.Context, addressBookSingly bool, junSess *junos.Session,
 ) error {
-	listLinesToDelete := []string{
-		"advance-policy-based-routing-profile",
-		"description",
-		"application-tracking",
-		"host-inbound-traffic",
-		"enable-reverse-reroute",
-		"screen",
-		"source-identity-log",
-		"tcp-rst",
-	}
-	if !addressBookSingly {
-		listLinesToDelete = append(listLinesToDelete, "address-book")
-	}
 	delPrefix := "delete security zones security-zone " + rscData.Name.ValueString() + " "
 
-	configSet := make([]string, len(listLinesToDelete))
-	for k, line := range listLinesToDelete {
-		configSet[k] = delPrefix + line
+	configSet := []string{
+		delPrefix + "advance-policy-based-routing-profile",
+		delPrefix + "description",
+		delPrefix + "application-tracking",
+		delPrefix + "host-inbound-traffic",
+		delPrefix + "enable-reverse-reroute",
+		delPrefix + "screen",
+		delPrefix + "source-identity-log",
+		delPrefix + "tcp-rst",
+	}
+	if !addressBookSingly {
+		configSet = append(configSet, delPrefix+"address-book")
 	}
 
 	return junSess.ConfigSet(configSet)
