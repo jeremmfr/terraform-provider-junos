@@ -1264,31 +1264,26 @@ func (rscData *ospfData) del(
 	}
 	delPrefix += "protocols " + ospfVersion + " "
 
-	listLinesToDelete := []string{
-		"database-protection",
-		"disable",
-		"domain-id",
-		"export",
-		"external-preference",
-		"forwarding-address-to-broadcast",
-		"graceful-restart",
-		"import",
-		"labeled-preference",
-		"lsa-refresh-interval",
-		"no-nssa-abr",
-		"no-rfc-1583",
-		"overload",
-		"preference",
-		"prefix-export-limit",
-		"reference-bandwidth",
-		"rib-group",
-		"sham-link",
-		"spf-options",
-	}
-
-	configSet := make([]string, len(listLinesToDelete))
-	for k, line := range listLinesToDelete {
-		configSet[k] = delPrefix + line
+	configSet := []string{
+		delPrefix + "database-protection",
+		delPrefix + "disable",
+		delPrefix + "domain-id",
+		delPrefix + "export",
+		delPrefix + "external-preference",
+		delPrefix + "forwarding-address-to-broadcast",
+		delPrefix + "graceful-restart",
+		delPrefix + "import",
+		delPrefix + "labeled-preference",
+		delPrefix + "lsa-refresh-interval",
+		delPrefix + "no-nssa-abr",
+		delPrefix + "no-rfc-1583",
+		delPrefix + "overload",
+		delPrefix + "preference",
+		delPrefix + "prefix-export-limit",
+		delPrefix + "reference-bandwidth",
+		delPrefix + "rib-group",
+		delPrefix + "sham-link",
+		delPrefix + "spf-options",
 	}
 
 	return junSess.ConfigSet(configSet)

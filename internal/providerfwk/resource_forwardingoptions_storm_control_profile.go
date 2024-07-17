@@ -330,7 +330,7 @@ func (rsc *forwardingoptionsStormControlProfile) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

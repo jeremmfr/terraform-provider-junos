@@ -529,17 +529,12 @@ func (rscData *vstpData) del(
 	}
 	delPrefix += "protocols vstp "
 
-	listLinesToDelete := []string{
-		"bpdu-block-on-edge",
-		"disable",
-		"force-version",
-		"priority-hold-time",
-		"vpls-flush-on-topology-change",
-	}
-
-	configSet := make([]string, len(listLinesToDelete), len(listLinesToDelete)+len(rscData.SystemID))
-	for k, line := range listLinesToDelete {
-		configSet[k] = delPrefix + line
+	configSet := []string{
+		delPrefix + "bpdu-block-on-edge",
+		delPrefix + "disable",
+		delPrefix + "force-version",
+		delPrefix + "priority-hold-time",
+		delPrefix + "vpls-flush-on-topology-change",
 	}
 	for _, block := range rscData.SystemID {
 		configSet = append(configSet, delPrefix+"system-id "+block.ID.ValueString())

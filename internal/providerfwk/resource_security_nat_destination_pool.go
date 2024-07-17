@@ -249,7 +249,7 @@ func (rsc *securityNatDestinationPool) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

@@ -323,7 +323,7 @@ func (rsc *rstpInterface) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 			state.RoutingInstance.ValueString(),
 		},

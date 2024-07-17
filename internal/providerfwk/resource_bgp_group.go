@@ -10,7 +10,6 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -450,313 +449,13 @@ func (rsc *bgpGroup) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
-			"bfd_liveness_detection": schema.SingleNestedBlock{
-				Description: "Define Bidirectional Forwarding Detection (BFD) options.",
-				Attributes: map[string]schema.Attribute{
-					"authentication_algorithm": schema.StringAttribute{
-						Optional:    true,
-						Description: "Authentication algorithm name.",
-						Validators: []validator.String{
-							stringvalidator.LengthAtLeast(1),
-							tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-						},
-					},
-					"authentication_key_chain": schema.StringAttribute{
-						Optional:    true,
-						Description: "Authentication key chain name.",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 128),
-							tfvalidator.StringDoubleQuoteExclusion(),
-						},
-					},
-					"authentication_loose_check": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Verify authentication only if authentication is negotiated.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"detection_time_threshold": schema.Int64Attribute{
-						Optional:    true,
-						Description: "High detection-time triggering a trap (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 4294967295),
-						},
-					},
-					"holddown_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Time to hold the session-UP notification to the client (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255000),
-						},
-					},
-					"minimum_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Minimum transmit and receive interval (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255000),
-						},
-					},
-					"minimum_receive_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Minimum receive interval (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255000),
-						},
-					},
-					"multiplier": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Detection time multiplier (1..255).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255),
-						},
-					},
-					"session_mode": schema.StringAttribute{
-						Optional:    true,
-						Description: "BFD single-hop or multihop session-mode.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("automatic", "multihop", "single-hop"),
-						},
-					},
-					"transmit_interval_minimum_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Minimum transmit interval (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 255000),
-						},
-					},
-					"transmit_interval_threshold": schema.Int64Attribute{
-						Optional:    true,
-						Description: "High transmit interval triggering a trap (milliseconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 4294967295),
-						},
-					},
-					"version": schema.StringAttribute{
-						Optional:    true,
-						Description: "BFD protocol version number.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("0", "1", "automatic"),
-						},
-					},
-				},
-				PlanModifiers: []planmodifier.Object{
-					tfplanmodifier.BlockRemoveNull(),
-				},
-			},
-			"bgp_error_tolerance": schema.SingleNestedBlock{
-				Description: "Handle BGP malformed updates softly.",
-				Attributes: map[string]schema.Attribute{
-					"malformed_route_limit": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Maximum number of malformed routes from a peer (0..4294967295).",
-						Validators: []validator.Int64{
-							int64validator.Between(0, 4294967295),
-						},
-					},
-					"malformed_update_log_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Time used when logging malformed update (10..65535 seconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(10, 65535),
-						},
-					},
-					"no_malformed_route_limit": schema.BoolAttribute{
-						Optional:    true,
-						Description: "No malformed route limit.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-				},
-				PlanModifiers: []planmodifier.Object{
-					tfplanmodifier.BlockRemoveNull(),
-				},
-			},
-			"bgp_multipath": schema.SingleNestedBlock{
-				Description: "Allow load sharing among multiple BGP paths.",
-				Attributes: map[string]schema.Attribute{
-					"allow_protection": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Allows the BGP multipath and protection to co-exist.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"disable": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Disable Multipath.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"multiple_as": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Use paths received from different ASs.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-				},
-				PlanModifiers: []planmodifier.Object{
-					tfplanmodifier.BlockRemoveNull(),
-				},
-			},
-			"family_evpn": schema.ListNestedBlock{
-				Description: "For each `nlri_type`, configure EVPN NLRI parameters.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"nlri_type": schema.StringAttribute{
-							Optional:    true,
-							Computed:    true,
-							Default:     stringdefault.StaticString("signaling"),
-							Description: "NLRI type.",
-							Validators: []validator.String{
-								stringvalidator.OneOf("signaling"),
-							},
-						},
-					},
-					Blocks: map[string]schema.Block{
-						"accepted_prefix_limit": schema.SingleNestedBlock{
-							Description: "Define maximum number of prefixes accepted from a peer.",
-							Attributes:  rsc.schemaFamilyPrefixLimitAttributes(),
-							PlanModifiers: []planmodifier.Object{
-								tfplanmodifier.BlockRemoveNull(),
-							},
-						},
-						"prefix_limit": schema.SingleNestedBlock{
-							Description: "Define maximum number of prefixes from a peer.",
-							Attributes:  rsc.schemaFamilyPrefixLimitAttributes(),
-							PlanModifiers: []planmodifier.Object{
-								tfplanmodifier.BlockRemoveNull(),
-							},
-						},
-					},
-				},
-			},
-			"family_inet": schema.ListNestedBlock{
-				Description: "For each `nlri_type`, configure IPv4 NLRI parameters.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"nlri_type": schema.StringAttribute{
-							Required:    true,
-							Description: "NLRI type.",
-							Validators: []validator.String{
-								stringvalidator.OneOf("any", "flow", "labeled-unicast", "unicast", "multicast"),
-							},
-						},
-					},
-					Blocks: map[string]schema.Block{
-						"accepted_prefix_limit": schema.SingleNestedBlock{
-							Description: "Define maximum number of prefixes accepted from a peer.",
-							Attributes:  rsc.schemaFamilyPrefixLimitAttributes(),
-							PlanModifiers: []planmodifier.Object{
-								tfplanmodifier.BlockRemoveNull(),
-							},
-						},
-						"prefix_limit": schema.SingleNestedBlock{
-							Description: "Define maximum number of prefixes from a peer.",
-							Attributes:  rsc.schemaFamilyPrefixLimitAttributes(),
-							PlanModifiers: []planmodifier.Object{
-								tfplanmodifier.BlockRemoveNull(),
-							},
-						},
-					},
-				},
-			},
-			"family_inet6": schema.ListNestedBlock{
-				Description: "For each `nlri_type`, configure IPv6 NLRI parameters.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"nlri_type": schema.StringAttribute{
-							Required:    true,
-							Description: "NLRI type.",
-							Validators: []validator.String{
-								stringvalidator.OneOf("any", "flow", "labeled-unicast", "unicast", "multicast"),
-							},
-						},
-					},
-					Blocks: map[string]schema.Block{
-						"accepted_prefix_limit": schema.SingleNestedBlock{
-							Description: "Define maximum number of prefixes accepted from a peer.",
-							Attributes:  rsc.schemaFamilyPrefixLimitAttributes(),
-							PlanModifiers: []planmodifier.Object{
-								tfplanmodifier.BlockRemoveNull(),
-							},
-						},
-						"prefix_limit": schema.SingleNestedBlock{
-							Description: "Define maximum number of prefixes from a peer.",
-							Attributes:  rsc.schemaFamilyPrefixLimitAttributes(),
-							PlanModifiers: []planmodifier.Object{
-								tfplanmodifier.BlockRemoveNull(),
-							},
-						},
-					},
-				},
-			},
-			"graceful_restart": schema.SingleNestedBlock{
-				Description: "Define BGP graceful restart options.",
-				Attributes: map[string]schema.Attribute{
-					"disable": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Disable graceful restart.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"restart_time": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Restart time used when negotiating with a peer (1..600).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 600),
-						},
-					},
-					"stale_route_time": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Maximum time for which stale routes are kept (1..600).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 600),
-						},
-					},
-				},
-				PlanModifiers: []planmodifier.Object{
-					tfplanmodifier.BlockRemoveNull(),
-				},
-			},
-		},
-	}
-}
-
-func (rsc *bgpGroup) schemaFamilyPrefixLimitAttributes() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"maximum": schema.Int64Attribute{
-			Required:    false, // true when SingleNestedBlock is specified
-			Optional:    true,
-			Description: "Maximum number of prefixes accepted from a peer.",
-			Validators: []validator.Int64{
-				int64validator.Between(1, 4294967295),
-			},
-		},
-		"teardown": schema.Int64Attribute{
-			Optional:    true,
-			Description: "Clear peer connection on reaching limit with this percentage of prefix-limit to start warnings.",
-			Validators: []validator.Int64{
-				int64validator.Between(1, 100),
-			},
-		},
-		"teardown_idle_timeout": schema.Int64Attribute{
-			Optional:    true,
-			Description: "Timeout before attempting to restart peer.",
-			Validators: []validator.Int64{
-				int64validator.Between(1, 2400),
-			},
-		},
-		"teardown_idle_timeout_forever": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Idle the peer until the user intervenes.",
-			Validators: []validator.Bool{
-				tfvalidator.BoolTrue(),
-			},
+			"bfd_liveness_detection": bgpBlockBfdLivenessDetection{}.resourceSchema(),
+			"bgp_error_tolerance":    bgpBlockBgpErrorTolerance{}.resourceSchema(),
+			"bgp_multipath":          bgpBlockBgpMultipath{}.resourceSchema(),
+			"family_evpn":            bgpBlockFamily{}.resourceSchema("EVPN"),
+			"family_inet":            bgpBlockFamily{}.resourceSchema("IPv4"),
+			"family_inet6":           bgpBlockFamily{}.resourceSchema("IPv6"),
+			"graceful_restart":       bgpBlockGracefulRestart{}.resourceSchema(),
 		},
 	}
 }
@@ -1445,7 +1144,7 @@ func (rsc *bgpGroup) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 			state.RoutingInstance.ValueString(),
 		},
@@ -1532,10 +1231,7 @@ func (rsc *bgpGroup) ImportState(
 }
 
 func checkBgpGroupExists(
-	_ context.Context,
-	name,
-	routingInstance string,
-	junSess *junos.Session,
+	_ context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -2006,53 +1702,52 @@ func (rscData *bgpGroupData) read(
 func (rscData *bgpGroupData) delOpts(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 0)
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
 	delPrefix += "protocols bgp group \"" + rscData.Name.ValueString() + "\" "
 
-	configSet = append(configSet,
-		delPrefix+"accept-remote-nexthop",
-		delPrefix+"advertise-external",
-		delPrefix+"advertise-inactive",
-		delPrefix+"advertise-peer-as",
-		delPrefix+"no-advertise-peer-as",
-		delPrefix+"as-override",
-		delPrefix+"authentication-algorithm",
-		delPrefix+"authentication-key",
-		delPrefix+"authentication-key-chain",
-		delPrefix+"cluster",
-		delPrefix+"damping",
-		delPrefix+"description",
-		delPrefix+"export",
-		delPrefix+"hold-time",
-		delPrefix+"import",
-		delPrefix+"keep",
-		delPrefix+"local-address",
-		delPrefix+"local-as",
-		delPrefix+"local-interface",
-		delPrefix+"local-preference",
-		delPrefix+"log-updown",
-		delPrefix+"metric-out",
-		delPrefix+"mtu-discovery",
-		delPrefix+"multihop",
-		delPrefix+"multipath",
-		delPrefix+"no-client-reflect",
-		delPrefix+"out-delay",
-		delPrefix+"passive",
-		delPrefix+"peer-as",
-		delPrefix+"preference",
-		delPrefix+"remove-private",
-		delPrefix+"tcp-aggressive-transmission",
-		delPrefix+"bfd-liveness-detection",
-		delPrefix+"bgp-error-tolerance",
-		delPrefix+"family evpn",
-		delPrefix+"family inet",
-		delPrefix+"family inet6",
-		delPrefix+"graceful-restart",
-	)
+	configSet := []string{
+		delPrefix + "accept-remote-nexthop",
+		delPrefix + "advertise-external",
+		delPrefix + "advertise-inactive",
+		delPrefix + "advertise-peer-as",
+		delPrefix + "no-advertise-peer-as",
+		delPrefix + "as-override",
+		delPrefix + "authentication-algorithm",
+		delPrefix + "authentication-key",
+		delPrefix + "authentication-key-chain",
+		delPrefix + "cluster",
+		delPrefix + "damping",
+		delPrefix + "description",
+		delPrefix + "export",
+		delPrefix + "hold-time",
+		delPrefix + "import",
+		delPrefix + "keep",
+		delPrefix + "local-address",
+		delPrefix + "local-as",
+		delPrefix + "local-interface",
+		delPrefix + "local-preference",
+		delPrefix + "log-updown",
+		delPrefix + "metric-out",
+		delPrefix + "mtu-discovery",
+		delPrefix + "multihop",
+		delPrefix + "multipath",
+		delPrefix + "no-client-reflect",
+		delPrefix + "out-delay",
+		delPrefix + "passive",
+		delPrefix + "peer-as",
+		delPrefix + "preference",
+		delPrefix + "remove-private",
+		delPrefix + "tcp-aggressive-transmission",
+		delPrefix + "bfd-liveness-detection",
+		delPrefix + "bgp-error-tolerance",
+		delPrefix + "family evpn",
+		delPrefix + "family inet",
+		delPrefix + "family inet6",
+		delPrefix + "graceful-restart",
+	}
 
 	return junSess.ConfigSet(configSet)
 }

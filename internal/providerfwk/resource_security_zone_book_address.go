@@ -394,7 +394,7 @@ func (rsc *securityZoneBookAddress) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Zone.ValueString(),
 			state.Name.ValueString(),
 		},

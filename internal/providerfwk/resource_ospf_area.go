@@ -1597,7 +1597,7 @@ func (rsc *ospfArea) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.AreaID.ValueString(),
 			state.Version.ValueString(),
 			state.Realm.ValueString(),

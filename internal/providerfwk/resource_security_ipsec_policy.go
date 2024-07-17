@@ -261,7 +261,7 @@ func (rsc *securityIpsecPolicy) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

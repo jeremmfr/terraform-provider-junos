@@ -229,7 +229,7 @@ func (rsc *systemTacplusServer) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Address.ValueString(),
 		},
 		&data,

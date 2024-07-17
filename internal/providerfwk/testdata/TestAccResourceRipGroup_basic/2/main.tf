@@ -1,79 +1,3 @@
-package providersdk_test
-
-import (
-	"os"
-	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-)
-
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
-func TestAccResourceRipGroup_basic(t *testing.T) {
-	if os.Getenv("TESTACC_SWITCH") == "" {
-		resource.Test(t, resource.TestCase{
-			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: testAccResourceRipGroupConfigCreate(),
-				},
-				{
-					Config: testAccResourceRipGroupConfigUpdate(),
-				},
-				{
-					ResourceName:      "junos_rip_group.testacc_ripgroup",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
-				{
-					ResourceName:      "junos_rip_group.testacc_ripgroup2",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
-				{
-					ResourceName:      "junos_rip_group.testacc_ripnggroup",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
-				{
-					ResourceName:      "junos_rip_group.testacc_ripnggroup2",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
-				{
-					Config: testAccResourceRipGroupConfigCreate(),
-				},
-			},
-		})
-	}
-}
-
-func testAccResourceRipGroupConfigCreate() string {
-	return `
-resource "junos_rip_group" "testacc_ripgroup" {
-  name = "test_rip_group#1"
-}
-resource "junos_routing_instance" "testacc_ripgroup2" {
-  name = "testacc_ripgroup2"
-}
-resource "junos_rip_group" "testacc_ripgroup2" {
-  name             = "test_rip_group#2"
-  routing_instance = junos_routing_instance.testacc_ripgroup2.name
-}
-resource "junos_rip_group" "testacc_ripnggroup" {
-  name = "test_ripng_group#1"
-  ng   = true
-}
-resource "junos_rip_group" "testacc_ripnggroup2" {
-  name             = "test_ripng_group#2"
-  ng               = true
-  routing_instance = junos_routing_instance.testacc_ripgroup2.name
-}
-`
-}
-
-func testAccResourceRipGroupConfigUpdate() string {
-	return `
 resource "junos_policyoptions_policy_statement" "testacc_ripgroup" {
   lifecycle {
     create_before_destroy = true
@@ -160,6 +84,4 @@ resource "junos_rip_group" "testacc_ripnggroup2" {
     junos_policyoptions_policy_statement.testacc_ripgroup2.name,
     junos_policyoptions_policy_statement.testacc_ripgroup.name,
   ]
-}
-`
 }

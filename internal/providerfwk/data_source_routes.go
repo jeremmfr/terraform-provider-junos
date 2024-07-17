@@ -156,7 +156,7 @@ func (dsc *routesDataSource) Read(
 	defaultDataSourceRead(
 		ctx,
 		dsc,
-		[]interface{}{
+		[]any{
 			tableName.ValueString(),
 		},
 		&data,

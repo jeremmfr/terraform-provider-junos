@@ -139,7 +139,7 @@ func (dsc *interfaceLogicalInfoDataSource) Read(
 	defaultDataSourceRead(
 		ctx,
 		dsc,
-		[]interface{}{
+		[]any{
 			name.ValueString(),
 		},
 		&data,

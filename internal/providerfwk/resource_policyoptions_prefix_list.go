@@ -207,7 +207,7 @@ func (rsc *policyoptionsPrefixList) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

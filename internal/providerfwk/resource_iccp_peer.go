@@ -363,7 +363,7 @@ func (rsc *iccpPeer) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.IPAddress.ValueString(),
 		},
 		&data,

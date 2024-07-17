@@ -196,7 +196,7 @@ func (rsc *snmpClientlist) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

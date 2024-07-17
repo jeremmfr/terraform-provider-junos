@@ -511,7 +511,7 @@ func (rsc *bridgeDomain) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 			state.RoutingInstance.ValueString(),
 		},

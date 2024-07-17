@@ -4,12 +4,12 @@ page_title: "Junos: junos_rip_neighbor"
 
 # junos_rip_neighbor
 
-Provides a rip or ripng neighbor resource.
+Provides a RIP or RIPng neighbor resource.
 
 ## Example Usage
 
 ```hcl
-# Add a ripng neighbor
+# Add a RIPng neighbor
 resource "junos_rip_neighbor" "demo_rip" {
   name  = "ae0.0"
   group = "group1"
@@ -22,7 +22,8 @@ resource "junos_rip_neighbor" "demo_rip" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Interface name.
+  Interface name.  
+  Need to be a logical interface or `all`.
 - **group** (Required, String, Forces new resource)  
   Name of RIP or RIPng group for this neighbor.
 - **routing_instance** (Optional, String, Forces new resource)  
@@ -48,6 +49,7 @@ The following arguments are supported:
     Start time for key transmission (YYYY-MM-DD.HH:MM:SS).
 - **authentication_type** (Optional, String)  
   Authentication type.  
+  Need to be `md5`, `none` or `simple`.  
   Conflict with `authentication_selective_md5`, `ng`.
 - **bfd_liveness_detection** (Optional, Block)  
   Bidirectional Forwarding Detection options.  
@@ -73,10 +75,14 @@ The following arguments are supported:
   - **transmit_interval_threshold** (Optional, Number)  
     High transmit interval triggering a trap (milliseconds).
   - **version** (Optional, String)  
-    BFD protocol version number.
+    BFD protocol version number.  
+    Need to be `0`, `1` or `automatic`.
 - **check_zero** (Optional, Boolean)  
   Check reserved fields on incoming RIPv1 packets.  
   Conflict with `no_check_zero`, `ng`.
+- **no_check_zero** (Optional, Booelan)  
+  Don't check reserved fields on incoming RIPv1 packets.  
+  Conflict with `check_zero`, `ng`.
 - **demand_circuit** (Optional, Boolean)  
   Enable demand circuit.  
   Conflict with `ng`.
@@ -86,6 +92,8 @@ The following arguments are supported:
   `interface_type_p2mp` need to be true.
 - **import** (Optional, List of String)  
   Import policy.
+- **interface_type_p2mp** (Optional, Boolean)  
+  Point-to-multipoint link.
 - **max_retrans_time** (Optional, Number)  
   Maximum time to re-transmit a message in demand-circuit (5..180).  
   Conflict with `ng`.
@@ -94,9 +102,6 @@ The following arguments are supported:
   Conflict with `ng`.
 - **metric_in** (Optional, Number)  
   Metric value to add to incoming routes (1..15).
-- **no_check_zero** (Optional, Booelan)  
-  Don't check reserved fields on incoming RIPv1 packets.  
-  Conflict with `check_zero`, `ng`.
 - **peer** (Optional, Set of String)  
   P2MP peer.  
   Conflict with `ng`.  
@@ -111,7 +116,7 @@ The following arguments are supported:
   Configure RIP send options.  
   Need to be `broadcast`, `multicast`, `none` or `version-1`.
 - **update_interval** (Optional, Number)  
-  Interval between regular route updates (10..60 seconds)
+  Interval between regular route updates (10..60 seconds).
 
 ## Attribute Reference
 
@@ -123,7 +128,7 @@ The following attributes are exported:
 
 ## Import
 
-Junos rip group can be imported using an id made up of
+Junos RIP or RIPng group can be imported using an id made up of
 `<name>_-_<group>_-_<routing_instance>` or `<name>_-_<group>_-_ng_-_<routing_instance>`, e.g.
 
 ```shell
