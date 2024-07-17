@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/terraform-plugin-framework-validators v0.13.0
 	github.com/hashicorp/terraform-plugin-go v0.23.0
 	github.com/hashicorp/terraform-plugin-mux v0.16.0
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.33.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
 	github.com/hashicorp/terraform-plugin-testing v1.8.0
 	github.com/jeremmfr/go-netconf v0.5.0
 	github.com/jeremmfr/go-utils v0.12.0
@@ -65,4 +65,4 @@ require (
 	google.golang.org/protobuf v1.34.0 // indirect
 )
 
-replace github.com/hashicorp/terraform-plugin-sdk/v2 => github.com/jeremmfr/terraform-plugin-sdk/v2 v2.33.1-0.20240302165942-47aab524cbd3
+replace github.com/hashicorp/terraform-plugin-sdk/v2 => github.com/jeremmfr/terraform-plugin-sdk/v2 v2.34.1-0.20240717064610-5782711061a5
