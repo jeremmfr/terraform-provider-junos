@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -205,6 +207,33 @@ type snmpV3UsmUserData struct {
 	PrivacyType            types.String `tfsdk:"privacy_type"`
 }
 
+type snmpV3UsmUserPrivateState struct {
+	AuthenticationKey string `json:"authentication_key"`
+	PrivacyKey        string `json:"privacy_key"`
+}
+
+func (ste *snmpV3UsmUserPrivateState) key() string {
+	return "v0"
+}
+
+func (ste *snmpV3UsmUserPrivateState) get(
+	ctx context.Context, private privateStateGetter,
+) (diags diag.Diagnostics) {
+	data, getDiags := private.GetKey(ctx, ste.key())
+	diags.Append(getDiags...)
+	if diags.HasError() {
+		return
+	}
+
+	if data != nil {
+		if err := json.Unmarshal(data, ste); err != nil {
+			diags.AddError(tfdiag.GetPrivateStateErrSummary, fmt.Sprintf("json unmarshal: %s", err))
+		}
+	}
+
+	return
+}
+
 func (rsc *snmpV3UsmUser) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
@@ -372,6 +401,7 @@ func (rsc *snmpV3UsmUser) Create(
 		return
 	}
 
+	var _ resourceDataReadPrivateToState = &plan
 	defaultResourceCreate(
 		ctx,
 		rsc,
@@ -476,17 +506,43 @@ func (rsc *snmpV3UsmUser) Read(
 		},
 		&data,
 		func() {
+			var privateState snmpV3UsmUserPrivateState
+			resp.Diagnostics.Append(privateState.get(ctx, req.Private)...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
 			if data.AuthenticationType.ValueString() != "authentication-none" &&
 				data.AuthenticationType.ValueString() == state.AuthenticationType.ValueString() &&
-				!state.AuthenticationPassword.IsNull() {
-				data.AuthenticationPassword = state.AuthenticationPassword
-				data.AuthenticationKey = types.StringNull()
+				data.AuthenticationKey.ValueString() != "" &&
+				state.AuthenticationPassword.ValueString() != "" {
+				if privateState.AuthenticationKey != "" {
+					if privateState.AuthenticationKey == data.AuthenticationKey.ValueString() {
+						data.AuthenticationPassword = state.AuthenticationPassword
+					} else {
+						data.AuthenticationPassword = types.StringValue(`?`)
+					}
+					data.AuthenticationKey = types.StringNull()
+				} else {
+					data.AuthenticationPassword = state.AuthenticationPassword
+					data.AuthenticationKey = types.StringNull()
+				}
 			}
 			if data.PrivacyType.ValueString() != "privacy-none" &&
 				data.PrivacyType.ValueString() == state.PrivacyType.ValueString() &&
-				!state.PrivacyPassword.IsNull() {
-				data.PrivacyPassword = state.PrivacyPassword
-				data.PrivacyKey = types.StringNull()
+				data.PrivacyKey.ValueString() != "" &&
+				state.PrivacyPassword.ValueString() != "" {
+				if privateState.PrivacyKey != "" {
+					if privateState.PrivacyKey == data.PrivacyKey.ValueString() {
+						data.PrivacyPassword = state.PrivacyPassword
+					} else {
+						data.PrivacyPassword = types.StringValue(`?`)
+					}
+					data.PrivacyKey = types.StringNull()
+				} else {
+					data.PrivacyPassword = state.PrivacyPassword
+					data.PrivacyKey = types.StringNull()
+				}
 			}
 		},
 		resp,
@@ -503,6 +559,7 @@ func (rsc *snmpV3UsmUser) Update(
 		return
 	}
 
+	var _ resourceDataReadPrivateToState = &plan
 	defaultResourceUpdate(
 		ctx,
 		rsc,
@@ -749,6 +806,63 @@ func (rscData *snmpV3UsmUserData) read(
 			}
 		}
 	}
+
+	return nil
+}
+
+func (rscData *snmpV3UsmUserData) readPrivateToState(
+	ctx context.Context, junSess *junos.Session, private privateStateSetter,
+) error {
+	showPrefix := junos.CmdShowConfig + "snmp v3 usm "
+	switch engineType := rscData.EngineType.ValueString(); engineType {
+	case "remote":
+		showPrefix += "remote-engine \"" + rscData.EngineID.ValueString() + "\" "
+	default:
+		showPrefix += "local-engine "
+	}
+	showConfig, err := junSess.Command(showPrefix +
+		"user \"" + rscData.Name.ValueString() + "\"" + junos.PipeDisplaySetRelative)
+	if err != nil {
+		return err
+	}
+	var privateState snmpV3UsmUserPrivateState
+	if showConfig != junos.EmptyW {
+		for _, item := range strings.Split(showConfig, "\n") {
+			if strings.Contains(item, junos.XMLStartTagConfigOut) {
+				continue
+			}
+			if strings.Contains(item, junos.XMLEndTagConfigOut) {
+				break
+			}
+			itemTrim := strings.TrimPrefix(item, junos.SetLS)
+			switch {
+			case strings.HasPrefix(itemTrim, "authentication-"):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" authentication-key ") {
+					authenticationKey, err := tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+					if err != nil {
+						return err
+					}
+					privateState.AuthenticationKey = authenticationKey.ValueString()
+				}
+			case strings.HasPrefix(itemTrim, "privacy-"):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" privacy-key ") {
+					privacyKey, err := tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "privacy-key")
+					if err != nil {
+						return err
+					}
+					privateState.PrivacyKey = privacyKey.ValueString()
+				}
+			}
+		}
+	}
+
+	privateStateJSON, err := json.Marshal(privateState)
+	if err != nil {
+		return fmt.Errorf("internal error: json marshal private state: %w", err)
+	}
+	private.SetKey(ctx, privateState.key(), privateStateJSON)
 
 	return nil
 }

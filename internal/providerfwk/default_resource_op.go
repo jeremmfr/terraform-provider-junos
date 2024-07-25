@@ -8,6 +8,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -52,6 +53,18 @@ type resourceDataSet interface {
 type resourceDataFirstSet interface {
 	resourceDataSet
 	fillID()
+}
+
+type resourceDataReadPrivateToState interface {
+	readPrivateToState(context.Context, *junos.Session, privateStateSetter) error
+}
+
+type privateStateSetter interface {
+	SetKey(context.Context, string, []byte) diag.Diagnostics
+}
+
+type privateStateGetter interface {
+	GetKey(context.Context, string) ([]byte, diag.Diagnostics)
 }
 
 type resourceDataDel interface {
@@ -138,6 +151,15 @@ func defaultResourceCreate(
 
 	plan.fillID()
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if dataPriv, ok := plan.(resourceDataReadPrivateToState); ok {
+		if err := dataPriv.readPrivateToState(ctx, junSess, resp.Private); err != nil {
+			resp.Diagnostics.AddError(tfdiag.ReadPrivateToStateErrSummary, err.Error())
+		}
+	}
 }
 
 func defaultResourceRead(
@@ -277,6 +299,15 @@ func defaultResourceUpdate(
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if dataPriv, ok := plan.(resourceDataReadPrivateToState); ok {
+		if err := dataPriv.readPrivateToState(ctx, junSess, resp.Private); err != nil {
+			resp.Diagnostics.AddError(tfdiag.ReadPrivateToStateErrSummary, err.Error())
+		}
+	}
 }
 
 func defaultResourceDelete(

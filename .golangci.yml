@@ -84,6 +84,11 @@ linters-settings:
       - name: import-alias-naming
       - name: import-shadowing
       - name: unhandled-error
+  tagliatelle:
+    case:
+      rules:
+        json: snake
+        tfsdk: snake
 
 issues:
   exclude-rules:
