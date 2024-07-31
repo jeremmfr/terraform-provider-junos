@@ -52,6 +52,10 @@ type resourceDataReadFrom2String1Bool1String interface {
 	read(context.Context, string, string, bool, string, *junos.Session) error
 }
 
+type resourceDataReadComputed interface {
+	readComputed(context.Context, *junos.Session) error
+}
+
 // resourceCreateCheck: func to pre and post check when creating a resource
 // need to return true if OK and false if NOT OK.
 type resourceCreateCheck func(context.Context, *junos.Session) bool
@@ -113,6 +117,12 @@ func defaultResourceCreate(
 		}
 
 		plan.fillID()
+		if planReadComputed, ok := plan.(resourceDataReadComputed); ok {
+			if err := planReadComputed.readComputed(ctx, junSess); err != nil {
+				resp.Diagnostics.AddWarning(tfdiag.ConfigReadErrSummary, err.Error())
+			}
+		}
+
 		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 
 		return
@@ -160,13 +170,19 @@ func defaultResourceCreate(
 	}
 
 	plan.fillID()
+	if planReadComputed, ok := plan.(resourceDataReadComputed); ok {
+		if err := planReadComputed.readComputed(ctx, junSess); err != nil {
+			resp.Diagnostics.AddWarning(tfdiag.ConfigReadErrSummary, err.Error())
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if dataPriv, ok := plan.(resourceDataReadPrivateToState); ok {
-		if err := dataPriv.readPrivateToState(ctx, junSess, resp.Private); err != nil {
+	if planReadPrivate, ok := plan.(resourceDataReadPrivateToState); ok {
+		if err := planReadPrivate.readPrivateToState(ctx, junSess, resp.Private); err != nil {
 			resp.Diagnostics.AddError(tfdiag.ReadPrivateToStateErrSummary, err.Error())
 		}
 	}
@@ -298,6 +314,12 @@ func defaultResourceUpdate(
 			return
 		}
 
+		if planReadComputed, ok := plan.(resourceDataReadComputed); ok {
+			if err := planReadComputed.readComputed(ctx, junSess); err != nil {
+				resp.Diagnostics.AddWarning(tfdiag.ConfigReadErrSummary, err.Error())
+			}
+		}
+
 		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 
 		return
@@ -349,13 +371,19 @@ func defaultResourceUpdate(
 		return
 	}
 
+	if planReadComputed, ok := plan.(resourceDataReadComputed); ok {
+		if err := planReadComputed.readComputed(ctx, junSess); err != nil {
+			resp.Diagnostics.AddWarning(tfdiag.ConfigReadErrSummary, err.Error())
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if dataPriv, ok := plan.(resourceDataReadPrivateToState); ok {
-		if err := dataPriv.readPrivateToState(ctx, junSess, resp.Private); err != nil {
+	if planReadPrivate, ok := plan.(resourceDataReadPrivateToState); ok {
+		if err := planReadPrivate.readPrivateToState(ctx, junSess, resp.Private); err != nil {
 			resp.Diagnostics.AddError(tfdiag.ReadPrivateToStateErrSummary, err.Error())
 		}
 	}
