@@ -44,7 +44,7 @@ The following arguments are supported:
   private state of Terraform to be able to detect a change of the password outside
   of Terraform with comparison of read key and key in private state
   (if different, password set to `?` in state).  
-  The generated key is stored during creation or update operations. If carry out import resource or
+  The generated key is stored during create or update operations. If carry out import resource or
   use `fake_create_with_setfile` provider option, the private state will remain empty and
   detect change is not possible.  
   Conflict with `authentication_key`.
@@ -66,7 +66,7 @@ The following arguments are supported:
   private state of Terraform to be able to detect a change of the password outside
   of Terraform with comparison of read key and key in private state
   (if different, password set to `?` in state).  
-  The generated key is stored during creation or update operations. If carry out import resource or
+  The generated key is stored during create or update operations. If carry out import resource or
   use `fake_create_with_setfile` provider option, the private state will remain empty and
   detect change is not possible.  
   Conflict with `privacy_key`.
