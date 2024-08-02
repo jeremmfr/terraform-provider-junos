@@ -301,6 +301,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSystemLoginUserResource,
 		newSystemResource,
 		newSystemRadiusServerResource,
+		newSystemRootAuthenticationResource,
 		newSystemSyslogFileResource,
 		newSystemSyslogHostResource,
 		newSystemSyslogUserResource,
