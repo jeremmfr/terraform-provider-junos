@@ -217,9 +217,7 @@ func Provider() *schema.Provider {
 			"junos_services_user_identification_device_identity_profile": resourceServicesUserIdentDeviceIdentityProfile(),
 
 			"junos_system_login_class":                     resourceSystemLoginClass(),
-			"junos_system_login_user":                      resourceSystemLoginUser(),
 			"junos_system_ntp_server":                      resourceSystemNtpServer(),
-			"junos_system_root_authentication":             resourceSystemRootAuthentication(),
 			"junos_system_services_dhcp_localserver_group": resourceSystemServicesDhcpLocalServerGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
