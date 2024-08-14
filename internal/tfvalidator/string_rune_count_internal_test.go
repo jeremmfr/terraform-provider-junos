@@ -58,7 +58,6 @@ func TestStringRuneCount(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			request := validator.StringRequest{
@@ -112,7 +111,6 @@ func TestString1DotCount(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			request := validator.StringRequest{

@@ -78,7 +78,6 @@ func TestStringIPAddress(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			request := validator.StringRequest{
@@ -179,7 +178,6 @@ func TestStringCIDR(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			request := validator.StringRequest{
@@ -247,7 +245,6 @@ func TestStringCIDRNetwork(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			request := validator.StringRequest{
@@ -308,7 +305,6 @@ func TestStringWildcardNetwork(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			request := validator.StringRequest{
@@ -377,7 +373,6 @@ func TestStringMACAddress(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			request := validator.StringRequest{
