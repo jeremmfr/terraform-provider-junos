@@ -7,6 +7,7 @@ linters:
     # deprecated
     - execinquery # deprecated 1.58.0
     - gomnd # deprecated 1.58.0
+    - exportloopref # deprecated 1.60.2
     # unwanted
     - cyclop
     - depguard
