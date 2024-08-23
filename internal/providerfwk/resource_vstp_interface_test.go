@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's xe-0/0/3.
+// export TESTACC_INTERFACE=<inteface> to choose interface available else it's xe-0/0/3.
 func TestAccResourceVstpInterface_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		testaccInterface := junos.DefaultInterfaceSwitchTestAcc

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
-// export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's ge-0/0/4.
-// export TESTACC_INTERFACE_AE=ae<num> for choose interface aggregate test else it's ae0.
+// export TESTACC_INTERFACE=<inteface> to choose interface available else it's ge-0/0/3.
+// export TESTACC_INTERFACE2=<interface> to choose 2nd interface available else it's ge-0/0/4.
+// export TESTACC_INTERFACE_AE=ae<num> to choose interface aggregate test else it's ae0.
 func TestAccResourceInterfacePhysical_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2

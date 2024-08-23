@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
-// export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's ge-0/0/4.
+// export TESTACC_INTERFACE=<inteface> to choose interface available else it's ge-0/0/3.
+// export TESTACC_INTERFACE2=<interface> to choose 2nd interface available else it's ge-0/0/4.
 func TestAccResourceOspfArea_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
