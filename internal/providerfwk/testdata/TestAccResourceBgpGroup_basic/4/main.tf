@@ -10,13 +10,13 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
     junos_routing_options.testacc_bgpgroup
   ]
   name                          = "testacc_bgpgroup"
+  type                          = "internal"
   advertise_external            = true
   accept_remote_nexthop         = true
   multihop                      = true
   local_as                      = "65000"
   local_as_no_prepend_global_as = true
   metric_out_minimum_igp_offset = -10
-  type                          = "internal"
   family_evpn {
     accepted_prefix_limit {
       maximum               = 2
