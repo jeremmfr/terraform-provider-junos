@@ -177,14 +177,6 @@ func (rsc *securityIpsecProposal) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			if !junSess.CheckCompatibilitySecurity() {
-				resp.Diagnostics.AddError(
-					tfdiag.CompatibilityErrSummary,
-					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
-				)
-
-				return false
-			}
 			proposalExists, err := checkSecurityIpsecProposalExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
