@@ -18,6 +18,19 @@ resource "junos_policyoptions_policy_statement" "testacc_bgpneighbor" {
     action = "accept"
   }
 }
+resource "junos_security_authentication_key_chain" "testacc_bgpneighbor" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  name = "testacc_bgpneighbor#1"
+  key {
+    id         = 0
+    secret     = "aS3cret#1"
+    start_time = "2021-12-11.10:09:08"
+  }
+}
+
 resource "junos_bgp_group" "testacc_bgpneighbor" {
   name             = "testacc_bgpneighbor"
   routing_instance = junos_routing_instance.testacc_bgpneighbor.name
@@ -50,6 +63,7 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor" {
   peer_as                  = "65002"
   preference               = 100
   authentication_algorithm = "md5"
+  authentication_key_chain = junos_security_authentication_key_chain.testacc_bgpneighbor.name
   local_address            = "192.0.2.3"
   export                   = [junos_policyoptions_policy_statement.testacc_bgpneighbor.name]
   import                   = [junos_policyoptions_policy_statement.testacc_bgpneighbor.name]

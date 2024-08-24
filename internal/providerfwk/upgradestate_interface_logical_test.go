@@ -41,3 +41,24 @@ func TestAccUpgradeStateResourceInterfaceLogical_V0toV1_basic(t *testing.T) {
 		})
 	}
 }
+
+func TestAccUpgradeStateResourceInterfaceLogical_V0toV1_router(t *testing.T) {
+	if os.Getenv("TESTACC_ROUTER") != "" {
+		resource.Test(t, resource.TestCase{
+			Steps: []resource.TestStep{
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+				},
+				{
+					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ConfigDirectory:          config.TestStepDirectory(),
+					ConfigPlanChecks: resource.ConfigPlanChecks{
+						PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectEmptyPlan(),
+						},
+					},
+				},
+			},
+		})
+	}
+}

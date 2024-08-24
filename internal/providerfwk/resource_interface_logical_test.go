@@ -213,3 +213,20 @@ func TestAccResourceInterfaceLogical_basic(t *testing.T) {
 		})
 	}
 }
+
+func TestAccResourceInterfaceLogical_router(t *testing.T) {
+	if os.Getenv("TESTACC_ROUTER") != "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+				},
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+				},
+			},
+		})
+	}
+}
