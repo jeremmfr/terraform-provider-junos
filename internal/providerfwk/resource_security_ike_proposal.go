@@ -345,7 +345,8 @@ func (rscData *securityIkeProposalData) set(
 		configSet = append(configSet, setPrefix+"encryption-algorithm "+v)
 	}
 	if !rscData.LifetimeSeconds.IsNull() {
-		configSet = append(configSet, setPrefix+"lifetime-seconds "+utils.ConvI64toa(rscData.LifetimeSeconds.ValueInt64()))
+		configSet = append(configSet, setPrefix+"lifetime-seconds "+
+			utils.ConvI64toa(rscData.LifetimeSeconds.ValueInt64()))
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)

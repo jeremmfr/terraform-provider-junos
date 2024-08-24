@@ -937,7 +937,8 @@ func (rscData *securityIpsecVpnData) set(
 			return path.Root("manual").AtName("protocol"),
 				errors.New("missing: protocol must be not empty in manual block")
 		}
-		configSet = append(configSet, setPrefix+"manual spi "+utils.ConvI64toa(rscData.Manual.Spi.ValueInt64()))
+		configSet = append(configSet, setPrefix+"manual spi "+
+			utils.ConvI64toa(rscData.Manual.Spi.ValueInt64()))
 		if v := rscData.Manual.AuthenticationAlgorithm.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual authentication algorithm "+v)
 		}

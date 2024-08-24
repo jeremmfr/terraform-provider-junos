@@ -415,7 +415,8 @@ func (rscData *securityIkePolicyData) set(
 		configSet = append(configSet, setPrefix+"pre-shared-key ascii-text \""+v+"\"")
 	}
 	if !rscData.ReauthFrequency.IsNull() {
-		configSet = append(configSet, setPrefix+"reauth-frequency "+utils.ConvI64toa(rscData.ReauthFrequency.ValueInt64()))
+		configSet = append(configSet, setPrefix+"reauth-frequency "+
+			utils.ConvI64toa(rscData.ReauthFrequency.ValueInt64()))
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
