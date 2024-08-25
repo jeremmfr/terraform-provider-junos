@@ -12,6 +12,9 @@ import (
 )
 
 func TestAccUpgradeStateResourceInterfaceLogical_V0toV1_basic(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface
@@ -43,6 +46,9 @@ func TestAccUpgradeStateResourceInterfaceLogical_V0toV1_basic(t *testing.T) {
 }
 
 func TestAccUpgradeStateResourceInterfaceLogical_V0toV1_router(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			Steps: []resource.TestStep{

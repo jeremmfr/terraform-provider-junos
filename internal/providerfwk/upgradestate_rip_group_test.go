@@ -10,6 +10,9 @@ import (
 )
 
 func TestAccUpgradeStateResourceRipGroup_V0toV1_basic(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			Steps: []resource.TestStep{
