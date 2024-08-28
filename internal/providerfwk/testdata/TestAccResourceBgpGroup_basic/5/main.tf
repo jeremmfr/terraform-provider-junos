@@ -10,6 +10,7 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
     junos_routing_options.testacc_bgpgroup
   ]
   name                   = "testacc_bgpgroup"
+  type                   = "internal"
   local_as               = "65000"
   local_as_alias         = true
   metric_out_minimum_igp = true
