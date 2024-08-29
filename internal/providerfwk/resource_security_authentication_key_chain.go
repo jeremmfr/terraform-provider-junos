@@ -543,7 +543,7 @@ func (rscData *securityAuthenticationKeyChainData) read(
 				key.ID = keyID
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
-				if err := key.read(itemTrim); err != nil {
+				if err := key.read(itemTrim, junSess); err != nil {
 					return err
 				}
 				rscData.Key = append(rscData.Key, key)
@@ -554,10 +554,12 @@ func (rscData *securityAuthenticationKeyChainData) read(
 	return nil
 }
 
-func (block *securityAuthenticationKeyChainBlockKey) read(itemTrim string) (err error) {
+func (block *securityAuthenticationKeyChainBlockKey) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "secret "):
-		block.Secret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
+		block.Secret, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
 		if err != nil {
 			return err
 		}

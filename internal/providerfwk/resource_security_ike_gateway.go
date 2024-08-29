@@ -1019,7 +1019,7 @@ func (rscData *securityIkeGatewayData) read(
 				case balt.CutPrefixInString(&itemTrim, "access-profile "):
 					rscData.Aaa.AccessProfile = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "client password "):
-					rscData.Aaa.ClientPassword, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "aaa client password")
+					rscData.Aaa.ClientPassword, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "aaa client password")
 					if err != nil {
 						return err
 					}

@@ -14,6 +14,7 @@ require (
 	github.com/jeremmfr/go-netconf v0.5.0
 	github.com/jeremmfr/go-utils v0.12.0
 	github.com/jeremmfr/junosdecode v1.1.1
+	github.com/quasilyte/go-ruleguard/dsl v0.3.22
 	golang.org/x/crypto v0.26.0
 )
 

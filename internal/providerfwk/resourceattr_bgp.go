@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
@@ -616,7 +617,9 @@ func (rscData *bgpAttrData) configSet(setPrefix string) ([]string, path.Path, er
 	return configSet, path.Empty(), nil
 }
 
-func (rscData *bgpAttrData) read(itemTrim string) (err error) {
+func (rscData *bgpAttrData) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case itemTrim == "accept-remote-nexthop":
 		rscData.AcceptRemoteNexthop = types.BoolValue(true)
@@ -636,7 +639,7 @@ func (rscData *bgpAttrData) read(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "authentication-algorithm "):
 		rscData.AuthenticationAlgorithm = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "authentication-key "):
-		rscData.AuthenticationKey, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+		rscData.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
 		if err != nil {
 			return err
 		}

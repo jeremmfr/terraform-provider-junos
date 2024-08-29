@@ -261,7 +261,7 @@ func (rscData *iccpData) read(
 			case balt.CutPrefixInString(&itemTrim, "local-ip-addr "):
 				rscData.LocalIPAddr = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "authentication-key "):
-				rscData.AuthenticationKey, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+				rscData.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
 				if err != nil {
 					return err
 				}

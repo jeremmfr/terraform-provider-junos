@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
@@ -789,7 +788,7 @@ func (rscData *snmpV3UsmUserData) read(
 				itemTrimFields := strings.Split(itemTrim, " ")
 				rscData.AuthenticationType = types.StringValue(itemTrimFields[0])
 				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" authentication-key ") {
-					rscData.AuthenticationKey, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+					rscData.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
 					if err != nil {
 						return err
 					}
@@ -798,7 +797,7 @@ func (rscData *snmpV3UsmUserData) read(
 				itemTrimFields := strings.Split(itemTrim, " ")
 				rscData.PrivacyType = types.StringValue(itemTrimFields[0])
 				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" privacy-key ") {
-					rscData.PrivacyKey, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "privacy-key")
+					rscData.PrivacyKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "privacy-key")
 					if err != nil {
 						return err
 					}
@@ -839,7 +838,7 @@ func (rscData *snmpV3UsmUserData) readPrivateToState(
 			case strings.HasPrefix(itemTrim, "authentication-"):
 				itemTrimFields := strings.Split(itemTrim, " ")
 				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" authentication-key ") {
-					authenticationKey, err := tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+					authenticationKey, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
 					if err != nil {
 						return err
 					}
@@ -848,7 +847,7 @@ func (rscData *snmpV3UsmUserData) readPrivateToState(
 			case strings.HasPrefix(itemTrim, "privacy-"):
 				itemTrimFields := strings.Split(itemTrim, " ")
 				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" privacy-key ") {
-					privacyKey, err := tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "privacy-key")
+					privacyKey, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "privacy-key")
 					if err != nil {
 						return err
 					}

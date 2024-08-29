@@ -543,7 +543,7 @@ func (rscData *iccpPeerData) read(
 				}
 				rscData.RedundancyGroupIDList = append(rscData.RedundancyGroupIDList, value)
 			case balt.CutPrefixInString(&itemTrim, "authentication-key "):
-				rscData.AuthenticationKey, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+				rscData.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
 				if err != nil {
 					return err
 				}

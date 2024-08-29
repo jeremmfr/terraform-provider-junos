@@ -44,6 +44,12 @@ linters-settings:
     min-occurrences: 25
     # Ignore test files.
     ignore-tests: true
+  gocritic:
+    enabled-checks:
+      - ruleguard
+    settings:
+      ruleguard:
+        rules: '${configDir}/internal/ruleguard/*.go'
   gocyclo:
     # minimal code complexity to report, 30 by default
     min-complexity: 100

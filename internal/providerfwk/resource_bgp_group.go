@@ -492,7 +492,7 @@ func (rscData *bgpGroupData) read(
 			case balt.CutPrefixInString(&itemTrim, "type "):
 				rscData.Type = types.StringValue(itemTrim)
 			default:
-				if err := rscData.bgpAttrData.read(itemTrim); err != nil {
+				if err := rscData.bgpAttrData.read(itemTrim, junSess); err != nil {
 					return err
 				}
 			}

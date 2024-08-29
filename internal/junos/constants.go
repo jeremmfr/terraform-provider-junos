@@ -41,6 +41,7 @@ const (
 	EnvKeyFile                    = "JUNOS_KEYFILE"
 	EnvKeyPass                    = "JUNOS_KEYPASS"
 	EnvGroupInterfaceDelete       = "JUNOS_GROUP_INTERFACE_DELETE"
+	EnvNoDecodeSecrets            = "JUNOS_NO_DECODE_SECRETS"
 	EnvSleepShort                 = "JUNOS_SLEEP_SHORT"
 	EnvSleepLock                  = "JUNOS_SLEEP_LOCK"
 	EnvCommitConfirmed            = "JUNOS_COMMIT_CONFIRMED"

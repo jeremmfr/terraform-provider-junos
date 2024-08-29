@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
-	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 type servicesOptions struct {
@@ -1303,12 +1302,12 @@ func readServices(junSess *junos.Session,
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesSecurityIntel()),
 				strings.HasPrefix(itemTrim, "security-intelligence authentication "),
 				strings.HasPrefix(itemTrim, "security-intelligence url "):
-				if err := confRead.readServicesSecurityIntel(itemTrim); err != nil {
+				if err := confRead.readServicesSecurityIntel(itemTrim, junSess); err != nil {
 					return confRead, err
 				}
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesUserIdentification()),
 				strings.HasPrefix(itemTrim, "user-identification active-directory-access"):
-				if err := confRead.readServicesUserIdentification(itemTrim); err != nil {
+				if err := confRead.readServicesUserIdentification(itemTrim, junSess); err != nil {
 					return confRead, err
 				}
 			}
@@ -1416,7 +1415,9 @@ func (confRead *servicesOptions) readServicesAdvancedAntiMalware(itemTrim string
 	}
 }
 
-func (confRead *servicesOptions) readServicesSecurityIntel(itemTrim string) (err error) {
+func (confRead *servicesOptions) readServicesSecurityIntel(
+	itemTrim string, junSess *junos.Session,
+) error {
 	balt.CutPrefixInString(&itemTrim, "security-intelligence ")
 	if len(confRead.securityIntelligence) == 0 {
 		confRead.securityIntelligence = append(confRead.securityIntelligence, map[string]interface{}{
@@ -1454,10 +1455,11 @@ func (confRead *servicesOptions) readServicesSecurityIntel(itemTrim string) (err
 	case balt.CutPrefixInString(&itemTrim, "url "):
 		confRead.securityIntelligence[0]["url"] = strings.Trim(itemTrim, "\"")
 	case balt.CutPrefixInString(&itemTrim, "url-parameter "):
-		confRead.securityIntelligence[0]["url_parameter"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
+		v, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "url-parameter")
 		if err != nil {
-			return fmt.Errorf("decoding url-parameter: %w", err)
+			return err
 		}
+		confRead.securityIntelligence[0]["url_parameter"] = v.ValueString()
 	}
 
 	return nil
@@ -1626,7 +1628,9 @@ func (confRead *servicesOptions) readServicesApplicationIdentification(itemTrim 
 	return nil
 }
 
-func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string) (err error) {
+func (confRead *servicesOptions) readServicesUserIdentification(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	balt.CutPrefixInString(&itemTrim, "user-identification ")
 	if len(confRead.userIdentification) == 0 {
 		confRead.userIdentification = append(confRead.userIdentification, map[string]interface{}{
@@ -1742,10 +1746,11 @@ func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string)
 			case balt.CutPrefixInString(&itemTrim, "primary client-id "):
 				userIdentIdentityMgmtConnect["primary_client_id"] = strings.Trim(itemTrim, "\"")
 			case balt.CutPrefixInString(&itemTrim, "primary client-secret "):
-				userIdentIdentityMgmtConnect["primary_client_secret"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
+				v, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "primary client-secret")
 				if err != nil {
-					return fmt.Errorf("decoding primary client-secret: %w", err)
+					return err
 				}
+				userIdentIdentityMgmtConnect["primary_client_secret"] = v.ValueString()
 			case balt.CutPrefixInString(&itemTrim, "connect-method "):
 				userIdentIdentityMgmtConnect["connect_method"] = itemTrim
 			case balt.CutPrefixInString(&itemTrim, "port "):
@@ -1764,10 +1769,11 @@ func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string)
 			case balt.CutPrefixInString(&itemTrim, "secondary client-id "):
 				userIdentIdentityMgmtConnect["secondary_client_id"] = strings.Trim(itemTrim, "\"")
 			case balt.CutPrefixInString(&itemTrim, "secondary client-secret "):
-				userIdentIdentityMgmtConnect["secondary_client_secret"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
+				v, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "secondary client-secret")
 				if err != nil {
-					return fmt.Errorf("decoding secondary client-secret: %w", err)
+					return err
 				}
+				userIdentIdentityMgmtConnect["secondary_client_secret"] = v.ValueString()
 			case balt.CutPrefixInString(&itemTrim, "token-api "):
 				userIdentIdentityMgmtConnect["token_api"] = strings.Trim(itemTrim, "\"")
 			}

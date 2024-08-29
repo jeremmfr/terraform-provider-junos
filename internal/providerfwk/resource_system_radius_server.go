@@ -454,7 +454,7 @@ func (rscData *systemRadiusServerData) read(
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "secret "):
-				rscData.Secret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
+				rscData.Secret, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
 				if err != nil {
 					return err
 				}
@@ -494,7 +494,7 @@ func (rscData *systemRadiusServerData) read(
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "preauthentication-secret "):
-				rscData.PreauthenticationSecret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "preauthentication-secret")
+				rscData.PreauthenticationSecret, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "preauthentication-secret")
 				if err != nil {
 					return err
 				}

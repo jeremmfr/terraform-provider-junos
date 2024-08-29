@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	balt "github.com/jeremmfr/go-utils/basicalter"
-	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 type svcUserIdentAdAccessDomainOptions struct {
@@ -423,10 +422,11 @@ func readServicesUserIdentAdAccessDomain(domain string, junSess *junos.Session,
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "user password "):
-				confRead.userPassword, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
+				v, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "user password")
 				if err != nil {
-					return confRead, fmt.Errorf("decoding user password: %w", err)
+					return confRead, err
 				}
+				confRead.userPassword = v.ValueString()
 			case balt.CutPrefixInString(&itemTrim, "user "):
 				confRead.userName = itemTrim
 			case balt.CutPrefixInString(&itemTrim, "domain-controller "):
@@ -481,10 +481,11 @@ func readServicesUserIdentAdAccessDomain(domain string, junSess *junos.Session,
 				case itemTrim == "ssl":
 					confRead.userGroupMappingLdap[0]["ssl"] = true
 				case balt.CutPrefixInString(&itemTrim, "user password "):
-					confRead.userGroupMappingLdap[0]["user_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
+					v, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "user password")
 					if err != nil {
-						return confRead, fmt.Errorf("decoding user password: %w", err)
+						return confRead, err
 					}
+					confRead.userGroupMappingLdap[0]["user_password"] = v.ValueString()
 				case balt.CutPrefixInString(&itemTrim, "user "):
 					confRead.userGroupMappingLdap[0]["user_name"] = itemTrim
 				}

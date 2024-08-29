@@ -1,4 +1,8 @@
 resource "junos_routing_instance" "testacc_radiusServer" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
   name = "testacc_radiusServer"
 }
 resource "junos_system_radius_server" "testacc_radiusServer" {
