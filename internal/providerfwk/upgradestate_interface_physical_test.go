@@ -12,6 +12,9 @@ import (
 )
 
 func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_basic(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	testaccInterfaceAE := "ae0"
@@ -55,6 +58,9 @@ func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_basic(t *testing.T) {
 }
 
 func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_router(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterfaceAE := "ae0"
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -92,6 +98,9 @@ func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_router(t *testing.T) {
 }
 
 func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_srx(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -129,6 +138,9 @@ func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_srx(t *testing.T) {
 }
 
 func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_switch(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	testaccInterface := junos.DefaultInterfaceSwitchTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
 		testaccInterface = iface

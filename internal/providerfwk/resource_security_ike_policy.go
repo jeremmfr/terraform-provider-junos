@@ -245,14 +245,6 @@ func (rsc *securityIkePolicy) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			if !junSess.CheckCompatibilitySecurity() {
-				resp.Diagnostics.AddError(
-					tfdiag.CompatibilityErrSummary,
-					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
-				)
-
-				return false
-			}
 			policyExists, err := checkSecurityIkePolicyExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
@@ -423,7 +415,8 @@ func (rscData *securityIkePolicyData) set(
 		configSet = append(configSet, setPrefix+"pre-shared-key ascii-text \""+v+"\"")
 	}
 	if !rscData.ReauthFrequency.IsNull() {
-		configSet = append(configSet, setPrefix+"reauth-frequency "+utils.ConvI64toa(rscData.ReauthFrequency.ValueInt64()))
+		configSet = append(configSet, setPrefix+"reauth-frequency "+
+			utils.ConvI64toa(rscData.ReauthFrequency.ValueInt64()))
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)

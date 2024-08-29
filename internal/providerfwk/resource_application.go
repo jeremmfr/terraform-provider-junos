@@ -648,8 +648,8 @@ func (rscData *applicationData) set(
 		configSet = append(configSet, setPrefix+"ether-type "+v)
 	}
 	if !rscData.InactivityTimeout.IsNull() {
-		configSet = append(configSet, setPrefix+
-			"inactivity-timeout "+utils.ConvI64toa(rscData.InactivityTimeout.ValueInt64()))
+		configSet = append(configSet, setPrefix+"inactivity-timeout "+
+			utils.ConvI64toa(rscData.InactivityTimeout.ValueInt64()))
 	} else if rscData.InactivityTimeoutNever.ValueBool() {
 		configSet = append(configSet, setPrefix+"inactivity-timeout never")
 	}
@@ -717,8 +717,8 @@ func (block *applicationBlockTerm) configSet(
 		configSet = append(configSet, setPrefix+"icmp6-type "+v)
 	}
 	if !block.InactivityTimeout.IsNull() {
-		configSet = append(configSet, setPrefix+
-			"inactivity-timeout "+utils.ConvI64toa(block.InactivityTimeout.ValueInt64()))
+		configSet = append(configSet, setPrefix+"inactivity-timeout "+
+			utils.ConvI64toa(block.InactivityTimeout.ValueInt64()))
 		if block.InactivityTimeoutNever.ValueBool() {
 			return configSet,
 				pathRoot.AtName("inactivity_timeout_never"),

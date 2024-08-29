@@ -33,6 +33,8 @@ resource "junos_security" "testacc_security" {
     }
     packet_log {
       source_address = "192.0.2.4"
+      host_address   = "192.0.2.6"
+      host_port      = 100
     }
   }
   ike_traceoptions {

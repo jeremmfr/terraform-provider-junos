@@ -49,7 +49,7 @@ resource "junos_services_ssl_initiation_profile" "testacc_sslInitProf" {
     crl_ignore_hold_instruction_code = true
     ignore_server_auth_failure       = true
   }
-  custom_ciphers       = ["rsa-with-aes-128-gcm-sha256"]
+  custom_ciphers       = ["tls12-rsa-aes-128-gcm-sha256"]
   enable_flow_tracing  = true
   enable_session_cache = true
   preferred_ciphers    = "medium"
@@ -69,7 +69,7 @@ resource "junos_services_ssl_initiation_profile" "testacc_sslInitProf" {
     crl_ignore_hold_instruction_code = true
     ignore_server_auth_failure       = true
   }
-  custom_ciphers       = ["rsa-with-aes-128-gcm-sha256", "rsa-with-aes-256-cbc-sha"]
+  custom_ciphers       = ["tls12-rsa-aes-256-cbc-sha256", "tls12-rsa-aes-128-gcm-sha256"]
   enable_flow_tracing  = true
   enable_session_cache = true
   preferred_ciphers    = "medium"

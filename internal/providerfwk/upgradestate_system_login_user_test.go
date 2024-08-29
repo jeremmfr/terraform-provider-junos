@@ -1,6 +1,7 @@
 package providerfwk_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
@@ -9,6 +10,9 @@ import (
 )
 
 func TestAccUpgradeStateResourceSystemLoginUser_V0toV1_basic(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	resource.Test(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{

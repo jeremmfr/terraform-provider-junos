@@ -18,6 +18,19 @@ resource "junos_policyoptions_policy_statement" "testacc_bgpgroup" {
     action = "accept"
   }
 }
+resource "junos_security_authentication_key_chain" "testacc_bgpgroup" {
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  name = "testacc_bgpgroup#1"
+  key {
+    id         = 0
+    secret     = "aS3cret#1"
+    start_time = "2021-12-11.10:09:08"
+  }
+}
+
 resource "junos_bgp_group" "testacc_bgpgroup" {
   depends_on = [
     junos_routing_options.testacc_bgpgroup
@@ -45,6 +58,7 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
   peer_as                  = "65002"
   preference               = 100
   authentication_algorithm = "md5"
+  authentication_key_chain = junos_security_authentication_key_chain.testacc_bgpgroup.name
   local_address            = "192.0.2.3"
   export                   = [junos_policyoptions_policy_statement.testacc_bgpgroup.name]
   import                   = [junos_policyoptions_policy_statement.testacc_bgpgroup.name]

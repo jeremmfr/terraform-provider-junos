@@ -2348,7 +2348,8 @@ func (rscData *interfaceLogicalData) set(
 			configSet = append(configSet, setPrefix+"family inet filter output \""+v+"\"")
 		}
 		if !rscData.FamilyInet.Mtu.IsNull() {
-			configSet = append(configSet, setPrefix+"family inet mtu "+utils.ConvI64toa(rscData.FamilyInet.Mtu.ValueInt64()))
+			configSet = append(configSet, setPrefix+"family inet mtu "+
+				utils.ConvI64toa(rscData.FamilyInet.Mtu.ValueInt64()))
 		}
 		if rscData.FamilyInet.RPFCheck != nil {
 			configSet = append(configSet, setPrefix+"family inet rpf-check")
@@ -2399,7 +2400,8 @@ func (rscData *interfaceLogicalData) set(
 			configSet = append(configSet, setPrefix+"family inet6 filter output \""+v+"\"")
 		}
 		if !rscData.FamilyInet6.Mtu.IsNull() {
-			configSet = append(configSet, setPrefix+"family inet6 mtu "+utils.ConvI64toa(rscData.FamilyInet6.Mtu.ValueInt64()))
+			configSet = append(configSet, setPrefix+"family inet6 mtu "+
+				utils.ConvI64toa(rscData.FamilyInet6.Mtu.ValueInt64()))
 		}
 		if rscData.FamilyInet6.RPFCheck != nil {
 			configSet = append(configSet, setPrefix+"family inet6 rpf-check")
@@ -2466,7 +2468,8 @@ func (rscData *interfaceLogicalData) set(
 		}
 	}
 	if !rscData.VlanID.IsNull() {
-		configSet = append(configSet, setPrefix+"vlan-id "+utils.ConvI64toa(rscData.VlanID.ValueInt64()))
+		configSet = append(configSet, setPrefix+"vlan-id "+
+			utils.ConvI64toa(rscData.VlanID.ValueInt64()))
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
