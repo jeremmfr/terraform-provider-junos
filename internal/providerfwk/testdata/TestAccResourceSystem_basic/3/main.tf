@@ -63,6 +63,12 @@ resource "junos_system" "testacc_system" {
     no_tcp_rfc1323                = true
     no_tcp_rfc1323_paws           = true
   }
+  dynamic "license" {
+    for_each = var.license_key != "" ? [1] : []
+    content {
+      keys = [var.license_key]
+    }
+  }
   services {
     netconf_traceoptions {
       file_name              = "testacc_netconf"

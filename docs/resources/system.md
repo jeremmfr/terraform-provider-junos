@@ -86,6 +86,8 @@ The following arguments are supported:
   - **autoupdate_url** (Optional, String)  
     Url for autoupdate license keys from license servers.  
     `autoupdate` needs to be set.
+  - **keys** (Optional, Set of String)  
+    License keys.
   - **renew_before_expiration** (Optional, Number)  
     License renewal lead time before expiration, in days (0..60).  
     `renew_interval` needs to be set.

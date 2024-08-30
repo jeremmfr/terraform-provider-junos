@@ -809,6 +809,18 @@ func (rsc *system) Schema(
 							tfvalidator.StringSpaceExclusion(),
 						},
 					},
+					"keys": schema.SetAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+						Description: "License keys.",
+						Validators: []validator.Set{
+							setvalidator.SizeAtLeast(1),
+							setvalidator.ValueStringsAre(
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							),
+						},
+					},
 					"renew_before_expiration": schema.Int64Attribute{
 						Optional:    true,
 						Description: "License renewal lead time before expiration, in days.",
@@ -1851,7 +1863,7 @@ type systemConfig struct {
 	ArchivalConfiguration                   *systemBlockArchivalConfigurationConfig `tfsdk:"archival_configuration"`
 	Inet6BackupRouter                       *systemBlockInet6BackupRouterConfig     `tfsdk:"inet6_backup_router"`
 	InternetOptions                         *systemBlockInternetOptions             `tfsdk:"internet_options"`
-	License                                 *systemBlockLicense                     `tfsdk:"license"`
+	License                                 *systemBlockLicenseConfig               `tfsdk:"license"`
 	Login                                   *systemBlockLoginConfig                 `tfsdk:"login"`
 	NameServerOpts                          types.List                              `tfsdk:"name_server_opts"`
 	Ntp                                     *systemBlockNtp                         `tfsdk:"ntp"`
@@ -1972,14 +1984,28 @@ func (block *systemBlockInternetOptionsBlockIcmpRateLimit) isEmpty() bool {
 }
 
 type systemBlockLicense struct {
+	Autoupdate            types.Bool     `tfsdk:"autoupdate"`
+	AutoupdatePassword    types.String   `tfsdk:"autoupdate_password"`
+	AutoupdateURL         types.String   `tfsdk:"autoupdate_url"`
+	Keys                  []types.String `tfsdk:"keys"`
+	RenewBeforeExpiration types.Int64    `tfsdk:"renew_before_expiration"`
+	RenewInterval         types.Int64    `tfsdk:"renew_interval"`
+}
+
+func (block *systemBlockLicense) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+type systemBlockLicenseConfig struct {
 	Autoupdate            types.Bool   `tfsdk:"autoupdate"`
 	AutoupdatePassword    types.String `tfsdk:"autoupdate_password"`
 	AutoupdateURL         types.String `tfsdk:"autoupdate_url"`
+	Keys                  types.Set    `tfsdk:"keys"`
 	RenewBeforeExpiration types.Int64  `tfsdk:"renew_before_expiration"`
 	RenewInterval         types.Int64  `tfsdk:"renew_interval"`
 }
 
-func (block *systemBlockLicense) isEmpty() bool {
+func (block *systemBlockLicenseConfig) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(block)
 }
 
@@ -3479,6 +3505,9 @@ func (block *systemBlockLicense) configSet() (
 				errors.New("autoupdate and autoupdate_url must be specified with autoupdate_password in license block")
 		}
 	}
+	for _, v := range block.Keys {
+		configSet = append(configSet, setPrefix+"keys key \""+v.ValueString()+"\"")
+	}
 	if !block.RenewBeforeExpiration.IsNull() {
 		configSet = append(configSet, setPrefix+"renew before-expiration "+
 			utils.ConvI64toa(block.RenewBeforeExpiration.ValueInt64()))
@@ -4445,6 +4474,7 @@ func (block *systemBlockInternetOptions) read(itemTrim string) (err error) {
 func (systemBlockLicense) junosLines() []string {
 	return []string{
 		"license autoupdate",
+		"license keys",
 		"license renew",
 	}
 }
@@ -4466,6 +4496,8 @@ func (block *systemBlockLicense) read(itemTrim string) (err error) {
 			}
 			block.AutoupdatePassword = password
 		}
+	case balt.CutPrefixInString(&itemTrim, "keys key "):
+		block.Keys = append(block.Keys, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "renew before-expiration "):
 		block.RenewBeforeExpiration, err = tfdata.ConvAtoi64Value(itemTrim)
 		if err != nil {
