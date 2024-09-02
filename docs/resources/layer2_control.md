@@ -4,8 +4,9 @@ page_title: "Junos: junos_layer2_control"
 
 # junos_layer2_control
 
--> **Note:** This resource should only be created **once**.
-It's used to configure options in `protocols layer2-control` block.  
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure options in `protocols layer2-control` block.  
 
 Configure `protocols layer2-control` block
 

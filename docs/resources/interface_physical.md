@@ -26,9 +26,10 @@ resource "junos_interface_physical" "interface_fw_demo" {
 
 ## Argument Reference
 
-~> **NOTE:** This resource computes the maximum number of aggregate interfaces required with the
-current configuration (searches lines `ether-options 802.3ad` and `ae` interfaces set) then
-add/remove `chassis aggregated-devices ethernet device-count` line with this maximum.
+-> **Note**
+  This resource computes the maximum number of aggregate interfaces required with the
+  current configuration (searches lines `ether-options 802.3ad` and `ae` interfaces set) then
+  add/remove `chassis aggregated-devices ethernet device-count` line with this maximum.
 
 The following arguments are supported:
 

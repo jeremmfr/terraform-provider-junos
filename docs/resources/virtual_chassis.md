@@ -4,8 +4,9 @@ page_title: "Junos: junos_virtual_chassis"
 
 # junos_virtual_chassis
 
--> **Note:** This resource should only be created **once**.
-It's used to configure `virtual-chassis` block.  
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure `virtual-chassis` block.  
 
 Configure `virtual-chassis` block
 

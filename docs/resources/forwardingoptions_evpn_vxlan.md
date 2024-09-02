@@ -4,9 +4,10 @@ page_title: "Junos: junos_forwardingoptions_evpn_vxlan"
 
 # junos_forwardingoptions_evpn_vxlan
 
--> **Note:** This resource should only be created **once** for root level or each routing-instance.
-It's used to configure static (not object) options in `forwarding-options evpn-vxlan` block in root or
-routing-instance level.
+~> **Note**
+  This resource should only be created **once** for root level or each routing-instance.  
+  It's used to configure static (not object) options in `forwarding-options evpn-vxlan` block
+  in root or routing-instance level.
 
 Configure static configuration in `forwarding-options evpn-vxlan` block for root or
 routing-instance level.

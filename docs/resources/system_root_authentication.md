@@ -4,9 +4,10 @@ page_title: "Junos: junos_system_root_authentication"
 
 # junos_system_root_authentication
 
--> **Note:** This resource should only be created **once**.
-It's used to configure static (not object) options in `system root-authentication` block.  
-Destroy this resource has no effect on the Junos configuration.
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure static (not object) options in `system root-authentication` block.  
+  Destroy this resource has no effect on the Junos configuration.
 
 Configure `system root-authentication` block
 
@@ -27,7 +28,8 @@ resource "junos_system_root_authentication" "root_auth" {
 
 The following arguments are supported:
 
--> **Note:** One of `encrypted_password` or `plain_text_password` arguments is required.
+-> **Note**
+  One of `encrypted_password` or `plain_text_password` arguments is required.
 
 - **encrypted_password** (Optional, String)  
   Encrypted password string.  

@@ -28,8 +28,8 @@ resource "junos_system_services_dhcp_localserver_group" "demo_dhcp_group_v6" {
 
 ## Argument Reference
 
--> **Note:** At least one of arguments need to be set
-(in addition to `name`, `routing_instance` and `version`).
+-> **Note**
+  At least one of arguments need to be set (in addition to `name`, `routing_instance` and `version`).
 
 The following arguments are supported:
 

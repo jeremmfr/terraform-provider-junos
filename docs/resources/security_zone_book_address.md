@@ -6,8 +6,9 @@ page_title: "Junos: junos_security_zone_book_address"
 
 Provides an address resource in address-book of security zone.
 
--> **Note:** The `junos_security_zone` resource needs to have `address_book_configure_singly` set to
-true otherwise there will be a conflict between resources.
+~> **Note**
+  The `junos_security_zone` resource needs to have `address_book_configure_singly` set to
+  true otherwise there will be a conflict between resources.
 
 ## Example Usage
 
@@ -23,6 +24,9 @@ resource "junos_security_zone_book_address" "demo" {
 ## Argument Reference
 
 The following arguments are supported:
+
+-> **Note**
+  One of `cidr`, `dns_name`, `range_from` or `wildcard` arguments need to be set.
 
 - **name** (Required, String, Forces new resource)  
   The name of address.
@@ -44,8 +48,6 @@ The following arguments are supported:
   Upper limit of address range.
 - **wildcard** (Optional, String)  
   Numeric IPv4 wildcard address in the form of `a.d.d.r/netmask`.
-
--> **Note:** One of `cidr`, `dns_name`, `range_from` or `wildcard` arguments need to be set.
 
 ## Attribute Reference
 

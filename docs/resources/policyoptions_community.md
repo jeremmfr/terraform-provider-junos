@@ -18,7 +18,8 @@ resource "junos_policyoptions_community" "community_demo" {
 
 ## Argument Reference
 
--> **Note:** One of `dynamic_db` or `members` arguments is required.
+-> **Note**
+  One of `dynamic_db` or `members` arguments is required.
 
 The following arguments are supported:
 

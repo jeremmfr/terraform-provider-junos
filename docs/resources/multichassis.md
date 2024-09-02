@@ -4,9 +4,10 @@ page_title: "Junos: junos_multichassis"
 
 # junos_multichassis
 
--> **Note:** This resource should only be created **once**.
-It's used to configure static (not object) options in `multi-chassis` block.  
-By default (without `clean_on_destroy` = true), destroy this resource has no effect on the Junos configuration.
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure static (not object) options in `multi-chassis` block.  
+  By default (without `clean_on_destroy` = true), destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `multi-chassis` block.
 

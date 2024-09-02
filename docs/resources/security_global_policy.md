@@ -4,8 +4,9 @@ page_title: "Junos: junos_security_global_policy"
 
 # junos_security_global_policy
 
--> **Note:** This resource should only be created **once**.
-It's used to configure static (not object) options in `security policies global` block.
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure static (not object) options in `security policies global` block.
 
 Configure static configuration in `security policies global` block
 

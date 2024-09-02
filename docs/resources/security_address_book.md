@@ -54,7 +54,7 @@ The following arguments are supported:
   The description of the address book.
 - **attach_zone** (Optional, List of String)  
   List of zones to attach address book to.  
-  **NOTE:** Cannot be set on global address book.
+  Cannot be set on global address book.
 - **network_address** (Optional, Block Set)  
   For each name of network address.
   - **name** (Required, String)  

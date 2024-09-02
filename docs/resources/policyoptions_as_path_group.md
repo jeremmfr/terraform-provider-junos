@@ -33,7 +33,8 @@ resource "junos_policyoptions_as_path_group" "via_century_link" {
 
 ## Argument Reference
 
--> **Note:** One of `dynamic_db` or `as_path` arguments is required.
+-> **Note**
+  One of `dynamic_db` or `as_path` arguments is required.
 
 The following arguments are supported:
 

@@ -6,8 +6,9 @@ page_title: "Junos: junos_security_zone_book_address_set"
 
 Provides an address-set resource in address-book of security zone.
 
--> **Note:** The `junos_security_zone` resource needs to have `address_book_configure_singly` set to
-true otherwise there will be a conflict between resources.
+~> **Note**
+  The `junos_security_zone` resource needs to have `address_book_configure_singly` set to
+  true otherwise there will be a conflict between resources.
 
 ## Example Usage
 

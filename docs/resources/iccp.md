@@ -4,8 +4,9 @@ page_title: "Junos: junos_iccp"
 
 # junos_iccp
 
--> **Note:** This resource should only be created **once**.
-It's used to configure static (not object) options in `protocols iccp` block.
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure static (not object) options in `protocols iccp` block.
 
 Configure static configuration in `protocols iccp` block.
 
