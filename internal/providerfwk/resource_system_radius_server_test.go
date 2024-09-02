@@ -5,15 +5,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		PreCheck: func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				ConfigDirectory: config.TestStepDirectory(),
+				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ConfigDirectory:          config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
 						"address", "192.0.2.1"),
@@ -22,7 +23,8 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 				),
 			},
 			{
-				ConfigDirectory: config.TestStepDirectory(),
+				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ConfigDirectory:          config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
 						"preauthentication_secret", "password"),
@@ -51,9 +53,24 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "junos_system_radius_server.testacc_radiusServer",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ResourceName:             "junos_system_radius_server.testacc_radiusServer",
+				ImportState:              true,
+				ImportStateVerify:        true,
+			},
+			// testing no_decode_secrets provider attribute
+			{
+				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ConfigDirectory:          config.TestStepDirectory(),
+			},
+			{
+				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ConfigDirectory:          config.TestStepDirectory(),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	})

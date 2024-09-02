@@ -2897,7 +2897,7 @@ func (rscData *interfaceLogicalData) read(
 
 					if len(itemTrimFields) > 1 {
 						balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-						if err := address.read(itemTrim); err != nil {
+						if err := address.read(itemTrim, junSess); err != nil {
 							return err
 						}
 					}
@@ -3028,7 +3028,9 @@ func (rscData *interfaceLogicalData) read(
 	return nil
 }
 
-func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(itemTrim string) (err error) {
+func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case itemTrim == "primary":
 		block.Primary = types.BoolValue(true)
@@ -3063,7 +3065,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(itemTrim string) 
 				return err
 			}
 		case balt.CutPrefixInString(&itemTrim, "authentication-key "):
-			vrrpGroup.AuthenticationKey, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+			vrrpGroup.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
 			if err != nil {
 				return err
 			}

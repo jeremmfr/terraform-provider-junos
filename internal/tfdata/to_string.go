@@ -8,7 +8,8 @@ import (
 	"github.com/jeremmfr/junosdecode"
 )
 
-func JunosDecode(str, errMsg string,
+func JunosDecode(
+	str, errMsg string,
 ) (
 	basetypes.StringValue, error,
 ) {

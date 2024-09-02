@@ -54,6 +54,7 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 		message = "[" + sess.localAddress + "->" + sess.remoteAddress + "]" + message
 		clt.logFile(message)
 	}
+	sess.decodeSecrets = clt.decodeSecrets
 	sess.sleepLock = clt.sleepLock
 	sess.sleepShort = clt.sleepShort
 	sess.sleepSSHClosed = clt.sleepSSHClosed
@@ -72,7 +73,8 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 
 func (clt *Client) NewSessionWithoutNetconf(_ context.Context) *Session {
 	sess := Session{
-		logFile: clt.logFile,
+		logFile:       clt.logFile,
+		decodeSecrets: clt.decodeSecrets,
 	}
 	if clt.fakeCreateSetFile != "" {
 		sess.fakeSetFile = clt.appendFakeCreateSetFile

@@ -16,6 +16,7 @@ type Client struct {
 	junosSSHKeyFile                 string
 	junosSSHKeyPass                 string
 	groupIntDel                     string
+	decodeSecrets                   bool
 	sleepShort                      int
 	sleepLock                       int
 	junosCommitConfirmed            int
@@ -41,6 +42,7 @@ func NewClient(ip string) *Client {
 		junosSSHKeyFile:                 "",
 		junosSSHKeyPass:                 "",
 		groupIntDel:                     "",
+		decodeSecrets:                   true,
 		sleepShort:                      100,
 		sleepLock:                       10,
 		junosCommitConfirmed:            0,
@@ -95,6 +97,12 @@ func (clt *Client) WithSSHKeyPassphrase(sshKeyPass string) *Client {
 
 func (clt *Client) WithGroupInterfaceDelete(groupIntDel string) *Client {
 	clt.groupIntDel = groupIntDel
+
+	return clt
+}
+
+func (clt *Client) WithoutDecodeSecrets() *Client {
+	clt.decodeSecrets = false
 
 	return clt
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
@@ -41,6 +40,7 @@ type junosProviderModel struct {
 	SSHKeyFile                 types.String `tfsdk:"sshkeyfile"`
 	SSHKeyPass                 types.String `tfsdk:"keypass"`
 	GroupIntDel                types.String `tfsdk:"group_interface_delete"`
+	NoDecodeSecrets            types.Bool   `tfsdk:"no_decode_secrets"`
 	CmdSleepShort              types.Int64  `tfsdk:"cmd_sleep_short"`
 	CmdSleepLock               types.Int64  `tfsdk:"cmd_sleep_lock"`
 	CommitConfirmed            types.Int64  `tfsdk:"commit_confirmed"`
@@ -115,6 +115,13 @@ func (p *junosProvider) Schema(
 				Optional: true,
 				Description: "This is the Junos group used to remove configuration on a physical interface." +
 					" May also be provided via " + junos.EnvGroupInterfaceDelete + " environment variable.",
+			},
+			"no_decode_secrets": schema.BoolAttribute{
+				Optional: true,
+				Description: "Disable decoding secret $9$ hashes by Junos device when read resource data." +
+					" So encoded secrets need to be set in resources config to " +
+					"avoid drift between Terraform config and state." +
+					" May also be enabled via " + junos.EnvNoDecodeSecrets + " environment variable.",
 			},
 			"cmd_sleep_short": schema.Int64Attribute{
 				Optional: true,
@@ -197,14 +204,14 @@ func (p *junosProvider) Schema(
 				Description: "The normal process to update resources skipped to generate set/delete lines, " +
 					"append them to the same file as `fake_create_with_setfile`, " +
 					"and respond with a `fake` successful update of resources to Terraform." +
-					" May also be provided via " + junos.EnvFakeupdateAlso + " environment variable.",
+					" May also be enabled via " + junos.EnvFakeupdateAlso + " environment variable.",
 			},
 			"fake_delete_also": schema.BoolAttribute{
 				Optional: true,
 				Description: "The normal process to delete resources skipped to generate delete lines, " +
 					"append them to the same file as `fake_create_with_setfile`, " +
 					"and respond with a `fake` successful delete of resources to Terraform." +
-					" May also be provided via " + junos.EnvFakedeleteAlso + " environment variable.",
+					" May also be enabled via " + junos.EnvFakedeleteAlso + " environment variable.",
 			},
 		},
 	}
@@ -316,7 +323,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 	}
 }
 
-func (p *junosProvider) Configure(
+func (p *junosProvider) Configure( //nolint:gocyclo
 	ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse,
 ) {
 	var config junosProviderModel
@@ -391,6 +398,14 @@ func (p *junosProvider) Configure(
 			tfdiag.UnknownJunosAttrErrSummary,
 			unknownValueErrorMessage+"for 'group_interface_delete' attribute."+
 				fmt.Sprintf(instructionUnknownMessage, junos.EnvGroupInterfaceDelete),
+		)
+	}
+	if config.NoDecodeSecrets.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("no_decode_secrets"),
+			tfdiag.UnknownJunosAttrErrSummary,
+			unknownValueErrorMessage+"for 'no_decode_secrets' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvNoDecodeSecrets),
 		)
 	}
 	if config.CmdSleepShort.IsUnknown() {
@@ -600,6 +615,14 @@ func (p *junosProvider) Configure(
 		client.WithGroupInterfaceDelete(config.GroupIntDel.ValueString())
 	} else if v := os.Getenv(junos.EnvGroupInterfaceDelete); v != "" {
 		client.WithGroupInterfaceDelete(v)
+	}
+
+	if !config.NoDecodeSecrets.IsNull() {
+		if config.NoDecodeSecrets.ValueBool() {
+			client.WithoutDecodeSecrets()
+		}
+	} else if utils.ParseTrue(os.Getenv(junos.EnvNoDecodeSecrets)) {
+		client.WithoutDecodeSecrets()
 	}
 
 	client.WithSleepShort(100) // default value for cmd_sleep_short
@@ -864,7 +887,7 @@ func (p *junosProvider) Configure(
 		if config.FakeUpdateAlso.ValueBool() {
 			client.WithFakeUpdateAlso()
 		}
-	} else if v := os.Getenv(junos.EnvFakeupdateAlso); strings.EqualFold(v, "true") || v == "1" {
+	} else if utils.ParseTrue(os.Getenv(junos.EnvFakeupdateAlso)) {
 		client.WithFakeUpdateAlso()
 	}
 
@@ -872,7 +895,7 @@ func (p *junosProvider) Configure(
 		if config.FakeDeleteAlso.ValueBool() {
 			client.WithFakeDeleteAlso()
 		}
-	} else if v := os.Getenv(junos.EnvFakedeleteAlso); strings.EqualFold(v, "true") || v == "1" {
+	} else if utils.ParseTrue(os.Getenv(junos.EnvFakedeleteAlso)) {
 		client.WithFakeDeleteAlso()
 	}
 

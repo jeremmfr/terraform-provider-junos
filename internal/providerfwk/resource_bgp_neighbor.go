@@ -535,7 +535,7 @@ func (rscData *bgpNeighborData) read(
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
-			if err := rscData.bgpAttrData.read(itemTrim); err != nil {
+			if err := rscData.bgpAttrData.read(itemTrim, junSess); err != nil {
 				return err
 			}
 		}

@@ -113,6 +113,13 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable.  
   Defaults to empty.
 
+- **no_decode_secrets** (Optional, Boolean)  
+  Disable decoding secret `$9$` hashes by Junos device when reading resource data.  
+  So **encoded** secrets need to be set in the resources config to
+  avoid drift between Terraform config and state.  
+  It can also be enabled from the `JUNOS_NO_DECODE_SECRETS` environment variable and
+  its value is `1`, `t` or `true`.
+
 -> **Note:**
   Two SSH authentication methods (keys / password) are possible and tried with the `sshkey_pem`,
   `sshkeyfile` arguments or the keys provided by a SSH agent through the `SSH_AUTH_SOCK`
@@ -248,9 +255,8 @@ The following arguments are supported in the `provider` block:
     line when it should be necessary.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
 
-  It can also be sourced from the `JUNOS_FAKEUPDATE_ALSO` environment variable and
-  its value is `true`.  
-  Defaults to `false`.
+  It can also be enabled from the `JUNOS_FAKEUPDATE_ALSO` environment variable and
+  its value is `1`, `t` or `true`.
 
 - **fake_delete_also** (Optional, Boolean, **don't use in normal terraform run**)  
   As with `create` and `fake_create_with_setfile`, when this option is true, the normal
@@ -264,9 +270,8 @@ The following arguments are supported in the `provider` block:
     line when it should be necessary.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
 
-  It can also be sourced from the `JUNOS_FAKEDELETE_ALSO` environment variable and
-  its value is `true`.  
-  Defaults to `false`.
+  It can also be enabled from the `JUNOS_FAKEDELETE_ALSO` environment variable and
+  its value is `1`, `t` or `true`.
 
 ## Interface specifications
 

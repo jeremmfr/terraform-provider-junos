@@ -1020,7 +1020,7 @@ func (rscData *ripNeighborData) read(
 			case itemTrim == "any-sender":
 				rscData.AnySender = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "authentication-key "):
-				rscData.AuthenticationKey, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+				rscData.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
 				if err != nil {
 					return err
 				}
@@ -1083,7 +1083,7 @@ func (rscData *ripNeighborData) read(
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "key "):
-					authenticationSelectiveMD5.Key, err = tfdata.JunosDecode(
+					authenticationSelectiveMD5.Key, err = junSess.JunosDecode(
 						strings.Trim(itemTrim, "\""),
 						"authentication-selective-md5 key",
 					)

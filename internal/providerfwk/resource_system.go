@@ -4063,14 +4063,14 @@ func (rscData *systemData) read(
 				if rscData.Accounting == nil {
 					rscData.Accounting = &systemBlockAccounting{}
 				}
-				if err := rscData.Accounting.read(itemTrim); err != nil {
+				if err := rscData.Accounting.read(itemTrim, junSess); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "archival configuration "):
 				if rscData.ArchivalConfiguration == nil {
 					rscData.ArchivalConfiguration = &systemBlockArchivalConfiguration{}
 				}
-				if err := rscData.ArchivalConfiguration.read(itemTrim); err != nil {
+				if err := rscData.ArchivalConfiguration.read(itemTrim, junSess); err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "inet6-backup-router "):
@@ -4094,7 +4094,7 @@ func (rscData *systemData) read(
 				if rscData.License == nil {
 					rscData.License = &systemBlockLicense{}
 				}
-				if err := rscData.License.read(itemTrim); err != nil {
+				if err := rscData.License.read(itemTrim, junSess); err != nil {
 					return err
 				}
 			case bchk.StringHasOneOfPrefixes(itemTrim, systemBlockLogin{}.junosLines()):
@@ -4183,7 +4183,9 @@ func (rscData *systemData) read(
 	return nil
 }
 
-func (block *systemBlockAccounting) read(itemTrim string) (err error) {
+func (block *systemBlockAccounting) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "events "):
 		block.Events = append(block.Events, types.StringValue(itemTrim))
@@ -4202,7 +4204,7 @@ func (block *systemBlockAccounting) read(itemTrim string) (err error) {
 			)
 			destinationRadiusServer.Address = types.StringValue(itemTrimFields[0])
 			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-			if err := destinationRadiusServer.read(itemTrim); err != nil {
+			if err := destinationRadiusServer.read(itemTrim, junSess); err != nil {
 				return err
 			}
 			block.DestinationRadiusServer = append(block.DestinationRadiusServer, destinationRadiusServer)
@@ -4217,7 +4219,7 @@ func (block *systemBlockAccounting) read(itemTrim string) (err error) {
 			)
 			destinationTacplusServer.Address = types.StringValue(itemTrimFields[0])
 			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-			if err := destinationTacplusServer.read(itemTrim); err != nil {
+			if err := destinationTacplusServer.read(itemTrim, junSess); err != nil {
 				return err
 			}
 			block.DestinationTacplusServer = append(block.DestinationTacplusServer, destinationTacplusServer)
@@ -4227,10 +4229,12 @@ func (block *systemBlockAccounting) read(itemTrim string) (err error) {
 	return nil
 }
 
-func (block *systemBlockAccountingBlockDestinationRadiusServer) read(itemTrim string) (err error) {
+func (block *systemBlockAccountingBlockDestinationRadiusServer) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "secret "):
-		block.Secret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
+		block.Secret, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
 		if err != nil {
 			return err
 		}
@@ -4270,7 +4274,7 @@ func (block *systemBlockAccountingBlockDestinationRadiusServer) read(itemTrim st
 			return err
 		}
 	case balt.CutPrefixInString(&itemTrim, "preauthentication-secret "):
-		block.PreauthenticationSecret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "preauthentication-secret")
+		block.PreauthenticationSecret, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "preauthentication-secret")
 		if err != nil {
 			return err
 		}
@@ -4293,7 +4297,9 @@ func (block *systemBlockAccountingBlockDestinationRadiusServer) read(itemTrim st
 	return nil
 }
 
-func (block *systemBlockAccountingBlockDestinationTacplusServer) read(itemTrim string) (err error) {
+func (block *systemBlockAccountingBlockDestinationTacplusServer) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "port "):
 		block.Port, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -4303,7 +4309,7 @@ func (block *systemBlockAccountingBlockDestinationTacplusServer) read(itemTrim s
 	case balt.CutPrefixInString(&itemTrim, "routing-instance "):
 		block.RoutingInstance = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "secret "):
-		block.Secret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
+		block.Secret, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
 		if err != nil {
 			return err
 		}
@@ -4321,12 +4327,14 @@ func (block *systemBlockAccountingBlockDestinationTacplusServer) read(itemTrim s
 	return nil
 }
 
-func (block *systemBlockArchivalConfiguration) read(itemTrim string) (err error) {
+func (block *systemBlockArchivalConfiguration) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "archive-sites "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		if len(itemTrimFields) > 2 { // <url> password <password>
-			password, err := tfdata.JunosDecode(strings.Trim(itemTrimFields[2], "\""), "password")
+			password, err := junSess.JunosDecode(strings.Trim(itemTrimFields[2], "\""), "password")
 			if err != nil {
 				return err
 			}
@@ -4449,7 +4457,9 @@ func (systemBlockLicense) junosLines() []string {
 	}
 }
 
-func (block *systemBlockLicense) read(itemTrim string) (err error) {
+func (block *systemBlockLicense) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	itemTrim = strings.TrimPrefix(itemTrim, "license ")
 	switch {
 	case itemTrim == "autoupdate":
@@ -4460,7 +4470,7 @@ func (block *systemBlockLicense) read(itemTrim string) (err error) {
 		block.AutoupdateURL = types.StringValue(strings.Trim(url, "\""))
 
 		if balt.CutPrefixInString(&itemTrim, url+" password ") {
-			password, err := tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "password")
+			password, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "password")
 			if err != nil {
 				return err
 			}

@@ -451,12 +451,12 @@ func (rscData *securityIkePolicyData) read(
 			case balt.CutPrefixInString(&itemTrim, "proposal-set "):
 				rscData.ProposalSet = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "pre-shared-key hexadecimal "):
-				rscData.PreSharedKeyHexa, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key hexadecimal")
+				rscData.PreSharedKeyHexa, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key hexadecimal")
 				if err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "pre-shared-key ascii-text "):
-				rscData.PreSharedKeyText, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key ascii-text")
+				rscData.PreSharedKeyText, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key ascii-text")
 				if err != nil {
 					return err
 				}

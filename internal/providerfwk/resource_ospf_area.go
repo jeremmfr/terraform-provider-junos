@@ -2315,7 +2315,7 @@ func (rscData *ospfAreaData) read(
 				interFace.Name = types.StringValue(itemTrimFields[0])
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
-				if err := interFace.read(itemTrim); err != nil {
+				if err := interFace.read(itemTrim, junSess); err != nil {
 					return err
 				}
 				rscData.Interface = append(rscData.Interface, interFace)
@@ -2402,10 +2402,12 @@ func (rscData *ospfAreaData) read(
 	return nil
 }
 
-func (block *ospfAreaBlockInterface) read(itemTrim string) (err error) {
+func (block *ospfAreaBlockInterface) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "authentication simple-password "):
-		block.AuthenticationSimplePassword, err = tfdata.JunosDecode(
+		block.AuthenticationSimplePassword, err = junSess.JunosDecode(
 			strings.Trim(itemTrim, "\""),
 			"authentication simple-password",
 		)
@@ -2523,7 +2525,7 @@ func (block *ospfAreaBlockInterface) read(itemTrim string) (err error) {
 
 		switch {
 		case balt.CutPrefixInString(&itemTrim, "key "):
-			authenticationMD5.Key, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication md5 key")
+			authenticationMD5.Key, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication md5 key")
 			if err != nil {
 				return err
 			}
