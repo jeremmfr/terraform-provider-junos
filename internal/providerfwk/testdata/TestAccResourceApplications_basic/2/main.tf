@@ -56,6 +56,28 @@ resource "junos_applications" "testacc" {
       icmp6_type = "echo-reply"
     }
   }
+  application {
+    name      = "testacc_apps6"
+    protocol  = "icmp"
+    icmp_code = "1"
+    icmp_type = "echo-reply"
+  }
+  application {
+    name       = "testacc_apps7"
+    protocol   = "icmp6"
+    icmp6_code = "1"
+    icmp6_type = "echo-reply"
+  }
+  application {
+    name                                   = "testacc_apps8"
+    application_protocol                   = "dns"
+    do_not_translate_a_query_to_aaaa_query = true
+  }
+  application {
+    name                                   = "testacc_apps9"
+    application_protocol                   = "dns"
+    do_not_translate_aaaa_query_to_a_query = true
+  }
 
   application_set {
     name         = "testacc_apps_set1"

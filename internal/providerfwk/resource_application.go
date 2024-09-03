@@ -110,18 +110,24 @@ type applicationData struct {
 }
 
 type applicationAttrData struct {
-	Name                   types.String           `tfsdk:"name"`
-	ApplicationProtocol    types.String           `tfsdk:"application_protocol"`
-	Description            types.String           `tfsdk:"description"`
-	DestinationPort        types.String           `tfsdk:"destination_port"`
-	EtherType              types.String           `tfsdk:"ether_type"`
-	InactivityTimeout      types.Int64            `tfsdk:"inactivity_timeout"`
-	InactivityTimeoutNever types.Bool             `tfsdk:"inactivity_timeout_never"`
-	Protocol               types.String           `tfsdk:"protocol"`
-	RPCProgramNumber       types.String           `tfsdk:"rpc_program_number"`
-	SourcePort             types.String           `tfsdk:"source_port"`
-	UUID                   types.String           `tfsdk:"uuid"`
-	Term                   []applicationBlockTerm `tfsdk:"term"`
+	Name                            types.String           `tfsdk:"name"`
+	ApplicationProtocol             types.String           `tfsdk:"application_protocol"`
+	Description                     types.String           `tfsdk:"description"`
+	DestinationPort                 types.String           `tfsdk:"destination_port"`
+	DoNotTranslateAQueryToAAAAQuery types.Bool             `tfsdk:"do_not_translate_a_query_to_aaaa_query"`
+	DoNotTranslateAAAAQueryToAQuery types.Bool             `tfsdk:"do_not_translate_aaaa_query_to_a_query"`
+	EtherType                       types.String           `tfsdk:"ether_type"`
+	IcmpCode                        types.String           `tfsdk:"icmp_code"`
+	IcmpType                        types.String           `tfsdk:"icmp_type"`
+	Icmp6Code                       types.String           `tfsdk:"icmp6_code"`
+	Icmp6Type                       types.String           `tfsdk:"icmp6_type"`
+	InactivityTimeout               types.Int64            `tfsdk:"inactivity_timeout"`
+	InactivityTimeoutNever          types.Bool             `tfsdk:"inactivity_timeout_never"`
+	Protocol                        types.String           `tfsdk:"protocol"`
+	RPCProgramNumber                types.String           `tfsdk:"rpc_program_number"`
+	SourcePort                      types.String           `tfsdk:"source_port"`
+	UUID                            types.String           `tfsdk:"uuid"`
+	Term                            []applicationBlockTerm `tfsdk:"term"`
 }
 
 func (rscData *applicationAttrData) isEmpty() bool {
@@ -162,6 +168,20 @@ func (rscData applicationAttrData) attributesSchema() map[string]schema.Attribut
 				tfvalidator.StringDoubleQuoteExclusion(),
 			},
 		},
+		"do_not_translate_a_query_to_aaaa_query": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Knob to control the translation of A query to AAAA query.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"do_not_translate_aaaa_query_to_a_query": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Knob to control the translation of AAAA query to A query.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
 		"ether_type": schema.StringAttribute{
 			Optional:    true,
 			Description: "Match ether type.",
@@ -170,6 +190,38 @@ func (rscData applicationAttrData) attributesSchema() map[string]schema.Attribut
 					`^0[xX][0-9a-fA-F]{4}$`),
 					"must be in hex (example: 0x8906)",
 				),
+			},
+		},
+		"icmp_code": schema.StringAttribute{
+			Optional:    true,
+			Description: "Match ICMP message code.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+			},
+		},
+		"icmp_type": schema.StringAttribute{
+			Optional:    true,
+			Description: "Match ICMP message type.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+			},
+		},
+		"icmp6_code": schema.StringAttribute{
+			Optional:    true,
+			Description: "Match ICMP6 message code.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+			},
+		},
+		"icmp6_type": schema.StringAttribute{
+			Optional:    true,
+			Description: "Match ICMP6 message type.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 			},
 		},
 		"inactivity_timeout": schema.Int64Attribute{
@@ -347,18 +399,24 @@ type applicationConfig struct {
 }
 
 type applicationAttrConfig struct {
-	Name                   types.String `tfsdk:"name"`
-	ApplicationProtocol    types.String `tfsdk:"application_protocol"`
-	Description            types.String `tfsdk:"description"`
-	DestinationPort        types.String `tfsdk:"destination_port"`
-	EtherType              types.String `tfsdk:"ether_type"`
-	InactivityTimeout      types.Int64  `tfsdk:"inactivity_timeout"`
-	InactivityTimeoutNever types.Bool   `tfsdk:"inactivity_timeout_never"`
-	Protocol               types.String `tfsdk:"protocol"`
-	RPCProgramNumber       types.String `tfsdk:"rpc_program_number"`
-	SourcePort             types.String `tfsdk:"source_port"`
-	UUID                   types.String `tfsdk:"uuid"`
-	Term                   types.List   `tfsdk:"term"`
+	Name                            types.String `tfsdk:"name"`
+	ApplicationProtocol             types.String `tfsdk:"application_protocol"`
+	Description                     types.String `tfsdk:"description"`
+	DestinationPort                 types.String `tfsdk:"destination_port"`
+	DoNotTranslateAQueryToAAAAQuery types.Bool   `tfsdk:"do_not_translate_a_query_to_aaaa_query"`
+	DoNotTranslateAAAAQueryToAQuery types.Bool   `tfsdk:"do_not_translate_aaaa_query_to_a_query"`
+	EtherType                       types.String `tfsdk:"ether_type"`
+	IcmpCode                        types.String `tfsdk:"icmp_code"`
+	IcmpType                        types.String `tfsdk:"icmp_type"`
+	Icmp6Code                       types.String `tfsdk:"icmp6_code"`
+	Icmp6Type                       types.String `tfsdk:"icmp6_type"`
+	InactivityTimeout               types.Int64  `tfsdk:"inactivity_timeout"`
+	InactivityTimeoutNever          types.Bool   `tfsdk:"inactivity_timeout_never"`
+	Protocol                        types.String `tfsdk:"protocol"`
+	RPCProgramNumber                types.String `tfsdk:"rpc_program_number"`
+	SourcePort                      types.String `tfsdk:"source_port"`
+	UUID                            types.String `tfsdk:"uuid"`
+	Term                            types.List   `tfsdk:"term"`
 }
 
 func (config *applicationAttrConfig) isEmpty() bool {
@@ -378,6 +436,19 @@ func (config *applicationAttrConfig) validateConfig(
 			errPath,
 			tfdiag.ConflictConfigErrSummary,
 			"inactivity_timeout and inactivity_timeout_never cannot be configured together"+blockErrorSuffix,
+		)
+	}
+	if !config.DoNotTranslateAQueryToAAAAQuery.IsNull() && !config.DoNotTranslateAQueryToAAAAQuery.IsUnknown() &&
+		!config.DoNotTranslateAAAAQueryToAQuery.IsNull() && !config.DoNotTranslateAAAAQueryToAQuery.IsUnknown() {
+		errPath := path.Root("do_not_translate_a_query_to_aaaa_query")
+		if rootPath != nil {
+			errPath = *rootPath
+		}
+		resp.Diagnostics.AddAttributeError(
+			errPath,
+			tfdiag.ConflictConfigErrSummary,
+			"do_not_translate_a_query_to_aaaa_query and do_not_translate_aaaa_query_to_a_query"+
+				" cannot be configured together"+blockErrorSuffix,
 		)
 	}
 
@@ -750,8 +821,26 @@ func (rscData applicationAttrData) configSet(blockErrorSuffix string) ([]string,
 	if v := rscData.DestinationPort.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"destination-port \""+v+"\"")
 	}
+	if rscData.DoNotTranslateAQueryToAAAAQuery.ValueBool() {
+		configSet = append(configSet, setPrefix+"do-not-translate-A-query-to-AAAA-query")
+	}
+	if rscData.DoNotTranslateAAAAQueryToAQuery.ValueBool() {
+		configSet = append(configSet, setPrefix+"do-not-translate-AAAA-query-to-A-query")
+	}
 	if v := rscData.EtherType.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"ether-type "+v)
+	}
+	if v := rscData.IcmpCode.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"icmp-code "+v)
+	}
+	if v := rscData.IcmpType.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"icmp-type "+v)
+	}
+	if v := rscData.Icmp6Code.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"icmp6-code "+v)
+	}
+	if v := rscData.Icmp6Type.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"icmp6-type "+v)
 	}
 	if !rscData.InactivityTimeout.IsNull() {
 		configSet = append(configSet, setPrefix+"inactivity-timeout "+
@@ -883,8 +972,20 @@ func (rscData *applicationAttrData) read(itemTrim string) (err error) {
 		rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "destination-port "):
 		rscData.DestinationPort = types.StringValue(strings.Trim(itemTrim, "\""))
+	case itemTrim == "do-not-translate-A-query-to-AAAA-query":
+		rscData.DoNotTranslateAQueryToAAAAQuery = types.BoolValue(true)
+	case itemTrim == "do-not-translate-AAAA-query-to-A-query":
+		rscData.DoNotTranslateAAAAQueryToAQuery = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "ether-type "):
 		rscData.EtherType = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "icmp-code "):
+		rscData.IcmpCode = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "icmp-type "):
+		rscData.IcmpType = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "icmp6-code "):
+		rscData.Icmp6Code = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "icmp6-type "):
+		rscData.Icmp6Type = types.StringValue(itemTrim)
 	case itemTrim == "inactivity-timeout never":
 		rscData.InactivityTimeoutNever = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "inactivity-timeout "):
