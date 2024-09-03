@@ -22,7 +22,8 @@ resource "junos_security_zone" "demo_zone" {
 
 ## Argument Reference
 
--> **Note** The interfaces can be configured with the `junos_interface_logical` resource and the
+-> **Note**
+  The interfaces can be configured with the `junos_interface_logical` resource and the
   `security_zone`, `security_inbound_protocols` and `security_inbound_services` arguments.
 
 The following arguments are supported:

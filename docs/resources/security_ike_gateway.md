@@ -20,7 +20,8 @@ resource "junos_security_ike_gateway" "demo_vpn_p1" {
 
 ## Argument Reference
 
--> **Note:** One of `address` or `dynamic_remote` arguments is required.
+-> **Note**
+  One of `address` or `dynamic_remote` arguments is required.
 
 The following arguments are supported:
 
@@ -85,8 +86,8 @@ The following arguments are supported:
 
 ### dynamic_remote arguments
 
--> **Note:** You can only choose one argument between `distinguished_name`, `hostname`, `inet`,
-`inet6` and `user_at_hostname`.
+-> **Note**
+  You can only choose one argument between `distinguished_name`, `hostname`, `inet`, `inet6` and `user_at_hostname`.
 
 - **connections_limit** (Optional, Number)  
   Maximum number of users connected to gateway.

@@ -4,10 +4,11 @@ page_title: "Junos: junos_forwardingoptions_dhcprelay"
 
 # junos_forwardingoptions_dhcprelay
 
--> **Note:** This resource should only be created **once** for each version `v4` or `v6` in
-root level or in each routing-instance. It's used to configure static (not object) options in
-`forwarding-options dhcp-relay [dhcpv6]` block in
-root or routing-instance level.
+~> **Note**
+  This resource should only be created **once** for each version `v4` or `v6` in
+  root level or in each routing-instance.  
+  It's used to configure static (not object) options in `forwarding-options dhcp-relay [dhcpv6]`
+  block in root or routing-instance level.
 
 Configure static configuration in `forwarding-options dhcp-relay [dhcpv6]` block for
 root or routing-instance level.

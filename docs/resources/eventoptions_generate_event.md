@@ -18,7 +18,8 @@ resource "junos_eventoptions_generate_event" "demo" {
 
 ## Argument Reference
 
--> **Note:** One of `time_interval` or `time_of_day` arguments is required.
+-> **Note**
+  One of `time_interval` or `time_of_day` arguments is required.
 
 The following arguments are supported:
 

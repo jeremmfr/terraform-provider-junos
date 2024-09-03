@@ -4,9 +4,10 @@ page_title: "Junos: junos_rstp"
 
 # junos_rstp
 
--> **Note:** This resource should only be created **once** for root level or each
-routing-instance. It's used to configure static (not object) options in `protocols rstp` block
-in root or routing-instance level.
+~> **Note**
+  This resource should only be created **once** for root level or each routing-instance.  
+  It's used to configure static (not object) options in `protocols rstp` block
+  in root or routing-instance level.
 
 Configure static configuration in `protocols rstp` block for root or routing-instance level.
 

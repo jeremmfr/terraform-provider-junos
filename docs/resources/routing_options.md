@@ -4,9 +4,10 @@ page_title: "Junos: junos_routing_options"
 
 # junos_routing_options
 
--> **Note:** This resource should only be created **once**.
-It's used to configure static (not object) options in `routing-options` block.  
-By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure static (not object) options in `routing-options` block.  
+  By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `routing-options` block
 

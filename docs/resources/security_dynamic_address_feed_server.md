@@ -24,7 +24,8 @@ resource "junos_security_dynamic_address_feed_server" "demo_feed_srv" {
 
 ## Argument Reference
 
--> **Note:** One of `hostname` or `url` arguments is required.
+-> **Note**
+  One of `hostname` or `url` arguments is required.
 
 The following arguments are supported:
 

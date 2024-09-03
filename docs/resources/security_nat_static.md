@@ -31,7 +31,8 @@ resource "junos_security_nat_static" "demo_nat" {
 
 The following arguments are supported:
 
--> **Note:** One of `rule` or `configure_rules_singly` arguments is required.
+-> **Note**
+  One of `rule` or `configure_rules_singly` arguments is required.
 
 - **name** (Required, String, Forces new resource)  
   Static nat rule-set name.
@@ -55,7 +56,8 @@ The following arguments are supported:
 
 ### rule arguments
 
--> **Note:** One of `destination_address` or `destination_address_name` arguments is required.
+-> **Note**
+  One of `destination_address` or `destination_address_name` arguments is required.
 
 - **name** (Required, String)  
   Rule name.

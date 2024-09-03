@@ -24,7 +24,8 @@ resource "junos_snmp_v3_vacm_accessgroup" "group1" {
 
 The following arguments are supported:
 
--> **Note:** At least one of `context_prefix` or `default_context_prefix` need to be set
+-> **Note**
+  At least one of `context_prefix` or `default_context_prefix` need to be set.
 
 - **name** (Required, String, Forces new resource)  
   SNMPv3 VACM group name.

@@ -26,7 +26,8 @@ The following arguments are supported:
 - **match** (Optional, String)  
   Regex string to filter lines and find only one interface.
 
-~> **NOTE:** If more or less than a single match is returned by the search, Terraform will fail.
+~> **Note**
+  If more or less than a single match is returned by the search, Terraform will fail.
 
 ## Attribute Reference
 

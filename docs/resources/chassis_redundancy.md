@@ -4,8 +4,9 @@ page_title: "Junos: junos_chassis_redundancy"
 
 # junos_chassis_redundancy
 
--> **Note:** This resource should only be created **once**.
-It's used to configure options in `chassis redundancy` block.  
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure options in `chassis redundancy` block.  
 
 Configure `chassis redundancy` block
 

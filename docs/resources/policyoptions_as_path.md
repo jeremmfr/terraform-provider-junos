@@ -18,7 +18,8 @@ resource "junos_policyoptions_as_path" "github" {
 
 ## Argument Reference
 
--> **Note:** One of `dynamic_db` or `path` arguments is required.
+->**Note**
+  One of `dynamic_db` or `path` arguments is required.
 
 The following arguments are supported:
 

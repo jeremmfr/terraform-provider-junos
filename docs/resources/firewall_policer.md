@@ -25,7 +25,8 @@ resource "junos_firewall_policer" "policer_demo" {
 
 ## Argument Reference
 
--> **Note:** One of `if_exceeding` or `if_exceeding_pps` arguments is required.
+-> **Note**
+  One of `if_exceeding` or `if_exceeding_pps` arguments is required.
 
 The following arguments are supported:
 

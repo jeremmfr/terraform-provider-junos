@@ -20,7 +20,8 @@ resource "junos_ospf_area" "demo_area" {
 
 ## Argument Reference
 
--> **Note** Some arguments are only compatible with one version (`v2` or `v3`) of ospf.
+-> **Note**
+  Some arguments are only compatible with one version (`v2` or `v3`) of ospf.
 
 The following arguments are supported:
 
