@@ -5,10 +5,10 @@
 
 ENHANCEMENTS:
 
-* **resource/junos_bridge_domain**:  add `static_remote_vtep_list` argument inside `vxlan` block argument (Fix [#672](https://github.com/jeremmfr/terraform-provider-junos/issues/672))
+* **resource/junos_bridge_domain**: add `static_remote_vtep_list` argument inside `vxlan` block argument (Fix [#672](https://github.com/jeremmfr/terraform-provider-junos/issues/672))
 * **resource/junos_interface_logical**: add `encapsulation` argument (Fix [#674](https://github.com/jeremmfr/terraform-provider-junos/issues/674))
 * **data-source/junos_interface_logical**: add `encapsulation` attribute like resource
-* **resource/junos_routing_instance**:  add `remote_vtep_list` and `remote_vtep_v6_list` arguments (Fix [#673](https://github.com/jeremmfr/terraform-provider-junos/issues/673))
+* **resource/junos_routing_instance**: add `remote_vtep_list` and `remote_vtep_v6_list` arguments (Fix [#673](https://github.com/jeremmfr/terraform-provider-junos/issues/673))
 * **data-source/junos_routing_instance**: add `remote_vtep_list` and `remote_vtep_v6_list` attributes like resource
 * **resource/junos_rstp**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
@@ -23,8 +23,8 @@ ENHANCEMENTS:
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
   * add `transport` block argument (Fix [#675](https://github.com/jeremmfr/terraform-provider-junos/issues/675))
-* **resource/junos_switch_options**:  add `remote_vtep_list` and `remote_vtep_v6_list` arguments
-* **resource/junos_vlan**:  add `static_remote_vtep_list` argument inside `vxlan` block argument
+* **resource/junos_switch_options**: add `remote_vtep_list` and `remote_vtep_v6_list` arguments
+* **resource/junos_vlan**: add `static_remote_vtep_list` argument inside `vxlan` block argument
 * **resource/junos_vstp**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
   optional boolean attributes doesn't accept value *false*
@@ -46,7 +46,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* **data-source/junos_interfaces_physical_present**:  
+* **data-source/junos_interfaces_physical_present**:
   * add `interfaces` block map attribute with same attributes as `interface_statuses` and additional `logical_interface_names` attribute (Fix [#641](https://github.com/jeremmfr/terraform-provider-junos/issues/641))
   * deprecate `interface_statuses` attribute (read the `interfaces` attribute instead)
 * **resource/junos_evpn**: add `no_core_isolation` argument (Fix [#644](https://github.com/jeremmfr/terraform-provider-junos/issues/644))
@@ -111,7 +111,7 @@ ENHANCEMENTS:
   optional string attributes doesn't accept *empty* value  
 * **resource/junos_snmp_v3_community**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   optional string attributes doesn't accept *empty* value  
-* **resource/junos_snmp_v3_usm_user**:  
+* **resource/junos_snmp_v3_usm_user**:
   * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
   optional string attributes doesn't accept *empty* value  
