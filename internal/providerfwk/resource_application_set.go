@@ -2,9 +2,12 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
+	"maps"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
@@ -73,77 +76,121 @@ func (rsc *applicationSet) Configure(
 func (rsc *applicationSet) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
-	resp.Schema = schema.Schema{
-		Description: defaultResourceSchemaDescription(rsc),
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "An identifier for the resource with format `<name>`.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required:    true,
-				Description: "Application set name.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 63),
-					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-				},
-			},
-			"applications": schema.ListAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Description: "Application to be included in the set.",
-				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
-					listvalidator.ValueStringsAre(
-						stringvalidator.LengthBetween(1, 63),
-						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-					),
-				},
-			},
-			"application_set": schema.ListAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Description: "Application-set to be included in the set.",
-				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
-					listvalidator.ValueStringsAre(
-						stringvalidator.LengthBetween(1, 63),
-						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-					),
-				},
-			},
-			"description": schema.StringAttribute{
-				Optional:    true,
-				Description: "Description for application-set.",
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 900),
-					tfvalidator.StringDoubleQuoteExclusion(),
-				},
+	attributes := map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:    true,
+			Description: "An identifier for the resource with format `<name>`.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
+	}
+	maps.Copy(attributes, applicationSetAttrData{}.attributesSchema())
+	// add RequiresReplace on name to force replacement of application_set resource
+	// when value change (useless in applications resource)
+	nameAttribute := attributes["name"].(schema.StringAttribute)
+	nameAttribute.PlanModifiers = []planmodifier.String{
+		stringplanmodifier.RequiresReplace(),
+	}
+	attributes["name"] = nameAttribute
+
+	resp.Schema = schema.Schema{
+		Description: defaultResourceSchemaDescription(rsc),
+		Attributes:  attributes,
 	}
 }
 
 type applicationSetData struct {
-	ID             types.String   `tfsdk:"id"`
+	ID types.String `tfsdk:"id"`
+	applicationSetAttrData
+}
+
+type applicationSetAttrData struct {
 	Name           types.String   `tfsdk:"name"`
 	Applications   []types.String `tfsdk:"applications"`
 	ApplicationSet []types.String `tfsdk:"application_set"`
 	Description    types.String   `tfsdk:"description"`
 }
 
+func (rscData *applicationSetAttrData) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(rscData, "Name")
+}
+
+func (rscData applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "Application set name.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+			},
+		},
+		"applications": schema.ListAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "Application to be included in the set.",
+			Validators: []validator.List{
+				listvalidator.SizeAtLeast(1),
+				listvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				),
+			},
+		},
+		"application_set": schema.ListAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "Application-set to be included in the set.",
+			Validators: []validator.List{
+				listvalidator.SizeAtLeast(1),
+				listvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				),
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:    true,
+			Description: "Description for application-set.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 900),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+	}
+}
+
 type applicationSetConfig struct {
-	ID             types.String `tfsdk:"id"`
+	ID types.String `tfsdk:"id"`
+	applicationSetAttrConfig
+}
+
+type applicationSetAttrConfig struct {
 	Name           types.String `tfsdk:"name"`
 	Applications   types.List   `tfsdk:"applications"`
 	ApplicationSet types.List   `tfsdk:"application_set"`
 	Description    types.String `tfsdk:"description"`
+}
+
+func (config *applicationSetAttrConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(config, "Name")
+}
+
+func (config *applicationSetAttrConfig) validateConfig(
+	_ context.Context, rootPath *path.Path, blockErrorSuffix string, resp *resource.ValidateConfigResponse,
+) {
+	if config.isEmpty() {
+		errPath := path.Root("name")
+		if rootPath != nil {
+			errPath = *rootPath
+		}
+		resp.Diagnostics.AddAttributeError(
+			errPath,
+			tfdiag.MissingConfigErrSummary,
+			"at least one of applications, application_set or description must be specified"+blockErrorSuffix,
+		)
+	}
 }
 
 func (rsc *applicationSet) ValidateConfig(
@@ -155,15 +202,7 @@ func (rsc *applicationSet) ValidateConfig(
 		return
 	}
 
-	if config.Applications.IsNull() &&
-		config.ApplicationSet.IsNull() &&
-		config.Description.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("name"),
-			tfdiag.MissingConfigErrSummary,
-			"at least one of applications, application_set or description must be specified",
-		)
-	}
+	config.applicationSetAttrConfig.validateConfig(ctx, nil, "", resp)
 }
 
 func (rsc *applicationSet) Create(
@@ -340,7 +379,16 @@ func (rscData *applicationSetData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0, len(rscData.Applications))
+	if rscData.applicationSetAttrData.isEmpty() {
+		return path.Root("name"),
+			errors.New("at least one of arguments need to be set (in addition to `name`)")
+	}
+
+	return path.Empty(), junSess.ConfigSet(rscData.applicationSetAttrData.configSet())
+}
+
+func (rscData *applicationSetAttrData) configSet() []string {
+	configSet := make([]string, 0, len(rscData.Applications)+len(rscData.ApplicationSet)+1)
 	setPrefix := "set applications application-set " + rscData.Name.ValueString() + " "
 
 	for _, v := range rscData.Applications {
@@ -353,7 +401,7 @@ func (rscData *applicationSetData) set(
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return configSet
 }
 
 func (rscData *applicationSetData) read(
@@ -375,18 +423,22 @@ func (rscData *applicationSetData) read(
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
-			switch {
-			case balt.CutPrefixInString(&itemTrim, "application "):
-				rscData.Applications = append(rscData.Applications, types.StringValue(itemTrim))
-			case balt.CutPrefixInString(&itemTrim, "application-set "):
-				rscData.ApplicationSet = append(rscData.ApplicationSet, types.StringValue(itemTrim))
-			case balt.CutPrefixInString(&itemTrim, "description "):
-				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
-			}
+			rscData.applicationSetAttrData.read(itemTrim)
 		}
 	}
 
 	return nil
+}
+
+func (rscData *applicationSetAttrData) read(itemTrim string) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "application "):
+		rscData.Applications = append(rscData.Applications, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "application-set "):
+		rscData.ApplicationSet = append(rscData.ApplicationSet, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "description "):
+		rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
+	}
 }
 
 func (rscData *applicationSetData) del(

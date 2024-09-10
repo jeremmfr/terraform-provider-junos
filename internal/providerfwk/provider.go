@@ -235,8 +235,9 @@ func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataS
 func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		newAggregateRouteResource,
-		newApplicationSetResource,
 		newApplicationResource,
+		newApplicationsResource,
+		newApplicationSetResource,
 		newBgpGroupResource,
 		newBgpNeighborResource,
 		newBridgeDomainResource,
