@@ -511,7 +511,7 @@ func (rsc *bridgeDomain) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 			state.RoutingInstance.ValueString(),
 		},
@@ -832,8 +832,8 @@ func (rscData *bridgeDomainData) delOpts(
 	}
 	if rscData.Vxlan != nil {
 		if rscData.Vxlan.VniExtendEvpn.ValueBool() {
-			configSet = append(configSet, delPrefixProtocolsEvpn+
-				"extended-vni-list "+utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
+			configSet = append(configSet, delPrefixProtocolsEvpn+"extended-vni-list "+
+				utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 		}
 	}
 
@@ -853,8 +853,8 @@ func (rscData *bridgeDomainData) del(
 	}
 	if rscData.Vxlan != nil {
 		if rscData.Vxlan.VniExtendEvpn.ValueBool() {
-			configSet = append(configSet, delPrefix+
-				"protocols evpn extended-vni-list "+utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
+			configSet = append(configSet, delPrefix+"protocols evpn extended-vni-list "+
+				utils.ConvI64toa(rscData.Vxlan.Vni.ValueInt64()))
 		}
 	}
 

@@ -6,9 +6,10 @@ page_title: "Junos: junos_security_nat_static_rule"
 
 Provides a security nat static rule resource in rule-set.
 
--> **Note:** Security nat static rule-set can be created with `junos_security_nat_static` resource.
-This resource needs to have `configure_rules_singly` set to true otherwise there will be a conflict
-between resources.
+~> **Note**
+  Security nat static rule-set can be created with `junos_security_nat_static` resource.  
+  This resource needs to have `configure_rules_singly` set to true otherwise there will be a conflict
+  between resources.
 
 ## Example Usage
 
@@ -29,7 +30,8 @@ resource "junos_security_nat_static_rule" "demo_nat_rule" {
 
 The following arguments are supported:
 
--> **Note:** One of `destination_address` or `destination_address_name` arguments is required.
+-> **Note**
+  One of `destination_address` or `destination_address_name` arguments is required.
 
 - **name** (Required, String, Forces new resource)  
   Static Rule name.

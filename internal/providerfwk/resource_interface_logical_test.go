@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
+// export TESTACC_INTERFACE=<inteface> to choose interface available else it's ge-0/0/3.
 func TestAccResourceInterfaceLogical_basic(t *testing.T) {
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
@@ -208,6 +208,23 @@ func TestAccResourceInterfaceLogical_basic(t *testing.T) {
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
+				},
+			},
+		})
+	}
+}
+
+func TestAccResourceInterfaceLogical_router(t *testing.T) {
+	if os.Getenv("TESTACC_ROUTER") != "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+				},
+				{
+					ConfigDirectory: config.TestStepDirectory(),
 				},
 			},
 		})

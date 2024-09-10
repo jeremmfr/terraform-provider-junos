@@ -717,25 +717,20 @@ func (rscData *rstpData) del(
 	}
 	delPrefix += "protocols rstp "
 
-	listLinesToDelete := []string{
-		"backup-bridge-priority",
-		"bpdu-block-on-edge",
-		"bpdu-destination-mac-address",
-		"bridge-priority",
-		"disable",
-		"extended-system-id",
-		"force-version",
-		"forward-delay",
-		"hello-time",
-		"max-age",
-		"priority-hold-time",
-		"system-identifier",
-		"vpls-flush-on-topology-change",
-	}
-
-	configSet := make([]string, len(listLinesToDelete), len(listLinesToDelete)+len(rscData.SystemID))
-	for k, line := range listLinesToDelete {
-		configSet[k] = delPrefix + line
+	configSet := []string{
+		delPrefix + "backup-bridge-priority",
+		delPrefix + "bpdu-block-on-edge",
+		delPrefix + "bpdu-destination-mac-address",
+		delPrefix + "bridge-priority",
+		delPrefix + "disable",
+		delPrefix + "extended-system-id",
+		delPrefix + "force-version",
+		delPrefix + "forward-delay",
+		delPrefix + "hello-time",
+		delPrefix + "max-age",
+		delPrefix + "priority-hold-time",
+		delPrefix + "system-identifier",
+		delPrefix + "vpls-flush-on-topology-change",
 	}
 	for _, block := range rscData.SystemID {
 		configSet = append(configSet, delPrefix+"system-id "+block.ID.ValueString())

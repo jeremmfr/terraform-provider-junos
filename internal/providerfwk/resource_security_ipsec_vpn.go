@@ -727,14 +727,6 @@ func (rsc *securityIpsecVpn) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			if !junSess.CheckCompatibilitySecurity() {
-				resp.Diagnostics.AddError(
-					tfdiag.CompatibilityErrSummary,
-					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
-				)
-
-				return false
-			}
 			vpnExists, err := checkSecurityIpsecVpnExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
@@ -788,7 +780,7 @@ func (rsc *securityIpsecVpn) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,
@@ -945,12 +937,13 @@ func (rscData *securityIpsecVpnData) set(
 			return path.Root("manual").AtName("protocol"),
 				errors.New("missing: protocol must be not empty in manual block")
 		}
-		configSet = append(configSet, setPrefix+"manual spi "+utils.ConvI64toa(rscData.Manual.Spi.ValueInt64()))
+		configSet = append(configSet, setPrefix+"manual spi "+
+			utils.ConvI64toa(rscData.Manual.Spi.ValueInt64()))
 		if v := rscData.Manual.AuthenticationAlgorithm.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual authentication algorithm "+v)
 		}
 		if v := rscData.Manual.AuthenticationKeyHexa.ValueString(); v != "" {
-			configSet = append(configSet, setPrefix+"manual authentication key hexadecimal "+v)
+			configSet = append(configSet, setPrefix+"manual authentication key hexadecimal \""+v+"\"")
 		}
 		if v := rscData.Manual.AuthenticationKeyText.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual authentication key ascii-text \""+v+"\"")
@@ -959,7 +952,7 @@ func (rscData *securityIpsecVpnData) set(
 			configSet = append(configSet, setPrefix+"manual encryption algorithm "+v)
 		}
 		if v := rscData.Manual.EncryptionKeyHexa.ValueString(); v != "" {
-			configSet = append(configSet, setPrefix+"manual encryption key hexadecimal "+v)
+			configSet = append(configSet, setPrefix+"manual encryption key hexadecimal \""+v+"\"")
 		}
 		if v := rscData.Manual.EncryptionKeyText.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual encryption key ascii-text \""+v+"\"")
@@ -1069,13 +1062,13 @@ func (rscData *securityIpsecVpnData) read(
 				case balt.CutPrefixInString(&itemTrim, "authentication algorithm "):
 					rscData.Manual.AuthenticationAlgorithm = types.StringValue(itemTrim)
 				case balt.CutPrefixInString(&itemTrim, "authentication key hexadecimal "):
-					rscData.Manual.AuthenticationKeyHexa, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""),
+					rscData.Manual.AuthenticationKeyHexa, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""),
 						"authentication key hexadecimal")
 					if err != nil {
 						return err
 					}
 				case balt.CutPrefixInString(&itemTrim, "authentication key ascii-text "):
-					rscData.Manual.AuthenticationKeyText, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""),
+					rscData.Manual.AuthenticationKeyText, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""),
 						"authentication key ascii-text")
 					if err != nil {
 						return err
@@ -1083,13 +1076,13 @@ func (rscData *securityIpsecVpnData) read(
 				case balt.CutPrefixInString(&itemTrim, "encryption algorithm "):
 					rscData.Manual.EncryptionAlgorithm = types.StringValue(itemTrim)
 				case balt.CutPrefixInString(&itemTrim, "encryption key hexadecimal "):
-					rscData.Manual.EncryptionKeyHexa, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""),
+					rscData.Manual.EncryptionKeyHexa, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""),
 						"encryption key hexadecimal")
 					if err != nil {
 						return err
 					}
 				case balt.CutPrefixInString(&itemTrim, "encryption key ascii-text "):
-					rscData.Manual.EncryptionKeyText, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""),
+					rscData.Manual.EncryptionKeyText, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""),
 						"encryption key ascii-text")
 					if err != nil {
 						return err

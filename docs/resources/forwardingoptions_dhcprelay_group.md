@@ -25,8 +25,8 @@ resource "junos_forwardingoptions_dhcprelay_servergroup" "demo" {
 
 ## Argument Reference
 
--> **Note:** At least one of arguments need to be set
-(in addition to `name`, `routing_instance` and `version`).
+-> **Note**
+  At least one of arguments need to be set (in addition to `name`, `routing_instance` and `version`).
 
 The following arguments are supported:
 

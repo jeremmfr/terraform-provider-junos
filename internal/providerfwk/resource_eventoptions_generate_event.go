@@ -255,7 +255,7 @@ func (rsc *eventoptionsGenerateEvent) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

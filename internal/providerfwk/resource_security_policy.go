@@ -626,7 +626,7 @@ func (rsc *securityPolicy) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.FromZone.ValueString(),
 			state.ToZone.ValueString(),
 		},

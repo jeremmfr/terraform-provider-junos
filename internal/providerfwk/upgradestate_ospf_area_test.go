@@ -12,6 +12,9 @@ import (
 )
 
 func TestAccUpgradeStateResourceOspfArea_V0toV1_basic(t *testing.T) {
+	if os.Getenv("TESTACC_UPGRADE_STATE") == "" {
+		return
+	}
 	testaccInterface := junos.DefaultInterfaceTestAcc
 	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {

@@ -455,7 +455,7 @@ func (rsc *routingInstance) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,
@@ -695,18 +695,18 @@ func (rscData *routingInstanceData) read(
 func (rscData *routingInstanceData) delOpts(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 0, 50)
 	delPrefix := junos.DeleteLS + junos.RoutingInstancesWS + rscData.Name.ValueString() + " "
-	configSet = append(configSet,
-		delPrefix+"description",
-		delPrefix+junos.RoutingOptionsWS+"autonomous-system",
-		delPrefix+junos.RoutingOptionsWS+"instance-export",
-		delPrefix+junos.RoutingOptionsWS+"instance-import",
-		delPrefix+"remote-vtep-list",
-		delPrefix+"remote-vtep-v6-list",
-		delPrefix+junos.RoutingOptionsWS+"router-id",
-		delPrefix+"vtep-source-interface",
-	)
+
+	configSet := []string{
+		delPrefix + "description",
+		delPrefix + junos.RoutingOptionsWS + "autonomous-system",
+		delPrefix + junos.RoutingOptionsWS + "instance-export",
+		delPrefix + junos.RoutingOptionsWS + "instance-import",
+		delPrefix + "remote-vtep-list",
+		delPrefix + "remote-vtep-v6-list",
+		delPrefix + junos.RoutingOptionsWS + "router-id",
+		delPrefix + "vtep-source-interface",
+	}
 	if !rscData.ConfigureTypeSingly.ValueBool() {
 		configSet = append(configSet, delPrefix+"instance-type")
 	}

@@ -9,7 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-func ConvAtoi64Value(str string,
+func ConvAtoi64Value(
+	str string,
 ) (
 	basetypes.Int64Value, error,
 ) {

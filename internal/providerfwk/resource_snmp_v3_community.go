@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
@@ -221,7 +220,7 @@ func (rsc *snmpV3Community) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.CommunityIndex.ValueString(),
 		},
 		&data,
@@ -354,7 +353,7 @@ func (rscData *snmpV3CommunityData) read(
 			case balt.CutPrefixInString(&itemTrim, "security-name "):
 				rscData.SecurityName = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "community-name "):
-				rscData.CommunityName, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "community-name")
+				rscData.CommunityName, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "community-name")
 				if err != nil {
 					return err
 				}

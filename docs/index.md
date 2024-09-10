@@ -113,7 +113,14 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable.  
   Defaults to empty.
 
--> **Note:**
+- **no_decode_secrets** (Optional, Boolean)  
+  Disable decoding secret `$9$` hashes by Junos device when reading resource data.  
+  So **encoded** secrets need to be set in the resources config to
+  avoid drift between Terraform config and state.  
+  It can also be enabled from the `JUNOS_NO_DECODE_SECRETS` environment variable and
+  its value is `1`, `t` or `true`.
+
+-> **Note**
   Two SSH authentication methods (keys / password) are possible and tried with the `sshkey_pem`,
   `sshkeyfile` arguments or the keys provided by a SSH agent through the `SSH_AUTH_SOCK`
   environnement variable and `password` argument.  
@@ -200,9 +207,10 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_LOG_PATH` environment variable.  
   Defaults to empty.
 
-  ~> **NOTE:** If this option is used (not empty), all Junos commands are logged in this file,
-  therefore there may be sensitive data in plain text in the file.
-  For example, when you use `plain_text_password` in the `junos_system_login_user` resource.
+  !> **Warning**
+    If this option is used (not empty), all Junos commands are logged in this file,
+    therefore there may be sensitive data in plain text in the file.
+    For example, when you use `plain_text_password` in the `junos_system_login_user` resource.
 
 - **fake_create_with_setfile** (Optional, String, **don't use in normal terraform run**)
   When this option is set (with a path to a file), the normal process to create resources (netconf
@@ -231,9 +239,10 @@ The following arguments are supported in the `provider` block:
   variable.  
   Defaults to empty.
 
-  ~> **NOTE:** If this option is used (not empty), all Junos commands are added to this file,
-  therefore there may be sensitive data in plain text in the file.
-  For example, when you use `plain_text_password` in the `junos_system_login_user` resource.
+  !> **Warning**
+    If this option is used (not empty), all Junos commands are added to this file,
+    therefore there may be sensitive data in plain text in the file.
+    For example, when you use `plain_text_password` in the `junos_system_login_user` resource.
 
 - **fake_update_also** (Optional, Boolean, **don't use in normal terraform run**)  
   As with `create` and `fake_create_with_setfile`, when this option is true, the normal
@@ -248,9 +257,8 @@ The following arguments are supported in the `provider` block:
     line when it should be necessary.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
 
-  It can also be sourced from the `JUNOS_FAKEUPDATE_ALSO` environment variable and
-  its value is `true`.  
-  Defaults to `false`.
+  It can also be enabled from the `JUNOS_FAKEUPDATE_ALSO` environment variable and
+  its value is `1`, `t` or `true`.
 
 - **fake_delete_also** (Optional, Boolean, **don't use in normal terraform run**)  
   As with `create` and `fake_create_with_setfile`, when this option is true, the normal
@@ -264,9 +272,8 @@ The following arguments are supported in the `provider` block:
     line when it should be necessary.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
 
-  It can also be sourced from the `JUNOS_FAKEDELETE_ALSO` environment variable and
-  its value is `true`.  
-  Defaults to `false`.
+  It can also be enabled from the `JUNOS_FAKEDELETE_ALSO` environment variable and
+  its value is `1`, `t` or `true`.
 
 ## Interface specifications
 

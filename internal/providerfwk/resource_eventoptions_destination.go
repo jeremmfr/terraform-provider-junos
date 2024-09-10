@@ -271,7 +271,7 @@ func (rsc *eventoptionsDestination) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,
@@ -410,7 +410,7 @@ func (rscData *eventoptionsDestinationData) read(
 			case balt.CutPrefixInString(&itemTrim, "archive-sites "):
 				itemTrimFields := strings.Split(itemTrim, " ")
 				if len(itemTrimFields) > 2 { // <url> password <password>
-					password, err := tfdata.JunosDecode(strings.Trim(itemTrimFields[2], "\""), "password")
+					password, err := junSess.JunosDecode(strings.Trim(itemTrimFields[2], "\""), "password")
 					if err != nil {
 						return err
 					}

@@ -4,8 +4,9 @@ page_title: "Junos: junos_chassis_cluster"
 
 # junos_chassis_cluster
 
--> **Note:** This resource should only be created **once**.
-It's used to configure static (not object) options in `chassis cluster` block and `interfaces fab0/1`.
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure static (not object) options in `chassis cluster` block and `interfaces fab0/1`.
 
 Configure static configuration in `chassis cluster` block and `interfaces fab0/1`.
 

@@ -17,8 +17,9 @@ resource "junos_routing_instance" "demo_ri" {
 
 ## Argument Reference
 
--> **Note:** The interfaces can be configured with the `junos_interface_logical` resource and
-the `routing_instance` argument.
+-> **Note**
+  The interfaces can be configured with the `junos_interface_logical` resource and
+  the `routing_instance` argument.
 
 The following arguments are supported:
 

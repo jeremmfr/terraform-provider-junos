@@ -1502,7 +1502,8 @@ func (block *forwardingoptionsSamplingBlockFamilyInetOutput) configSet(
 			configSet = append(configSet, setPrefix+"file disable")
 		}
 		if !block.File.Files.IsNull() {
-			configSet = append(configSet, setPrefix+"file files "+utils.ConvI64toa(block.File.Files.ValueInt64()))
+			configSet = append(configSet, setPrefix+"file files "+
+				utils.ConvI64toa(block.File.Files.ValueInt64()))
 		}
 		if block.File.NoStamp.ValueBool() {
 			configSet = append(configSet, setPrefix+"file no-stamp")
@@ -1511,7 +1512,8 @@ func (block *forwardingoptionsSamplingBlockFamilyInetOutput) configSet(
 			configSet = append(configSet, setPrefix+"file no-world-readable")
 		}
 		if !block.File.Size.IsNull() {
-			configSet = append(configSet, setPrefix+"file size "+utils.ConvI64toa(block.File.Size.ValueInt64()))
+			configSet = append(configSet, setPrefix+"file size "+
+				utils.ConvI64toa(block.File.Size.ValueInt64()))
 		}
 		if block.File.Stamp.ValueBool() {
 			configSet = append(configSet, setPrefix+"file stamp")

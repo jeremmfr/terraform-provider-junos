@@ -220,12 +220,12 @@ func (rsc *bgpGroup) UpgradeState(_ context.Context) map[int64]resource.StateUpg
 							Blocks: map[string]schema.Block{
 								"accepted_prefix_limit": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaFamilyPrefixLimitAttributes(),
+										Attributes: bgpBlockFamilyBlockPrefixLimit{}.resourceSchemaAttributes(),
 									},
 								},
 								"prefix_limit": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaFamilyPrefixLimitAttributes(),
+										Attributes: bgpBlockFamilyBlockPrefixLimit{}.resourceSchemaAttributes(),
 									},
 								},
 							},
@@ -241,12 +241,12 @@ func (rsc *bgpGroup) UpgradeState(_ context.Context) map[int64]resource.StateUpg
 							Blocks: map[string]schema.Block{
 								"accepted_prefix_limit": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaFamilyPrefixLimitAttributes(),
+										Attributes: bgpBlockFamilyBlockPrefixLimit{}.resourceSchemaAttributes(),
 									},
 								},
 								"prefix_limit": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaFamilyPrefixLimitAttributes(),
+										Attributes: bgpBlockFamilyBlockPrefixLimit{}.resourceSchemaAttributes(),
 									},
 								},
 							},
@@ -262,12 +262,12 @@ func (rsc *bgpGroup) UpgradeState(_ context.Context) map[int64]resource.StateUpg
 							Blocks: map[string]schema.Block{
 								"accepted_prefix_limit": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaFamilyPrefixLimitAttributes(),
+										Attributes: bgpBlockFamilyBlockPrefixLimit{}.resourceSchemaAttributes(),
 									},
 								},
 								"prefix_limit": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaFamilyPrefixLimitAttributes(),
+										Attributes: bgpBlockFamilyBlockPrefixLimit{}.resourceSchemaAttributes(),
 									},
 								},
 							},

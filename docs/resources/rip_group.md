@@ -4,12 +4,12 @@ page_title: "Junos: junos_rip_group"
 
 # junos_rip_group
 
-Provides a rip or ripng group resource.
+Provides a RIP or RIPng group resource.
 
 ## Example Usage
 
 ```hcl
-# Add a ripng group
+# Add a RIPng group
 resource "junos_rip_group" "demo_rip" {
   name = "group1"
   ng   = true
@@ -52,7 +52,8 @@ The following arguments are supported:
   - **transmit_interval_threshold** (Optional, Number)  
     High transmit interval triggering a trap (milliseconds).
   - **version** (Optional, String)  
-    BFD protocol version number.
+    BFD protocol version number.  
+    Need to be `0`, `1` or `automatic`.
 - **demand_circuit** (Optional, Boolean)  
   Enable demand circuit.  
   Conflict with `ng`.
@@ -70,7 +71,7 @@ The following arguments are supported:
 - **route_timeout** (Optional, Number)  
   Delay before routes time out (30..360 seconds).
 - **update_interval** (Optional, Number)  
-  Interval between regular route updates (10..60 seconds)
+  Interval between regular route updates (10..60 seconds).
 
 ## Attribute Reference
 
@@ -82,7 +83,7 @@ The following attributes are exported:
 
 ## Import
 
-Junos rip group can be imported using an id made up of
+Junos RIP or RIPng group can be imported using an id made up of
 `<name>_-_<routing_instance>` or `<name>_-_ng_-_<routing_instance>`, e.g.
 
 ```shell

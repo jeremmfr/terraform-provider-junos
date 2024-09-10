@@ -245,14 +245,6 @@ func (rsc *securityIkePolicy) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			if !junSess.CheckCompatibilitySecurity() {
-				resp.Diagnostics.AddError(
-					tfdiag.CompatibilityErrSummary,
-					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
-				)
-
-				return false
-			}
 			policyExists, err := checkSecurityIkePolicyExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
@@ -306,7 +298,7 @@ func (rsc *securityIkePolicy) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,
@@ -423,7 +415,8 @@ func (rscData *securityIkePolicyData) set(
 		configSet = append(configSet, setPrefix+"pre-shared-key ascii-text \""+v+"\"")
 	}
 	if !rscData.ReauthFrequency.IsNull() {
-		configSet = append(configSet, setPrefix+"reauth-frequency "+utils.ConvI64toa(rscData.ReauthFrequency.ValueInt64()))
+		configSet = append(configSet, setPrefix+"reauth-frequency "+
+			utils.ConvI64toa(rscData.ReauthFrequency.ValueInt64()))
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
@@ -458,12 +451,12 @@ func (rscData *securityIkePolicyData) read(
 			case balt.CutPrefixInString(&itemTrim, "proposal-set "):
 				rscData.ProposalSet = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "pre-shared-key hexadecimal "):
-				rscData.PreSharedKeyHexa, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key hexadecimal")
+				rscData.PreSharedKeyHexa, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key hexadecimal")
 				if err != nil {
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "pre-shared-key ascii-text "):
-				rscData.PreSharedKeyText, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key ascii-text")
+				rscData.PreSharedKeyText, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "pre-shared-key ascii-text")
 				if err != nil {
 					return err
 				}

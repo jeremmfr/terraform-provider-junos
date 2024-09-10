@@ -4,9 +4,10 @@ page_title: "Junos: junos_evpn"
 
 # junos_evpn
 
--> **Note:** This resource should only be created **once** for root level or each routing-instance.
-It's used to configure static (not object) options in `protocols evpn` block in root or
-routing-instance level, in `switch-options` and potentially also in `routing-instance` level directly.
+~> **Note**
+  This resource should only be created **once** for root level or each routing-instance.  
+  It's used to configure static (not object) options in `protocols evpn` block in root or
+  routing-instance level, in `switch-options` and potentially also in `routing-instance` level directly.
 
 Configure static configuration in `protocols evpn` block for root ou routing-instance level and the
 various options potentially required in `switch-options` or on the `routing-instance` in same commit.

@@ -229,7 +229,7 @@ func (rsc *systemTacplusServer) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Address.ValueString(),
 		},
 		&data,
@@ -378,7 +378,7 @@ func (rscData *systemTacplusServerData) read(
 			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
 				rscData.RoutingInstance = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "secret "):
-				rscData.Secret, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
+				rscData.Secret, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "secret")
 				if err != nil {
 					return err
 				}

@@ -15,7 +15,7 @@ import (
 func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 	v := reflect.Indirect(reflect.ValueOf(block).Elem())
 
-	for i := 0; i < v.NumField(); i++ {
+	for i := range v.NumField() {
 		if slices.Contains(excludeFields, v.Type().Field(i).Name) {
 			continue
 		}
@@ -62,7 +62,7 @@ func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 func CheckBlockHasKnownValue[B any](block B, excludeFields ...string) bool {
 	v := reflect.Indirect(reflect.ValueOf(block).Elem())
 
-	for i := 0; i < v.NumField(); i++ {
+	for i := range v.NumField() {
 		if slices.Contains(excludeFields, v.Type().Field(i).Name) {
 			continue
 		}

@@ -597,7 +597,7 @@ func (rsc *systemSyslogFile) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Filename.ValueString(),
 		},
 		&data,
@@ -919,7 +919,7 @@ func (rscData *systemSyslogFileData) read(
 					balt.CutPrefixInString(&itemTrim, url+" ")
 					switch {
 					case balt.CutPrefixInString(&itemTrim, "password "):
-						sites.Password, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "password")
+						sites.Password, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "password")
 						if err != nil {
 							return err
 						}

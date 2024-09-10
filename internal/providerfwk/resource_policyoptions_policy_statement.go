@@ -1733,7 +1733,7 @@ func (rsc *policyoptionsPolicyStatement) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,
@@ -1945,8 +1945,8 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 		}
 		bgpASPathCalcLengthCount[count] = struct{}{}
 
-		configSet = append(configSet,
-			setPrefix+"as-path-calc-length "+utils.ConvI64toa(count)+" "+v.Match.ValueString())
+		configSet = append(configSet, setPrefix+"as-path-calc-length "+
+			utils.ConvI64toa(count)+" "+v.Match.ValueString())
 	}
 	for _, v := range block.BgpASPathGroup {
 		configSet = append(configSet, setPrefix+"as-path-group \""+v.ValueString()+"\"")
@@ -1961,8 +1961,8 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 		}
 		bgpASPathUniqueCountCount[count] = struct{}{}
 
-		configSet = append(configSet,
-			setPrefix+"as-path-unique-count "+utils.ConvI64toa(count)+" "+v.Match.ValueString())
+		configSet = append(configSet, setPrefix+"as-path-unique-count "+
+			utils.ConvI64toa(count)+" "+v.Match.ValueString())
 	}
 	for _, v := range block.BgpCommunity {
 		configSet = append(configSet, setPrefix+"community \""+v.ValueString()+"\"")
@@ -1977,8 +1977,8 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 		}
 		bgpCommunityCountCount[count] = struct{}{}
 
-		configSet = append(configSet,
-			setPrefix+"community-count "+utils.ConvI64toa(count)+" "+v.Match.ValueString())
+		configSet = append(configSet, setPrefix+"community-count "+
+			utils.ConvI64toa(count)+" "+v.Match.ValueString())
 	}
 	if v := block.BgpOrigin.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"origin "+v)
@@ -2034,8 +2034,8 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 		}
 		nextHopWeightBlock[values] = struct{}{}
 
-		configSet = append(configSet,
-			setPrefix+"nexthop-weight "+v.Match.ValueString()+" "+utils.ConvI64toa(v.Weight.ValueInt64()))
+		configSet = append(configSet, setPrefix+"nexthop-weight "+v.Match.ValueString()+
+			" "+utils.ConvI64toa(v.Weight.ValueInt64()))
 	}
 	if v := block.OspfArea.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"area "+v)

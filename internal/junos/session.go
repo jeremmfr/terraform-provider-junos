@@ -9,8 +9,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/jeremmfr/go-netconf/netconf"
 	"golang.org/x/crypto/ssh"
 )
@@ -22,6 +25,7 @@ type Session struct {
 	localAddress           string
 	remoteAddress          string
 	logFile                func(string)
+	decodeSecrets          bool
 	fakeSetFile            func([]string) error
 	sleepShort             int
 	sleepLock              int
@@ -325,4 +329,16 @@ func (sess *Session) Close() {
 			sess.logFile("[Close] session closed")
 		}
 	}
+}
+
+func (sess *Session) JunosDecode(
+	str, errMsg string,
+) (
+	basetypes.StringValue, error,
+) {
+	if !sess.decodeSecrets {
+		return types.StringValue(str), nil
+	}
+
+	return tfdata.JunosDecode(str, errMsg)
 }

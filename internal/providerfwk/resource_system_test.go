@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
+// export TESTACC_LICENSE_KEY=<key> to test license keys attribute.
 func TestAccResourceSystem_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
@@ -183,6 +183,9 @@ func TestAccResourceSystem_basic(t *testing.T) {
 				},
 				{
 					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"license_key": config.StringVariable(os.Getenv("TESTACC_LICENSE_KEY")),
+					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"internet_options.no_gre_path_mtu_discovery", "true"),
@@ -213,6 +216,9 @@ func TestAccResourceSystem_basic(t *testing.T) {
 					),
 				},
 				{
+					ConfigVariables: map[string]config.Variable{
+						"license_key": config.StringVariable(os.Getenv("TESTACC_LICENSE_KEY")),
+					},
 					ResourceName:      "junos_system.testacc_system",
 					ImportState:       true,
 					ImportStateVerify: true,

@@ -38,10 +38,10 @@ jobs:
           - goos: windows
             goarch: arm64
     steps:
-      - name: Set up Go 1.22
+      - name: Set up Go 1.23
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.23'
           check-latest: true
         id: go
       - name: Show version
@@ -55,13 +55,6 @@ jobs:
           echo "REPO_NAME=$(echo ${GITHUB_REPOSITORY} | cut -d'/' -f2)" >> $GITHUB_ENV
           echo "GOOS=$(echo ${{ matrix.goos }})" >> $GITHUB_ENV
           echo "GOARCH=$(echo ${{ matrix.goarch }})" >> $GITHUB_ENV
-      - name: Setup aarch64 for arm64
-        run: |
-          if [[ "${{ matrix.goarch }}" == "arm64" ]] ; then
-            sudo apt update
-            sudo apt install -y gcc-aarch64-linux-gnu
-            echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          fi
       - name: Define version in build
         run: echo ${RELEASE_VERSION} > internal/version/version.txt
       - name: Build

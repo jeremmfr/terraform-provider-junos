@@ -36,6 +36,10 @@ The following arguments are supported:
     Application protocol type.
   - **destination_port** (Optional, String)  
     Match TCP/UDP destination port.
+  - **do_not_translate_a_query_to_aaaa_query** (Optional, Boolean)  
+    Knob to control the translation of A query to AAAA query.
+  - **do_not_translate_aaaa_query_to_a_query** (Optional, Boolean)  
+    Knob to control the translation of AAAA query to A query.
   - **ether_type** (Optional, String)  
     Match ether type.
   - **icmp_code** (Optional, String)  
@@ -75,8 +79,20 @@ The following attributes are exported:
     Text description of application.
   - **destination_port** (String)  
     Port(s) destination used by application.
+  - **do_not_translate_a_query_to_aaaa_query** (Boolean)  
+    Knob to control the translation of A query to AAAA query.
+  - **do_not_translate_aaaa_query_to_a_query** (Boolean)  
+    Knob to control the translation of AAAA query to A query.
   - **ether_type** (String)  
     Match ether type.
+  - **icmp_code** (String)  
+    Match ICMP message code.
+  - **icmp_type** (String)  
+    Match ICMP message type.
+  - **icmp6_code** (String)  
+    Match ICMP6 message code.
+  - **icmp6_type** (String)  
+    Match ICMP6 message type.
   - **inactivity_timeout** (Number)  
     Application-specific inactivity timeout (4..86400 seconds).
   - **inactivity_timeout_never** (Boolean)  

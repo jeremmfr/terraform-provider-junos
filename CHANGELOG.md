@@ -1,14 +1,59 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.9.0 (2024-09-10)
+
+FEATURES:
+
+* add **junos_applications** resource (Fix [#694](https://github.com/jeremmfr/terraform-provider-junos/issues/694))
+* add **junos_security_authentication_key_chain** resource
+* **provider**: add `no_decode_secrets` attribute to disable decoding secret `$9$` hashes by Junos device when reading resource data (Fix [#688](https://github.com/jeremmfr/terraform-provider-junos/issues/688))
+
+ENHANCEMENTS:
+
+* **resource/junos_application**: add `do_not_translate_a_query_to_aaaa_query`, `do_not_translate_aaaa_query_to_a_query`, `icmp_code`, `icmp_type`, `icmp6_code` and `icmp6_type` arguments
+* **data-source/junos_applications**:
+  * add `do_not_translate_a_query_to_aaaa_query`, `do_not_translate_aaaa_query_to_a_query`, `icmp_code`, `icmp_type`, `icmp6_code` and `icmp6_type` attributes in `applications` attribute
+  * add `do_not_translate_a_query_to_aaaa_query` and `do_not_translate_aaaa_query_to_a_query` arguments inside `match_options` block argument
+* **resource/junos_rip_group**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_rip_neighbor**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_snmp_v3_usm_user**: now provider store the corresponding `authentication-key` and `privacy-key` of `authentication-password` and `privacy-password` in private state of Terraform after create/update resource to be able to detect a change of the password outside of Terraform.
+* **resource/junos_system**: add `keys` argument inside `license` block argument (Fix [#689](https://github.com/jeremmfr/terraform-provider-junos/issues/689))
+* **resource/junos_system_login_user**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * now provider store the corresponding `authentication encrypted-password` of `authentication plain-text-password` in private state of Terraform after create/update resource to be able to detect a change of the password outside of Terraform.
+* **resource/junos_system_root_authentication**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  * now provider store the corresponding `encrypted-password` of `plain-text-password` in private state of Terraform after create/update resource to be able to detect a change of the password outside of Terraform.
+* release now with golang 1.23
+
+BUG FIXES:
+
+* **resource/junos_security_ike_policy**, **resource/junos_security_ike_proposal**, **resource/junos_security_ipsec_policy**, **resource/junos_security_ipsec_proposal**, **resource/junos_security_ipsec_vpn**: don't check device compatibility with security model (could be used on non-security devices)
+
 ## v2.8.0 (2024-06-27)
 
 ENHANCEMENTS:
 
-* **resource/junos_bridge_domain**:  add `static_remote_vtep_list` argument inside `vxlan` block argument (Fix [#672](https://github.com/jeremmfr/terraform-provider-junos/issues/672))
+* **resource/junos_bridge_domain**: add `static_remote_vtep_list` argument inside `vxlan` block argument (Fix [#672](https://github.com/jeremmfr/terraform-provider-junos/issues/672))
 * **resource/junos_interface_logical**: add `encapsulation` argument (Fix [#674](https://github.com/jeremmfr/terraform-provider-junos/issues/674))
 * **data-source/junos_interface_logical**: add `encapsulation` attribute like resource
-* **resource/junos_routing_instance**:  add `remote_vtep_list` and `remote_vtep_v6_list` arguments (Fix [#673](https://github.com/jeremmfr/terraform-provider-junos/issues/673))
+* **resource/junos_routing_instance**: add `remote_vtep_list` and `remote_vtep_v6_list` arguments (Fix [#673](https://github.com/jeremmfr/terraform-provider-junos/issues/673))
 * **data-source/junos_routing_instance**: add `remote_vtep_list` and `remote_vtep_v6_list` attributes like resource
 * **resource/junos_rstp**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
@@ -23,8 +68,8 @@ ENHANCEMENTS:
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
   * add `transport` block argument (Fix [#675](https://github.com/jeremmfr/terraform-provider-junos/issues/675))
-* **resource/junos_switch_options**:  add `remote_vtep_list` and `remote_vtep_v6_list` arguments
-* **resource/junos_vlan**:  add `static_remote_vtep_list` argument inside `vxlan` block argument
+* **resource/junos_switch_options**: add `remote_vtep_list` and `remote_vtep_v6_list` arguments
+* **resource/junos_vlan**: add `static_remote_vtep_list` argument inside `vxlan` block argument
 * **resource/junos_vstp**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
   optional boolean attributes doesn't accept value *false*
@@ -46,7 +91,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* **data-source/junos_interfaces_physical_present**:  
+* **data-source/junos_interfaces_physical_present**:
   * add `interfaces` block map attribute with same attributes as `interface_statuses` and additional `logical_interface_names` attribute (Fix [#641](https://github.com/jeremmfr/terraform-provider-junos/issues/641))
   * deprecate `interface_statuses` attribute (read the `interfaces` attribute instead)
 * **resource/junos_evpn**: add `no_core_isolation` argument (Fix [#644](https://github.com/jeremmfr/terraform-provider-junos/issues/644))
@@ -111,7 +156,7 @@ ENHANCEMENTS:
   optional string attributes doesn't accept *empty* value  
 * **resource/junos_snmp_v3_community**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   optional string attributes doesn't accept *empty* value  
-* **resource/junos_snmp_v3_usm_user**:  
+* **resource/junos_snmp_v3_usm_user**:
   * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
   optional string attributes doesn't accept *empty* value  

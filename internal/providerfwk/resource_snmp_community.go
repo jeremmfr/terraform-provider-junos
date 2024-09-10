@@ -357,7 +357,7 @@ func (rsc *snmpCommunity) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,

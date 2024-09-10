@@ -16,10 +16,10 @@ type StringNumberRangeValidator struct {
 	name string
 }
 
-func StringNumberRange(min, max int) StringNumberRangeValidator {
+func StringNumberRange(rangeMin, rangeMax int) StringNumberRangeValidator {
 	return StringNumberRangeValidator{
-		min: min,
-		max: max,
+		min: rangeMin,
+		max: rangeMax,
 	}
 }
 

@@ -2348,7 +2348,8 @@ func (rscData *interfaceLogicalData) set(
 			configSet = append(configSet, setPrefix+"family inet filter output \""+v+"\"")
 		}
 		if !rscData.FamilyInet.Mtu.IsNull() {
-			configSet = append(configSet, setPrefix+"family inet mtu "+utils.ConvI64toa(rscData.FamilyInet.Mtu.ValueInt64()))
+			configSet = append(configSet, setPrefix+"family inet mtu "+
+				utils.ConvI64toa(rscData.FamilyInet.Mtu.ValueInt64()))
 		}
 		if rscData.FamilyInet.RPFCheck != nil {
 			configSet = append(configSet, setPrefix+"family inet rpf-check")
@@ -2399,7 +2400,8 @@ func (rscData *interfaceLogicalData) set(
 			configSet = append(configSet, setPrefix+"family inet6 filter output \""+v+"\"")
 		}
 		if !rscData.FamilyInet6.Mtu.IsNull() {
-			configSet = append(configSet, setPrefix+"family inet6 mtu "+utils.ConvI64toa(rscData.FamilyInet6.Mtu.ValueInt64()))
+			configSet = append(configSet, setPrefix+"family inet6 mtu "+
+				utils.ConvI64toa(rscData.FamilyInet6.Mtu.ValueInt64()))
 		}
 		if rscData.FamilyInet6.RPFCheck != nil {
 			configSet = append(configSet, setPrefix+"family inet6 rpf-check")
@@ -2466,7 +2468,8 @@ func (rscData *interfaceLogicalData) set(
 		}
 	}
 	if !rscData.VlanID.IsNull() {
-		configSet = append(configSet, setPrefix+"vlan-id "+utils.ConvI64toa(rscData.VlanID.ValueInt64()))
+		configSet = append(configSet, setPrefix+"vlan-id "+
+			utils.ConvI64toa(rscData.VlanID.ValueInt64()))
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
@@ -2894,7 +2897,7 @@ func (rscData *interfaceLogicalData) read(
 
 					if len(itemTrimFields) > 1 {
 						balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-						if err := address.read(itemTrim); err != nil {
+						if err := address.read(itemTrim, junSess); err != nil {
 							return err
 						}
 					}
@@ -3025,7 +3028,9 @@ func (rscData *interfaceLogicalData) read(
 	return nil
 }
 
-func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(itemTrim string) (err error) {
+func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
 	switch {
 	case itemTrim == "primary":
 		block.Primary = types.BoolValue(true)
@@ -3060,7 +3065,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(itemTrim string) 
 				return err
 			}
 		case balt.CutPrefixInString(&itemTrim, "authentication-key "):
-			vrrpGroup.AuthenticationKey, err = tfdata.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+			vrrpGroup.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
 			if err != nil {
 				return err
 			}

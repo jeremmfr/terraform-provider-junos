@@ -19,8 +19,8 @@ resource "junos_bridge_domain" "demo" {
 
 ## Argument Reference
 
--> **Note:** At least one of arguments need to be set
-(in addition to `name` and `routing_instance`).
+-> **Note**
+  At least one of arguments need to be set (in addition to `name` and `routing_instance`).
 
 The following arguments are supported:
 

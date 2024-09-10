@@ -249,7 +249,7 @@ func (rsc *securityNatDestinationPool) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,
@@ -346,8 +346,8 @@ func (rscData *securityNatDestinationPoolData) set(
 		setPrefix + "address " + rscData.Address.ValueString(),
 	}
 	if !rscData.AddressPort.IsNull() {
-		configSet = append(configSet, setPrefix+
-			"address port "+utils.ConvI64toa(rscData.AddressPort.ValueInt64()))
+		configSet = append(configSet, setPrefix+"address port "+
+			utils.ConvI64toa(rscData.AddressPort.ValueInt64()))
 	}
 	if v := rscData.AddressTo.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"address to "+v)

@@ -182,14 +182,6 @@ func (rsc *securityIkeProposal) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			if !junSess.CheckCompatibilitySecurity() {
-				resp.Diagnostics.AddError(
-					tfdiag.CompatibilityErrSummary,
-					rsc.junosName()+junSess.SystemInformation.NotCompatibleMsg(),
-				)
-
-				return false
-			}
 			proposalExists, err := checkSecurityIkeProposalExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
@@ -243,7 +235,7 @@ func (rsc *securityIkeProposal) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.Name.ValueString(),
 		},
 		&data,
@@ -353,7 +345,8 @@ func (rscData *securityIkeProposalData) set(
 		configSet = append(configSet, setPrefix+"encryption-algorithm "+v)
 	}
 	if !rscData.LifetimeSeconds.IsNull() {
-		configSet = append(configSet, setPrefix+"lifetime-seconds "+utils.ConvI64toa(rscData.LifetimeSeconds.ValueInt64()))
+		configSet = append(configSet, setPrefix+"lifetime-seconds "+
+			utils.ConvI64toa(rscData.LifetimeSeconds.ValueInt64()))
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)

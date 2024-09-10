@@ -401,6 +401,7 @@ func (rsc *interfacePhysical) Schema(
 				},
 				Blocks: map[string]schema.Block{
 					"bfd_liveness_detection": schema.SingleNestedBlock{
+						Description: "Declare bfd-liveness-detection in aggregated-ether-options configuration.",
 						Attributes: map[string]schema.Attribute{
 							"local_address": schema.StringAttribute{
 								Required:    false, // true when SingleNestedBlock is specified
@@ -514,6 +515,7 @@ func (rsc *interfacePhysical) Schema(
 						},
 					},
 					"lacp": schema.SingleNestedBlock{
+						Description: "Declare lacp configuration.",
 						Attributes: map[string]schema.Attribute{
 							"mode": schema.StringAttribute{
 								Required: false, // true when SingleNestedBlock is specified
@@ -1877,16 +1879,19 @@ func (rscData *interfacePhysicalData) set(
 		configSet = append(configSet, setPrefix+"gratuitous-arp-reply")
 	}
 	if !rscData.HoldTimeDown.IsNull() {
-		configSet = append(configSet, setPrefix+"hold-time down "+utils.ConvI64toa(rscData.HoldTimeDown.ValueInt64()))
+		configSet = append(configSet, setPrefix+"hold-time down "+
+			utils.ConvI64toa(rscData.HoldTimeDown.ValueInt64()))
 	}
 	if !rscData.HoldTimeUp.IsNull() {
-		configSet = append(configSet, setPrefix+"hold-time up "+utils.ConvI64toa(rscData.HoldTimeUp.ValueInt64()))
+		configSet = append(configSet, setPrefix+"hold-time up "+
+			utils.ConvI64toa(rscData.HoldTimeUp.ValueInt64()))
 	}
 	if v := rscData.LinkMode.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"link-mode "+v)
 	}
 	if !rscData.Mtu.IsNull() {
-		configSet = append(configSet, setPrefix+"mtu "+utils.ConvI64toa(rscData.Mtu.ValueInt64()))
+		configSet = append(configSet, setPrefix+"mtu "+
+			utils.ConvI64toa(rscData.Mtu.ValueInt64()))
 	}
 	if rscData.NoGratuitousArpReply.ValueBool() {
 		configSet = append(configSet, setPrefix+"no-gratuitous-arp-reply")

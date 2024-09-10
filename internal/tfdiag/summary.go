@@ -22,4 +22,7 @@ const (
 	ReadErrSummary      = "Read Error"
 	PreCheckErrSummary  = "Pre Check Error"
 	PostCheckErrSummary = "Post Check Error"
+
+	ReadPrivateToStateErrSummary = "Read Private To State Error"
+	GetPrivateStateErrSummary    = "Get Private State Error"
 )

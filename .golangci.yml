@@ -7,6 +7,7 @@ linters:
     # deprecated
     - execinquery # deprecated 1.58.0
     - gomnd # deprecated 1.58.0
+    - exportloopref # deprecated 1.60.2
     # unwanted
     - cyclop
     - depguard
@@ -43,6 +44,12 @@ linters-settings:
     min-occurrences: 25
     # Ignore test files.
     ignore-tests: true
+  gocritic:
+    enabled-checks:
+      - ruleguard
+    settings:
+      ruleguard:
+        rules: '${configDir}/internal/ruleguard/*.go'
   gocyclo:
     # minimal code complexity to report, 30 by default
     min-complexity: 100
@@ -84,6 +91,11 @@ linters-settings:
       - name: import-alias-naming
       - name: import-shadowing
       - name: unhandled-error
+  tagliatelle:
+    case:
+      rules:
+        json: snake
+        tfsdk: snake
 
 issues:
   exclude-rules:

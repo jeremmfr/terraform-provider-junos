@@ -493,7 +493,7 @@ func (rsc *securityNatStaticRule) Read(
 	defaultResourceRead(
 		ctx,
 		rsc,
-		[]string{
+		[]any{
 			state.RuleSet.ValueString(),
 			state.Name.ValueString(),
 		},

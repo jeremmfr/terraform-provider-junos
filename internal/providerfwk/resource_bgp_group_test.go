@@ -175,8 +175,6 @@ func TestAccResourceBgpGroup_basic(t *testing.T) {
 							"local_as_alias", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"metric_out_minimum_igp", "true"),
-						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
-							"type", "external"),
 					),
 				},
 			},

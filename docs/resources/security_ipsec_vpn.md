@@ -24,7 +24,8 @@ resource "junos_interface_st0_unit" "demo" {}
 
 ## Argument Reference
 
--> **Note:** One of `ike` or `manual` arguments is required.
+-> **Note**
+  One of `ike` or `manual` arguments is required.
 
 The following arguments are supported:
 

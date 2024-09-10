@@ -4,11 +4,12 @@ page_title: "Junos: junos_system"
 
 # junos_system
 
--> **Note:** This resource should only be created **once**.
-It's used to configure static (not object) options in `system` block.  
-There is an exception for `system root-authentication` static block.
-It's can be configured with the dedicated `junos_system_root_authentication` resource.  
-Destroy this resource has no effect on the Junos configuration.
+~> **Note**
+  This resource should only be created **once**.  
+  It's used to configure static (not object) options in `system` block.  
+  There is an exception for `system root-authentication` static block.
+  It's can be configured with the dedicated `junos_system_root_authentication` resource.  
+  Destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `system` block (except `system root-authentication` block)
 
@@ -86,6 +87,8 @@ The following arguments are supported:
   - **autoupdate_url** (Optional, String)  
     Url for autoupdate license keys from license servers.  
     `autoupdate` needs to be set.
+  - **keys** (Optional, Set of String)  
+    License keys.
   - **renew_before_expiration** (Optional, Number)  
     License renewal lead time before expiration, in days (0..60).  
     `renew_interval` needs to be set.
@@ -521,8 +524,9 @@ The following arguments are supported:
 
 ### web_management_https arguments for services
 
--> **Note:** One of `local_certificate`, `pki_local_certificate` or `system_generated_certificate`
-arguments is required.
+-> **Note**
+  One of `local_certificate`, `pki_local_certificate` or `system_generated_certificate` arguments
+  is required.
 
 - **interface** (Optional, Set of String)  
   Specify the name of one or more interfaces.

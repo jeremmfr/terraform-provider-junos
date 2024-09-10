@@ -10,41 +10,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's xe-0/0/3.
-// export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's xe-0/0/4.
+// export TESTACC_INTERFACE=<inteface> to choose interface available else it's xe-0/0/3.
+// export TESTACC_INTERFACE2=<interface> to choose 2nd interface available else it's xe-0/0/4.
 func TestAccResourceLayer2Control_basic(t *testing.T) {
-	testaccInterface := junos.DefaultInterfaceTestAcc
-	testaccInterface2 := junos.DefaultInterfaceTestAcc2
 	if os.Getenv("TESTACC_SWITCH") != "" {
-		testaccInterface = junos.DefaultInterfaceSwitchTestAcc
-		testaccInterface2 = junos.DefaultInterfaceSwitchTestAcc2
+		testaccInterface := junos.DefaultInterfaceSwitchTestAcc
+		testaccInterface2 := junos.DefaultInterfaceSwitchTestAcc2
+		if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+			testaccInterface = iface
+		}
+		if iface := os.Getenv("TESTACC_INTERFACE2"); iface != "" {
+			testaccInterface2 = iface
+		}
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccResourceLayer2ControlConfigCreate(),
+				},
+				{
+					Config: testAccResourceLayer2ControlConfigUpdate(testaccInterface),
+				},
+				{
+					ResourceName:      "junos_layer2_control.l2c",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					Config: testAccResourceLayer2ControlConfigUpdate2(testaccInterface, testaccInterface2),
+				},
+			},
+		})
 	}
-	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
-		testaccInterface = iface
-	}
-	if iface := os.Getenv("TESTACC_INTERFACE2"); iface != "" {
-		testaccInterface2 = iface
-	}
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceLayer2ControlConfigCreate(),
-			},
-			{
-				Config: testAccResourceLayer2ControlConfigUpdate(testaccInterface),
-			},
-			{
-				ResourceName:      "junos_layer2_control.l2c",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccResourceLayer2ControlConfigUpdate2(testaccInterface, testaccInterface2),
-			},
-		},
-	})
 }
 
 func testAccResourceLayer2ControlConfigCreate() string {

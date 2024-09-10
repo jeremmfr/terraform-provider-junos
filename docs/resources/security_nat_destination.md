@@ -50,7 +50,8 @@ The following arguments are supported:
 
 ### rule arguments
 
--> **Note:** One of `destination_address` or `destination_address_name` arguments is required.
+-> **Note**
+  One of `destination_address` or `destination_address_name` arguments is required.
 
 - **name** (Required, String)  
   Rule name.
