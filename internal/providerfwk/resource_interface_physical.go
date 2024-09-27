@@ -302,14 +302,14 @@ func (rsc *interfacePhysical) Schema(
 			},
 			"ether_opts": schema.SingleNestedBlock{
 				Description: "Declare `ether-options` configuration.",
-				Attributes:  rsc.schemaEtherOptsAttributes(),
+				Attributes:  interfacePhysicalBlockEtherOpts{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"gigether_opts": schema.SingleNestedBlock{
 				Description: "Declare `gigether-options` configuration.",
-				Attributes:  rsc.schemaEtherOptsAttributes(),
+				Attributes:  interfacePhysicalBlockEtherOpts{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
@@ -672,71 +672,6 @@ func (rsc *interfacePhysical) Schema(
 	}
 }
 
-func (rsc *interfacePhysical) schemaEtherOptsAttributes() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"ae_8023ad": schema.StringAttribute{
-			Optional:    true,
-			Description: "Name of an aggregated Ethernet interface to join.",
-			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^ae\d+$`),
-					"must be an ae interface"),
-			},
-		},
-		"auto_negotiation": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Enable auto-negotiation.",
-			Validators: []validator.Bool{
-				tfvalidator.BoolTrue(),
-			},
-		},
-		"no_auto_negotiation": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Don't enable auto-negotiation.",
-			Validators: []validator.Bool{
-				tfvalidator.BoolTrue(),
-			},
-		},
-		"flow_control": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Enable flow control.",
-			Validators: []validator.Bool{
-				tfvalidator.BoolTrue(),
-			},
-		},
-		"no_flow_control": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Don't enable flow control.",
-			Validators: []validator.Bool{
-				tfvalidator.BoolTrue(),
-			},
-		},
-		"loopback": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Enable loopback.",
-			Validators: []validator.Bool{
-				tfvalidator.BoolTrue(),
-			},
-		},
-		"no_loopback": schema.BoolAttribute{
-			Optional:    true,
-			Description: "Don't enable loopback.",
-			Validators: []validator.Bool{
-				tfvalidator.BoolTrue(),
-			},
-		},
-		"redundant_parent": schema.StringAttribute{
-			Optional:    true,
-			Description: "Name of a redundant ethernet interface to join.",
-			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^reth\d+$`),
-					"must be a reth interface"),
-			},
-		},
-	}
-}
-
 type interfacePhysicalData struct {
 	ID                     types.String                           `tfsdk:"id"`
 	Name                   types.String                           `tfsdk:"name"`
@@ -812,6 +747,71 @@ type interfacePhysicalBlockEtherOpts struct {
 	Loopback          types.Bool   `tfsdk:"loopback"`
 	NoLoopback        types.Bool   `tfsdk:"no_loopback"`
 	RedundantParent   types.String `tfsdk:"redundant_parent"`
+}
+
+func (interfacePhysicalBlockEtherOpts) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"ae_8023ad": schema.StringAttribute{
+			Optional:    true,
+			Description: "Name of an aggregated Ethernet interface to join.",
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(regexp.MustCompile(
+					`^ae\d+$`),
+					"must be an ae interface"),
+			},
+		},
+		"auto_negotiation": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable auto-negotiation.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"no_auto_negotiation": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Don't enable auto-negotiation.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"flow_control": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable flow control.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"no_flow_control": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Don't enable flow control.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"loopback": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable loopback.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"no_loopback": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Don't enable loopback.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"redundant_parent": schema.StringAttribute{
+			Optional:    true,
+			Description: "Name of a redundant ethernet interface to join.",
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(regexp.MustCompile(
+					`^reth\d+$`),
+					"must be a reth interface"),
+			},
+		},
+	}
 }
 
 func (block *interfacePhysicalBlockEtherOpts) isEmpty() bool {

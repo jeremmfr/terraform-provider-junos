@@ -127,14 +127,14 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 		Blocks: map[string]schema.Block{
 			"family_inet_input": schema.SingleNestedBlock{
 				Description: "Declare `family inet input` configuration.",
-				Attributes:  rsc.schemaInputAttributes(),
+				Attributes:  forwardingoptionsSamplingInstanceBlockInput{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"family_inet_output": schema.SingleNestedBlock{
 				Description: "Declare `family inet output` configuration.",
-				Attributes:  rsc.schemaFamilyInetOutputAttributes(),
+				Attributes:  forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}.attributesSchema(),
 				Blocks: map[string]schema.Block{
 					"flow_server": schema.SetNestedBlock{
 						Description: "For each hostname, configure sending traffic aggregates in cflowd format.",
@@ -277,7 +277,7 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 					"interface": schema.ListNestedBlock{
 						Description: "For each name of interface, configure interfaces used to send monitored information.",
 						NestedObject: schema.NestedBlockObject{
-							Attributes: rsc.schemaOutputInterfaceAttributes(),
+							Attributes: forwardingoptionsSamplingInstanceBlockOutputBlockInterface{}.attributesSchema(),
 						},
 					},
 				},
@@ -287,22 +287,22 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 			},
 			"family_inet6_input": schema.SingleNestedBlock{
 				Description: "Declare `family inet6 input` configuration.",
-				Attributes:  rsc.schemaInputAttributes(),
+				Attributes:  forwardingoptionsSamplingInstanceBlockInput{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"family_inet6_output": schema.SingleNestedBlock{
 				Description: "Declare `family inet6 output` configuration.",
-				Attributes:  rsc.schemaFamilyInetOutputAttributes(),
-				Blocks:      rsc.schemaOutputBlock(),
+				Attributes:  forwardingoptionsSamplingInstanceBlockFamilyInet6Output{}.attributesSchema(),
+				Blocks:      forwardingoptionsSamplingInstanceBlockFamilyInet6Output{}.blocksSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"family_mpls_input": schema.SingleNestedBlock{
 				Description: "Declare `family mpls input` configuration.",
-				Attributes:  rsc.schemaInputAttributes(),
+				Attributes:  forwardingoptionsSamplingInstanceBlockInput{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
@@ -346,14 +346,14 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 						},
 					},
 				},
-				Blocks: rsc.schemaOutputBlock(),
+				Blocks: forwardingoptionsSamplingInstanceBlockFamilyMplsOutput{}.blocksSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"input": schema.SingleNestedBlock{
 				Description: "Declare `input` configuration.",
-				Attributes:  rsc.schemaInputAttributes(),
+				Attributes:  forwardingoptionsSamplingInstanceBlockInput{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
@@ -362,7 +362,42 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) schemaInputAttributes() map[string]schema.Attribute {
+type forwardingoptionsSamplingInstanceData struct {
+	ID                types.String                                             `tfsdk:"id"`
+	Name              types.String                                             `tfsdk:"name"`
+	RoutingInstance   types.String                                             `tfsdk:"routing_instance"`
+	Disable           types.Bool                                               `tfsdk:"disable"`
+	FamilyInetInput   *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet_input"`
+	FamilyInetOutput  *forwardingoptionsSamplingInstanceBlockFamilyInetOutput  `tfsdk:"family_inet_output"`
+	FamilyInet6Input  *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet6_input"`
+	FamilyInet6Output *forwardingoptionsSamplingInstanceBlockFamilyInet6Output `tfsdk:"family_inet6_output"`
+	FamilyMplsInput   *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput  *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput  `tfsdk:"family_mpls_output"`
+	Input             *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"input"`
+}
+
+type forwardingoptionsSamplingInstanceConfig struct {
+	ID                types.String                                                  `tfsdk:"id"`
+	Name              types.String                                                  `tfsdk:"name"`
+	RoutingInstance   types.String                                                  `tfsdk:"routing_instance"`
+	Disable           types.Bool                                                    `tfsdk:"disable"`
+	FamilyInetInput   *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet_input"`
+	FamilyInetOutput  *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet_output"`
+	FamilyInet6Input  *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet6_input"`
+	FamilyInet6Output *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet6_output"`
+	FamilyMplsInput   *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput  *forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig `tfsdk:"family_mpls_output"`
+	Input             *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"input"`
+}
+
+type forwardingoptionsSamplingInstanceBlockInput struct {
+	MaxPacketsPerSecond types.Int64 `tfsdk:"max_packets_per_second"`
+	MaximumPacketLength types.Int64 `tfsdk:"maximum_packet_length"`
+	Rate                types.Int64 `tfsdk:"rate"`
+	RunLength           types.Int64 `tfsdk:"run_length"`
+}
+
+func (forwardingoptionsSamplingInstanceBlockInput) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"max_packets_per_second": schema.Int64Attribute{
 			Optional:    true,
@@ -395,7 +430,27 @@ func (rsc *forwardingoptionsSamplingInstance) schemaInputAttributes() map[string
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) schemaFamilyInetOutputAttributes() map[string]schema.Attribute {
+func (block *forwardingoptionsSamplingInstanceBlockInput) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+func (block *forwardingoptionsSamplingInstanceBlockInput) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
+//nolint:lll
+type forwardingoptionsSamplingInstanceBlockFamilyInetOutput struct {
+	AggregateExportInterval  types.Int64                                                             `tfsdk:"aggregate_export_interval"`
+	ExtensionService         []types.String                                                          `tfsdk:"extension_service"`
+	FlowActiveTimeout        types.Int64                                                             `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64                                                             `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64                                                             `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String                                                            `tfsdk:"inline_jflow_source_address"`
+	FlowServer               []forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer `tfsdk:"flow_server"`
+	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface            `tfsdk:"interface"`
+}
+
+func (forwardingoptionsSamplingInstanceBlockFamilyInetOutput) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"aggregate_export_interval": schema.Int64Attribute{
 			Optional:    true,
@@ -447,7 +502,60 @@ func (rsc *forwardingoptionsSamplingInstance) schemaFamilyInetOutputAttributes()
 	}
 }
 
-func (rsc *forwardingoptionsSamplingInstance) schemaOutputBlock() map[string]schema.Block {
+type forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig struct {
+	AggregateExportInterval  types.Int64  `tfsdk:"aggregate_export_interval"`
+	ExtensionService         types.List   `tfsdk:"extension_service"`
+	FlowActiveTimeout        types.Int64  `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64  `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64  `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String `tfsdk:"inline_jflow_source_address"`
+	FlowServer               types.Set    `tfsdk:"flow_server"`
+	Interface                types.List   `tfsdk:"interface"`
+}
+
+func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+//nolint:lll
+type forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer struct {
+	Hostname                                         types.String `tfsdk:"hostname"`
+	Port                                             types.Int64  `tfsdk:"port"`
+	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
+	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
+	AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
+	AggregationSourceDestinationPrefix               types.Bool   `tfsdk:"aggregation_source_destination_prefix"`
+	AggregationSourceDestinationPrefixCaidaCompliant types.Bool   `tfsdk:"aggregation_source_destination_prefix_caida_compliant"`
+	AggregationSourcePrefix                          types.Bool   `tfsdk:"aggregation_source_prefix"`
+	AutonomousSystemType                             types.String `tfsdk:"autonomous_system_type"`
+	Dscp                                             types.Int64  `tfsdk:"dscp"`
+	ForwardingClass                                  types.String `tfsdk:"forwarding_class"`
+	LocalDump                                        types.Bool   `tfsdk:"local_dump"`
+	NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
+	RoutingInstance                                  types.String `tfsdk:"routing_instance"`
+	SourceAddress                                    types.String `tfsdk:"source_address"`
+	Version                                          types.Int64  `tfsdk:"version"`
+	Version9Template                                 types.String `tfsdk:"version9_template"`
+	VersionIPFixTemplate                             types.String `tfsdk:"version_ipfix_template"`
+}
+
+//nolint:lll
+type forwardingoptionsSamplingInstanceBlockFamilyInet6Output struct {
+	AggregateExportInterval  types.Int64                                                   `tfsdk:"aggregate_export_interval"`
+	ExtensionService         []types.String                                                `tfsdk:"extension_service"`
+	FlowActiveTimeout        types.Int64                                                   `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64                                                   `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64                                                   `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String                                                  `tfsdk:"inline_jflow_source_address"`
+	FlowServer               []forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer `tfsdk:"flow_server"`
+	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface  `tfsdk:"interface"`
+}
+
+func (forwardingoptionsSamplingInstanceBlockFamilyInet6Output) attributesSchema() map[string]schema.Attribute {
+	return forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}.attributesSchema()
+}
+
+func (forwardingoptionsSamplingInstanceBlockFamilyInet6Output) blocksSchema() map[string]schema.Block {
 	return map[string]schema.Block{
 		"flow_server": schema.SetNestedBlock{
 			Description: "For each hostname, configure sending traffic aggregates in cflowd format.",
@@ -583,148 +691,10 @@ func (rsc *forwardingoptionsSamplingInstance) schemaOutputBlock() map[string]sch
 		"interface": schema.ListNestedBlock{
 			Description: "For each name of interface, configure interfaces used to send monitored information.",
 			NestedObject: schema.NestedBlockObject{
-				Attributes: rsc.schemaOutputInterfaceAttributes(),
+				Attributes: forwardingoptionsSamplingInstanceBlockOutputBlockInterface{}.attributesSchema(),
 			},
 		},
 	}
-}
-
-func (rsc *forwardingoptionsSamplingInstance) schemaOutputInterfaceAttributes() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"name": schema.StringAttribute{
-			Required:    true,
-			Description: "Name of interface.",
-			Validators: []validator.String{
-				stringvalidator.LengthAtLeast(1),
-				tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-			},
-		},
-		"engine_id": schema.Int64Attribute{
-			Optional:    true,
-			Description: "Identity (number) of this accounting interface (0..255).",
-			Validators: []validator.Int64{
-				int64validator.Between(0, 255),
-			},
-		},
-		"engine_type": schema.Int64Attribute{
-			Optional:    true,
-			Description: "Type (number) of this accounting interface (0..255).",
-			Validators: []validator.Int64{
-				int64validator.Between(0, 255),
-			},
-		},
-		"source_address": schema.StringAttribute{
-			Optional:    true,
-			Description: "Address to use for generating monitored packets.",
-			Validators: []validator.String{
-				tfvalidator.StringIPAddress(),
-			},
-		},
-	}
-}
-
-type forwardingoptionsSamplingInstanceData struct {
-	ID                types.String                                             `tfsdk:"id"`
-	Name              types.String                                             `tfsdk:"name"`
-	RoutingInstance   types.String                                             `tfsdk:"routing_instance"`
-	Disable           types.Bool                                               `tfsdk:"disable"`
-	FamilyInetInput   *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet_input"`
-	FamilyInetOutput  *forwardingoptionsSamplingInstanceBlockFamilyInetOutput  `tfsdk:"family_inet_output"`
-	FamilyInet6Input  *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet6_input"`
-	FamilyInet6Output *forwardingoptionsSamplingInstanceBlockFamilyInet6Output `tfsdk:"family_inet6_output"`
-	FamilyMplsInput   *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput  *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput  `tfsdk:"family_mpls_output"`
-	Input             *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"input"`
-}
-
-type forwardingoptionsSamplingInstanceConfig struct {
-	ID                types.String                                                  `tfsdk:"id"`
-	Name              types.String                                                  `tfsdk:"name"`
-	RoutingInstance   types.String                                                  `tfsdk:"routing_instance"`
-	Disable           types.Bool                                                    `tfsdk:"disable"`
-	FamilyInetInput   *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet_input"`
-	FamilyInetOutput  *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet_output"`
-	FamilyInet6Input  *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet6_input"`
-	FamilyInet6Output *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet6_output"`
-	FamilyMplsInput   *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput  *forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig `tfsdk:"family_mpls_output"`
-	Input             *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"input"`
-}
-
-type forwardingoptionsSamplingInstanceBlockInput struct {
-	MaxPacketsPerSecond types.Int64 `tfsdk:"max_packets_per_second"`
-	MaximumPacketLength types.Int64 `tfsdk:"maximum_packet_length"`
-	Rate                types.Int64 `tfsdk:"rate"`
-	RunLength           types.Int64 `tfsdk:"run_length"`
-}
-
-func (block *forwardingoptionsSamplingInstanceBlockInput) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block)
-}
-
-func (block *forwardingoptionsSamplingInstanceBlockInput) hasKnownValue() bool {
-	return tfdata.CheckBlockHasKnownValue(block)
-}
-
-//nolint:lll
-type forwardingoptionsSamplingInstanceBlockFamilyInetOutput struct {
-	AggregateExportInterval  types.Int64                                                             `tfsdk:"aggregate_export_interval"`
-	ExtensionService         []types.String                                                          `tfsdk:"extension_service"`
-	FlowActiveTimeout        types.Int64                                                             `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64                                                             `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64                                                             `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String                                                            `tfsdk:"inline_jflow_source_address"`
-	FlowServer               []forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer `tfsdk:"flow_server"`
-	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface            `tfsdk:"interface"`
-}
-
-type forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig struct {
-	AggregateExportInterval  types.Int64  `tfsdk:"aggregate_export_interval"`
-	ExtensionService         types.List   `tfsdk:"extension_service"`
-	FlowActiveTimeout        types.Int64  `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64  `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64  `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String `tfsdk:"inline_jflow_source_address"`
-	FlowServer               types.Set    `tfsdk:"flow_server"`
-	Interface                types.List   `tfsdk:"interface"`
-}
-
-func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block)
-}
-
-//nolint:lll
-type forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer struct {
-	Hostname                                         types.String `tfsdk:"hostname"`
-	Port                                             types.Int64  `tfsdk:"port"`
-	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
-	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
-	AggregationProtocolPort                          types.Bool   `tfsdk:"aggregation_protocol_port"`
-	AggregationSourceDestinationPrefix               types.Bool   `tfsdk:"aggregation_source_destination_prefix"`
-	AggregationSourceDestinationPrefixCaidaCompliant types.Bool   `tfsdk:"aggregation_source_destination_prefix_caida_compliant"`
-	AggregationSourcePrefix                          types.Bool   `tfsdk:"aggregation_source_prefix"`
-	AutonomousSystemType                             types.String `tfsdk:"autonomous_system_type"`
-	Dscp                                             types.Int64  `tfsdk:"dscp"`
-	ForwardingClass                                  types.String `tfsdk:"forwarding_class"`
-	LocalDump                                        types.Bool   `tfsdk:"local_dump"`
-	NoLocalDump                                      types.Bool   `tfsdk:"no_local_dump"`
-	RoutingInstance                                  types.String `tfsdk:"routing_instance"`
-	SourceAddress                                    types.String `tfsdk:"source_address"`
-	Version                                          types.Int64  `tfsdk:"version"`
-	Version9Template                                 types.String `tfsdk:"version9_template"`
-	VersionIPFixTemplate                             types.String `tfsdk:"version_ipfix_template"`
-}
-
-//nolint:lll
-type forwardingoptionsSamplingInstanceBlockFamilyInet6Output struct {
-	AggregateExportInterval  types.Int64                                                   `tfsdk:"aggregate_export_interval"`
-	ExtensionService         []types.String                                                `tfsdk:"extension_service"`
-	FlowActiveTimeout        types.Int64                                                   `tfsdk:"flow_active_timeout"`
-	FlowInactiveTimeout      types.Int64                                                   `tfsdk:"flow_inactive_timeout"`
-	InlineJflowExportRate    types.Int64                                                   `tfsdk:"inline_jflow_export_rate"`
-	InlineJflowSourceAddress types.String                                                  `tfsdk:"inline_jflow_source_address"`
-	FlowServer               []forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer `tfsdk:"flow_server"`
-	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface  `tfsdk:"interface"`
 }
 
 //nolint:lll
@@ -736,6 +706,10 @@ type forwardingoptionsSamplingInstanceBlockFamilyMplsOutput struct {
 	InlineJflowSourceAddress types.String                                                  `tfsdk:"inline_jflow_source_address"`
 	FlowServer               []forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer `tfsdk:"flow_server"`
 	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface  `tfsdk:"interface"`
+}
+
+func (forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) blocksSchema() map[string]schema.Block {
+	return forwardingoptionsSamplingInstanceBlockFamilyInet6Output{}.blocksSchema()
 }
 
 type forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig struct {
@@ -778,6 +752,40 @@ type forwardingoptionsSamplingInstanceBlockOutputBlockInterface struct {
 	EngineID      types.Int64  `tfsdk:"engine_id"`
 	EngineType    types.Int64  `tfsdk:"engine_type"`
 	SourceAddress types.String `tfsdk:"source_address"`
+}
+
+func (forwardingoptionsSamplingInstanceBlockOutputBlockInterface) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "Name of interface.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+				tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
+			},
+		},
+		"engine_id": schema.Int64Attribute{
+			Optional:    true,
+			Description: "Identity (number) of this accounting interface (0..255).",
+			Validators: []validator.Int64{
+				int64validator.Between(0, 255),
+			},
+		},
+		"engine_type": schema.Int64Attribute{
+			Optional:    true,
+			Description: "Type (number) of this accounting interface (0..255).",
+			Validators: []validator.Int64{
+				int64validator.Between(0, 255),
+			},
+		},
+		"source_address": schema.StringAttribute{
+			Optional:    true,
+			Description: "Address to use for generating monitored packets.",
+			Validators: []validator.String{
+				tfvalidator.StringIPAddress(),
+			},
+		},
+	}
 }
 
 func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
