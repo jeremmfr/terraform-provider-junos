@@ -237,6 +237,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newAggregateRouteResource,
 		newApplicationResource,
 		newApplicationsResource,
+		newApplicationsOrderedResource,
 		newApplicationSetResource,
 		newBgpGroupResource,
 		newBgpNeighborResource,
