@@ -135,152 +135,7 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 			"family_inet_output": schema.SingleNestedBlock{
 				Description: "Declare `family inet output` configuration.",
 				Attributes:  forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}.attributesSchema(),
-				Blocks: map[string]schema.Block{
-					"flow_server": schema.SetNestedBlock{
-						Description: "For each hostname, configure sending traffic aggregates in cflowd format.",
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"hostname": schema.StringAttribute{
-									Required:    true,
-									Description: "Name of host collecting cflowd packets.",
-									Validators: []validator.String{
-										tfvalidator.StringIPAddress(),
-									},
-								},
-								"port": schema.Int64Attribute{
-									Required:    true,
-									Description: "UDP port number on host collecting cflowd packets (1..65535).",
-									Validators: []validator.Int64{
-										int64validator.Between(1, 65535),
-									},
-								},
-								"aggregation_autonomous_system": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Aggregate by autonomous system number.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"aggregation_destination_prefix": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Aggregate by destination prefix.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"aggregation_protocol_port": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Aggregate by protocol and port number.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"aggregation_source_destination_prefix": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Aggregate by source and destination prefix.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"aggregation_source_destination_prefix_caida_compliant": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Compatible with Caida record format for prefix aggregation (v8).",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"aggregation_source_prefix": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Aggregate by source prefix.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"autonomous_system_type": schema.StringAttribute{
-									Optional:    true,
-									Description: "Type of autonomous system number to export.",
-									Validators: []validator.String{
-										stringvalidator.OneOf("origin", "peer"),
-									},
-								},
-								"dscp": schema.Int64Attribute{
-									Optional:    true,
-									Description: "Numeric DSCP value in the range 0 to 63 (0..63).",
-									Validators: []validator.Int64{
-										int64validator.Between(0, 63),
-									},
-								},
-								"forwarding_class": schema.StringAttribute{
-									Optional:    true,
-									Description: "Forwarding-class for exported jflow packets, applicable only for inline-jflow.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 64),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"local_dump": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Dump cflowd records to log file before exporting.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"no_local_dump": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Don't dump cflowd records to log file before exporting.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"routing_instance": schema.StringAttribute{
-									Optional:    true,
-									Description: "Name of routing instance on which flow collector is reachable.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 63),
-										tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-										stringvalidator.NoneOfCaseInsensitive(junos.DefaultW),
-									},
-								},
-								"source_address": schema.StringAttribute{
-									Optional:    true,
-									Description: "Source IPv4 address for cflowd packets.",
-									Validators: []validator.String{
-										tfvalidator.StringIPAddress().IPv4Only(),
-									},
-								},
-								"version": schema.Int64Attribute{
-									Optional:    true,
-									Description: "Format of exported cflowd aggregates.",
-									Validators: []validator.Int64{
-										int64validator.OneOf(5, 8),
-									},
-								},
-								"version9_template": schema.StringAttribute{
-									Optional:    true,
-									Description: "Template to export data in version 9 format.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"version_ipfix_template": schema.StringAttribute{
-									Optional:    true,
-									Description: "Template to export data in version ipfix format.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-							},
-						},
-					},
-					"interface": schema.ListNestedBlock{
-						Description: "For each name of interface, configure interfaces used to send monitored information.",
-						NestedObject: schema.NestedBlockObject{
-							Attributes: forwardingoptionsSamplingInstanceBlockOutputBlockInterface{}.attributesSchema(),
-						},
-					},
-				},
+				Blocks:      forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}.blocksSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
@@ -309,44 +164,8 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 			},
 			"family_mpls_output": schema.SingleNestedBlock{
 				Description: "Declare `family mpls output` configuration.",
-				Attributes: map[string]schema.Attribute{
-					"aggregate_export_interval": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Interval of exporting aggregate accounting information (90..1800 seconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(90, 1800),
-						},
-					},
-					"flow_active_timeout": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Interval after which an active flow is exported (60..1800 seconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(60, 1800),
-						},
-					},
-					"flow_inactive_timeout": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Interval of inactivity that marks a flow inactive (15..1800 seconds).",
-						Validators: []validator.Int64{
-							int64validator.Between(15, 1800),
-						},
-					},
-					"inline_jflow_export_rate": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Inline processing of sampled packets with flow export rate of monitored packets in kpps (1..3200).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 3200),
-						},
-					},
-					"inline_jflow_source_address": schema.StringAttribute{
-						Optional:    true,
-						Description: "Inline processing of sampled packets with address to use for generating monitored packets.",
-						Validators: []validator.String{
-							tfvalidator.StringIPAddress(),
-						},
-					},
-				},
-				Blocks: forwardingoptionsSamplingInstanceBlockFamilyMplsOutput{}.blocksSchema(),
+				Attributes:  forwardingoptionsSamplingInstanceBlockFamilyMplsOutput{}.attributesSchema(),
+				Blocks:      forwardingoptionsSamplingInstanceBlockFamilyMplsOutput{}.blocksSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
@@ -502,6 +321,18 @@ func (forwardingoptionsSamplingInstanceBlockFamilyInetOutput) attributesSchema()
 	}
 }
 
+func (forwardingoptionsSamplingInstanceBlockFamilyInetOutput) blocksSchema() map[string]schema.Block {
+	blocks := forwardingoptionsSamplingInstanceBlockFamilyInet6Output{}.blocksSchema()
+	blocks["flow_server"] = schema.SetNestedBlock{
+		Description: "For each hostname, configure sending traffic aggregates in cflowd format.",
+		NestedObject: schema.NestedBlockObject{
+			Attributes: forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer{}.attributesSchema(),
+		},
+	}
+
+	return blocks
+}
+
 type forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig struct {
 	AggregateExportInterval  types.Int64  `tfsdk:"aggregate_export_interval"`
 	ExtensionService         types.List   `tfsdk:"extension_service"`
@@ -539,6 +370,142 @@ type forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer struc
 	VersionIPFixTemplate                             types.String `tfsdk:"version_ipfix_template"`
 }
 
+func (forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer) attributesSchema() map[string]schema.Attribute { //nolint:lll
+	return map[string]schema.Attribute{
+		"hostname": schema.StringAttribute{
+			Required:    true,
+			Description: "Name of host collecting cflowd packets.",
+			Validators: []validator.String{
+				tfvalidator.StringIPAddress(),
+			},
+		},
+		"port": schema.Int64Attribute{
+			Required:    true,
+			Description: "UDP port number on host collecting cflowd packets (1..65535).",
+			Validators: []validator.Int64{
+				int64validator.Between(1, 65535),
+			},
+		},
+		"aggregation_autonomous_system": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Aggregate by autonomous system number.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"aggregation_destination_prefix": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Aggregate by destination prefix.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"aggregation_protocol_port": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Aggregate by protocol and port number.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"aggregation_source_destination_prefix": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Aggregate by source and destination prefix.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"aggregation_source_destination_prefix_caida_compliant": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Compatible with Caida record format for prefix aggregation (v8).",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"aggregation_source_prefix": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Aggregate by source prefix.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"autonomous_system_type": schema.StringAttribute{
+			Optional:    true,
+			Description: "Type of autonomous system number to export.",
+			Validators: []validator.String{
+				stringvalidator.OneOf("origin", "peer"),
+			},
+		},
+		"dscp": schema.Int64Attribute{
+			Optional:    true,
+			Description: "Numeric DSCP value in the range 0 to 63 (0..63).",
+			Validators: []validator.Int64{
+				int64validator.Between(0, 63),
+			},
+		},
+		"forwarding_class": schema.StringAttribute{
+			Optional:    true,
+			Description: "Forwarding-class for exported jflow packets, applicable only for inline-jflow.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 64),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+		"local_dump": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Dump cflowd records to log file before exporting.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"no_local_dump": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Don't dump cflowd records to log file before exporting.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"routing_instance": schema.StringAttribute{
+			Optional:    true,
+			Description: "Name of routing instance on which flow collector is reachable.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				stringvalidator.NoneOfCaseInsensitive(junos.DefaultW),
+			},
+		},
+		"source_address": schema.StringAttribute{
+			Optional:    true,
+			Description: "Source IPv4 address for cflowd packets.",
+			Validators: []validator.String{
+				tfvalidator.StringIPAddress().IPv4Only(),
+			},
+		},
+		"version": schema.Int64Attribute{
+			Optional:    true,
+			Description: "Format of exported cflowd aggregates.",
+			Validators: []validator.Int64{
+				int64validator.OneOf(5, 8),
+			},
+		},
+		"version9_template": schema.StringAttribute{
+			Optional:    true,
+			Description: "Template to export data in version 9 format.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 250),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+		"version_ipfix_template": schema.StringAttribute{
+			Optional:    true,
+			Description: "Template to export data in version ipfix format.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 250),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+	}
+}
+
 //nolint:lll
 type forwardingoptionsSamplingInstanceBlockFamilyInet6Output struct {
 	AggregateExportInterval  types.Int64                                                   `tfsdk:"aggregate_export_interval"`
@@ -560,132 +527,7 @@ func (forwardingoptionsSamplingInstanceBlockFamilyInet6Output) blocksSchema() ma
 		"flow_server": schema.SetNestedBlock{
 			Description: "For each hostname, configure sending traffic aggregates in cflowd format.",
 			NestedObject: schema.NestedBlockObject{
-				Attributes: map[string]schema.Attribute{
-					"hostname": schema.StringAttribute{
-						Required:    true,
-						Description: "Name of host collecting cflowd packets.",
-						Validators: []validator.String{
-							tfvalidator.StringIPAddress(),
-						},
-					},
-					"port": schema.Int64Attribute{
-						Required:    true,
-						Description: "UDP port number on host collecting cflowd packets (1..65535).",
-						Validators: []validator.Int64{
-							int64validator.Between(1, 65535),
-						},
-					},
-					"aggregation_autonomous_system": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Aggregate by autonomous system number.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"aggregation_destination_prefix": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Aggregate by destination prefix.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"aggregation_protocol_port": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Aggregate by protocol and port number.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"aggregation_source_destination_prefix": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Aggregate by source and destination prefix.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"aggregation_source_destination_prefix_caida_compliant": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Compatible with Caida record format for prefix aggregation (v8).",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"aggregation_source_prefix": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Aggregate by source prefix.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"autonomous_system_type": schema.StringAttribute{
-						Optional:    true,
-						Description: "Type of autonomous system number to export.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("origin", "peer"),
-						},
-					},
-					"dscp": schema.Int64Attribute{
-						Optional:    true,
-						Description: "Numeric DSCP value in the range 0 to 63 (0..63).",
-						Validators: []validator.Int64{
-							int64validator.Between(0, 63),
-						},
-					},
-					"forwarding_class": schema.StringAttribute{
-						Optional:    true,
-						Description: "Forwarding-class for exported jflow packets, applicable only for inline-jflow.",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 64),
-							tfvalidator.StringDoubleQuoteExclusion(),
-						},
-					},
-					"local_dump": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Dump cflowd records to log file before exporting.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"no_local_dump": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Don't dump cflowd records to log file before exporting.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"routing_instance": schema.StringAttribute{
-						Optional:    true,
-						Description: "Name of routing instance on which flow collector is reachable.",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 63),
-							tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-							stringvalidator.NoneOfCaseInsensitive(junos.DefaultW),
-						},
-					},
-					"source_address": schema.StringAttribute{
-						Optional:    true,
-						Description: "Source IPv4 address for cflowd packets",
-						Validators: []validator.String{
-							tfvalidator.StringIPAddress().IPv4Only(),
-						},
-					},
-					"version9_template": schema.StringAttribute{
-						Optional:    true,
-						Description: "Template to export data in version 9 format.",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 250),
-							tfvalidator.StringDoubleQuoteExclusion(),
-						},
-					},
-					"version_ipfix_template": schema.StringAttribute{
-						Optional:    true,
-						Description: "Template to export data in version ipfix format.",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 250),
-							tfvalidator.StringDoubleQuoteExclusion(),
-						},
-					},
-				},
+				Attributes: forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer{}.attributesSchema(),
 			},
 		},
 		"interface": schema.ListNestedBlock{
@@ -706,6 +548,13 @@ type forwardingoptionsSamplingInstanceBlockFamilyMplsOutput struct {
 	InlineJflowSourceAddress types.String                                                  `tfsdk:"inline_jflow_source_address"`
 	FlowServer               []forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer `tfsdk:"flow_server"`
 	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface  `tfsdk:"interface"`
+}
+
+func (forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) attributesSchema() map[string]schema.Attribute {
+	attributes := forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}.attributesSchema()
+	delete(attributes, "extension_service")
+
+	return attributes
 }
 
 func (forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) blocksSchema() map[string]schema.Block {
@@ -745,6 +594,13 @@ type forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer struct {
 	SourceAddress                                    types.String `tfsdk:"source_address"`
 	Version9Template                                 types.String `tfsdk:"version9_template"`
 	VersionIPFixTemplate                             types.String `tfsdk:"version_ipfix_template"`
+}
+
+func (forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer) attributesSchema() map[string]schema.Attribute {
+	attributes := forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer{}.attributesSchema()
+	delete(attributes, "version")
+
+	return attributes
 }
 
 type forwardingoptionsSamplingInstanceBlockOutputBlockInterface struct {
