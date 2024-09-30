@@ -7,6 +7,8 @@ FEATURES:
 
 * add `junos_security_global_policy_unordered` resource, copy of `junos_security_global_policy` resource but with Block Set instead of Block List to have a workaround for too complex plan output when the number of blocks on the resource changes
 
+* add `junos_security_policy_unordered` resource, copy of `junos_security_policy` resource but with Block Set instead of Block List to have a workaround for too complex plan output when the number of blocks on the resource changes
+
 * add `junos_security_zone_ordered` resource, copy of `junos_security_zone` resource but with Block List instead of Block Set to have a workaround for the performance issue on Block Sets
 
 ENHANCEMENTS:
