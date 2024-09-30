@@ -279,6 +279,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSecurityAddressBookOrderedResource,
 		newSecurityAuthenticationKeyChainResource,
 		newSecurityGlobalPolicyResource,
+		newSecurityGlobalPolicyUnorderedResource,
 		newSecurityIkeGatewayResource,
 		newSecurityIkePolicyResource,
 		newSecurityIkeProposalResource,
