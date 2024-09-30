@@ -1740,7 +1740,7 @@ func (rsc *interfaceLogical) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(
@@ -2007,7 +2007,7 @@ func (rsc *interfaceLogical) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	if err := state.delOpts(ctx, junSess); err != nil {

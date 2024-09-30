@@ -682,7 +682,7 @@ func (rsc *securityPolicy) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	listLinesToPairPolicy, err := readSecurityPolicyTunnelPairPolicyLines(

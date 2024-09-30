@@ -582,19 +582,19 @@ func resourceForwardingOptionsDhcpRelayCreate(ctx context.Context, d *schema.Res
 	if routingInstanceArg != junos.DefaultW {
 		instanceExists, err := checkRoutingInstanceExists(routingInstanceArg, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", routingInstanceArg))...)
 		}
 	}
 	if err := setForwardingOptionsDhcpRelay(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -602,7 +602,7 @@ func resourceForwardingOptionsDhcpRelayCreate(ctx context.Context, d *schema.Res
 	warns, err := junSess.CommitConf(ctx, "create resource junos_forwardingoptions_dhcprelay")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -683,12 +683,12 @@ func resourceForwardingOptionsDhcpRelayUpdate(ctx context.Context, d *schema.Res
 	}
 	var diagWarns diag.Diagnostics
 	if err := delForwardingOptionsDhcpRelay(routingInstanceArg, versionArg, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setForwardingOptionsDhcpRelay(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -696,7 +696,7 @@ func resourceForwardingOptionsDhcpRelayUpdate(ctx context.Context, d *schema.Res
 	warns, err := junSess.CommitConf(ctx, "update resource junos_forwardingoptions_dhcprelay")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -728,14 +728,14 @@ func resourceForwardingOptionsDhcpRelayDelete(ctx context.Context, d *schema.Res
 	}
 	var diagWarns diag.Diagnostics
 	if err := delForwardingOptionsDhcpRelay(routingInstanceArg, versionArg, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "delete resource junos_forwardingoptions_dhcprelay")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

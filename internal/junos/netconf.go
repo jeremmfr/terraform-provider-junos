@@ -118,19 +118,6 @@ func (sess *Session) netconfConfigLock() bool {
 	return true
 }
 
-func (sess *Session) netconfConfigClear() (errs []error) {
-	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcDeleteConfigCandidate))
-	if err != nil {
-		return []error{fmt.Errorf("executing netconf config clear: %w", err)}
-	}
-
-	for _, m := range reply.Errors {
-		errs = append(errs, errors.New("config clear: "+m.Message))
-	}
-
-	return errs
-}
-
 // Unlock unlocks the candidate configuration.
 func (sess *Session) netconfConfigUnlock() (errs []error) {
 	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcUnlockCandidate))
