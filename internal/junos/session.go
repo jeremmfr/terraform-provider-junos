@@ -282,15 +282,14 @@ func (sess *Session) ConfigLock(ctx context.Context) error {
 	}
 }
 
-// ConfigClear clear potential candidate configuration and unlock it.
-func (sess *Session) ConfigClear() (errs []error) {
-	errs = append(errs, sess.netconfConfigClear()...)
-	errs = append(errs, sess.netconfConfigUnlock()...)
+// ConfigUnlock unlock candidate configuration.
+func (sess *Session) ConfigUnlock() []error {
+	errs := sess.netconfConfigUnlock()
 
-	sess.logFile("[ConfigClear] config cleared/unlocked")
+	sess.logFile("[ConfigUnlock] config unlocked")
 	utils.SleepShort(sess.sleepShort)
 
-	return
+	return errs
 }
 
 // CommitConf commit the configuration with message via netconf.

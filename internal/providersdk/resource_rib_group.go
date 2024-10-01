@@ -82,24 +82,24 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 	var diagWarns diag.Diagnostics
 	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ribGroupExists {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("rib-group %v already exists", d.Get("name").(string)))...)
 	}
 	if err := setRibGroup(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "create resource junos_rib_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -185,34 +185,34 @@ func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	var diagWarns diag.Diagnostics
 	if d.HasChange("import_policy") {
 		if err := delRibGroupElement("import-policy", d.Get("name").(string), junSess); err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
 	if d.HasChange("import_rib") {
 		if err := delRibGroupElement("import-rib", d.Get("name").(string), junSess); err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
 	if d.HasChange("export_rib") {
 		if err := delRibGroupElement("export-rib", d.Get("name").(string), junSess); err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
 	if err := setRibGroup(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "update resource junos_rib_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -241,14 +241,14 @@ func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	var diagWarns diag.Diagnostics
 	if err := delRibGroup(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "delete resource junos_rib_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

@@ -141,7 +141,7 @@ func defaultResourceCreate(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	if preCheck != nil && !preCheck(ctx, junSess) {
@@ -338,7 +338,7 @@ func defaultResourceUpdate(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	if stateOpts, ok := state.(resourceDataDelWithOpts); ok {
@@ -420,7 +420,7 @@ func defaultResourceDelete(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	if err := state.del(ctx, junSess); err != nil {

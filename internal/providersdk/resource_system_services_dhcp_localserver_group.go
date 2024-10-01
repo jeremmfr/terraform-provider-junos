@@ -775,12 +775,12 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 	if d.Get("routing_instance").(string) != junos.DefaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
@@ -793,12 +793,12 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 		junSess,
 	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if systemServicesDhcpLocalServerGroupExists {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 		if d.Get("version").(string) == "v6" {
 			return append(diagWarns, diag.FromErr(
 				fmt.Errorf("system services dhcp-local-server dhcpv6 group %v already exists in routing-instance %s",
@@ -810,14 +810,14 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 				d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 	if err := setSystemServicesDhcpLocalServerGroup(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "create resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -922,19 +922,19 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context, d *sc
 		d.Get("version").(string),
 		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSystemServicesDhcpLocalServerGroup(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "update resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -974,14 +974,14 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 		d.Get("version").(string),
 		junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "delete resource junos_system_services_dhcp_localserver_group")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

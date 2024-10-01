@@ -301,7 +301,7 @@ func (rsc *systemRootAuthentication) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	if plan.PlainTextPassword.ValueString() != "" {

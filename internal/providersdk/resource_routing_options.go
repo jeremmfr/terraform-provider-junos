@@ -212,14 +212,14 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 	var diagWarns diag.Diagnostics
 	if err := setRoutingOptions(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "create resource junos_routing_options")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -299,19 +299,19 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	if err := delRoutingOptions(fwTableExportConfigSingly, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setRoutingOptions(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "update resource junos_routing_options")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -341,14 +341,14 @@ func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m
 		}
 		var diagWarns diag.Diagnostics
 		if err := delRoutingOptions(d.Get("forwarding_table_export_configure_singly").(bool), junSess); err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		warns, err := junSess.CommitConf(ctx, "delete resource junos_routing_options")
 		appendDiagWarns(&diagWarns, warns)
 		if err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}

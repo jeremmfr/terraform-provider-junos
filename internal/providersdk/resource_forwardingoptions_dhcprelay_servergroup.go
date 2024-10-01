@@ -88,12 +88,12 @@ func resourceForwardingOptionsDhcpRelayServerGroupCreate(ctx context.Context, d 
 	if routingInstanceArg != junos.DefaultW {
 		instanceExists, err := checkRoutingInstanceExists(routingInstanceArg, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", routingInstanceArg))...)
@@ -106,12 +106,12 @@ func resourceForwardingOptionsDhcpRelayServerGroupCreate(ctx context.Context, d 
 		junSess,
 	)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if fwdOptsDhcpRelSrvGrpExists {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 		if versionArg == "v6" {
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("forwarding-options dhcp-relay dhcpv6 server-group %v"+
@@ -124,7 +124,7 @@ func resourceForwardingOptionsDhcpRelayServerGroupCreate(ctx context.Context, d 
 	}
 
 	if err := setForwardingOptionsDhcpRelayServerGroup(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -132,7 +132,7 @@ func resourceForwardingOptionsDhcpRelayServerGroupCreate(ctx context.Context, d 
 	warns, err := junSess.CommitConf(ctx, "create resource junos_forwardingoptions_dhcprelay_servergroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -226,12 +226,12 @@ func resourceForwardingOptionsDhcpRelayServerGroupUpdate(ctx context.Context, d 
 	}
 	var diagWarns diag.Diagnostics
 	if err := delForwardingOptionsDhcpRelayServerGroup(nameArg, routingInstanceArg, versionArg, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setForwardingOptionsDhcpRelayServerGroup(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -239,7 +239,7 @@ func resourceForwardingOptionsDhcpRelayServerGroupUpdate(ctx context.Context, d 
 	warns, err := junSess.CommitConf(ctx, "update resource junos_forwardingoptions_dhcprelay_servergroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -272,14 +272,14 @@ func resourceForwardingOptionsDhcpRelayServerGroupDelete(ctx context.Context, d 
 	}
 	var diagWarns diag.Diagnostics
 	if err := delForwardingOptionsDhcpRelayServerGroup(nameArg, routingInstanceArg, versionArg, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "delete resource junos_forwardingoptions_dhcprelay_servergroup")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

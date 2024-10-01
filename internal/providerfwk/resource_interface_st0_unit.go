@@ -100,7 +100,7 @@ func (rsc *interfaceSt0Unit) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	newSt0, err := rsc.searchNewAvailable(junSess)
@@ -239,7 +239,7 @@ func (rsc *interfaceSt0Unit) Delete(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(

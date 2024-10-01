@@ -28,8 +28,6 @@ const (
 	rpcLockCandidate   = "<lock><target><candidate/></target></lock>"
 	rpcUnlockCandidate = "<unlock><target><candidate/></target></unlock>"
 
-	rpcDeleteConfigCandidate = "<delete-config><target><candidate/></target></delete-config>"
-
 	rpcCloseSession = "<close-session/>"
 
 	rpcGetSystemInformation                 = "<get-system-information/>"
