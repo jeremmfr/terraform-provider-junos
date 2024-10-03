@@ -40,7 +40,7 @@ func (block *bgpBlockBfdLivenessDetection) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(block)
 }
 
-func (bgpBlockBfdLivenessDetection) resourceSchema() schema.SingleNestedBlock {
+func (bgpBlockBfdLivenessDetection) schema() schema.SingleNestedBlock {
 	return schema.SingleNestedBlock{
 		Description: "Define Bidirectional Forwarding Detection (BFD) options.",
 		Attributes: map[string]schema.Attribute{
@@ -246,7 +246,7 @@ type bgpBlockBgpErrorTolerance struct {
 	MalformedUpdateLogInterval types.Int64 `tfsdk:"malformed_update_log_interval"`
 }
 
-func (bgpBlockBgpErrorTolerance) resourceSchema() schema.SingleNestedBlock {
+func (bgpBlockBgpErrorTolerance) schema() schema.SingleNestedBlock {
 	return schema.SingleNestedBlock{
 		Description: "Handle BGP malformed updates softly.",
 		Attributes: map[string]schema.Attribute{
@@ -325,7 +325,7 @@ type bgpBlockBgpMultipath struct {
 	MultipleAS      types.Bool `tfsdk:"multiple_as"`
 }
 
-func (bgpBlockBgpMultipath) resourceSchema() schema.SingleNestedBlock {
+func (bgpBlockBgpMultipath) schema() schema.SingleNestedBlock {
 	return schema.SingleNestedBlock{
 		Description: "Allow load sharing among multiple BGP paths.",
 		Attributes: map[string]schema.Attribute{
@@ -394,7 +394,7 @@ type bgpBlockFamily struct {
 	PrefixLimit         *bgpBlockFamilyBlockPrefixLimit `tfsdk:"prefix_limit"`
 }
 
-func (bgpBlockFamily) resourceSchema(family string) schema.ListNestedBlock {
+func (bgpBlockFamily) schema(family string) schema.ListNestedBlock {
 	attributes := map[string]schema.Attribute{
 		"nlri_type": schema.StringAttribute{
 			Required:    true,
@@ -423,8 +423,8 @@ func (bgpBlockFamily) resourceSchema(family string) schema.ListNestedBlock {
 		NestedObject: schema.NestedBlockObject{
 			Attributes: attributes,
 			Blocks: map[string]schema.Block{
-				"accepted_prefix_limit": bgpBlockFamilyBlockPrefixLimit{}.resourceSchema(true),
-				"prefix_limit":          bgpBlockFamilyBlockPrefixLimit{}.resourceSchema(false),
+				"accepted_prefix_limit": bgpBlockFamilyBlockPrefixLimit{}.schema(true),
+				"prefix_limit":          bgpBlockFamilyBlockPrefixLimit{}.schema(false),
 			},
 		},
 	}
@@ -437,7 +437,7 @@ type bgpBlockFamilyBlockPrefixLimit struct {
 	TeardownIdleTimeoutForever types.Bool  `tfsdk:"teardown_idle_timeout_forever"`
 }
 
-func (block bgpBlockFamilyBlockPrefixLimit) resourceSchema(accepted bool) schema.SingleNestedBlock {
+func (block bgpBlockFamilyBlockPrefixLimit) schema(accepted bool) schema.SingleNestedBlock {
 	description := "Define maximum number of prefixes from a peer."
 	if accepted {
 		description = "Define maximum number of prefixes accepted from a peer."
@@ -445,14 +445,14 @@ func (block bgpBlockFamilyBlockPrefixLimit) resourceSchema(accepted bool) schema
 
 	return schema.SingleNestedBlock{
 		Description: description,
-		Attributes:  block.resourceSchemaAttributes(),
+		Attributes:  block.attributesSchema(),
 		PlanModifiers: []planmodifier.Object{
 			tfplanmodifier.BlockRemoveNull(),
 		},
 	}
 }
 
-func (bgpBlockFamilyBlockPrefixLimit) resourceSchemaAttributes() map[string]schema.Attribute {
+func (bgpBlockFamilyBlockPrefixLimit) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"maximum": schema.Int64Attribute{
 			Required:    false, // true when SingleNestedBlock is specified
@@ -610,7 +610,7 @@ type bgpBlockGracefulRestart struct {
 	StaleRouteTime types.Int64 `tfsdk:"stale_route_time"`
 }
 
-func (bgpBlockGracefulRestart) resourceSchema() schema.SingleNestedBlock {
+func (bgpBlockGracefulRestart) schema() schema.SingleNestedBlock {
 	return schema.SingleNestedBlock{
 		Description: "Define BGP graceful restart options.",
 		Attributes: map[string]schema.Attribute{

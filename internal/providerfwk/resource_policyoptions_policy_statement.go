@@ -122,23 +122,23 @@ func (rsc *policyoptionsPolicyStatement) Schema(
 		Blocks: map[string]schema.Block{
 			"from": schema.SingleNestedBlock{
 				Description: "Conditions to match the source of a route.",
-				Attributes:  rsc.schemaFromAttributes(),
-				Blocks:      rsc.schemaFromBlocks(),
+				Attributes:  policyoptionsPolicyStatementBlockFrom{}.attributesSchema(),
+				Blocks:      policyoptionsPolicyStatementBlockFrom{}.blocksSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"to": schema.SingleNestedBlock{
 				Description: "Conditions to match the destination of a route.",
-				Attributes:  rsc.schemaToAttributes(),
+				Attributes:  policyoptionsPolicyStatementBlockTo{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"then": schema.SingleNestedBlock{
 				Description: "Actions to take if 'from' and 'to' conditions match.",
-				Attributes:  rsc.schemaThenAttributes(),
-				Blocks:      rsc.schemaThenBlocks(),
+				Attributes:  policyoptionsPolicyStatementBlockThen{}.attributesSchema(),
+				Blocks:      policyoptionsPolicyStatementBlockThen{}.blocksSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
@@ -159,23 +159,23 @@ func (rsc *policyoptionsPolicyStatement) Schema(
 					Blocks: map[string]schema.Block{
 						"from": schema.SingleNestedBlock{
 							Description: "Conditions to match the source of a route.",
-							Attributes:  rsc.schemaFromAttributes(),
-							Blocks:      rsc.schemaFromBlocks(),
+							Attributes:  policyoptionsPolicyStatementBlockFrom{}.attributesSchema(),
+							Blocks:      policyoptionsPolicyStatementBlockFrom{}.blocksSchema(),
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
 							},
 						},
 						"to": schema.SingleNestedBlock{
 							Description: "Conditions to match the destination of a route.",
-							Attributes:  rsc.schemaToAttributes(),
+							Attributes:  policyoptionsPolicyStatementBlockTo{}.attributesSchema(),
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
 							},
 						},
 						"then": schema.SingleNestedBlock{
 							Description: "Actions to take if 'from' and 'to' conditions match",
-							Attributes:  rsc.schemaThenAttributes(),
-							Blocks:      rsc.schemaThenBlocks(),
+							Attributes:  policyoptionsPolicyStatementBlockThen{}.attributesSchema(),
+							Blocks:      policyoptionsPolicyStatementBlockThen{}.blocksSchema(),
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
 							},
@@ -187,7 +187,87 @@ func (rsc *policyoptionsPolicyStatement) Schema(
 	}
 }
 
-func (rsc *policyoptionsPolicyStatement) schemaFromAttributes() map[string]schema.Attribute {
+type policyoptionsPolicyStatementData struct {
+	ID                           types.String                            `tfsdk:"id"`
+	Name                         types.String                            `tfsdk:"name"`
+	AddItToForwardingTableExport types.Bool                              `tfsdk:"add_it_to_forwarding_table_export"`
+	DynamicDB                    types.Bool                              `tfsdk:"dynamic_db"`
+	From                         *policyoptionsPolicyStatementBlockFrom  `tfsdk:"from"`
+	To                           *policyoptionsPolicyStatementBlockTo    `tfsdk:"to"`
+	Then                         *policyoptionsPolicyStatementBlockThen  `tfsdk:"then"`
+	Term                         []policyoptionsPolicyStatementBlockTerm `tfsdk:"term"`
+}
+
+type policyoptionsPolicyStatementConfig struct {
+	ID                           types.String                                 `tfsdk:"id"`
+	Name                         types.String                                 `tfsdk:"name"`
+	AddItToForwardingTableExport types.Bool                                   `tfsdk:"add_it_to_forwarding_table_export"`
+	DynamicDB                    types.Bool                                   `tfsdk:"dynamic_db"`
+	From                         *policyoptionsPolicyStatementBlockFromConfig `tfsdk:"from"`
+	To                           *policyoptionsPolicyStatementBlockToConfig   `tfsdk:"to"`
+	Then                         *policyoptionsPolicyStatementBlockThenConfig `tfsdk:"then"`
+	Term                         types.List                                   `tfsdk:"term"`
+}
+
+type policyoptionsPolicyStatementBlockTerm struct {
+	Name types.String                           `tfsdk:"name"`
+	From *policyoptionsPolicyStatementBlockFrom `tfsdk:"from"`
+	To   *policyoptionsPolicyStatementBlockTo   `tfsdk:"to"`
+	Then *policyoptionsPolicyStatementBlockThen `tfsdk:"then"`
+}
+
+func (block *policyoptionsPolicyStatementBlockTerm) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block, "Name")
+}
+
+type policyoptionsPolicyStatementBlockTermConfig struct {
+	Name types.String                                 `tfsdk:"name"`
+	From *policyoptionsPolicyStatementBlockFromConfig `tfsdk:"from"`
+	To   *policyoptionsPolicyStatementBlockToConfig   `tfsdk:"to"`
+	Then *policyoptionsPolicyStatementBlockThenConfig `tfsdk:"then"`
+}
+
+func (block *policyoptionsPolicyStatementBlockTermConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block, "Name")
+}
+
+type policyoptionsPolicyStatementBlockFrom struct {
+	AggregateContributor types.Bool                                              `tfsdk:"aggregate_contributor"`
+	BgpASPath            []types.String                                          `tfsdk:"bgp_as_path"`
+	BgpASPathGroup       []types.String                                          `tfsdk:"bgp_as_path_group"`
+	BgpCommunity         []types.String                                          `tfsdk:"bgp_community"`
+	BgpOrigin            types.String                                            `tfsdk:"bgp_origin"`
+	BgpSrteDiscriminator types.Int64                                             `tfsdk:"bgp_srte_discriminator"`
+	Color                types.Int64                                             `tfsdk:"color"`
+	EvpnESI              []types.String                                          `tfsdk:"evpn_esi"`
+	EvpnMACRoute         types.String                                            `tfsdk:"evpn_mac_route"`
+	EvpnTag              []types.Int64                                           `tfsdk:"evpn_tag"`
+	Family               types.String                                            `tfsdk:"family"`
+	LocalPreference      types.Int64                                             `tfsdk:"local_preference"`
+	Interface            []types.String                                          `tfsdk:"interface"`
+	Metric               types.Int64                                             `tfsdk:"metric"`
+	Neighbor             []types.String                                          `tfsdk:"neighbor"`
+	NextHop              []types.String                                          `tfsdk:"next_hop"`
+	NextHopTypeMerged    types.Bool                                              `tfsdk:"next_hop_type_merged"`
+	OspfArea             types.String                                            `tfsdk:"ospf_area"`
+	Policy               []types.String                                          `tfsdk:"policy"`
+	Preference           types.Int64                                             `tfsdk:"preference"`
+	PrefixList           []types.String                                          `tfsdk:"prefix_list"`
+	Protocol             []types.String                                          `tfsdk:"protocol"`
+	RouteType            types.String                                            `tfsdk:"route_type"`
+	RoutingInstance      types.String                                            `tfsdk:"routing_instance"`
+	SrteColor            types.Int64                                             `tfsdk:"srte_color"`
+	State                types.String                                            `tfsdk:"state"`
+	TunnelType           []types.String                                          `tfsdk:"tunnel_type"`
+	ValidationDatabase   types.String                                            `tfsdk:"validation_database"`
+	BgpASPathCalcLength  []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_as_path_calc_length"`
+	BgpASPathUniqueCount []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_as_path_unique_count"`
+	BgpCommunityCount    []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_community_count"`
+	NextHopWeight        []policyoptionsPolicyStatementBlockFromBlockMatchWeight `tfsdk:"next_hop_weight"`
+	RouteFilter          []policyoptionsPolicyStatementBlockFromBlockRouteFilter `tfsdk:"route_filter"`
+}
+
+func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"aggregate_contributor": schema.BoolAttribute{
 			Optional:    true,
@@ -452,7 +532,7 @@ func (rsc *policyoptionsPolicyStatement) schemaFromAttributes() map[string]schem
 	}
 }
 
-func (rsc *policyoptionsPolicyStatement) schemaFromBlocks() map[string]schema.Block {
+func (policyoptionsPolicyStatementBlockFrom) blocksSchema() map[string]schema.Block {
 	return map[string]schema.Block{
 		"bgp_as_path_calc_length": schema.SetNestedBlock{
 			Description: "Number of BGP ASes excluding confederations.",
@@ -573,7 +653,85 @@ func (rsc *policyoptionsPolicyStatement) schemaFromBlocks() map[string]schema.Bl
 	}
 }
 
-func (rsc *policyoptionsPolicyStatement) schemaToAttributes() map[string]schema.Attribute {
+func (block *policyoptionsPolicyStatementBlockFrom) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+type policyoptionsPolicyStatementBlockFromConfig struct {
+	AggregateContributor types.Bool   `tfsdk:"aggregate_contributor"`
+	BgpASPath            types.Set    `tfsdk:"bgp_as_path"`
+	BgpASPathGroup       types.Set    `tfsdk:"bgp_as_path_group"`
+	BgpCommunity         types.Set    `tfsdk:"bgp_community"`
+	BgpOrigin            types.String `tfsdk:"bgp_origin"`
+	BgpSrteDiscriminator types.Int64  `tfsdk:"bgp_srte_discriminator"`
+	Color                types.Int64  `tfsdk:"color"`
+	EvpnESI              types.Set    `tfsdk:"evpn_esi"`
+	EvpnMACRoute         types.String `tfsdk:"evpn_mac_route"`
+	EvpnTag              types.Set    `tfsdk:"evpn_tag"`
+	Family               types.String `tfsdk:"family"`
+	LocalPreference      types.Int64  `tfsdk:"local_preference"`
+	Interface            types.Set    `tfsdk:"interface"`
+	Metric               types.Int64  `tfsdk:"metric"`
+	Neighbor             types.Set    `tfsdk:"neighbor"`
+	NextHop              types.Set    `tfsdk:"next_hop"`
+	NextHopTypeMerged    types.Bool   `tfsdk:"next_hop_type_merged"`
+	OspfArea             types.String `tfsdk:"ospf_area"`
+	Policy               types.List   `tfsdk:"policy"`
+	Preference           types.Int64  `tfsdk:"preference"`
+	PrefixList           types.Set    `tfsdk:"prefix_list"`
+	Protocol             types.Set    `tfsdk:"protocol"`
+	RouteType            types.String `tfsdk:"route_type"`
+	RoutingInstance      types.String `tfsdk:"routing_instance"`
+	SrteColor            types.Int64  `tfsdk:"srte_color"`
+	State                types.String `tfsdk:"state"`
+	TunnelType           types.Set    `tfsdk:"tunnel_type"`
+	ValidationDatabase   types.String `tfsdk:"validation_database"`
+	BgpASPathCalcLength  types.Set    `tfsdk:"bgp_as_path_calc_length"`
+	BgpASPathUniqueCount types.Set    `tfsdk:"bgp_as_path_unique_count"`
+	BgpCommunityCount    types.Set    `tfsdk:"bgp_community_count"`
+	NextHopWeight        types.Set    `tfsdk:"next_hop_weight"`
+	RouteFilter          types.List   `tfsdk:"route_filter"`
+}
+
+func (block *policyoptionsPolicyStatementBlockFromConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+type policyoptionsPolicyStatementBlockFromBlockCountMatch struct {
+	Count types.Int64  `tfsdk:"count"`
+	Match types.String `tfsdk:"match"`
+}
+
+type policyoptionsPolicyStatementBlockFromBlockMatchWeight struct {
+	Match  types.String `tfsdk:"match"`
+	Weight types.Int64  `tfsdk:"weight"`
+}
+
+type policyoptionsPolicyStatementBlockFromBlockRouteFilter struct {
+	Route       types.String `tfsdk:"route"`
+	Option      types.String `tfsdk:"option"`
+	OptionValue types.String `tfsdk:"option_value"`
+}
+
+type policyoptionsPolicyStatementBlockTo struct {
+	BgpASPath       []types.String `tfsdk:"bgp_as_path"`
+	BgpASPathGroup  []types.String `tfsdk:"bgp_as_path_group"`
+	BgpCommunity    []types.String `tfsdk:"bgp_community"`
+	BgpOrigin       types.String   `tfsdk:"bgp_origin"`
+	Family          types.String   `tfsdk:"family"`
+	LocalPreference types.Int64    `tfsdk:"local_preference"`
+	Interface       []types.String `tfsdk:"interface"`
+	Metric          types.Int64    `tfsdk:"metric"`
+	Neighbor        []types.String `tfsdk:"neighbor"`
+	NextHop         []types.String `tfsdk:"next_hop"`
+	OspfArea        types.String   `tfsdk:"ospf_area"`
+	Policy          []types.String `tfsdk:"policy"`
+	Preference      types.Int64    `tfsdk:"preference"`
+	Protocol        []types.String `tfsdk:"protocol"`
+	RoutingInstance types.String   `tfsdk:"routing_instance"`
+}
+
+func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"bgp_as_path": schema.SetAttribute{
 			ElementType: types.StringType,
@@ -728,7 +886,48 @@ func (rsc *policyoptionsPolicyStatement) schemaToAttributes() map[string]schema.
 	}
 }
 
-func (rsc *policyoptionsPolicyStatement) schemaThenAttributes() map[string]schema.Attribute {
+func (block *policyoptionsPolicyStatementBlockTo) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+type policyoptionsPolicyStatementBlockToConfig struct {
+	BgpASPath       types.Set    `tfsdk:"bgp_as_path"`
+	BgpASPathGroup  types.Set    `tfsdk:"bgp_as_path_group"`
+	BgpCommunity    types.Set    `tfsdk:"bgp_community"`
+	BgpOrigin       types.String `tfsdk:"bgp_origin"`
+	Family          types.String `tfsdk:"family"`
+	LocalPreference types.Int64  `tfsdk:"local_preference"`
+	Interface       types.Set    `tfsdk:"interface"`
+	Metric          types.Int64  `tfsdk:"metric"`
+	Neighbor        types.Set    `tfsdk:"neighbor"`
+	NextHop         types.Set    `tfsdk:"next_hop"`
+	OspfArea        types.String `tfsdk:"ospf_area"`
+	Policy          types.List   `tfsdk:"policy"`
+	Preference      types.Int64  `tfsdk:"preference"`
+	Protocol        types.Set    `tfsdk:"protocol"`
+	RoutingInstance types.String `tfsdk:"routing_instance"`
+}
+
+func (block *policyoptionsPolicyStatementBlockToConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
+type policyoptionsPolicyStatementBlockThen struct {
+	Action          types.String                                                `tfsdk:"action"`
+	ASPathExpand    types.String                                                `tfsdk:"as_path_expand"`
+	ASPathPrepend   types.String                                                `tfsdk:"as_path_prepend"`
+	DefaultAction   types.String                                                `tfsdk:"default_action"`
+	LoadBalance     types.String                                                `tfsdk:"load_balance"`
+	Next            types.String                                                `tfsdk:"next"`
+	NextHop         types.String                                                `tfsdk:"next_hop"`
+	Origin          types.String                                                `tfsdk:"origin"`
+	Community       []policyoptionsPolicyStatementBlockThenBlockActionValue     `tfsdk:"community"`
+	LocalPreference *policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"local_preference"`
+	Metric          *policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"metric"`
+	Preference      *policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"preference"`
+}
+
+func (policyoptionsPolicyStatementBlockThen) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"action": schema.StringAttribute{
 			Optional:    true,
@@ -795,7 +994,7 @@ func (rsc *policyoptionsPolicyStatement) schemaThenAttributes() map[string]schem
 	}
 }
 
-func (rsc *policyoptionsPolicyStatement) schemaThenBlocks() map[string]schema.Block {
+func (policyoptionsPolicyStatementBlockThen) blocksSchema() map[string]schema.Block {
 	return map[string]schema.Block{
 		"community": schema.ListNestedBlock{
 			Description: "For each community action.",
@@ -892,205 +1091,6 @@ func (rsc *policyoptionsPolicyStatement) schemaThenBlocks() map[string]schema.Bl
 			},
 		},
 	}
-}
-
-type policyoptionsPolicyStatementData struct {
-	ID                           types.String                            `tfsdk:"id"`
-	Name                         types.String                            `tfsdk:"name"`
-	AddItToForwardingTableExport types.Bool                              `tfsdk:"add_it_to_forwarding_table_export"`
-	DynamicDB                    types.Bool                              `tfsdk:"dynamic_db"`
-	From                         *policyoptionsPolicyStatementBlockFrom  `tfsdk:"from"`
-	To                           *policyoptionsPolicyStatementBlockTo    `tfsdk:"to"`
-	Then                         *policyoptionsPolicyStatementBlockThen  `tfsdk:"then"`
-	Term                         []policyoptionsPolicyStatementBlockTerm `tfsdk:"term"`
-}
-
-type policyoptionsPolicyStatementConfig struct {
-	ID                           types.String                                 `tfsdk:"id"`
-	Name                         types.String                                 `tfsdk:"name"`
-	AddItToForwardingTableExport types.Bool                                   `tfsdk:"add_it_to_forwarding_table_export"`
-	DynamicDB                    types.Bool                                   `tfsdk:"dynamic_db"`
-	From                         *policyoptionsPolicyStatementBlockFromConfig `tfsdk:"from"`
-	To                           *policyoptionsPolicyStatementBlockToConfig   `tfsdk:"to"`
-	Then                         *policyoptionsPolicyStatementBlockThenConfig `tfsdk:"then"`
-	Term                         types.List                                   `tfsdk:"term"`
-}
-
-type policyoptionsPolicyStatementBlockTerm struct {
-	Name types.String                           `tfsdk:"name"`
-	From *policyoptionsPolicyStatementBlockFrom `tfsdk:"from"`
-	To   *policyoptionsPolicyStatementBlockTo   `tfsdk:"to"`
-	Then *policyoptionsPolicyStatementBlockThen `tfsdk:"then"`
-}
-
-func (block *policyoptionsPolicyStatementBlockTerm) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
-}
-
-type policyoptionsPolicyStatementBlockTermConfig struct {
-	Name types.String                                 `tfsdk:"name"`
-	From *policyoptionsPolicyStatementBlockFromConfig `tfsdk:"from"`
-	To   *policyoptionsPolicyStatementBlockToConfig   `tfsdk:"to"`
-	Then *policyoptionsPolicyStatementBlockThenConfig `tfsdk:"then"`
-}
-
-func (block *policyoptionsPolicyStatementBlockTermConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
-}
-
-type policyoptionsPolicyStatementBlockFrom struct {
-	AggregateContributor types.Bool                                              `tfsdk:"aggregate_contributor"`
-	BgpASPath            []types.String                                          `tfsdk:"bgp_as_path"`
-	BgpASPathGroup       []types.String                                          `tfsdk:"bgp_as_path_group"`
-	BgpCommunity         []types.String                                          `tfsdk:"bgp_community"`
-	BgpOrigin            types.String                                            `tfsdk:"bgp_origin"`
-	BgpSrteDiscriminator types.Int64                                             `tfsdk:"bgp_srte_discriminator"`
-	Color                types.Int64                                             `tfsdk:"color"`
-	EvpnESI              []types.String                                          `tfsdk:"evpn_esi"`
-	EvpnMACRoute         types.String                                            `tfsdk:"evpn_mac_route"`
-	EvpnTag              []types.Int64                                           `tfsdk:"evpn_tag"`
-	Family               types.String                                            `tfsdk:"family"`
-	LocalPreference      types.Int64                                             `tfsdk:"local_preference"`
-	Interface            []types.String                                          `tfsdk:"interface"`
-	Metric               types.Int64                                             `tfsdk:"metric"`
-	Neighbor             []types.String                                          `tfsdk:"neighbor"`
-	NextHop              []types.String                                          `tfsdk:"next_hop"`
-	NextHopTypeMerged    types.Bool                                              `tfsdk:"next_hop_type_merged"`
-	OspfArea             types.String                                            `tfsdk:"ospf_area"`
-	Policy               []types.String                                          `tfsdk:"policy"`
-	Preference           types.Int64                                             `tfsdk:"preference"`
-	PrefixList           []types.String                                          `tfsdk:"prefix_list"`
-	Protocol             []types.String                                          `tfsdk:"protocol"`
-	RouteType            types.String                                            `tfsdk:"route_type"`
-	RoutingInstance      types.String                                            `tfsdk:"routing_instance"`
-	SrteColor            types.Int64                                             `tfsdk:"srte_color"`
-	State                types.String                                            `tfsdk:"state"`
-	TunnelType           []types.String                                          `tfsdk:"tunnel_type"`
-	ValidationDatabase   types.String                                            `tfsdk:"validation_database"`
-	BgpASPathCalcLength  []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_as_path_calc_length"`
-	BgpASPathUniqueCount []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_as_path_unique_count"`
-	BgpCommunityCount    []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_community_count"`
-	NextHopWeight        []policyoptionsPolicyStatementBlockFromBlockMatchWeight `tfsdk:"next_hop_weight"`
-	RouteFilter          []policyoptionsPolicyStatementBlockFromBlockRouteFilter `tfsdk:"route_filter"`
-}
-
-func (block *policyoptionsPolicyStatementBlockFrom) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block)
-}
-
-type policyoptionsPolicyStatementBlockFromConfig struct {
-	AggregateContributor types.Bool   `tfsdk:"aggregate_contributor"`
-	BgpASPath            types.Set    `tfsdk:"bgp_as_path"`
-	BgpASPathGroup       types.Set    `tfsdk:"bgp_as_path_group"`
-	BgpCommunity         types.Set    `tfsdk:"bgp_community"`
-	BgpOrigin            types.String `tfsdk:"bgp_origin"`
-	BgpSrteDiscriminator types.Int64  `tfsdk:"bgp_srte_discriminator"`
-	Color                types.Int64  `tfsdk:"color"`
-	EvpnESI              types.Set    `tfsdk:"evpn_esi"`
-	EvpnMACRoute         types.String `tfsdk:"evpn_mac_route"`
-	EvpnTag              types.Set    `tfsdk:"evpn_tag"`
-	Family               types.String `tfsdk:"family"`
-	LocalPreference      types.Int64  `tfsdk:"local_preference"`
-	Interface            types.Set    `tfsdk:"interface"`
-	Metric               types.Int64  `tfsdk:"metric"`
-	Neighbor             types.Set    `tfsdk:"neighbor"`
-	NextHop              types.Set    `tfsdk:"next_hop"`
-	NextHopTypeMerged    types.Bool   `tfsdk:"next_hop_type_merged"`
-	OspfArea             types.String `tfsdk:"ospf_area"`
-	Policy               types.List   `tfsdk:"policy"`
-	Preference           types.Int64  `tfsdk:"preference"`
-	PrefixList           types.Set    `tfsdk:"prefix_list"`
-	Protocol             types.Set    `tfsdk:"protocol"`
-	RouteType            types.String `tfsdk:"route_type"`
-	RoutingInstance      types.String `tfsdk:"routing_instance"`
-	SrteColor            types.Int64  `tfsdk:"srte_color"`
-	State                types.String `tfsdk:"state"`
-	TunnelType           types.Set    `tfsdk:"tunnel_type"`
-	ValidationDatabase   types.String `tfsdk:"validation_database"`
-	BgpASPathCalcLength  types.Set    `tfsdk:"bgp_as_path_calc_length"`
-	BgpASPathUniqueCount types.Set    `tfsdk:"bgp_as_path_unique_count"`
-	BgpCommunityCount    types.Set    `tfsdk:"bgp_community_count"`
-	NextHopWeight        types.Set    `tfsdk:"next_hop_weight"`
-	RouteFilter          types.List   `tfsdk:"route_filter"`
-}
-
-func (block *policyoptionsPolicyStatementBlockFromConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block)
-}
-
-type policyoptionsPolicyStatementBlockFromBlockCountMatch struct {
-	Count types.Int64  `tfsdk:"count"`
-	Match types.String `tfsdk:"match"`
-}
-
-type policyoptionsPolicyStatementBlockFromBlockMatchWeight struct {
-	Match  types.String `tfsdk:"match"`
-	Weight types.Int64  `tfsdk:"weight"`
-}
-
-type policyoptionsPolicyStatementBlockFromBlockRouteFilter struct {
-	Route       types.String `tfsdk:"route"`
-	Option      types.String `tfsdk:"option"`
-	OptionValue types.String `tfsdk:"option_value"`
-}
-
-type policyoptionsPolicyStatementBlockTo struct {
-	BgpASPath       []types.String `tfsdk:"bgp_as_path"`
-	BgpASPathGroup  []types.String `tfsdk:"bgp_as_path_group"`
-	BgpCommunity    []types.String `tfsdk:"bgp_community"`
-	BgpOrigin       types.String   `tfsdk:"bgp_origin"`
-	Family          types.String   `tfsdk:"family"`
-	LocalPreference types.Int64    `tfsdk:"local_preference"`
-	Interface       []types.String `tfsdk:"interface"`
-	Metric          types.Int64    `tfsdk:"metric"`
-	Neighbor        []types.String `tfsdk:"neighbor"`
-	NextHop         []types.String `tfsdk:"next_hop"`
-	OspfArea        types.String   `tfsdk:"ospf_area"`
-	Policy          []types.String `tfsdk:"policy"`
-	Preference      types.Int64    `tfsdk:"preference"`
-	Protocol        []types.String `tfsdk:"protocol"`
-	RoutingInstance types.String   `tfsdk:"routing_instance"`
-}
-
-func (block *policyoptionsPolicyStatementBlockTo) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block)
-}
-
-type policyoptionsPolicyStatementBlockToConfig struct {
-	BgpASPath       types.Set    `tfsdk:"bgp_as_path"`
-	BgpASPathGroup  types.Set    `tfsdk:"bgp_as_path_group"`
-	BgpCommunity    types.Set    `tfsdk:"bgp_community"`
-	BgpOrigin       types.String `tfsdk:"bgp_origin"`
-	Family          types.String `tfsdk:"family"`
-	LocalPreference types.Int64  `tfsdk:"local_preference"`
-	Interface       types.Set    `tfsdk:"interface"`
-	Metric          types.Int64  `tfsdk:"metric"`
-	Neighbor        types.Set    `tfsdk:"neighbor"`
-	NextHop         types.Set    `tfsdk:"next_hop"`
-	OspfArea        types.String `tfsdk:"ospf_area"`
-	Policy          types.List   `tfsdk:"policy"`
-	Preference      types.Int64  `tfsdk:"preference"`
-	Protocol        types.Set    `tfsdk:"protocol"`
-	RoutingInstance types.String `tfsdk:"routing_instance"`
-}
-
-func (block *policyoptionsPolicyStatementBlockToConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block)
-}
-
-type policyoptionsPolicyStatementBlockThen struct {
-	Action          types.String                                                `tfsdk:"action"`
-	ASPathExpand    types.String                                                `tfsdk:"as_path_expand"`
-	ASPathPrepend   types.String                                                `tfsdk:"as_path_prepend"`
-	DefaultAction   types.String                                                `tfsdk:"default_action"`
-	LoadBalance     types.String                                                `tfsdk:"load_balance"`
-	Next            types.String                                                `tfsdk:"next"`
-	NextHop         types.String                                                `tfsdk:"next_hop"`
-	Origin          types.String                                                `tfsdk:"origin"`
-	Community       []policyoptionsPolicyStatementBlockThenBlockActionValue     `tfsdk:"community"`
-	LocalPreference *policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"local_preference"`
-	Metric          *policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"metric"`
-	Preference      *policyoptionsPolicyStatementBlockThenBlockActionValueInt64 `tfsdk:"preference"`
 }
 
 func (block *policyoptionsPolicyStatementBlockThen) isEmpty() bool {

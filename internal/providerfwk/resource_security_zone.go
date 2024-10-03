@@ -77,298 +77,36 @@ func (rsc *securityZone) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Description: defaultResourceSchemaDescription(rsc),
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "An identifier for the resource with format `<name>`.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required:    true,
-				Description: "The name of security zone.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 63),
-					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-				},
-			},
-			"address_book_configure_singly": schema.BoolAttribute{
-				Optional: true,
-				Description: "Disable management of address-book in this resource " +
-					"to be able to manage them with specific resources.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
-			},
-			"advance_policy_based_routing_profile": schema.StringAttribute{
-				Optional:    true,
-				Description: "Enable Advance Policy Based Routing on this zone with a profile.",
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 63),
-					tfvalidator.StringDoubleQuoteExclusion(),
-				},
-			},
-			"application_tracking": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Enable Application tracking support for this zone.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
-			},
-			"description": schema.StringAttribute{
-				Optional:    true,
-				Description: "Text description of zone.",
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 900),
-					tfvalidator.StringDoubleQuoteExclusion(),
-				},
-			},
-			"inbound_protocols": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Description: "The inbound protocols allowed.",
-				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
-					setvalidator.ValueStringsAre(
-						stringvalidator.LengthBetween(1, 32),
-						tfvalidator.StringDoubleQuoteExclusion(),
-					),
-				},
-			},
-			"inbound_services": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Description: "The inbound services allowed.",
-				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
-					setvalidator.ValueStringsAre(
-						stringvalidator.LengthBetween(1, 32),
-						tfvalidator.StringDoubleQuoteExclusion(),
-					),
-				},
-			},
-			"reverse_reroute": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Enable Reverse route lookup when there is change in ingress interface.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
-			},
-			"screen": schema.StringAttribute{
-				Optional:    true,
-				Description: "Name of ids option object (screen) applied to the zone.",
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 32),
-					tfvalidator.StringDoubleQuoteExclusion(),
-				},
-			},
-			"source_identity_log": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Show user and group info in session log for this zone.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
-			},
-			"tcp_rst": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Send RST for NON-SYN packet not matching TCP session.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
-			},
-		},
+		Attributes:  securityZoneData{}.attributesSchema(),
 		Blocks: map[string]schema.Block{
 			"address_book": schema.SetNestedBlock{
 				Description: "For each name of network address to declare.",
 				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required:    true,
-							Description: "Name of network address.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 63),
-								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
-							},
-						},
-						"network": schema.StringAttribute{
-							Required:    true,
-							Description: "CIDR value of network address (`192.0.0.0/24`).",
-							Validators: []validator.String{
-								tfvalidator.StringCIDRNetwork(),
-							},
-						},
-						"description": schema.StringAttribute{
-							Optional:    true,
-							Description: "Description of network address.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 900),
-								tfvalidator.StringDoubleQuoteExclusion(),
-							},
-						},
-					},
+					Attributes: securityZoneBlockAddressBook{}.attributesSchema(),
 				},
 			},
 			"address_book_dns": schema.SetNestedBlock{
 				Description: "For each name of dns-name address to declare.",
 				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required:    true,
-							Description: "Name of dns name address.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 63),
-								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
-							},
-						},
-						"fqdn": schema.StringAttribute{
-							Required:    true,
-							Description: "Fully qualified domain name.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 253),
-								tfvalidator.StringFormat(tfvalidator.DNSNameFormat),
-							},
-						},
-						"description": schema.StringAttribute{
-							Optional:    true,
-							Description: "Description of dns name address.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 900),
-								tfvalidator.StringDoubleQuoteExclusion(),
-							},
-						},
-						"ipv4_only": schema.BoolAttribute{
-							Optional:    true,
-							Description: "IPv4 dns address.",
-							Validators: []validator.Bool{
-								tfvalidator.BoolTrue(),
-							},
-						},
-						"ipv6_only": schema.BoolAttribute{
-							Optional:    true,
-							Description: "IPv6 dns address.",
-							Validators: []validator.Bool{
-								tfvalidator.BoolTrue(),
-							},
-						},
-					},
+					Attributes: securityZoneBlockAddressBookDNS{}.attributesSchema(),
 				},
 			},
 			"address_book_range": schema.SetNestedBlock{
 				Description: "For each name of range-address to declare.",
 				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required:    true,
-							Description: "Name of range address.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 63),
-								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
-							},
-						},
-						"from": schema.StringAttribute{
-							Required:    true,
-							Description: "Lower limit of address range.",
-							Validators: []validator.String{
-								tfvalidator.StringIPAddress(),
-							},
-						},
-						"to": schema.StringAttribute{
-							Required:    true,
-							Description: "Upper limit of address range.",
-							Validators: []validator.String{
-								tfvalidator.StringIPAddress(),
-							},
-						},
-						"description": schema.StringAttribute{
-							Optional:    true,
-							Description: "Description of range address.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 900),
-								tfvalidator.StringDoubleQuoteExclusion(),
-							},
-						},
-					},
+					Attributes: securityZoneBlockAddressBookRange{}.attributesSchema(),
 				},
 			},
 			"address_book_set": schema.SetNestedBlock{
 				Description: "For each name of address-set to declare.",
 				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required:    true,
-							Description: "Name of address-set.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 63),
-								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
-							},
-						},
-						"address": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-							Description: "List of address names.",
-							Validators: []validator.Set{
-								setvalidator.SizeAtLeast(1),
-								setvalidator.ValueStringsAre(
-									stringvalidator.LengthBetween(1, 63),
-									tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
-								),
-							},
-						},
-						"address_set": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-							Description: "List of address-set names.",
-							Validators: []validator.Set{
-								setvalidator.SizeAtLeast(1),
-								setvalidator.ValueStringsAre(
-									stringvalidator.LengthBetween(1, 63),
-									tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
-								),
-							},
-						},
-						"description": schema.StringAttribute{
-							Optional:    true,
-							Description: "Description of address-set.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 900),
-								tfvalidator.StringDoubleQuoteExclusion(),
-							},
-						},
-					},
+					Attributes: securityZoneBlockAddressBookSet{}.attributesSchema(),
 				},
 			},
 			"address_book_wildcard": schema.SetNestedBlock{
 				Description: "For each name of wildcard-address to declare.",
 				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required:    true,
-							Description: "Name of wildcard address.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 63),
-								tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
-							},
-						},
-						"network": schema.StringAttribute{
-							Required:    true,
-							Description: "Numeric IPv4 wildcard address with in the form of a.d.d.r/netmask.",
-							Validators: []validator.String{
-								tfvalidator.StringWildcardNetwork(),
-							},
-						},
-						"description": schema.StringAttribute{
-							Optional:    true,
-							Description: "Description of wildcard address.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 900),
-								tfvalidator.StringDoubleQuoteExclusion(),
-							},
-						},
-					},
+					Attributes: securityZoneBlockAddressBookWildcard{}.attributesSchema(),
 				},
 			},
 		},
@@ -394,6 +132,113 @@ type securityZoneData struct {
 	AddressBookSet                   []securityZoneBlockAddressBookSet      `tfsdk:"address_book_set"`
 	AddressBookWildcard              []securityZoneBlockAddressBookWildcard `tfsdk:"address_book_wildcard"`
 	Interface                        []securityZoneDataSourceBlockInterface `tfsdk:"-"` // to data source
+}
+
+func (securityZoneData) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:    true,
+			Description: "An identifier for the resource with format `<name>`.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "The name of security zone.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.RequiresReplace(),
+			},
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+			},
+		},
+		"address_book_configure_singly": schema.BoolAttribute{
+			Optional: true,
+			Description: "Disable management of address-book in this resource " +
+				"to be able to manage them with specific resources.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"advance_policy_based_routing_profile": schema.StringAttribute{
+			Optional:    true,
+			Description: "Enable Advance Policy Based Routing on this zone with a profile.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+		"application_tracking": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable Application tracking support for this zone.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:    true,
+			Description: "Text description of zone.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 900),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+		"inbound_protocols": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "The inbound protocols allowed.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 32),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				),
+			},
+		},
+		"inbound_services": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "The inbound services allowed.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 32),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				),
+			},
+		},
+		"reverse_reroute": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable Reverse route lookup when there is change in ingress interface.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"screen": schema.StringAttribute{
+			Optional:    true,
+			Description: "Name of ids option object (screen) applied to the zone.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 32),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+		"source_identity_log": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Show user and group info in session log for this zone.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"tcp_rst": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Send RST for NON-SYN packet not matching TCP session.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+	}
 }
 
 type securityZoneConfig struct {
@@ -422,12 +267,83 @@ type securityZoneBlockAddressBook struct {
 	Description types.String `tfsdk:"description"`
 }
 
+func (securityZoneBlockAddressBook) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "Name of network address.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
+			},
+		},
+		"network": schema.StringAttribute{
+			Required:    true,
+			Description: "CIDR value of network address (`192.0.0.0/24`).",
+			Validators: []validator.String{
+				tfvalidator.StringCIDRNetwork(),
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:    true,
+			Description: "Description of network address.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 900),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+	}
+}
+
 type securityZoneBlockAddressBookDNS struct {
 	Name        types.String `tfsdk:"name"`
 	FQDN        types.String `tfsdk:"fqdn"`
 	Description types.String `tfsdk:"description"`
 	IPv4Only    types.Bool   `tfsdk:"ipv4_only"`
 	IPv6Only    types.Bool   `tfsdk:"ipv6_only"`
+}
+
+func (securityZoneBlockAddressBookDNS) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "Name of dns name address.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
+			},
+		},
+		"fqdn": schema.StringAttribute{
+			Required:    true,
+			Description: "Fully qualified domain name.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 253),
+				tfvalidator.StringFormat(tfvalidator.DNSNameFormat),
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:    true,
+			Description: "Description of dns name address.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 900),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+		"ipv4_only": schema.BoolAttribute{
+			Optional:    true,
+			Description: "IPv4 dns address.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"ipv6_only": schema.BoolAttribute{
+			Optional:    true,
+			Description: "IPv6 dns address.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+	}
 }
 
 type securityZoneBlockAddressBookRange struct {
@@ -437,11 +353,91 @@ type securityZoneBlockAddressBookRange struct {
 	Description types.String `tfsdk:"description"`
 }
 
+func (securityZoneBlockAddressBookRange) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "Name of range address.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
+			},
+		},
+		"from": schema.StringAttribute{
+			Required:    true,
+			Description: "Lower limit of address range.",
+			Validators: []validator.String{
+				tfvalidator.StringIPAddress(),
+			},
+		},
+		"to": schema.StringAttribute{
+			Required:    true,
+			Description: "Upper limit of address range.",
+			Validators: []validator.String{
+				tfvalidator.StringIPAddress(),
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:    true,
+			Description: "Description of range address.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 900),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+	}
+}
+
 type securityZoneBlockAddressBookSet struct {
 	Name        types.String   `tfsdk:"name"`
 	Address     []types.String `tfsdk:"address"`
 	AddressSet  []types.String `tfsdk:"address_set"`
 	Description types.String   `tfsdk:"description"`
+}
+
+func (securityZoneBlockAddressBookSet) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "Name of address-set.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
+			},
+		},
+		"address": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "List of address names.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
+				),
+			},
+		},
+		"address_set": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "List of address-set names.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
+				),
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:    true,
+			Description: "Description of address-set.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 900),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+	}
 }
 
 type securityZoneBlockAddressBookSetConfig struct {
@@ -455,6 +451,34 @@ type securityZoneBlockAddressBookWildcard struct {
 	Name        types.String `tfsdk:"name"`
 	Network     types.String `tfsdk:"network"`
 	Description types.String `tfsdk:"description"`
+}
+
+func (securityZoneBlockAddressBookWildcard) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "Name of wildcard address.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
+			},
+		},
+		"network": schema.StringAttribute{
+			Required:    true,
+			Description: "Numeric IPv4 wildcard address with in the form of a.d.d.r/netmask.",
+			Validators: []validator.String{
+				tfvalidator.StringWildcardNetwork(),
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:    true,
+			Description: "Description of wildcard address.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 900),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+	}
 }
 
 func (rsc *securityZone) ValidateConfig(
@@ -876,10 +900,10 @@ func (rscData *securityZoneData) set(
 	configSet = append(configSet, setPrefix)
 	if !rscData.AddressBookConfigureSingly.ValueBool() {
 		addressName := make(map[string]struct{})
-		for _, block := range rscData.AddressBook {
+		for i, block := range rscData.AddressBook {
 			name := block.Name.ValueString()
 			if _, ok := addressName[name]; ok {
-				return path.Root("address_book"),
+				return path.Root("address_book").AtListIndex(i).AtName("name"),
 					fmt.Errorf("multiple addresses with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
@@ -889,10 +913,10 @@ func (rscData *securityZoneData) set(
 				configSet = append(configSet, setPrefix+"address-book address "+name+" description \""+v+"\"")
 			}
 		}
-		for _, block := range rscData.AddressBookDNS {
+		for i, block := range rscData.AddressBookDNS {
 			name := block.Name.ValueString()
 			if _, ok := addressName[name]; ok {
-				return path.Root("address_book_dns"),
+				return path.Root("address_book_dns").AtListIndex(i).AtName("name"),
 					fmt.Errorf("multiple addresses with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
@@ -909,10 +933,10 @@ func (rscData *securityZoneData) set(
 				configSet = append(configSet, setPrefix+"address-book address "+name+" description \""+v+"\"")
 			}
 		}
-		for _, block := range rscData.AddressBookRange {
+		for i, block := range rscData.AddressBookRange {
 			name := block.Name.ValueString()
 			if _, ok := addressName[name]; ok {
-				return path.Root("address_book_range"),
+				return path.Root("address_book_range").AtListIndex(i).AtName("name"),
 					fmt.Errorf("multiple addresses with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
@@ -924,17 +948,17 @@ func (rscData *securityZoneData) set(
 				configSet = append(configSet, setPrefix+"address-book address "+name+" description \""+v+"\"")
 			}
 		}
-		for _, block := range rscData.AddressBookSet {
+		for i, block := range rscData.AddressBookSet {
 			name := block.Name.ValueString()
 			if _, ok := addressName[name]; ok {
-				return path.Root("address_book_set"),
+				return path.Root("address_book_set").AtListIndex(i).AtName("name"),
 					fmt.Errorf("multiple addresses or address-sets with the same name %q", name)
 			}
 			addressName[name] = struct{}{}
 
 			if len(block.Address) == 0 &&
 				len(block.AddressSet) == 0 {
-				return path.Root("address_book_set"),
+				return path.Root("address_book_set").AtListIndex(i).AtName("name"),
 					fmt.Errorf("at least one of address or address_set must be specified in address_set %q", name)
 			}
 			for _, v := range block.Address {
@@ -947,10 +971,10 @@ func (rscData *securityZoneData) set(
 				configSet = append(configSet, setPrefix+"address-book address-set "+name+" description \""+v+"\"")
 			}
 		}
-		for _, block := range rscData.AddressBookWildcard {
+		for i, block := range rscData.AddressBookWildcard {
 			name := block.Name.ValueString()
 			if _, ok := addressName[name]; ok {
-				return path.Root("address_book_wildcard"),
+				return path.Root("address_book_wildcard").AtListIndex(i).AtName("name"),
 					fmt.Errorf("multiple addresses with the same name %q", name)
 			}
 			addressName[name] = struct{}{}

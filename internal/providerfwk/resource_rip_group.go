@@ -196,7 +196,7 @@ func (rsc *ripGroup) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
-			"bfd_liveness_detection": ripBlockBfdLivenessDetection{}.resourceSchema(),
+			"bfd_liveness_detection": ripBlockBfdLivenessDetection{}.schema(),
 		},
 	}
 }

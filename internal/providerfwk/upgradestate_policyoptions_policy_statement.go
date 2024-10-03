@@ -26,13 +26,13 @@ func (rsc *policyoptionsPolicyStatement) UpgradeState(_ context.Context) map[int
 				Blocks: map[string]schema.Block{
 					"from": schema.ListNestedBlock{
 						NestedObject: schema.NestedBlockObject{
-							Attributes: rsc.schemaFromAttributes(),
-							Blocks:     rsc.schemaFromBlocks(),
+							Attributes: policyoptionsPolicyStatementBlockFrom{}.attributesSchema(),
+							Blocks:     policyoptionsPolicyStatementBlockFrom{}.blocksSchema(),
 						},
 					},
 					"to": schema.ListNestedBlock{
 						NestedObject: schema.NestedBlockObject{
-							Attributes: rsc.schemaToAttributes(),
+							Attributes: policyoptionsPolicyStatementBlockTo{}.attributesSchema(),
 						},
 					},
 					"then": schema.ListNestedBlock{
@@ -125,13 +125,13 @@ func (rsc *policyoptionsPolicyStatement) UpgradeState(_ context.Context) map[int
 							Blocks: map[string]schema.Block{
 								"from": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaFromAttributes(),
-										Blocks:     rsc.schemaFromBlocks(),
+										Attributes: policyoptionsPolicyStatementBlockFrom{}.attributesSchema(),
+										Blocks:     policyoptionsPolicyStatementBlockFrom{}.blocksSchema(),
 									},
 								},
 								"to": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaToAttributes(),
+										Attributes: policyoptionsPolicyStatementBlockTo{}.attributesSchema(),
 									},
 								},
 								"then": schema.ListNestedBlock{

@@ -310,7 +310,7 @@ func (rsc *ripNeighbor) Schema(
 					},
 				},
 			},
-			"bfd_liveness_detection": ripBlockBfdLivenessDetection{}.resourceSchema(),
+			"bfd_liveness_detection": ripBlockBfdLivenessDetection{}.schema(),
 		},
 	}
 }

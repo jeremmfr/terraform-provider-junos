@@ -130,7 +130,7 @@ func (rsc *forwardingoptionsSamplingInstance) UpgradeState(_ context.Context) ma
 								},
 								"interface": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaOutputInterfaceAttributes(),
+										Attributes: forwardingoptionsSamplingBlockOutputBlockInterface{}.attributesSchema(),
 									},
 								},
 							},
@@ -237,7 +237,7 @@ func (rsc *forwardingoptionsSamplingInstance) UpgradeState(_ context.Context) ma
 								},
 								"interface": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaOutputInterfaceAttributes(),
+										Attributes: forwardingoptionsSamplingBlockOutputBlockInterface{}.attributesSchema(),
 									},
 								},
 							},
@@ -340,7 +340,7 @@ func (rsc *forwardingoptionsSamplingInstance) UpgradeState(_ context.Context) ma
 								},
 								"interface": schema.ListNestedBlock{
 									NestedObject: schema.NestedBlockObject{
-										Attributes: rsc.schemaOutputInterfaceAttributes(),
+										Attributes: forwardingoptionsSamplingBlockOutputBlockInterface{}.attributesSchema(),
 									},
 								},
 							},
