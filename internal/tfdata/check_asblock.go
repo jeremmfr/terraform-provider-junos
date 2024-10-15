@@ -15,6 +15,10 @@ import (
 func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 	v := reflect.Indirect(reflect.ValueOf(block).Elem())
 
+	return checkBlockValueIsEmpty(v, excludeFields...)
+}
+
+func checkBlockValueIsEmpty(v reflect.Value, excludeFields ...string) bool {
 	for i := range v.NumField() {
 		if slices.Contains(excludeFields, v.Type().Field(i).Name) {
 			continue
@@ -22,6 +26,16 @@ func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 
 		fieldValue := v.Field(i)
 		if !fieldValue.IsValid() {
+			continue
+		}
+
+		if v.Type().Field(i).Anonymous {
+			vv := reflect.Indirect(reflect.NewAt(fieldValue.Type(), fieldValue.Addr().UnsafePointer()).Elem())
+
+			if !checkBlockValueIsEmpty(vv, excludeFields...) {
+				return false
+			}
+
 			continue
 		}
 
@@ -62,6 +76,10 @@ func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
 func CheckBlockHasKnownValue[B any](block B, excludeFields ...string) bool {
 	v := reflect.Indirect(reflect.ValueOf(block).Elem())
 
+	return checkBlockValueHasKnownValue(v, excludeFields...)
+}
+
+func checkBlockValueHasKnownValue(v reflect.Value, excludeFields ...string) bool {
 	for i := range v.NumField() {
 		if slices.Contains(excludeFields, v.Type().Field(i).Name) {
 			continue
@@ -69,6 +87,16 @@ func CheckBlockHasKnownValue[B any](block B, excludeFields ...string) bool {
 
 		fieldValue := v.Field(i)
 		if !fieldValue.IsValid() {
+			continue
+		}
+
+		if v.Type().Field(i).Anonymous {
+			vv := reflect.Indirect(reflect.NewAt(fieldValue.Type(), fieldValue.Addr().UnsafePointer()).Elem())
+
+			if checkBlockValueHasKnownValue(vv, excludeFields...) {
+				return true
+			}
+
 			continue
 		}
 
