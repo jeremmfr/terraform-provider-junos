@@ -9,4 +9,5 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* **resource/junos_bridge_domain**: fix missing validate of not empty resource in create/update functions
 * **resource/junos_ospf_area**: fix missing part of validate config when `version` is null in config (default to `v2`)
