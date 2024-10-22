@@ -179,7 +179,6 @@ func Provider() *schema.Provider {
 			"junos_chassis_cluster":    resourceChassisCluster(),
 			"junos_chassis_redundancy": resourceChassisRedundancy(),
 
-			"junos_forwardingoptions_dhcprelay_group":       resourceForwardingOptionsDhcpRelayGroup(),
 			"junos_forwardingoptions_dhcprelay_servergroup": resourceForwardingOptionsDhcpRelayServerGroup(),
 
 			"junos_group_dual_system": resourceGroupDualSystem(),
