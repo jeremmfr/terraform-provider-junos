@@ -2,12 +2,9 @@ package providerfwk
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
-	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,44 +13,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                   = &applications{}
-	_ resource.ResourceWithConfigure      = &applications{}
-	_ resource.ResourceWithValidateConfig = &applications{}
-	_ resource.ResourceWithImportState    = &applications{}
+	_ resource.Resource                   = &applicationsOrdered{}
+	_ resource.ResourceWithConfigure      = &applicationsOrdered{}
+	_ resource.ResourceWithValidateConfig = &applicationsOrdered{}
+	_ resource.ResourceWithImportState    = &applicationsOrdered{}
 )
 
-type applications struct {
+type applicationsOrdered struct {
 	client *junos.Client
 }
 
-func newApplicationsResource() resource.Resource {
-	return &applications{}
+func newApplicationsOrderedResource() resource.Resource {
+	return &applicationsOrdered{}
 }
 
-func (rsc *applications) typeName() string {
-	return providerName + "_applications"
+func (rsc *applicationsOrdered) typeName() string {
+	return providerName + "_applications_ordered"
 }
 
-func (rsc *applications) junosName() string {
+func (rsc *applicationsOrdered) junosName() string {
 	return "applications"
 }
 
-func (rsc *applications) junosClient() *junos.Client {
+func (rsc *applicationsOrdered) junosClient() *junos.Client {
 	return rsc.client
 }
 
-func (rsc *applications) Metadata(
+func (rsc *applicationsOrdered) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
 
-func (rsc *applications) Configure(
+func (rsc *applicationsOrdered) Configure(
 	ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
 ) {
 	// Prevent panic if the provider has not been configured.
@@ -69,7 +65,7 @@ func (rsc *applications) Configure(
 	rsc.client = client
 }
 
-func (rsc *applications) Schema(
+func (rsc *applicationsOrdered) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
@@ -84,14 +80,14 @@ func (rsc *applications) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
-			"application": schema.SetNestedBlock{
+			"application": schema.ListNestedBlock{
 				Description: "For each name, define an application.",
 				NestedObject: schema.NestedBlockObject{
 					Attributes: applicationAttrData{}.attributesSchema(),
 					Blocks:     applicationAttrData{}.blocksSchema(),
 				},
 			},
-			"application_set": schema.SetNestedBlock{
+			"application_set": schema.ListNestedBlock{
 				Description: "For each name, define an application set.",
 				NestedObject: schema.NestedBlockObject{
 					Attributes: applicationSetAttrData{}.attributesSchema(),
@@ -101,22 +97,16 @@ func (rsc *applications) Schema(
 	}
 }
 
-type applicationsData struct {
-	ID             types.String             `tfsdk:"id"`
-	Application    []applicationAttrData    `tfsdk:"application"`
-	ApplicationSet []applicationSetAttrData `tfsdk:"application_set"`
-}
-
-type applicationsConfig struct {
+type applicationsOrderedConfig struct {
 	ID             types.String `tfsdk:"id"`
-	Application    types.Set    `tfsdk:"application"`
-	ApplicationSet types.Set    `tfsdk:"application_set"`
+	Application    types.List   `tfsdk:"application"`
+	ApplicationSet types.List   `tfsdk:"application_set"`
 }
 
-func (rsc *applications) ValidateConfig(
+func (rsc *applicationsOrdered) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
-	var config applicationsConfig
+	var config applicationsOrderedConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -133,12 +123,12 @@ func (rsc *applications) ValidateConfig(
 			return
 		}
 
-		for _, block := range configApplication {
+		for i, block := range configApplication {
 			if !block.Name.IsUnknown() {
 				name := block.Name.ValueString()
 				if _, ok := applicationName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
-						path.Root("application"),
+						path.Root("application").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple application blocks with the same name %q", name),
 					)
@@ -148,13 +138,13 @@ func (rsc *applications) ValidateConfig(
 
 			if block.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
-					path.Root("application"),
+					path.Root("application").AtListIndex(i).AtName("*"),
 					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("at least one of arguments need to be set (in addition to `name`)"+
 						" in application block %q", block.Name.ValueString()),
 				)
 			}
-			rootPath := path.Root("application")
+			rootPath := path.Root("application").AtListIndex(i)
 			block.validateConfig(
 				ctx,
 				&rootPath,
@@ -174,12 +164,12 @@ func (rsc *applications) ValidateConfig(
 			return
 		}
 		applicationSetName := make(map[string]struct{})
-		for _, block := range configApplicationSet {
+		for i, block := range configApplicationSet {
 			if !block.Name.IsUnknown() {
 				name := block.Name.ValueString()
 				if _, ok := applicationSetName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
-						path.Root("application_set"),
+						path.Root("application_set").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("multiple application_set blocks with the same name %q", name),
 					)
@@ -187,7 +177,7 @@ func (rsc *applications) ValidateConfig(
 				applicationSetName[name] = struct{}{}
 				if _, ok := applicationName[name]; ok {
 					resp.Diagnostics.AddAttributeError(
-						path.Root("application"),
+						path.Root("application").AtListIndex(i).AtName("name"),
 						tfdiag.DuplicateConfigErrSummary,
 						fmt.Sprintf("application and application_set blocks with the same name %q", name),
 					)
@@ -196,13 +186,13 @@ func (rsc *applications) ValidateConfig(
 
 			if block.isEmpty() {
 				resp.Diagnostics.AddAttributeError(
-					path.Root("application_set"),
+					path.Root("application_set").AtListIndex(i).AtName("*"),
 					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("at least one of applications, application_set or description must be specified"+
 						" in application_set block %q", block.Name.ValueString()),
 				)
 			}
-			rootPath := path.Root("application_set")
+			rootPath := path.Root("application_set").AtListIndex(i)
 			block.validateConfig(
 				ctx,
 				&rootPath,
@@ -213,7 +203,7 @@ func (rsc *applications) ValidateConfig(
 	}
 }
 
-func (rsc *applications) Create(
+func (rsc *applicationsOrdered) Create(
 	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse,
 ) {
 	var plan applicationsData
@@ -232,7 +222,7 @@ func (rsc *applications) Create(
 	)
 }
 
-func (rsc *applications) Read(
+func (rsc *applicationsOrdered) Read(
 	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse,
 ) {
 	var state, data applicationsData
@@ -252,7 +242,7 @@ func (rsc *applications) Read(
 	)
 }
 
-func (rsc *applications) Update(
+func (rsc *applicationsOrdered) Update(
 	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
 ) {
 	var plan, state applicationsData
@@ -271,7 +261,7 @@ func (rsc *applications) Update(
 	)
 }
 
-func (rsc *applications) Delete(
+func (rsc *applicationsOrdered) Delete(
 	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse,
 ) {
 	var state applicationsData
@@ -288,7 +278,7 @@ func (rsc *applications) Delete(
 	)
 }
 
-func (rsc *applications) ImportState(
+func (rsc *applicationsOrdered) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
 	var data applicationsData
@@ -302,132 +292,4 @@ func (rsc *applications) ImportState(
 		resp,
 		"",
 	)
-}
-
-func (rscData *applicationsData) fillID() {
-	rscData.ID = types.StringValue("applications")
-}
-
-func (rscData *applicationsData) nullID() bool {
-	return rscData.ID.IsNull()
-}
-
-func (rscData *applicationsData) set(
-	_ context.Context, junSess *junos.Session,
-) (
-	path.Path, error,
-) {
-	configSet := make([]string, 0, 100)
-
-	applicationName := make(map[string]struct{})
-	for i, block := range rscData.Application {
-		name := block.Name.ValueString()
-		if name == "" {
-			return path.Root("application").AtListIndex(i).AtName("name"),
-				errors.New("name argument in application block is empty")
-		}
-		if _, ok := applicationName[name]; ok {
-			return path.Root("application").AtListIndex(i).AtName("name"),
-				fmt.Errorf("multiple application blocks with the same name %q", name)
-		}
-		applicationName[name] = struct{}{}
-
-		blockErrorSuffix := fmt.Sprintf(" in application block %q", name)
-		if block.isEmpty() {
-			return path.Root("application").AtListIndex(i).AtName("name"),
-				errors.New("at least one of arguments need to be set (in addition to `name`)" +
-					blockErrorSuffix)
-		}
-
-		dataConfigSet, _, err := block.configSet(blockErrorSuffix)
-		if err != nil {
-			return path.Root("application").AtListIndex(i).AtName("name"), err
-		}
-		configSet = append(configSet, dataConfigSet...)
-	}
-	applicationSetName := make(map[string]struct{})
-	for i, block := range rscData.ApplicationSet {
-		name := block.Name.ValueString()
-		if name == "" {
-			return path.Root("application_set").AtListIndex(i).AtName("name"),
-				errors.New("name argument in application_set block is empty")
-		}
-		if _, ok := applicationSetName[name]; ok {
-			return path.Root("application_set").AtListIndex(i).AtName("name"),
-				fmt.Errorf("multiple application_set blocks with the same name %q", name)
-		}
-		if _, ok := applicationName[name]; ok {
-			return path.Root("application_set").AtListIndex(i).AtName("name"),
-				fmt.Errorf("application and application_set blocks with the same name %q", name)
-		}
-		applicationSetName[name] = struct{}{}
-
-		if block.isEmpty() {
-			return path.Root("application_set").AtListIndex(i).AtName("name"),
-				fmt.Errorf("at least one of applications, application_set or description must be specified"+
-					" in application_set block %q", name)
-		}
-
-		configSet = append(configSet, block.configSet()...)
-	}
-
-	return path.Empty(), junSess.ConfigSet(configSet)
-}
-
-func (rscData *applicationsData) read(
-	_ context.Context, junSess *junos.Session,
-) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"applications " + junos.PipeDisplaySetRelative)
-	if err != nil {
-		return err
-	}
-	rscData.fillID()
-	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, junos.XMLStartTagConfigOut) {
-				continue
-			}
-			if strings.Contains(item, junos.XMLEndTagConfigOut) {
-				break
-			}
-			itemTrim := strings.TrimPrefix(item, junos.SetLS)
-			switch {
-			case balt.CutPrefixInString(&itemTrim, "application "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var application applicationAttrData
-				rscData.Application, application = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Application, "Name", itemTrimFields[0],
-				)
-				application.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-				if err := application.read(itemTrim); err != nil {
-					return err
-				}
-				rscData.Application = append(rscData.Application, application)
-			case balt.CutPrefixInString(&itemTrim, "application-set "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var applicationSet applicationSetAttrData
-				rscData.ApplicationSet, applicationSet = tfdata.ExtractBlockWithTFTypesString(
-					rscData.ApplicationSet, "Name", itemTrimFields[0],
-				)
-				applicationSet.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-				applicationSet.read(itemTrim)
-				rscData.ApplicationSet = append(rscData.ApplicationSet, applicationSet)
-			}
-		}
-	}
-
-	return nil
-}
-
-func (rscData *applicationsData) del(
-	_ context.Context, junSess *junos.Session,
-) error {
-	configSet := []string{
-		"delete applications",
-	}
-
-	return junSess.ConfigSet(configSet)
 }

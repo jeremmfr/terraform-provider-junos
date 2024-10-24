@@ -76,7 +76,7 @@ type bgpAttrData struct {
 	GracefulRestart              *bgpBlockGracefulRestart      `tfsdk:"graceful_restart"`
 }
 
-func (rscData bgpAttrData) attributesSchema() map[string]schema.Attribute {
+func (bgpAttrData) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"accept_remote_nexthop": schema.BoolAttribute{
 			Optional:    true,
@@ -399,15 +399,15 @@ func (rscData bgpAttrData) attributesSchema() map[string]schema.Attribute {
 	}
 }
 
-func (rscData bgpAttrData) blocksSchema() map[string]schema.Block {
+func (bgpAttrData) blocksSchema() map[string]schema.Block {
 	return map[string]schema.Block{
-		"bfd_liveness_detection": bgpBlockBfdLivenessDetection{}.resourceSchema(),
-		"bgp_error_tolerance":    bgpBlockBgpErrorTolerance{}.resourceSchema(),
-		"bgp_multipath":          bgpBlockBgpMultipath{}.resourceSchema(),
-		"family_evpn":            bgpBlockFamily{}.resourceSchema("EVPN"),
-		"family_inet":            bgpBlockFamily{}.resourceSchema("IPv4"),
-		"family_inet6":           bgpBlockFamily{}.resourceSchema("IPv6"),
-		"graceful_restart":       bgpBlockGracefulRestart{}.resourceSchema(),
+		"bfd_liveness_detection": bgpBlockBfdLivenessDetection{}.schema(),
+		"bgp_error_tolerance":    bgpBlockBgpErrorTolerance{}.schema(),
+		"bgp_multipath":          bgpBlockBgpMultipath{}.schema(),
+		"family_evpn":            bgpBlockFamily{}.schema("EVPN"),
+		"family_inet":            bgpBlockFamily{}.schema("IPv4"),
+		"family_inet6":           bgpBlockFamily{}.schema("IPv6"),
+		"graceful_restart":       bgpBlockGracefulRestart{}.schema(),
 	}
 }
 
