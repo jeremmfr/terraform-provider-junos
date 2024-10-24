@@ -43,7 +43,7 @@ The following arguments are supported:
 - **access_profile** (Optional, String)  
   Access profile to use for AAA services.
 - **active_leasequery** (Optional, Block)  
-  DHCPv4 active leasequery configuration.
+  DHCP active leasequery configuration.
   - **idle_timeout** (Optional, Number)  
     Idle timeout in seconds (10..3600 seconds).
   - **peer_address** (Optional, String)  
@@ -64,56 +64,8 @@ The following arguments are supported:
   DHCP authentication, username password to use.
 - **authentication_username_include** (Optional, Block)  
   DHCP authentication, add username options.  
-  At least one of arguments of block need to be set.
-  - **circuit_type** (Optional, Boolean)  
-    Include circuit type.
-  - **client_id** (Optional, Boolean)  
-    Include client ID.
-  - **client_id_exclude_headers** (Optional, Boolean)  
-    Exclude all the headers.  
-    `client_id` need to be true.
-  - **client_id_use_automatic_ascii_hex_encoding** (Optional, Boolean)  
-    Use automatic ascii hex username encoding.  
-    `client_id` need to be true.
-  - **delimiter** (Optional, String)  
-    Change delimiter/separator character.  
-    One character maximum.
-  - **domain_name** (Optional, String)  
-    Add domain name.
-  - **interface_description** (Optional, String)  
-    Include interface description.  
-    Need to be `device` or `logical`.
-  - **interface_name** (Optional, Boolean)  
-    Include interface name.
-  - **mac_address** (Optional, Boolean)  
-    Include MAC address.
-  - **option_60** (Optional, Boolean)  
-    Include option 60.  
-    `version` need to be `v4`.
-  - **option_82** (Optional, Boolean)  
-    Include option 82.  
-    `version` need to be `v4`.
-  - **option_82_circuit_id** (Optional, Boolean)  
-    Include option 82 circuit-id (sub option 1).  
-    `option_82` need to be true.
-  - **option_82_remote_id** (Optional, Boolean)  
-    Include option 82 remote-id (sub option 2).  
-    `option_82` need to be true.
-  - **relay_agent_interface_id** (Optional, Boolean)  
-    Include the relay agent interface ID.  
-    `version` need to be `v6`.
-  - **relay_agent_remote_id** (Optional, Boolean)  
-    Include the relay agent remote ID.  
-    `version` need to be `v6`.
-  - **relay_agent_subscriber_id** (Optional, Boolean)  
-    Include the relay agent subscriber ID.  
-    `version` need to be `v6`.
-  - **routing_instance_name** (Optional, Boolean)  
-    Include routing instance name.
-  - **user_prefix** (Optional, String)  
-    Add user defined prefix.
-  - **vlan_tags** (Optional, Boolean)  
-    Include the vlan tag(s).
+  At least one of arguments of block need to be set.  
+  See [below for nested schema](#authentication_username_include-arguments).
 - **bulk_leasequery** (Optional, Block)  
   DHCP bulk leasequery configuration.
   - **attempts** (Optional, Number)  
@@ -152,7 +104,7 @@ The following arguments are supported:
 - **forward_only** (Optional, Boolean)  
   Forward DHCP packets without creating binding.
 - **forward_only_replies** (Optional, Boolean)  
-  Forward-only replies from server to appropriate routing instance based on options
+  Forward-only replies from server to appropriate routing instance based on options.
 - **forward_only_routing_instance** (Optional, String)  
   Name of routing instance to forward-only.  
   `forward_only` need to be true.
@@ -196,7 +148,7 @@ The following arguments are supported:
   - **transmit_interval_minimum** (Optional, Number)  
     Minimum transmit interval (30000..255000 milliseconds).
   - **transmit_interval_threshold** (Optional, Number)  
-    High transmit interval triggering a trap (milliseconds)
+    High transmit interval triggering a trap (milliseconds).
   - **version** (Optional, String)  
     BFD protocol version number.  
     Need to be `0`, `1` or `automatic`.
@@ -209,7 +161,7 @@ The following arguments are supported:
   - **transmit_interval** (Optional, Number)  
     Transmit interval for address resolution (300..1800 seconds).
 - **maximum_hop_count** (Optional, Number)  
-  Maximum number of hops per packet (1..16)  
+  Maximum number of hops per packet (1..16).  
   `version` need to be `v4`.
 - **minimum_wait_time** (Optional, Number)  
   Minimum number of seconds before requests are forwarded (0..30000).  
@@ -266,7 +218,7 @@ The following arguments are supported:
   Server match default action.  
   Need to be `create-relay-entry` or `forward-only`.
 - **server_match_duid** (Optional, Block Set)  
-  For each combination of `compare`, `value_type` and `value` arguments,  match duid processing.  
+  For each combination of `compare`, `value_type` and `value` arguments, match duid processing.  
   `version` need to be `v6`.
   - **compare** (Required, String)  
     How to compare.  
@@ -280,7 +232,7 @@ The following arguments are supported:
     Action on match.  
     Need to be `create-relay-entry` or `forward-only`.
 - **server_response_time** (Optional, Number)  
-  Number of seconds in a period of activity between the last server response and an unaswered request.
+  Number of seconds in a period of activity between the last server response and an unanswered request.
 - **service_profile** (Optional, String)  
   Dynamic profile to use for default service activation.
 - **short_cycle_protection_lockout_max_time** (Optional, Number)  
@@ -302,12 +254,66 @@ The following arguments are supported:
 
 ---
 
+### authentication_username_include arguments
+
+- **circuit_type** (Optional, Boolean)  
+  Include circuit type.
+- **client_id** (Optional, Boolean)  
+  Include client ID.
+- **client_id_exclude_headers** (Optional, Boolean)  
+  Exclude all the headers.  
+  `client_id` need to be true.
+- **client_id_use_automatic_ascii_hex_encoding** (Optional, Boolean)  
+  Use automatic ascii hex username encoding.  
+  `client_id` need to be true.
+- **delimiter** (Optional, String)  
+  Change delimiter/separator character.  
+  One character maximum.
+- **domain_name** (Optional, String)  
+  Add domain name.
+- **interface_description** (Optional, String)  
+  Include interface description.  
+  Need to be `device` or `logical`.
+- **interface_name** (Optional, Boolean)  
+  Include interface name.
+- **mac_address** (Optional, Boolean)  
+  Include MAC address.
+- **option_60** (Optional, Boolean)  
+  Include option 60.  
+  `version` need to be `v4`.
+- **option_82** (Optional, Boolean)  
+  Include option 82.  
+  `version` need to be `v4`.
+- **option_82_circuit_id** (Optional, Boolean)  
+  Include option 82 circuit-id (sub option 1).  
+  `option_82` need to be true.
+- **option_82_remote_id** (Optional, Boolean)  
+  Include option 82 remote-id (sub option 2).  
+  `option_82` need to be true.
+- **relay_agent_interface_id** (Optional, Boolean)  
+  Include the relay agent interface ID.  
+  `version` need to be `v6`.
+- **relay_agent_remote_id** (Optional, Boolean)  
+  Include the relay agent remote ID.  
+  `version` need to be `v6`.
+- **relay_agent_subscriber_id** (Optional, Boolean)  
+  Include the relay agent subscriber ID.  
+  `version` need to be `v6`.
+- **routing_instance_name** (Optional, Boolean)  
+  Include routing instance name.
+- **user_prefix** (Optional, String)  
+  Add user defined prefix.
+- **vlan_tags** (Optional, Boolean)  
+  Include the vlan tag(s).
+
 ### overrides_v4 arguments
 
 - **allow_no_end_option** (Optional, Boolean)  
   Allow packets without end-of-option.
 - **allow_snooped_clients** (Optional, Boolean)  
   Allow client creation from snooped PDUs.
+- **no_allow_snooped_clients** (Optional, Boolean)  
+  Don't allow client creation from snooped PDUs.
 - **always_write_giaddr** (Optional, Boolean)  
   Overwrite existing 'giaddr' field, when present.
 - **always_write_option_82** (Optional, Boolean)  
@@ -322,7 +328,7 @@ The following arguments are supported:
 - **delay_authentication** (Optional, Boolean)  
   Delay subscriber authentication in DHCP protocol processing until request packet.
 - **delete_binding_on_renegotiation** (Optional, Boolean)  
-  Delete binding on rengotiation.
+  Delete binding on renegotiation.
 - **disable_relay** (Optional, Boolean)  
   Disable DHCP relay processing.
 - **dual_stack** (Optional, String)  
@@ -331,8 +337,6 @@ The following arguments are supported:
   Limit the number of clients allowed on an interface (1..500000).
 - **layer2_unicast_replies** (Optional, Boolean)  
   Do not broadcast client responses.
-- **no_allow_snooped_clients** (Optional, Boolean)  
-  Don't allow client creation from snooped PDUs.
 - **no_bind_on_request** (Optional, Boolean)  
   Do not bind if stray DHCP request is received.
 - **no_unicast_replies** (Optional, Boolean)  
@@ -354,6 +358,8 @@ The following arguments are supported:
 
 - **allow_snooped_clients** (Optional, Boolean)  
   Allow client creation from snooped PDUs.
+- **no_allow_snooped_clients** (Optional, Boolean)  
+  Don't allow client creation from snooped PDUs.
 - **always_process_option_request_option** (Optional, Boolean)  
   Always process option even after address allocation failure.
 - **asymmetric_lease_time** (Optional, Number)  
@@ -365,13 +371,11 @@ The following arguments are supported:
 - **delay_authentication** (Optional, Boolean)  
   Delay subscriber authentication in DHCP protocol processing until request packet.
 - **delete_binding_on_renegotiation** (Optional, Boolean)  
-  Delete binding on rengotiation.
+  Delete binding on renegotiation.
 - **dual_stack** (Optional, String)  
   Dual stack group to use.
 - **interface_client_limit** (Optional, Number)  
   Limit the number of clients allowed on an interface (1..500000).
-- **no_allow_snooped_clients** (Optional, Boolean)  
-  Don't allow client creation from snooped PDUs.
 - **no_bind_on_request** (Optional, Boolean)  
   Do not bind if stray DHCPv6 RENEW, REBIND is received.
 - **relay_source** (Optional, String)  
