@@ -1,6 +1,38 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.10.0 (2024-10-25)
+
+FEATURES:
+
+* add **junos_applications_ordered** resource, copy of **junos_applications** resource but with Block List instead of Block Set to have a workaround for the performance issue on Block Sets (workaround for [#709](https://github.com/jeremmfr/terraform-provider-junos/issues/709))
+* add **junos_security_address_book_ordered** resource, copy of **junos_security_address_book** resource but with Block List instead of Block Set to have a workaround for the performance issue on Block Sets (workaround for [#498](https://github.com/jeremmfr/terraform-provider-junos/issues/498))
+* add **junos_security_global_policy_unordered** resource, copy of **junos_security_global_policy** resource but with Block Set instead of Block List to have a workaround for too complex plan output when the number of blocks on the resource changes
+* add **junos_security_policy_unordered** resource, copy of **junos_security_policy** resource but with Block Set instead of Block List to have a workaround for too complex plan output when the number of blocks on the resource changes
+* add **junos_security_zone_ordered** resource, copy of **junos_security_zone** resource but with Block List instead of Block Set to have a workaround for the performance issue on Block Sets
+
+ENHANCEMENTS:
+
+* **resource/junos_forwardingoptions_dhcprelay**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_forwardingoptions_dhcprelay_group**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_forwardingoptions_dhcprelay_servergroup**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+
+BUG FIXES:
+
+* **resource/***: remove the action of delete candidate configuration before unlocking it, as this is unnecessary and may produce inconsistent warnings (Fix [#710](https://github.com/jeremmfr/terraform-provider-junos/issues/710))
+* **resource/junos_bridge_domain**: fix missing validate of not empty resource in create/update functions
+* **resource/junos_forwardingoptions_evpn_vxlan**: fix missing validate of not empty resource in create/update functions
+* **resource/junos_ospf_area**: fix missing part of validate config when `version` is null in config (default to `v2`)
+* **resource/junos_vlan**: fix missing validate of not empty resource in create/update functions
+
 ## v2.9.0 (2024-09-10)
 
 FEATURES:
