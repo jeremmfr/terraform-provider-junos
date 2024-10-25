@@ -127,12 +127,12 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 	var diagWarns diag.Diagnostics
 	svcSSLInitiationProfileExists, err := checkServicesSSLInitiationProfileExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if svcSSLInitiationProfileExists {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf(
@@ -140,14 +140,14 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 	}
 
 	if err := setServicesSSLInitiationProfile(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "create resource junos_services_ssl_initiation_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -221,19 +221,19 @@ func resourceServicesSSLInitiationProfileUpdate(ctx context.Context, d *schema.R
 	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSSLInitiationProfile(d.Get("name").(string), junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setServicesSSLInitiationProfile(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "update resource junos_services_ssl_initiation_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -263,14 +263,14 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.R
 	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSSLInitiationProfile(d.Get("name").(string), junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "delete resource junos_services_ssl_initiation_profile")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

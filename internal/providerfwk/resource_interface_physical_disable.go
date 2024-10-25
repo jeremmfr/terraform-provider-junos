@@ -137,7 +137,7 @@ func (rsc *interfacePhysicalDisable) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigClearUnlockWarnSummary, junSess.ConfigClear())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
 	}()
 
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(

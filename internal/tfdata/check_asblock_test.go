@@ -27,8 +27,14 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 		} `tfsdk:"struct_attr"`
 	}
 
+	type blockWithEmbed struct {
+		block
+		String2Attr types.String `tfsdk:"string2_attr"`
+	}
+
 	type testCase struct {
 		val            *block
+		val2           *blockWithEmbed
 		excludeFields  []string
 		expectResponse bool
 	}
@@ -157,14 +163,64 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 			excludeFields:  []string{"StringAttr"},
 			expectResponse: true,
 		},
+		"blockEmbeded_null": {
+			val2: &blockWithEmbed{
+				block: block{
+					StringAttr: types.StringNull(),
+				},
+			},
+			expectResponse: true,
+		},
+		"blockEmbeded_unknown": {
+			val2: &blockWithEmbed{
+				block: block{
+					StringAttr: types.StringUnknown(),
+				},
+			},
+			expectResponse: false,
+		},
+		"blockEmbeded_embededSet": {
+			val2: &blockWithEmbed{
+				block: block{
+					StringAttr: types.StringValue("value_string"),
+				},
+			},
+			expectResponse: false,
+		},
+		"blockEmbeded_set": {
+			val2: &blockWithEmbed{
+				block:       block{},
+				String2Attr: types.StringValue("value_string"),
+			},
+			expectResponse: false,
+		},
+		"blockEmbeded_embedSet_but_exclude": {
+			val2: &blockWithEmbed{
+				block: block{
+					StringAttr: types.StringValue("value_string"),
+				},
+				String2Attr: types.StringNull(),
+			},
+			excludeFields:  []string{"StringAttr"},
+			expectResponse: true,
+		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if resp := tfdata.CheckBlockIsEmpty(test.val, test.excludeFields...); resp != test.expectResponse {
-				t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
+			switch {
+			case test.val != nil:
+				if resp := tfdata.CheckBlockIsEmpty(test.val, test.excludeFields...); resp != test.expectResponse {
+					t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
+				}
+			case test.val2 != nil:
+				if resp := tfdata.CheckBlockIsEmpty(test.val2, test.excludeFields...); resp != test.expectResponse {
+					t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
+				}
+			default:
+				t.Error("nil vals")
 			}
 		})
 	}
@@ -187,8 +243,14 @@ func TestCheckBlockHasKnownValue(t *testing.T) {
 		} `tfsdk:"struct_attr"`
 	}
 
+	type blockWithEmbed struct {
+		block
+		String2Attr types.String `tfsdk:"string2_attr"`
+	}
+
 	type testCase struct {
 		val            *block
+		val2           *blockWithEmbed
 		expectResponse bool
 	}
 
@@ -308,14 +370,54 @@ func TestCheckBlockHasKnownValue(t *testing.T) {
 			},
 			expectResponse: true,
 		},
+		"blockEmbeded_null": {
+			val2: &blockWithEmbed{
+				block: block{
+					StringAttr: types.StringNull(),
+				},
+			},
+			expectResponse: false,
+		},
+		"blockEmbeded_unknown": {
+			val2: &blockWithEmbed{
+				block: block{
+					StringAttr: types.StringUnknown(),
+				},
+			},
+			expectResponse: false,
+		},
+		"blockEmbeded_embededSet": {
+			val2: &blockWithEmbed{
+				block: block{
+					StringAttr: types.StringValue("value_string"),
+				},
+			},
+			expectResponse: true,
+		},
+		"blockEmbeded_set": {
+			val2: &blockWithEmbed{
+				block:       block{},
+				String2Attr: types.StringValue("value_string"),
+			},
+			expectResponse: true,
+		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if resp := tfdata.CheckBlockHasKnownValue(test.val); resp != test.expectResponse {
-				t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
+			switch {
+			case test.val != nil:
+				if resp := tfdata.CheckBlockHasKnownValue(test.val); resp != test.expectResponse {
+					t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
+				}
+			case test.val2 != nil:
+				if resp := tfdata.CheckBlockHasKnownValue(test.val2); resp != test.expectResponse {
+					t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
+				}
+			default:
+				t.Error("nil vals")
 			}
 		})
 	}

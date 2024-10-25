@@ -242,14 +242,10 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 		return
 	}
 
-	engineType := "<unknown>"
-	if config.EngineType.IsNull() {
-		engineType = "local"
-	} else if !config.EngineType.IsUnknown() {
-		engineType = config.EngineType.ValueString()
-	}
-	switch engineType {
-	case "local":
+	engineType := config.EngineType.ValueString()
+	switch {
+	case config.EngineType.IsUnknown():
+	case engineType == "local" || config.EngineType.IsNull():
 		if !config.EngineID.IsNull() && !config.EngineID.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("engine_id"),
@@ -257,7 +253,7 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 				"could not create "+rsc.junosName()+" with engine_type = local and engine_id specified",
 			)
 		}
-	case "remote":
+	case engineType == "remote":
 		if config.EngineID.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("engine_id"),

@@ -59,7 +59,7 @@ func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m
 	fileName := d.Get("filename").(string)
 	configSet, err := readNullCommitFile(fileName)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -67,14 +67,14 @@ func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m
 		configSet = append(configSet, v.(string))
 	}
 	if err := junSess.ConfigSet(configSet); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "commit a file with resource junos_null_commit_file")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

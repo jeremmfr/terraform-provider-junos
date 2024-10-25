@@ -116,7 +116,7 @@ func (rscData *applicationSetAttrData) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(rscData, "Name")
 }
 
-func (rscData applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
+func (applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"name": schema.StringAttribute{
 			Required:    true,

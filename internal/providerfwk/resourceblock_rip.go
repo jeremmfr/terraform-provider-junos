@@ -31,7 +31,7 @@ type ripBlockBfdLivenessDetection struct {
 	Version                         types.String `tfsdk:"version"`
 }
 
-func (ripBlockBfdLivenessDetection) resourceSchema() schema.SingleNestedBlock {
+func (ripBlockBfdLivenessDetection) schema() schema.SingleNestedBlock {
 	return schema.SingleNestedBlock{
 		Description: "Define Bidirectional Forwarding Detection (BFD) options.",
 		Attributes: map[string]schema.Attribute{

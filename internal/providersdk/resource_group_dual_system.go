@@ -207,25 +207,25 @@ func resourceGroupDualSystemCreate(ctx context.Context, d *schema.ResourceData, 
 	var diagWarns diag.Diagnostics
 	groupDualSystemExists, err := checkGroupDualSystemExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if groupDualSystemExists {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("group %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setGroupDualSystem(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "create resource junos_group_dual_system")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -303,30 +303,30 @@ func resourceGroupDualSystemUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	var diagWarns diag.Diagnostics
 	if err := delGroupDualSystem(d.Get("name").(string), junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if strings.HasPrefix(d.Get("name").(string), "node") {
 		if err := junSess.ConfigSet([]string{"delete apply-groups \"${node}\""}); err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	} else if err := junSess.ConfigSet([]string{"delete apply-groups " + d.Get("name").(string)}); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setGroupDualSystem(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "update resource junos_group_dual_system")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -362,25 +362,25 @@ func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 	var diagWarns diag.Diagnostics
 	if err := delGroupDualSystem(d.Get("name").(string), junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if strings.HasPrefix(d.Get("name").(string), "node") {
 		if err := junSess.ConfigSet([]string{"delete apply-groups \"${node}\""}); err != nil {
-			appendDiagWarns(&diagWarns, junSess.ConfigClear())
+			appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	} else if err := junSess.ConfigSet([]string{"delete apply-groups " + d.Get("name").(string)}); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "delete resource junos_group_dual_system")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

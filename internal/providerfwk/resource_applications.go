@@ -320,50 +320,50 @@ func (rscData *applicationsData) set(
 	configSet := make([]string, 0, 100)
 
 	applicationName := make(map[string]struct{})
-	for _, block := range rscData.Application {
+	for i, block := range rscData.Application {
 		name := block.Name.ValueString()
 		if name == "" {
-			return path.Root("application"),
+			return path.Root("application").AtListIndex(i).AtName("name"),
 				errors.New("name argument in application block is empty")
 		}
 		if _, ok := applicationName[name]; ok {
-			return path.Root("application"),
+			return path.Root("application").AtListIndex(i).AtName("name"),
 				fmt.Errorf("multiple application blocks with the same name %q", name)
 		}
 		applicationName[name] = struct{}{}
 
 		blockErrorSuffix := fmt.Sprintf(" in application block %q", name)
 		if block.isEmpty() {
-			return path.Root("application"),
+			return path.Root("application").AtListIndex(i).AtName("name"),
 				errors.New("at least one of arguments need to be set (in addition to `name`)" +
 					blockErrorSuffix)
 		}
 
 		dataConfigSet, _, err := block.configSet(blockErrorSuffix)
 		if err != nil {
-			return path.Root("application"), err
+			return path.Root("application").AtListIndex(i).AtName("name"), err
 		}
 		configSet = append(configSet, dataConfigSet...)
 	}
 	applicationSetName := make(map[string]struct{})
-	for _, block := range rscData.ApplicationSet {
+	for i, block := range rscData.ApplicationSet {
 		name := block.Name.ValueString()
 		if name == "" {
-			return path.Root("application_set"),
+			return path.Root("application_set").AtListIndex(i).AtName("name"),
 				errors.New("name argument in application_set block is empty")
 		}
 		if _, ok := applicationSetName[name]; ok {
-			return path.Root("application_set"),
+			return path.Root("application_set").AtListIndex(i).AtName("name"),
 				fmt.Errorf("multiple application_set blocks with the same name %q", name)
 		}
 		if _, ok := applicationName[name]; ok {
-			return path.Root("application"),
+			return path.Root("application_set").AtListIndex(i).AtName("name"),
 				fmt.Errorf("application and application_set blocks with the same name %q", name)
 		}
 		applicationSetName[name] = struct{}{}
 
 		if block.isEmpty() {
-			return path.Root("application_set"),
+			return path.Root("application_set").AtListIndex(i).AtName("name"),
 				fmt.Errorf("at least one of applications, application_set or description must be specified"+
 					" in application_set block %q", name)
 		}

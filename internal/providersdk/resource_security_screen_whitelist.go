@@ -73,26 +73,26 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 	var diagWarns diag.Diagnostics
 	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityScreenWhiteListExists {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security screen white-list %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setSecurityScreenWhiteList(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "create resource junos_security_screen_whitelist")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -165,19 +165,19 @@ func resourceSecurityScreenWhiteListUpdate(ctx context.Context, d *schema.Resour
 	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreenWhiteList(d.Get("name").(string), junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSecurityScreenWhiteList(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "update resource junos_security_screen_whitelist")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -207,14 +207,14 @@ func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.Resour
 	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreenWhiteList(d.Get("name").(string), junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "delete resource junos_security_screen_whitelist")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

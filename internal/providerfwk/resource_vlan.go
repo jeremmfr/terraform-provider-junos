@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -321,6 +322,10 @@ type vlanData struct {
 	VlanID              types.String    `tfsdk:"vlan_id"`
 	VlanIDList          []types.String  `tfsdk:"vlan_id_list"`
 	Vxlan               *vlanBlockVxlan `tfsdk:"vxlan"`
+}
+
+func (rscData *vlanData) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(rscData, "ID", "Name", "RoutingInstance")
 }
 
 type vlanConfig struct {
@@ -659,6 +664,11 @@ func (rscData *vlanData) set(
 ) (
 	path.Path, error,
 ) {
+	if rscData.isEmpty() {
+		return path.Root("name"),
+			errors.New("at least one of arguments need to be set (in addition to `name` and `routing_instance`)")
+	}
+
 	configSet := make([]string, 0)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {

@@ -94,269 +94,8 @@ func (rsc *securityGlobalPolicy) Schema(
 			"policy": schema.ListNestedBlock{
 				Description: "For each policy name.",
 				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required:    true,
-							Description: "Security policy name.",
-							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 63),
-								tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-							},
-						},
-						"match_source_address": schema.SetAttribute{
-							ElementType: types.StringType,
-							Required:    true,
-							Description: "List of source address match.",
-							Validators: []validator.Set{
-								setvalidator.SizeAtLeast(1),
-								setvalidator.ValueStringsAre(
-									stringvalidator.LengthBetween(1, 250),
-									tfvalidator.StringDoubleQuoteExclusion(),
-								),
-							},
-						},
-						"match_destination_address": schema.SetAttribute{
-							ElementType: types.StringType,
-							Required:    true,
-							Description: "List of destination address match.",
-							Validators: []validator.Set{
-								setvalidator.SizeAtLeast(1),
-								setvalidator.ValueStringsAre(
-									stringvalidator.LengthBetween(1, 250),
-									tfvalidator.StringDoubleQuoteExclusion(),
-								),
-							},
-						},
-						"match_from_zone": schema.SetAttribute{
-							ElementType: types.StringType,
-							Required:    true,
-							Description: "Match multiple source zone.",
-							Validators: []validator.Set{
-								setvalidator.SizeAtLeast(1),
-								setvalidator.ValueStringsAre(
-									stringvalidator.LengthBetween(1, 63),
-									tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-								),
-							},
-						},
-						"match_to_zone": schema.SetAttribute{
-							ElementType: types.StringType,
-							Required:    true,
-							Description: "Match multiple destination zone.",
-							Validators: []validator.Set{
-								setvalidator.SizeAtLeast(1),
-								setvalidator.ValueStringsAre(
-									stringvalidator.LengthBetween(1, 63),
-									tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-								),
-							},
-						},
-						"then": schema.StringAttribute{
-							Optional:    true,
-							Computed:    true,
-							Default:     stringdefault.StaticString("permit"),
-							Description: "Action of policy.",
-							Validators: []validator.String{
-								stringvalidator.OneOf("permit", "reject", "deny"),
-							},
-						},
-						"count": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Enable count.",
-							Validators: []validator.Bool{
-								tfvalidator.BoolTrue(),
-							},
-						},
-						"log_init": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Log at session init time.",
-							Validators: []validator.Bool{
-								tfvalidator.BoolTrue(),
-							},
-						},
-						"log_close": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Log at session close time.",
-							Validators: []validator.Bool{
-								tfvalidator.BoolTrue(),
-							},
-						},
-						"match_application": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-							Description: "List of applications match.",
-							Validators: []validator.Set{
-								setvalidator.SizeAtLeast(1),
-								setvalidator.ValueStringsAre(
-									stringvalidator.LengthBetween(1, 250),
-									tfvalidator.StringDoubleQuoteExclusion(),
-								),
-							},
-						},
-						"match_destination_address_excluded": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Exclude destination addresses.",
-							Validators: []validator.Bool{
-								tfvalidator.BoolTrue(),
-							},
-						},
-						"match_dynamic_application": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-							Description: "List of dynamic application or group match.",
-							Validators: []validator.Set{
-								setvalidator.SizeAtLeast(1),
-								setvalidator.ValueStringsAre(
-									stringvalidator.LengthBetween(1, 250),
-									tfvalidator.StringDoubleQuoteExclusion(),
-								),
-							},
-						},
-						"match_source_address_excluded": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Exclude source addresses.",
-							Validators: []validator.Bool{
-								tfvalidator.BoolTrue(),
-							},
-						},
-						"match_source_end_user_profile": schema.StringAttribute{
-							Optional:    true,
-							Description: "Match source end user profile (device identity profile).",
-							Validators: []validator.String{
-								stringvalidator.LengthAtLeast(1),
-								tfvalidator.StringDoubleQuoteExclusion(),
-							},
-						},
-					},
-					Blocks: map[string]schema.Block{
-						"permit_application_services": schema.SingleNestedBlock{
-							Description: "Declare `permit application-services` configuration.",
-							Attributes: map[string]schema.Attribute{
-								"advanced_anti_malware_policy": schema.StringAttribute{
-									Optional:    true,
-									Description: "Specify advanced-anti-malware policy name.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"application_firewall_rule_set": schema.StringAttribute{
-									Optional:    true,
-									Description: "Service rule-set name for Application firewall.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"application_traffic_control_rule_set": schema.StringAttribute{
-									Optional:    true,
-									Description: "Service rule-set name Application traffic control.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"gprs_gtp_profile": schema.StringAttribute{
-									Optional:    true,
-									Description: "Specify GPRS Tunneling Protocol profile name.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"gprs_sctp_profile": schema.StringAttribute{
-									Optional:    true,
-									Description: "Specify GPRS stream control protocol profile name.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"idp": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Enable Intrusion detection and prevention.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"idp_policy": schema.StringAttribute{
-									Optional:    true,
-									Description: "Specify idp policy name.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"redirect_wx": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Set WX redirection.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"reverse_redirect_wx": schema.BoolAttribute{
-									Optional:    true,
-									Description: "Set WX reverse redirection.",
-									Validators: []validator.Bool{
-										tfvalidator.BoolTrue(),
-									},
-								},
-								"security_intelligence_policy": schema.StringAttribute{
-									Optional:    true,
-									Description: "Specify security-intelligence policy name.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-								"utm_policy": schema.StringAttribute{
-									Optional:    true,
-									Description: "Specify utm policy name.",
-									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 250),
-										tfvalidator.StringDoubleQuoteExclusion(),
-									},
-								},
-							},
-							Blocks: map[string]schema.Block{
-								"ssl_proxy": schema.SingleNestedBlock{
-									Description: "Enable SSL Proxy.",
-									Attributes: map[string]schema.Attribute{
-										"profile_name": schema.StringAttribute{
-											Optional:    true,
-											Description: "Specify SSL proxy service profile name.",
-											Validators: []validator.String{
-												stringvalidator.LengthBetween(1, 250),
-												tfvalidator.StringDoubleQuoteExclusion(),
-											},
-										},
-									},
-									PlanModifiers: []planmodifier.Object{
-										tfplanmodifier.BlockRemoveNull(),
-									},
-								},
-								"uac_policy": schema.SingleNestedBlock{
-									Description: "Enable unified access control enforcement.",
-									Attributes: map[string]schema.Attribute{
-										"captive_portal": schema.StringAttribute{
-											Optional:    true,
-											Description: "Specify captive portal.",
-											Validators: []validator.String{
-												stringvalidator.LengthBetween(1, 250),
-												tfvalidator.StringDoubleQuoteExclusion(),
-											},
-										},
-									},
-									PlanModifiers: []planmodifier.Object{
-										tfplanmodifier.BlockRemoveNull(),
-									},
-								},
-							},
-							PlanModifiers: []planmodifier.Object{
-								tfplanmodifier.BlockRemoveNull(),
-							},
-						},
-					},
+					Attributes: securityGlobalPolicyBlockPolicy{}.attributesSchema(),
+					Blocks:     securityGlobalPolicyBlockPolicy{}.blocksSchema(),
 				},
 			},
 		},
@@ -390,6 +129,275 @@ type securityGlobalPolicyBlockPolicy struct {
 	MatchSourceAddressExcluded      types.Bool                                               `tfsdk:"match_source_address_excluded"`
 	MatchSourceEndUserProfile       types.String                                             `tfsdk:"match_source_end_user_profile"`
 	PermitApplicationServices       *securityPolicyBlockPolicyBlockPermitApplicationServices `tfsdk:"permit_application_services"`
+}
+
+func (securityGlobalPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Required:    true,
+			Description: "Security policy name.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 63),
+				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+			},
+		},
+		"match_source_address": schema.SetAttribute{
+			ElementType: types.StringType,
+			Required:    true,
+			Description: "List of source address match.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				),
+			},
+		},
+		"match_destination_address": schema.SetAttribute{
+			ElementType: types.StringType,
+			Required:    true,
+			Description: "List of destination address match.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				),
+			},
+		},
+		"match_from_zone": schema.SetAttribute{
+			ElementType: types.StringType,
+			Required:    true,
+			Description: "Match multiple source zone.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				),
+			},
+		},
+		"match_to_zone": schema.SetAttribute{
+			ElementType: types.StringType,
+			Required:    true,
+			Description: "Match multiple destination zone.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				),
+			},
+		},
+		"then": schema.StringAttribute{
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("permit"),
+			Description: "Action of policy.",
+			Validators: []validator.String{
+				stringvalidator.OneOf("permit", "reject", "deny"),
+			},
+		},
+		"count": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Enable count.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"log_init": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Log at session init time.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"log_close": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Log at session close time.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"match_application": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "List of applications match.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				),
+			},
+		},
+		"match_destination_address_excluded": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Exclude destination addresses.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"match_dynamic_application": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "List of dynamic application or group match.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				),
+			},
+		},
+		"match_source_address_excluded": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Exclude source addresses.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
+		"match_source_end_user_profile": schema.StringAttribute{
+			Optional:    true,
+			Description: "Match source end user profile (device identity profile).",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+	}
+}
+
+func (securityGlobalPolicyBlockPolicy) blocksSchema() map[string]schema.Block {
+	return map[string]schema.Block{
+		"permit_application_services": schema.SingleNestedBlock{
+			Description: "Declare `permit application-services` configuration.",
+			Attributes: map[string]schema.Attribute{
+				"advanced_anti_malware_policy": schema.StringAttribute{
+					Optional:    true,
+					Description: "Specify advanced-anti-malware policy name.",
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					},
+				},
+				"application_firewall_rule_set": schema.StringAttribute{
+					Optional:    true,
+					Description: "Service rule-set name for Application firewall.",
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					},
+				},
+				"application_traffic_control_rule_set": schema.StringAttribute{
+					Optional:    true,
+					Description: "Service rule-set name Application traffic control.",
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					},
+				},
+				"gprs_gtp_profile": schema.StringAttribute{
+					Optional:    true,
+					Description: "Specify GPRS Tunneling Protocol profile name.",
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					},
+				},
+				"gprs_sctp_profile": schema.StringAttribute{
+					Optional:    true,
+					Description: "Specify GPRS stream control protocol profile name.",
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					},
+				},
+				"idp": schema.BoolAttribute{
+					Optional:    true,
+					Description: "Enable Intrusion detection and prevention.",
+					Validators: []validator.Bool{
+						tfvalidator.BoolTrue(),
+					},
+				},
+				"idp_policy": schema.StringAttribute{
+					Optional:    true,
+					Description: "Specify idp policy name.",
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					},
+				},
+				"redirect_wx": schema.BoolAttribute{
+					Optional:    true,
+					Description: "Set WX redirection.",
+					Validators: []validator.Bool{
+						tfvalidator.BoolTrue(),
+					},
+				},
+				"reverse_redirect_wx": schema.BoolAttribute{
+					Optional:    true,
+					Description: "Set WX reverse redirection.",
+					Validators: []validator.Bool{
+						tfvalidator.BoolTrue(),
+					},
+				},
+				"security_intelligence_policy": schema.StringAttribute{
+					Optional:    true,
+					Description: "Specify security-intelligence policy name.",
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					},
+				},
+				"utm_policy": schema.StringAttribute{
+					Optional:    true,
+					Description: "Specify utm policy name.",
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 250),
+						tfvalidator.StringDoubleQuoteExclusion(),
+					},
+				},
+			},
+			Blocks: map[string]schema.Block{
+				"ssl_proxy": schema.SingleNestedBlock{
+					Description: "Enable SSL Proxy.",
+					Attributes: map[string]schema.Attribute{
+						"profile_name": schema.StringAttribute{
+							Optional:    true,
+							Description: "Specify SSL proxy service profile name.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 250),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
+					},
+					PlanModifiers: []planmodifier.Object{
+						tfplanmodifier.BlockRemoveNull(),
+					},
+				},
+				"uac_policy": schema.SingleNestedBlock{
+					Description: "Enable unified access control enforcement.",
+					Attributes: map[string]schema.Attribute{
+						"captive_portal": schema.StringAttribute{
+							Optional:    true,
+							Description: "Specify captive portal.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 250),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
+					},
+					PlanModifiers: []planmodifier.Object{
+						tfplanmodifier.BlockRemoveNull(),
+					},
+				},
+			},
+			PlanModifiers: []planmodifier.Object{
+				tfplanmodifier.BlockRemoveNull(),
+			},
+		},
+	}
 }
 
 //nolint:lll

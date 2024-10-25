@@ -29,7 +29,7 @@ type vstpVlanAttrData struct {
 	SystemIdentifier     types.String `tfsdk:"system_identifier"`
 }
 
-func (rscData vstpVlanAttrData) attributesSchema() map[string]schema.Attribute {
+func (vstpVlanAttrData) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"backup_bridge_priority": schema.StringAttribute{
 			Optional:    true,

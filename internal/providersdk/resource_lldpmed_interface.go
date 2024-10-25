@@ -156,26 +156,26 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 	var diagWarns diag.Diagnostics
 	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Get("name").(string), junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if lldpMedInterfaceExists {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(
 			"protocols lldp-med interface %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setLldpMedInterface(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "create resource junos_lldpmed_interface")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -246,19 +246,19 @@ func resourceLldpMedInterfaceUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	var diagWarns diag.Diagnostics
 	if err := delLldpMedInterface(d.Get("name").(string), junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setLldpMedInterface(d, junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "update resource junos_lldpmed_interface")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -287,14 +287,14 @@ func resourceLldpMedInterfaceDelete(ctx context.Context, d *schema.ResourceData,
 	}
 	var diagWarns diag.Diagnostics
 	if err := delLldpMedInterface(d.Get("name").(string), junSess); err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	warns, err := junSess.CommitConf(ctx, "delete resource junos_lldpmed_interface")
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, junSess.ConfigClear())
+		appendDiagWarns(&diagWarns, junSess.ConfigUnlock())
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

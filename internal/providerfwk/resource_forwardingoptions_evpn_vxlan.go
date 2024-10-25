@@ -2,6 +2,7 @@ package providerfwk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -308,6 +309,11 @@ func (rscData *forwardingoptionsEvpnVxlanData) set(
 ) (
 	path.Path, error,
 ) {
+	if rscData.isEmpty() {
+		return path.Root("routing_instance"),
+			errors.New("at least one of arguments need to be set (in addition to `routing_instance`)")
+	}
+
 	configSet := make([]string, 0)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {

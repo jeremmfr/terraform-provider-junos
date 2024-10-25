@@ -1106,45 +1106,45 @@ func (rsc *ospfArea) ValidateConfig(
 		return
 	}
 
-	if !config.Version.IsNull() && !config.Version.IsUnknown() {
-		switch config.Version.ValueString() {
-		case "v2":
-			if !config.Realm.IsNull() && !config.Realm.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("realm"),
-					tfdiag.ConflictConfigErrSummary,
-					"realm cannot be configured when version = v2",
-				)
-			}
-			if !config.InterAreaPrefixExport.IsNull() && !config.InterAreaPrefixExport.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("inter_area_prefix_export"),
-					tfdiag.ConflictConfigErrSummary,
-					"inter_area_prefix_export cannot be configured when version = v2",
-				)
-			}
-			if !config.InterAreaPrefixImport.IsNull() && !config.InterAreaPrefixImport.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("inter_area_prefix_import"),
-					tfdiag.ConflictConfigErrSummary,
-					"inter_area_prefix_import cannot be configured when version = v2",
-				)
-			}
-		case "v3":
-			if !config.NetworkSummaryExport.IsNull() && !config.NetworkSummaryExport.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("network_summary_export"),
-					tfdiag.ConflictConfigErrSummary,
-					"network_summary_export cannot be configured when version = v3",
-				)
-			}
-			if !config.NetworkSummaryImport.IsNull() && !config.NetworkSummaryImport.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("network_summary_import"),
-					tfdiag.ConflictConfigErrSummary,
-					"network_summary_import cannot be configured when version = v3",
-				)
-			}
+	version := config.Version.ValueString()
+	switch {
+	case config.Version.IsUnknown():
+	case version == "v2" || config.Version.IsNull():
+		if !config.Realm.IsNull() && !config.Realm.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("realm"),
+				tfdiag.ConflictConfigErrSummary,
+				"realm cannot be configured when version = v2",
+			)
+		}
+		if !config.InterAreaPrefixExport.IsNull() && !config.InterAreaPrefixExport.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("inter_area_prefix_export"),
+				tfdiag.ConflictConfigErrSummary,
+				"inter_area_prefix_export cannot be configured when version = v2",
+			)
+		}
+		if !config.InterAreaPrefixImport.IsNull() && !config.InterAreaPrefixImport.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("inter_area_prefix_import"),
+				tfdiag.ConflictConfigErrSummary,
+				"inter_area_prefix_import cannot be configured when version = v2",
+			)
+		}
+	case version == "v3":
+		if !config.NetworkSummaryExport.IsNull() && !config.NetworkSummaryExport.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("network_summary_export"),
+				tfdiag.ConflictConfigErrSummary,
+				"network_summary_export cannot be configured when version = v3",
+			)
+		}
+		if !config.NetworkSummaryImport.IsNull() && !config.NetworkSummaryImport.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("network_summary_import"),
+				tfdiag.ConflictConfigErrSummary,
+				"network_summary_import cannot be configured when version = v3",
+			)
 		}
 	}
 	if !config.ContextIdentifier.IsNull() && !config.ContextIdentifier.IsUnknown() &&

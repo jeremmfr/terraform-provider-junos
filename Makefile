@@ -13,24 +13,24 @@ testacc/srx:
 	cd internal/providersdk ; TESTACC_SRX=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_sdk_srx.out $(TESTARGS)
 	go tool cover -html=coverage_sdk_srx.out
 testacc/upgradestate/srx:
-	cd internal/providerfwk ; TESTACC_UPGRADE_STATE=1 TESTACC_SRX=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_srx.out -run "TestAccUpgradeState" $(TESTARGS)
-	go tool cover -html=coverage_fwk_srx.out
+	cd internal/providerfwk ; TESTACC_UPGRADE_STATE=1 TESTACC_SRX=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_upg_srx.out -run "TestAccUpgradeState" $(TESTARGS)
+	go tool cover -html=coverage_fwk_upg_srx.out
 testacc/router:
 	cd internal/providerfwk ; TESTACC_ROUTER=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_router.out $(TESTARGS)
 	go tool cover -html=coverage_fwk_router.out
 	cd internal/providersdk ; TESTACC_ROUTER=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_sdk_router.out $(TESTARGS)
 	go tool cover -html=coverage_sdk_router.out
 testacc/upgradestate/router:
-	cd internal/providerfwk ; TESTACC_UPGRADE_STATE=1 TESTACC_ROUTER=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_router.out -run "TestAccUpgradeState" $(TESTARGS)
-	go tool cover -html=coverage_fwk_router.out
+	cd internal/providerfwk ; TESTACC_UPGRADE_STATE=1 TESTACC_ROUTER=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_upg_router.out -run "TestAccUpgradeState" $(TESTARGS)
+	go tool cover -html=coverage_fwk_upg_router.out
 testacc/switch:
 	cd internal/providerfwk ; TESTACC_SWITCH=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_switch.out $(TESTARGS)
 	go tool cover -html=coverage_fwk_switch.out
 	cd internal/providersdk ; TESTACC_SWITCH=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_sdk_switch.out $(TESTARGS)
 	go tool cover -html=coverage_sdk_switch.out
 testacc/upgradestate/switch:
-	cd internal/providerfwk ; TESTACC_UPGRADE_STATE=1 TESTACC_SWITCH=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_switch.out -run "TestAccUpgradeState" $(TESTARGS)
-	go tool cover -html=coverage_fwk_switch.out
+	cd internal/providerfwk ; TESTACC_UPGRADE_STATE=1 TESTACC_SWITCH=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_upg_switch.out -run "TestAccUpgradeState" $(TESTARGS)
+	go tool cover -html=coverage_fwk_upg_switch.out
 
 # Run unit tests
 testunit: 

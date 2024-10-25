@@ -134,7 +134,7 @@ func (rscData *applicationAttrData) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(rscData, "Name")
 }
 
-func (rscData applicationAttrData) attributesSchema() map[string]schema.Attribute {
+func (applicationAttrData) attributesSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"name": schema.StringAttribute{
 			Required:    true,
@@ -276,7 +276,7 @@ func (rscData applicationAttrData) attributesSchema() map[string]schema.Attribut
 	}
 }
 
-func (rscData applicationAttrData) blocksSchema() map[string]schema.Block {
+func (applicationAttrData) blocksSchema() map[string]schema.Block {
 	return map[string]schema.Block{
 		"term": schema.ListNestedBlock{
 			Description: "For each name of term to declare.",
