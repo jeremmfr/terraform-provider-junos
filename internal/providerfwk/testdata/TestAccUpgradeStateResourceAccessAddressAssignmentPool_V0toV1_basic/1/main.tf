@@ -1,70 +1,3 @@
-package providersdk_test
-
-import (
-	"os"
-	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-)
-
-func TestAccResourceAccessAddressAssignmentPool_basic(t *testing.T) {
-	if os.Getenv("TESTACC_ROUTER") != "" {
-		resource.Test(t, resource.TestCase{
-			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: testAccResourceAccessAddressAssignmentPoolCreate(),
-				},
-				{
-					Config: testAccResourceAccessAddressAssignmentPoolUpdate(),
-				},
-				{
-					ResourceName:      "junos_access_address_assignment_pool.testacc_accessAddAssP4",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
-				{
-					ResourceName:      "junos_access_address_assignment_pool.testacc_accessAddAssP6_1",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
-				{
-					ResourceName:      "junos_access_address_assignment_pool.testacc_accessAddAssP6_2",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
-			},
-		})
-	}
-}
-
-func testAccResourceAccessAddressAssignmentPoolCreate() string {
-	return `
-resource "junos_access_address_assignment_pool" "testacc_accessAddAssP4" {
-  name = "testacc_accessAddAssP4"
-  family {
-    type    = "inet"
-    network = "192.0.2.128/25"
-  }
-}
-
-resource "junos_routing_instance" "testacc_accessAddAssP6" {
-  name = "testacc_accessAddAssP6"
-}
-resource "junos_access_address_assignment_pool" "testacc_accessAddAssP6_1" {
-  name             = "testacc_accessAddAssP6_1"
-  routing_instance = junos_routing_instance.testacc_accessAddAssP6.name
-  family {
-    type    = "inet6"
-    network = "fe80:0:0:b::/64"
-  }
-}
-`
-}
-
-func testAccResourceAccessAddressAssignmentPoolUpdate() string {
-	return `
 resource "junos_interface_logical" "testacc_accessAddAssP4" {
   name = "lo0.1"
 }
@@ -205,6 +138,4 @@ resource "junos_access_address_assignment_pool" "testacc_accessAddAssP6_3" {
       valid_lifetime_infinite     = true
     }
   }
-}
-`
 }
