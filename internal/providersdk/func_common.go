@@ -29,35 +29,6 @@ func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
 	}
 }
 
-func validateIPMaskFunc() schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-		v := i.(string)
-		err := validateIPwithMask(v)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       err.Error(),
-				AttributePath: path,
-			})
-		}
-
-		return diags
-	}
-}
-
-func validateIPwithMask(ip string) error {
-	if !strings.Contains(ip, "/") {
-		return fmt.Errorf("%v missing mask", ip)
-	}
-	_, ipnet, err := net.ParseCIDR(ip)
-	if err != nil || ipnet == nil {
-		return fmt.Errorf("%v is not a valid CIDR", ip)
-	}
-
-	return nil
-}
-
 func validateCIDRNetworkFunc() schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics

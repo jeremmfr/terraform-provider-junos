@@ -38,10 +38,14 @@ resource "junos_group_dual_system" "node0" {
 
 ## Argument Reference
 
+-> **Note**
+  At least one of arguments need to be set (in addition to `name` and `apply_groups`).
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  Name of group.
+  Name of group.  
+  Need to be `node0`, `node1`, `re0` or `re1`.
 - **apply_groups** (Optional, Boolean)  
   Apply the group.  
   Defaults to `true`.
@@ -54,7 +58,7 @@ The following arguments are supported:
 - **security** (Optional, Block)  
   Configure `security` block.
   - **log_source_address** (Required, String)  
-    Source ip address used when exporting security logs.
+    Source IP address used when exporting security logs.
 - **system** (Optional, Block)  
   Configure `system` block.
   - **host_name** (Optional, String)  
@@ -75,9 +79,9 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Description for interface.
 - **family_inet_address** (Optional, Block List)  
-  For each ip address to declare.
+  For each IPv4 address to declare.
   - **cidr_ip** (Required, String)  
-    Address IP/Mask v4.
+    IPv4 address in CIDR format.
   - **master_only** (Optional, Boolean)  
     Master management IP address.
   - **preferred** (Optional, Boolean)  
@@ -85,9 +89,9 @@ The following arguments are supported:
   - **primary** (Optional, Boolean)  
     Candidate for primary address in system.
 - **family_inet6_address** (Optional, Block List)  
-  For each ip v6 address to declare.
+  For each IPv6 address to declare.
   - **cidr_ip** (Required, String)  
-    Address IP/Mask v6.
+    IPv6 address in CIDR format.
   - **master_only** (Optional, Boolean)  
     Master management IP address.
   - **preferred** (Optional, Boolean)  
