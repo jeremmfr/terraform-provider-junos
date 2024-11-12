@@ -5,8 +5,6 @@ linters:
   enable-all: true
   disable:
     # deprecated
-    - execinquery # deprecated 1.58.0
-    - gomnd # deprecated 1.58.0
     - exportloopref # deprecated 1.60.2
     # unwanted
     - cyclop
@@ -26,6 +24,7 @@ linters:
     - nestif
     - nonamedreturns
     - paralleltest
+    - recvcheck
     - varnamelen
     - wsl
 
