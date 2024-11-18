@@ -153,6 +153,6 @@ resource "junos_security_screen_whitelist" "testacc1" {
 resource "junos_security_screen_whitelist" "testacc2" {
   name = "testacc2"
   address = [
-    "192.0.2.0/26",
+    "fe80::/64",
   ]
 }
