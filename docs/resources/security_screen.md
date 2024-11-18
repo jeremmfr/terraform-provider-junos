@@ -45,22 +45,22 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Text description of screen.
 - **icmp** (Optional, Block)  
-  Declare `icmp` configuration.  
+  Configure ICMP ids options.  
   See [below for nested schema](#icmp-arguments).
 - **ip** (Optional, Block)  
-  Declare `ip` configuration.  
+  Configure IP layer ids options.  
   See [below for nested schema](#ip-arguments).
 - **limit_session** (Optional, Block)  
-  Declare `limit-session` configuration.
+  Configure limit sessions.
   - **destination_ip_based** (Optional, Number)  
     Limit sessions to the same destination IP (1..2000000).
   - **source_ip_based** (Optional, Number)  
     Limit sessions from the same source IP (1..2000000).
 - **tcp** (Optional, Block)  
-  Declare `tcp` configuration.  
+  Configure TCP Layer ids options.  
   See [below for nested schema](#tcp-arguments).
 - **udp** (Optional, Block)  
-  Declare `udp` configuration.  
+  Configure UDP layer ids options.  
   See [below for nested schema](#udp-arguments).
 
 ---
@@ -68,19 +68,19 @@ The following arguments are supported:
 ### icmp arguments
 
 - **flood** (Optional, Block)  
-  Enable icmp flood ids option.
+  Enable ICMP flood ids option.
   - **threshold** (Optional, Number)  
     Threshold (1..1000000 ICMP packets per second).
 - **fragment** (Optional, Boolean)  
   Enable ICMP fragment ids option.
 - **icmpv6_malformed** (Optional, Boolean)  
-  Enable icmpv6 malformed ids option
+  Enable ICMPv6 malformed ids option.
 - **large** (Optional, Boolean)  
-  Enable large ICMP packet (size > 1024) ids option
+  Enable large ICMP packet (size > 1024) ids option.
 - **ping_death** (Optional, Boolean)  
-  Enable ping of death ids option
+  Enable ping of death ids option.
 - **sweep** (Optional, Block)  
-  Enable ip sweep ids option.
+  Enable ICMP sweep ids option.
   - **threshold** (Optional, Number)  
     Threshold (1000..1000000 microseconds in which 10 ICMP packets are detected).
 
@@ -89,39 +89,39 @@ The following arguments are supported:
 ### ip arguments
 
 - **bad_option** (Optional, Boolean)  
-  Enable ip with bad option ids option.
+  Enable IP with bad option ids option.
 - **block_frag** (Optional, Boolean)  
-  Enable ip fragment blocking ids option.
+  Enable IP fragment blocking ids option.
 - **ipv6_extension_header** (Optional, Block)  
-  Declare `ip ipv6-extension-header` configuration.  
+  Configure ipv6 extension header ids option.  
   See [below for nested schema](#ipv6_extension_header-arguments-for-ip).
 - **ipv6_extension_header_limit** (Optional, Number)  
-  Enable ipv6 extension header limit ids option (0..32).
+  Enable IPv6 extension header limit ids option (0..32).
 - **ipv6_malformed_header** (Optional, Boolean)  
-  Enable ipv6 malformed header ids option.
+  Enable IPv6 malformed header ids option.
 - **loose_source_route_option** (Optional, Boolean)  
-  Enable ip with loose source route ids option.
+  Enable IP with loose source route ids option.
 - **record_route_option** (Optional, Boolean)  
-  Enable ip with record route option ids option.
+  Enable IP with record route option ids option.
 - **security_option** (Optional, Boolean)  
-  Enable ip with security option ids option.
+  Enable IP with security option ids option.
 - **source_route_option** (Optional, Boolean)  
-  Enable ip source route ids option.
+  Enable IP source route ids option.
 - **spoofing** (Optional, Boolean)  
-  Enable ip address spoofing ids option.
+  Enable IP address spoofing ids option.
 - **stream_option** (Optional, Boolean)  
-  Enable ip with stream option ids option.
+  Enable IP with stream option ids option.
 - **strict_source_route_option** (Optional, Boolean)  
-  Enable ip with strict source route ids option.
+  Enable IP with strict source route ids option.
 - **tear_drop** (Optional, Boolean)  
   Enable tear drop ids option.
 - **timestamp_option** (Optional, Boolean)  
-  Enable ip with timestamp option ids option.
+  Enable IP with timestamp option ids option.
 - **tunnel** (Optional, Block)  
-  Declare `ip tunnel` configuration.  
+  Configure IP tunnel ids options.  
   See [below for nested schema](#tunnel-arguments-for-ip).
 - **unknown_protocol** (Optional, Boolean)  
-  Enable ip unknown protocol ids option.
+  Enable IP unknown protocol ids option.
 
 ---
 
@@ -137,6 +137,10 @@ The following arguments are supported:
   Enable TCP port scan ids option.
   - **threshold** (Optional, Number)  
     Threshold (1000..1000000 microseconds in which 10 attack packets are detected).
+- **sweep** (Optional, Block)  
+  Enable TCP sweep ids option.
+  - **threshold** (Optional, Number)  
+    Threshold (1000..1000000 microseconds in which 10 TCP packets are detected).
 - **syn_ack_ack_proxy** (Optional, Block)  
   Enable syn-ack-ack proxy ids option.
   - **threshold** (Optional, Number)  
@@ -148,10 +152,6 @@ The following arguments are supported:
   See [below for nested schema](#syn_flood-arguments-for-tcp).
 - **syn_frag** (Optional, Boolean)  
   Enable SYN fragment ids option.
-- **sweep** (Optional, Block)  
-  Enable TCP sweep ids option.
-  - **threshold** (Optional, Number)  
-    Threshold (1000..1000000 microseconds in which 10 TCP packets are detected).
 - **winnuke** (Optional, Boolean)  
   Enable winnuke attack ids option.
 
@@ -179,17 +179,17 @@ The following arguments are supported:
 ### ipv6_extension_header arguments for ip
 
 - **ah_header** (Optional, Boolean)  
-  Enable ipv6 Authentication Header ids option.
+  Enable IPv6 Authentication Header ids option.
 - **esp_header** (Optional, Boolean)  
-  Enable ipv6 Encapsulating Security Payload header ids option.
+  Enable IPv6 Encapsulating Security Payload header ids option.
 - **hip_header** (Optional, Boolean)  
-  Enable ipv6 Host Identify Protocol header ids option.
+  Enable IPv6 Host Identify Protocol header ids option.
 - **destination_header** (Optional, Block)  
-  Enable ipv6 destination option header ids option.
-  - **ilnp_nonce_option** (Optional, Boolean)  
-    Enable Identifier-Locator Network Protocol Nonce option ids option.
+  Enable IPv6 destination option header ids option.
   - **home_address_option** (Optional, Boolean)  
     Enable home address option ids option.
+  - **ilnp_nonce_option** (Optional, Boolean)  
+    Enable Identifier-Locator Network Protocol Nonce option ids option.
   - **line_identification_option** (Optional, Boolean)  
     Enable line identification option ids option.
   - **tunnel_encapsulation_limit_option** (Optional, Boolean)  
@@ -198,32 +198,32 @@ The following arguments are supported:
     User-defined option type range.  
     Need to be `(1..255)` or `(1..255) to (1..255)`.
 - **fragment_header** (Optional, Boolean)  
-  Enable ipv6 fragment header ids option.
+  Enable IPv6 fragment header ids option.
 - **hop_by_hop_header** (Optional, Block)  
-  Enable ipv6 hop by hop option header ids option.
+  Enable IPv6 hop by hop option header ids option.
   - **calipso_option** (Optional, Boolean)  
-    Enable Common Architecture Label ipv6 Security Option ids option.
-  - **rpl_option** (Optional, Boolean)  
-    Enable Routing Protocol for Low-power and Lossy networks option ids option.
-  - **smf_dpd_option** (Optional, Boolean)  
-    Enable Simplified Multicast Forwarding ipv6 Duplicate Packet Detection option ids option.
+    Enable Common Architecture Label IPv6 Security Option ids option.
   - **jumbo_payload_option** (Optional, Boolean)  
     Enable jumbo payload option ids option.
   - **quick_start_option** (Optional, Boolean)  
     Enable quick start option ids option.
   - **router_alert_option** (Optional, Boolean)  
     Enable router alert option ids option.
+  - **rpl_option** (Optional, Boolean)  
+    Enable Routing Protocol for Low-power and Lossy networks option ids option.
+  - **smf_dpd_option** (Optional, Boolean)  
+    Enable Simplified Multicast Forwarding ipv6 Duplicate Packet Detection option ids option.
   - **user_defined_option_type** (Optional, List of String)  
     User-defined option type range.  
     Need to be `(1..255)` or `(1..255) to (1..255)`.
 - **mobility_header** (Optional, Boolean)  
-  Enable ipv6 mobility header ids option.
+  Enable IPv6 mobility header ids option.
 - **no_next_header** (Optional, Boolean)  
-  Enable ipv6 no next header ids option.
+  Enable IPv6 no next header ids option.
 - **routing_header** (Optional, Boolean)  
-  Enable ipv6 routing header ids option.
+  Enable IPv6 routing header ids option.
 - **shim6_header** (Optional, Boolean)  
-  Enable ipv6 shim header ids option.
+  Enable IPv6 shim header ids option.
 - **user_defined_header_type** (Optional, List of String)  
   User-defined header type range.  
   Need to be `(0..255)` or `(0..255) to (0..255)`.
@@ -235,7 +235,7 @@ The following arguments are supported:
 - **bad_inner_header** (Optional, Boolean)  
   Enable IP tunnel bad inner header ids option.
 - **gre** (Optional, Block)  
-  Declare `ip tunnel gre` configuration.
+  Configure IP tunnel GRE ids option.
   - **gre_4in4** (Optional, Boolean)  
     Enable IP tunnel GRE 4in4 ids option.
   - **gre_4in6** (Optional, Boolean)  
@@ -247,7 +247,9 @@ The following arguments are supported:
 - **ip_in_udp_teredo** (Optional, Boolean)  
   Enable IP tunnel IPinUDP Teredo ids option.
 - **ipip** (Optional, Block)  
-  Declare `ip tunnel ipip` configuration.
+  Configure IP tunnel IPIP ids option.
+  - **dslite** (Optional, Boolean)  
+    Enable IP tunnel IPIP DS-Lite ids option.
   - **ipip_4in4** (Optional, Boolean)  
     Enable IP tunnel IPIP 4in4 ids option.
   - **ipip_4in6** (Optional, Boolean)  
@@ -260,8 +262,6 @@ The following arguments are supported:
     Enable IP tunnel IPIP 6over4 ids option.
   - **ipip_6to4relay** (Optional, Boolean)  
     Enable IP tunnel IPIP 6to4 Relay ids option.
-  - **dslite** (Optional, Boolean)  
-    Enable IP tunnel IPIP DS-Lite ids option.
   - **isatap** (Optional, Boolean)  
     Enable IP tunnel IPIP ISATAP ids option.
 
