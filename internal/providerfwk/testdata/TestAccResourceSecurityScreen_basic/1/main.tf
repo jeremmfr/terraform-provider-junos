@@ -2,6 +2,7 @@ resource "junos_security_screen" "testacc_securityScreen" {
   name               = "testacc 1"
   alarm_without_drop = true
   description        = "desc testacc 1"
+  aggregation {}
   icmp {
     flood {}
     fragment         = true

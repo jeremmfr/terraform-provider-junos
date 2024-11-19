@@ -133,6 +133,42 @@ func (rsc *securityScreen) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
+			"aggregation": schema.SingleNestedBlock{
+				Description: "Configure the source and Destination prefix for a ids-option.",
+				Attributes: map[string]schema.Attribute{
+					"destination_prefix_mask": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Destination IPV4 prefix.",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 32),
+						},
+					},
+					"destination_prefix_v6_mask": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Destination IPV6 prefix.",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 128),
+						},
+					},
+					"source_prefix_mask": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Source IPV4 prefix.",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 32),
+						},
+					},
+					"source_prefix_v6_mask": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Source IPV6 prefix.",
+						Validators: []validator.Int64{
+							int64validator.Between(1, 128),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
 			"icmp": schema.SingleNestedBlock{
 				Description: "Configure ICMP ids options.",
 				Attributes: map[string]schema.Attribute{
@@ -893,6 +929,7 @@ type securityScreenData struct {
 	Name             types.String                     `tfsdk:"name"`
 	AlarmWithoutDrop types.Bool                       `tfsdk:"alarm_without_drop"`
 	Description      types.String                     `tfsdk:"description"`
+	Aggregation      *securityScreenBlockAggregation  `tfsdk:"aggregation"`
 	Icmp             *securityScreenBlockIcmp         `tfsdk:"icmp"`
 	IP               *securityScreenBlockIP           `tfsdk:"ip"`
 	LimitSession     *securityScreenBlockLimitSession `tfsdk:"limit_session"`
@@ -909,6 +946,7 @@ type securityScreenConfig struct {
 	Name             types.String                     `tfsdk:"name"`
 	AlarmWithoutDrop types.Bool                       `tfsdk:"alarm_without_drop"`
 	Description      types.String                     `tfsdk:"description"`
+	Aggregation      *securityScreenBlockAggregation  `tfsdk:"aggregation"`
 	Icmp             *securityScreenBlockIcmp         `tfsdk:"icmp"`
 	IP               *securityScreenBlockIPConfig     `tfsdk:"ip"`
 	LimitSession     *securityScreenBlockLimitSession `tfsdk:"limit_session"`
@@ -922,6 +960,13 @@ func (config *securityScreenConfig) isEmpty() bool {
 
 type securityScreenBlockWithThreshold struct {
 	Threshold types.Int64 `tfsdk:"threshold"`
+}
+
+type securityScreenBlockAggregation struct {
+	DestinationPrefixMask   types.Int64 `tfsdk:"destination_prefix_mask"`
+	DestinationPrefixV6Mask types.Int64 `tfsdk:"destination_prefix_v6_mask"`
+	SourcePrefixMask        types.Int64 `tfsdk:"source_prefix_mask"`
+	SourcePrefixV6Mask      types.Int64 `tfsdk:"source_prefix_v6_mask"`
 }
 
 type securityScreenBlockIcmp struct {
@@ -1543,6 +1588,9 @@ func (rscData *securityScreenData) set(
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
 
+	if rscData.Aggregation != nil {
+		configSet = append(configSet, rscData.Aggregation.configSet(setPrefix)...)
+	}
 	if rscData.Icmp != nil {
 		if rscData.Icmp.isEmpty() {
 			return path.Root("icmp").AtName("*"),
@@ -1600,6 +1648,33 @@ func (rscData *securityScreenData) set(
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
+}
+
+func (block *securityScreenBlockAggregation) configSet(setPrefix string) []string {
+	setPrefix += "aggregation "
+
+	configSet := []string{
+		setPrefix,
+	}
+
+	if !block.DestinationPrefixMask.IsNull() {
+		configSet = append(configSet, setPrefix+"destination-prefix-mask "+
+			utils.ConvI64toa(block.DestinationPrefixMask.ValueInt64()))
+	}
+	if !block.DestinationPrefixV6Mask.IsNull() {
+		configSet = append(configSet, setPrefix+"destination-prefix-v6-mask "+
+			utils.ConvI64toa(block.DestinationPrefixV6Mask.ValueInt64()))
+	}
+	if !block.SourcePrefixMask.IsNull() {
+		configSet = append(configSet, setPrefix+"source-prefix-mask "+
+			utils.ConvI64toa(block.SourcePrefixMask.ValueInt64()))
+	}
+	if !block.SourcePrefixV6Mask.IsNull() {
+		configSet = append(configSet, setPrefix+"source-prefix-v6-mask "+
+			utils.ConvI64toa(block.SourcePrefixV6Mask.ValueInt64()))
+	}
+
+	return configSet
 }
 
 func (block *securityScreenBlockIcmp) configSet(setPrefix string) []string {
@@ -2102,6 +2177,16 @@ func (rscData *securityScreenData) read(
 				rscData.AlarmWithoutDrop = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "description "):
 				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "aggregation"):
+				if rscData.Aggregation == nil {
+					rscData.Aggregation = &securityScreenBlockAggregation{}
+				}
+
+				if balt.CutPrefixInString(&itemTrim, " ") {
+					if err := rscData.Aggregation.read(itemTrim); err != nil {
+						return err
+					}
+				}
 			case balt.CutPrefixInString(&itemTrim, "icmp "):
 				if rscData.Icmp == nil {
 					rscData.Icmp = &securityScreenBlockIcmp{}
@@ -2156,6 +2241,21 @@ func (rscData *securityScreenData) read(
 	}
 
 	return nil
+}
+
+func (block *securityScreenBlockAggregation) read(itemTrim string) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "destination-prefix-mask "):
+		block.DestinationPrefixMask, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "destination-prefix-v6-mask "):
+		block.DestinationPrefixV6Mask, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "source-prefix-mask "):
+		block.SourcePrefixMask, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "source-prefix-v6-mask "):
+		block.SourcePrefixV6Mask, err = tfdata.ConvAtoi64Value(itemTrim)
+	}
+
+	return err
 }
 
 func (block *securityScreenBlockIcmp) read(itemTrim string) (err error) {

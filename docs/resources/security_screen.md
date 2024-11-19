@@ -42,6 +42,9 @@ The following arguments are supported:
   The name of screen.
 - **alarm_without_drop** (Optional, Boolean)  
   Do not drop packet, only generate alarm.
+- **aggregation** (Optional, Block)  
+  Configure the source and Destination prefix for a ids-option.  
+  See [below for nested schema](#aggregation-arguments).
 - **description** (Optional, String)  
   Text description of screen.
 - **icmp** (Optional, Block)  
@@ -64,6 +67,17 @@ The following arguments are supported:
   See [below for nested schema](#udp-arguments).
 
 ---
+
+### aggregation arguments
+
+- **destination_prefix_mask** (Optional, Number)  
+  Destination IPV4 prefix (1..32).
+- **destination_prefix_v6_mask** (Optional, Number)  
+  Destination IPV6 prefix (1..128).
+- **source_prefix_mask** (Optional, Number)  
+  Source IPV4 prefix (1..32).
+- **source_prefix_v6_mask** (Optional, Number)  
+  Source IPV6 prefix (1..128).
 
 ### icmp arguments
 

@@ -2,6 +2,12 @@ resource "junos_security_screen" "testacc_securityScreen" {
   name               = "testacc 1"
   alarm_without_drop = true
   description        = "desc testacc 1"
+  aggregation {
+    destination_prefix_mask    = 24
+    destination_prefix_v6_mask = 64
+    source_prefix_mask         = 25
+    source_prefix_v6_mask      = 65
+  }
   icmp {
     flood {
       threshold = 10000
