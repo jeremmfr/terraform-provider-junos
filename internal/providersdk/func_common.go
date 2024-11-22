@@ -29,38 +29,6 @@ func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
 	}
 }
 
-func validateCIDRNetworkFunc() schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-		v := i.(string)
-		err := validateCIDRNetwork(v)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       err.Error(),
-				AttributePath: path,
-			})
-		}
-
-		return diags
-	}
-}
-
-func validateCIDRNetwork(network string) error {
-	if !strings.Contains(network, "/") {
-		return fmt.Errorf("%v missing mask", network)
-	}
-	_, ipnet, err := net.ParseCIDR(network)
-	if err != nil || ipnet == nil {
-		return fmt.Errorf("%v is not a valid CIDR", network)
-	}
-	if network != ipnet.String() {
-		return fmt.Errorf("%v is not a valid network CIDR", network)
-	}
-
-	return nil
-}
-
 func validateNameObjectJunos(exclude []string, length int, format formatName) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
