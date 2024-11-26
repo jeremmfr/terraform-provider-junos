@@ -989,7 +989,7 @@ func (rsc *forwardingoptionsDhcprelay) ValidateConfig( //nolint:gocognit,gocyclo
 			}
 		}
 		if config.BulkLeasequery != nil &&
-			config.BulkLeasequery.Attempts.IsNull() &&
+			!config.BulkLeasequery.Attempts.IsNull() &&
 			!config.BulkLeasequery.Attempts.IsUnknown() &&
 			config.BulkLeasequery.Attempts.ValueInt64() > 10 {
 			resp.Diagnostics.AddAttributeError(
