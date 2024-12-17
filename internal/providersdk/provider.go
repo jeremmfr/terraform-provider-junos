@@ -192,7 +192,6 @@ func Provider() *schema.Provider {
 
 			"junos_security_dynamic_address_feed_server":                 resourceSecurityDynamicAddressFeedServer(),
 			"junos_security_dynamic_address_name":                        resourceSecurityDynamicAddressName(),
-			"junos_security_idp_custom_attack":                           resourceSecurityIdpCustomAttack(),
 			"junos_security_idp_custom_attack_group":                     resourceSecurityIdpCustomAttackGroup(),
 			"junos_security_utm_custom_url_category":                     resourceSecurityUtmCustomURLCategory(),
 			"junos_security_utm_custom_url_pattern":                      resourceSecurityUtmCustomURLPattern(),
