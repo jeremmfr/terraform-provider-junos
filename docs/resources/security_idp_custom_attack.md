@@ -29,26 +29,26 @@ resource "junos_security_idp_custom_attack" "demo_idp_custom_attack" {
 
 The following arguments are supported:
 
+-> **Note**
+  One of `attack_type_anomaly`, `attack_type_chain` or `attack_type_signature` arguments is required.
+
 - **name** (Required, String, Forces new resource)  
-  The name of idp custom-attack.
-- **recommended_action** (Required, String)  
-  Recommended Action.  
-  Need to be `close`, `close-client`, `close-server`, `drop`, `drop-packet`, `ignore` or `none`.
+  Custom attack name.
 - **severity** (Required, String)  
   Select the severity that matches the lethality of this attack on your network.  
   Need to be `critical`, `info` `major`, `minor` or `warning`.
 - **attack_type_anomaly** (Optional, Block)  
-  Declare `attack-type anomaly` configuration.  
-  Need to set one of three: `attack_type_anomaly`, `attack_type_chain` or `attack_type_signature`.  
+  Configure type of attack: Protocol anomaly.  
   See [below for nested schema](#attack_type_anomaly-arguments).
 - **attack_type_chain** (Optional, Block)  
-  Declare `attack-type chain` configuration.  
-  Need to set one of three: `attack_type_anomaly`, `attack_type_chain` or `attack_type_signature`.  
+  Configure type of attack: Chain attack.  
   See [below for nested schema](#attack_type_chain-arguments).
 - **attack_type_signature** (Optional, Block)  
-  Declare `attack-type signature` configuration.  
-  Need to set one of three: `attack_type_anomaly`, `attack_type_chain` or `attack_type_signature`.  
+  Configure type of attack: Signature based attack.  
   See [below for nested schema](#attack_type_signature-arguments).
+- **recommended_action** (Optional, String)  
+  Recommended action.  
+  Need to be `close`, `close-client`, `close-server`, `drop`, `drop-packet`, `ignore` or `none`.
 - **time_binding_count** (Optional, Number)  
   Number of times this attack is to be triggered.
 - **time_binding_scope** (Optional, String)  
@@ -75,16 +75,16 @@ The following arguments are supported:
 ### attack_type_chain arguments
 
 - **member** (Required, Block List)  
-  For each name of member attack to declare.
+  For each name of member attack to declare.  
+  One of `attack_type_anomaly` or `attack_type_signature` arguments is required
+  in addition to `name`.  
   - **name** (Required, String)  
     Custom attack name.
   - **attack_type_anomaly** (Optional, Block)  
-    Declare `attack-type anomaly` configuration.  
-    Need to set one of two: `attack_type_anomaly` or `attack_type_signature`.  
+    Configure type of attack: Protocol anomaly.  
     See [below for nested schema](#attack_type_anomaly-arguments) but without `service` argument.
   - **attack_type_signature** (Optional, Block)  
-    Declare `attack-type signature` configuration.  
-    Need to set one of two: `attack_type_anomaly` or `attack_type_signature`.  
+    Configure type of attack: Signature based attack.  
     See [below for nested schema](#attack_type_signature-arguments) but without `protocol_binding` argument.
 - **expression** (Optional, String)  
   Boolean Expression.
@@ -115,7 +115,7 @@ The following arguments are supported:
 - **pattern_pcre** (Optional, String)  
   Attack signature pattern in PCRE format.
 - **protocol_icmp** (Optional, Block)  
-  Declare `protocol icmp` configuration.  
+  ICMP protocol parameters.  
   All arguments in block with `match` suffix need to be `equal`, `greater-than`, `less-than` or `not-equal`.
   - **checksum_validate_match** (Optional, String)  
     Condition for validate checksum field against calculated checksum.
@@ -142,10 +142,10 @@ The following arguments are supported:
   - **type_value** (Optional, Number)  
     Value for type.
 - **protocol_icmpv6** (Optional, Block)  
-  Declare `protocol icmpv6` configuration.  
+  ICMPv6 protocol parameters.  
   Same arguments as for `protocol_icmp`.
 - **protocol_ipv4** (Optional, Block)  
-  Declare `protocol ipv4` configuration.  
+  IPv4 protocol parameters.  
   All arguments in block with `match` suffix need to be `equal`, `greater-than`, `less-than` or `not-equal`.
   - **checksum_validate_match** (Optional, String)  
     Condition for validate checksum field against calculated checksum.
@@ -164,7 +164,8 @@ The following arguments are supported:
   - **ihl_value** (Optional, Number)  
     Value for header length in words.
   - **ip_flags** (Optional, Set of String)  
-    IP Flag bits.
+    IP Flag bits.  
+    Need to be `df`, `mf`, `rb`, `no-df`, `no-mf` or `no-rb`.
   - **protocol_match** (Optional, String)  
     Condition for transport layer protocol.
   - **protocol_value** (Optional, Number)  
@@ -186,7 +187,7 @@ The following arguments are supported:
   - **ttl_value** (Optional, String)  
     Value for time to live.
 - **protocol_ipv6** (Optional, Block)  
-  Declare `protocol ipv6` configuration.  
+  IPv6 protocol parameters.  
   All arguments in block with `match` suffix need to be `equal`, `greater-than`, `less-than` or `not-equal`.
   - **destination_match** (Optional, String)  
     Condition for destination IP-address.
@@ -229,7 +230,7 @@ The following arguments are supported:
   - **traffic_class_value** (Optional, String)  
     Value for traffic class. Similar to TOS in IPv4.
 - **protocol_tcp** (Optional, Block)  
-  Declare `protocol tcp` configuration.  
+  TCP protocol parameters.  
   All arguments in block with `match` suffix need to be `equal`, `greater-than`, `less-than` or `not-equal`.
   - **ack_number_match** (Optional, String)  
     Condition for acknowledgement number.
@@ -272,7 +273,9 @@ The following arguments are supported:
   - **source_port_value** (Optional, Number)  
     Value for source port.
   - **tcp_flags** (Optional, Set of String)  
-    TCP header flags.
+    TCP header flags.  
+    Need to be `ack`, `fin`, `psh`, `r1`, `r2`, `rst`, `syn`, `urg`,
+    `no-acl`, `no-fin`, `no-psh`, `no-r1`, `no-r2`, `no-rst`, `no-syn` or `no-urg`.
   - **urgent_pointer_match** (Optional, String)  
     Condition for urgent pointer.
   - **urgent_pointer_value** (Optional, Number)  
@@ -284,9 +287,9 @@ The following arguments are supported:
   - **window_size_match** (Optional, String)  
     Condition for window size.
   - **window_size_value** (Optional, Number)  
-    Value for sindow size.
+    Value for window size.
 - **protocol_udp** (Optional, Block)  
-  Declare `protocol udp` configuration.  
+  UDP protocol parameters.  
   All arguments in block with `match` suffix need to be `equal`, `greater-than`, `less-than` or `not-equal`.
   - **checksum_validate_match** (Optional, String)  
     Condition for validate checksum field against calculated checksum.
