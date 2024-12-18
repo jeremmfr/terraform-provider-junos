@@ -33,31 +33,31 @@ resource "junos_security_idp_policy" "demo_idp_policy" {
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of idp policy.
+  IDP policy name.
 - **exempt_rule** (Optional, Block List)  
-  For each name of `rulebase-exempt rule` to declare.
+  For each name, configure exempt rule.
   - **name** (Required, String)  
-    The name of the rulebase-exempt rule.
+    Rule name.
   - **match** (Required, Block)  
-    Declare `match` configuration.  
+    Rule match criteria.  
     See [below for nested schema](#match-arguments-for-exempt_rule-and-ips_rule) but without
     `application` argument.
   - **description** (Optional, String)  
     Rule description.
 - **ips_rule** (Optional, Block List)  
-  For each name of `rulebase-ips rule` to declare.
+  For each name, configure IPS rule.
   - **name** (Required, String)  
-    The name of the rulebase-ips rule.
+    Rule name.
   - **match** (Required, Block)  
-    Declare `match` configuration.  
+    Rule match criteria.  
     See [below for nested schema](#match-arguments-for-exempt_rule-and-ips_rule).
   - **then** (Required, Block)  
     Declare `then` configuration.  
     See [below for nested schema](#then-arguments).
   - **description** (Optional, String)  
     Rule description.
-- **terminal** (Optional, Boolean)  
-  Set/Unset terminal flag.
+  - **terminal** (Optional, Boolean)  
+    Set/Unset terminal flag.
 
 ---
 
@@ -66,10 +66,10 @@ The following arguments are supported:
 - **application** (Optional, String)  
   Specify application or application-set name to match.  
   Only with `ips_rule`.
-- **custom_attack_group** (Optional, Set of String)  
-  Match custom attack groups.
 - **custom_attack** (Optional, Set of String)  
   Match custom attacks.
+- **custom_attack_group** (Optional, Set of String)  
+  Match custom attack groups.
 - **destination_address** (Optional, Set of String)  
   Match destination address.
 - **destination_address_except** (Optional, Set of String)  
@@ -78,10 +78,10 @@ The following arguments are supported:
   Match dynamic attack groups.
 - **from_zone** (Optional, String)  
   Match from zone.
-- **predefined_attack_group** (Optional, Set of String)  
-  Match predefined attack groups.
 - **predefined_attack** (Optional, Set of String)  
   Match predefined attacks.
+- **predefined_attack_group** (Optional, Set of String)  
+  Match predefined attack groups.
 - **source_address** (Optional, Set of String)  
   Match source address.
 - **source_address_except** (Optional, Set of String)  
