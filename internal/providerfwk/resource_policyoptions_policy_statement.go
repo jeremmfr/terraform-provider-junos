@@ -282,6 +282,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Name of AS path regular expression.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -294,6 +295,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Name of AS path group.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -306,6 +308,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "BGP community.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -339,6 +342,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "ESI in EVPN Route.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.RegexMatches(regexp.MustCompile(
 						`^([\d\w]{2}:){9}[\d\w]{2}$`),
@@ -359,6 +363,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Tag in EVPN Route (0..4294967295).",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueInt64sAre(
 					int64validator.Between(0, 4294967295),
 				),
@@ -387,6 +392,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Interface name or address.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.Any(
@@ -409,6 +415,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Neighboring router.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					tfvalidator.StringIPAddress(),
 				),
@@ -420,6 +427,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Next-hop router.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					tfvalidator.StringIPAddress(),
 				),
@@ -445,6 +453,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Name of policy to evaluate.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -464,6 +473,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Prefix-lists of routes to match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -476,6 +486,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Protocol from which route was learned.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -517,6 +528,7 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Description: "Tunnel type.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.OneOf("gre", "ipip", "udp"),
 				),
@@ -739,6 +751,7 @@ func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.
 			Description: "Name of AS path regular expression.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -751,6 +764,7 @@ func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.
 			Description: "Name of AS path group.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -763,6 +777,7 @@ func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.
 			Description: "BGP community.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -799,6 +814,7 @@ func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.
 			Description: "Interface name or address.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.Any(
@@ -821,6 +837,7 @@ func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.
 			Description: "Neighboring router.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					tfvalidator.StringIPAddress(),
 				),
@@ -832,6 +849,7 @@ func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.
 			Description: "Next-hop router.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					tfvalidator.StringIPAddress(),
 				),
@@ -850,6 +868,7 @@ func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.
 			Description: "Name of policy to evaluate.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -869,6 +888,7 @@ func (policyoptionsPolicyStatementBlockTo) attributesSchema() map[string]schema.
 			Description: "Protocol from which route was learned.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),

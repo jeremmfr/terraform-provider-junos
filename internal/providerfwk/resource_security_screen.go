@@ -405,6 +405,7 @@ func (rsc *securityScreen) Schema(
 								Description: "User-defined header type range.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										securityScreenUserDefinedHeaderTypeValidator,
 									),
@@ -449,6 +450,7 @@ func (rsc *securityScreen) Schema(
 										Description: "User-defined option type range.",
 										Validators: []validator.List{
 											listvalidator.SizeAtLeast(1),
+											listvalidator.NoNullValues(),
 											listvalidator.ValueStringsAre(
 												securityScreenUserDefinedOptionTypeValidator,
 											),
@@ -510,6 +512,7 @@ func (rsc *securityScreen) Schema(
 										Description: "User-defined option type range.",
 										Validators: []validator.List{
 											listvalidator.SizeAtLeast(1),
+											listvalidator.NoNullValues(),
 											listvalidator.ValueStringsAre(
 												securityScreenUserDefinedOptionTypeValidator,
 											),
@@ -826,6 +829,7 @@ func (rsc *securityScreen) Schema(
 											Description: "Destination address.",
 											Validators: []validator.Set{
 												setvalidator.SizeAtLeast(1),
+												setvalidator.NoNullValues(),
 												setvalidator.ValueStringsAre(
 													tfvalidator.StringCIDRNetwork(),
 												),
@@ -837,6 +841,7 @@ func (rsc *securityScreen) Schema(
 											Description: "Source address.",
 											Validators: []validator.Set{
 												setvalidator.SizeAtLeast(1),
+												setvalidator.NoNullValues(),
 												setvalidator.ValueStringsAre(
 													tfvalidator.StringCIDRNetwork(),
 												),
@@ -874,6 +879,7 @@ func (rsc *securityScreen) Schema(
 								Description: "List of UDP flood white list group name.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthBetween(1, 32),
 										tfvalidator.StringFormat(tfvalidator.DefaultFormat),

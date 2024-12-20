@@ -103,6 +103,7 @@ func (rsc *iccpPeer) Schema(
 				Description: "List of redundancy groups this peer is part of.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueInt64sAre(
 						int64validator.Between(1, 4294967294),
 					),

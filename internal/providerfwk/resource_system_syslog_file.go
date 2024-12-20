@@ -132,6 +132,7 @@ func (rsc *systemSyslogFile) Schema(
 				Description: "Matching string(s) for lines to be logged.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringDoubleQuoteExclusion(),

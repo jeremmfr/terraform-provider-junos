@@ -181,6 +181,7 @@ func (bgpAttrData) attributesSchema() map[string]schema.Attribute {
 			Description: "Export policy list.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -200,6 +201,7 @@ func (bgpAttrData) attributesSchema() map[string]schema.Attribute {
 			Description: "Import policy list.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),

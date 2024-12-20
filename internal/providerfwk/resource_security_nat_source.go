@@ -126,6 +126,7 @@ func (rsc *securityNatSource) Schema(
 						Description: "Name of interface, routing-instance or zone for traffic source.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								stringvalidator.Any(
@@ -156,6 +157,7 @@ func (rsc *securityNatSource) Schema(
 						Description: "Name of interface, routing-instance or zone for traffic destination.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								stringvalidator.Any(
@@ -193,6 +195,7 @@ func (rsc *securityNatSource) Schema(
 									Description: "Application or application-set name to match.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 63),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -205,6 +208,7 @@ func (rsc *securityNatSource) Schema(
 									Description: "CIDR destination address to match.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
 										),
@@ -216,6 +220,7 @@ func (rsc *securityNatSource) Schema(
 									Description: "Destination address from address book to match.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 63),
 											tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -228,6 +233,7 @@ func (rsc *securityNatSource) Schema(
 									Description: "Destination port to match.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.RegexMatches(regexp.MustCompile(
 												`^\d+( to \d+)?$`),
@@ -242,6 +248,7 @@ func (rsc *securityNatSource) Schema(
 									Description: "IP Protocol to match.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -254,6 +261,7 @@ func (rsc *securityNatSource) Schema(
 									Description: "CIDR source address to match.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
 										),
@@ -265,6 +273,7 @@ func (rsc *securityNatSource) Schema(
 									Description: "Source address from address book to match.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 63),
 											tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -277,6 +286,7 @@ func (rsc *securityNatSource) Schema(
 									Description: "Source port to match.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.RegexMatches(regexp.MustCompile(
 												`^\d+( to \d+)?$`),

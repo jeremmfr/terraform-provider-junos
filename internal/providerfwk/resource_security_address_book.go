@@ -164,6 +164,7 @@ func (securityAddressBookData) attributesSchema() map[string]schema.Attribute {
 			Description: "List of zones to attach address book to.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -369,6 +370,7 @@ func (securityAddressBookBlockAddressSet) attributesSchema() map[string]schema.A
 			Description: "List of address names.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -381,6 +383,7 @@ func (securityAddressBookBlockAddressSet) attributesSchema() map[string]schema.A
 			Description: "List of address-set names.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),

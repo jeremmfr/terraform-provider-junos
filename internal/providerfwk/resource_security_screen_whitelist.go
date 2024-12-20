@@ -99,6 +99,7 @@ func (rsc *securityScreenWhitelist) Schema(
 				Description: "IPv4 or IPv6 source address.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringCIDRNetwork(),
 					),

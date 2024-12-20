@@ -149,6 +149,7 @@ func (rsc *securityNatStaticRule) Schema(
 				Description: "CIDR source address to match.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringCIDRNetwork(),
 					),
@@ -160,6 +161,7 @@ func (rsc *securityNatStaticRule) Schema(
 				Description: "Source address from address book to match.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 63),
 						tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -172,6 +174,7 @@ func (rsc *securityNatStaticRule) Schema(
 				Description: "Source port to match.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(regexp.MustCompile(
 							`^\d+( to \d+)?$`),

@@ -166,6 +166,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 						Description: "Excluded Addresses.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								tfvalidator.StringIPAddress(),
 							),
@@ -232,6 +233,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "IPv6 domain name servers available to the client.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv6Only(),
 									),
@@ -279,6 +281,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "IPv4 domain name servers available to the client.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv4Only(),
 									),
@@ -304,6 +307,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "DHCP option.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
 											regexp.MustCompile(`^\d+ (array )?`+
@@ -334,6 +338,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "PPP interface name for propagating DNS/WINS settings.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
@@ -354,6 +359,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "Routers advertised to clients.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv4Only(),
 									),
@@ -372,6 +378,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "SIP servers list of IPv4 addresses available to the client.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv4Only(),
 									),
@@ -383,6 +390,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "SIP server domain name available to clients.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
@@ -395,6 +403,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "SIP Servers list of IPv6 addresses available to the client.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv6Only(),
 									),
@@ -463,6 +472,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 								Description: "WINS name servers.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv4Only(),
 									),
