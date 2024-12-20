@@ -147,6 +147,7 @@ func (rsc *snmp) Schema(
 				Description: "Regular expressions to list of interfaces that needs to be filtered.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -173,6 +174,7 @@ func (rsc *snmp) Schema(
 				Description: "Restrict SNMP requests to interfaces.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
@@ -201,6 +203,7 @@ func (rsc *snmp) Schema(
 				Description: "Allow/Deny SNMP access to routing instances.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 63),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),

@@ -200,6 +200,7 @@ func (rsc *evpn) Schema(
 						Description: "Export policy for VRF instance RIBs.",
 						Validators: []validator.List{
 							listvalidator.SizeAtLeast(1),
+							listvalidator.NoNullValues(),
 							listvalidator.ValueStringsAre(
 								stringvalidator.LengthBetween(1, 250),
 								tfvalidator.StringDoubleQuoteExclusion(),
@@ -212,6 +213,7 @@ func (rsc *evpn) Schema(
 						Description: "Import policy for VRF instance RIBs.",
 						Validators: []validator.List{
 							listvalidator.SizeAtLeast(1),
+							listvalidator.NoNullValues(),
 							listvalidator.ValueStringsAre(
 								stringvalidator.LengthBetween(1, 250),
 								tfvalidator.StringDoubleQuoteExclusion(),

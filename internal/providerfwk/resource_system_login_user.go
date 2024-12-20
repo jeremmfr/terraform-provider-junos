@@ -177,6 +177,7 @@ func (rsc *systemLoginUser) Schema(
 						Description: "Secure shell (ssh) public key string.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								tfvalidator.StringDoubleQuoteExclusion(),

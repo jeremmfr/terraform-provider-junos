@@ -103,6 +103,7 @@ func (rsc *securityNatSourcePool) Schema(
 				Description: "CIDR address to source nat pool.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						tfvalidator.StringCIDR(),
 					),

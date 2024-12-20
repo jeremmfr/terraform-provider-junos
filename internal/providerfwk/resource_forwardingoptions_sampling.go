@@ -288,6 +288,7 @@ func (forwardingoptionsSamplingBlockFamilyInetOutput) attributesSchema() map[str
 			Description: "Define the customer specific sampling configuration.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringDoubleQuoteExclusion(),

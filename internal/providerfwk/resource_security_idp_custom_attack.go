@@ -533,6 +533,7 @@ func (securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeSigna
 					Description: "IP Flag bits.",
 					Validators: []validator.Set{
 						setvalidator.SizeAtLeast(1),
+						setvalidator.NoNullValues(),
 						setvalidator.ValueStringsAre(
 							stringvalidator.OneOf("df", "mf", "rb", "no-df", "no-mf", "no-rb"),
 						),
@@ -910,6 +911,7 @@ func (securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeSigna
 					Description: "TCP header flags.",
 					Validators: []validator.Set{
 						setvalidator.SizeAtLeast(1),
+						setvalidator.NoNullValues(),
 						setvalidator.ValueStringsAre(
 							stringvalidator.OneOf(
 								"ack", "fin", "psh", "r1", "r2", "rst", "syn", "urg",

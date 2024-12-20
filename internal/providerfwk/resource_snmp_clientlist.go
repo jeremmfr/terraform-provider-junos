@@ -98,6 +98,7 @@ func (rsc *snmpClientlist) Schema(
 				Description: "Address or prefix.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringCIDR(),
 					),

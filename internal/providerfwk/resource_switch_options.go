@@ -94,6 +94,7 @@ func (rsc *switchOptions) Schema(
 				Description: "Configure static remote VXLAN tunnel endpoints.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress().IPv4Only(),
 					),
@@ -105,6 +106,7 @@ func (rsc *switchOptions) Schema(
 				Description: "Configure static ipv6 remote VXLAN tunnel endpoints.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress().IPv6Only(),
 					),

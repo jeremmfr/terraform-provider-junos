@@ -202,6 +202,7 @@ func (rsc *ripNeighbor) Schema(
 				Description: "Import policy.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 63),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -242,6 +243,7 @@ func (rsc *ripNeighbor) Schema(
 				Description: "P2MP peer.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress(),
 					),

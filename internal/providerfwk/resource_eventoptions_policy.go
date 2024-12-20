@@ -109,6 +109,7 @@ func (rsc *eventoptionsPolicy) Schema(
 				Description: "List of events that trigger this policy.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -183,6 +184,7 @@ func (rsc *eventoptionsPolicy) Schema(
 								Description: "List of configuration commands.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
@@ -367,6 +369,7 @@ func (rsc *eventoptionsPolicy) Schema(
 								Description: "List of CLI commands to issue.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
@@ -550,6 +553,7 @@ func (rsc *eventoptionsPolicy) Schema(
 							Description: "List of events that must occur within time interval.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthAtLeast(1),
 									tfvalidator.StringDoubleQuoteExclusion(),
@@ -562,6 +566,7 @@ func (rsc *eventoptionsPolicy) Schema(
 							Description: "List of events must not occur within time interval.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthAtLeast(1),
 									tfvalidator.StringDoubleQuoteExclusion(),

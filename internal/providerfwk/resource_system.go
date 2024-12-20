@@ -100,6 +100,7 @@ func (rsc *system) Schema(
 				Description: "Order in which authentication methods are invoked.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.OneOf("password", "radius", "tacplus"),
 					),
@@ -155,6 +156,7 @@ func (rsc *system) Schema(
 				Description: "DNS name servers.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress(),
 					),
@@ -308,6 +310,7 @@ func (rsc *system) Schema(
 						Description: "Events to be logged.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf("change-log", "interactive-commands", "login"),
 							),
@@ -577,6 +580,7 @@ func (rsc *system) Schema(
 						Description: "Destination networks reachable through the router.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								tfvalidator.StringCIDR().IPv6Only(),
 							),
@@ -815,6 +819,7 @@ func (rsc *system) Schema(
 						Description: "License keys.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								tfvalidator.StringDoubleQuoteExclusion(),
@@ -857,6 +862,7 @@ func (rsc *system) Schema(
 						Description: "Sources from which logins are denied.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								stringvalidator.Any(
@@ -1111,6 +1117,7 @@ func (rsc *system) Schema(
 						Description: "Order in which authentication methods are invoked on auxiliary port.",
 						Validators: []validator.List{
 							listvalidator.SizeAtLeast(1),
+							listvalidator.NoNullValues(),
 							listvalidator.ValueStringsAre(
 								stringvalidator.OneOf("password", "radius", "tacplus"),
 							),
@@ -1150,6 +1157,7 @@ func (rsc *system) Schema(
 						Description: "Order in which authentication methods are invoked on console port.",
 						Validators: []validator.List{
 							listvalidator.SizeAtLeast(1),
+							listvalidator.NoNullValues(),
 							listvalidator.ValueStringsAre(
 								stringvalidator.OneOf("password", "radius", "tacplus"),
 							),
@@ -1297,6 +1305,7 @@ func (rsc *system) Schema(
 								Description: "Tracing parameters.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf("all", "debug", "incoming", "outgoing"),
 									),
@@ -1330,6 +1339,7 @@ func (rsc *system) Schema(
 								Description: "Order in which authentication methods are invoked.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										stringvalidator.OneOf("password", "radius", "tacplus"),
 									),
@@ -1341,6 +1351,7 @@ func (rsc *system) Schema(
 								Description: "Specify the ciphers allowed for protocol version 2.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
@@ -1381,6 +1392,7 @@ func (rsc *system) Schema(
 								Description: "Specify permissible SSH host-key algorithms.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
@@ -1393,6 +1405,7 @@ func (rsc *system) Schema(
 								Description: "Specify ssh key-exchange for Diffie-Hellman keys.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
@@ -1412,6 +1425,7 @@ func (rsc *system) Schema(
 								Description: "Message Authentication Code algorithms allowed (SSHv2).",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
@@ -1459,6 +1473,7 @@ func (rsc *system) Schema(
 								Description: "Specify ssh protocol versions supported.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf("v1", "v2"),
 									),
@@ -1506,6 +1521,7 @@ func (rsc *system) Schema(
 								Description: "Specify the name of one or more interfaces.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
@@ -1534,6 +1550,7 @@ func (rsc *system) Schema(
 								Description: "Specify the name of one or more interfaces.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.InterfaceFormat),

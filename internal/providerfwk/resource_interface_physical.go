@@ -224,6 +224,7 @@ func (rsc *interfacePhysical) Schema(
 				Description: "List of vlan for membership for this interface.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 63),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -386,6 +387,7 @@ func (rsc *interfacePhysical) Schema(
 						Description: "Source address filters.",
 						Validators: []validator.List{
 							listvalidator.SizeAtLeast(1),
+							listvalidator.NoNullValues(),
 							listvalidator.ValueStringsAre(
 								tfvalidator.StringMACAddress().WithMac48ColonHexa(),
 							),

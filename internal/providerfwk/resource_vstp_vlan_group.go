@@ -116,6 +116,7 @@ func (rsc *vstpVlanGroup) Schema(
 			Description: " VLAN IDs or VLAN ID ranges.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.RegexMatches(regexp.MustCompile(
 						`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9])`+

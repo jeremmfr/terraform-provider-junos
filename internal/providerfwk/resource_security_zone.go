@@ -191,6 +191,7 @@ func (securityZoneData) attributesSchema() map[string]schema.Attribute {
 			Description: "The inbound protocols allowed.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 32),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -203,6 +204,7 @@ func (securityZoneData) attributesSchema() map[string]schema.Attribute {
 			Description: "The inbound services allowed.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 32),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -411,6 +413,7 @@ func (securityZoneBlockAddressBookSet) attributesSchema() map[string]schema.Attr
 			Description: "List of address names.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -423,6 +426,7 @@ func (securityZoneBlockAddressBookSet) attributesSchema() map[string]schema.Attr
 			Description: "List of address-set names.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),

@@ -155,6 +155,7 @@ func (rsc *servicesFlowMonitoringV9Template) Schema(
 				Description: "Export-extension for `ipv4-template`, `ipv6-template` type.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 					),
@@ -166,6 +167,7 @@ func (rsc *servicesFlowMonitoringV9Template) Schema(
 				Description: "One or more MPLS label positions (1..8).",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueInt64sAre(
 						int64validator.Between(1, 8),
 					),

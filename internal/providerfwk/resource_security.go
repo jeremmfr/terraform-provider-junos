@@ -811,6 +811,7 @@ func (rsc *security) Schema(
 						Description: "Tracing parameters for IKE.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								tfvalidator.StringFormat(tfvalidator.DefaultFormat),

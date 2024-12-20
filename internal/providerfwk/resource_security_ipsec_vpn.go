@@ -142,6 +142,7 @@ func (rsc *securityIpsecVpn) Schema(
 				Description: "Negotiate multiple SAs with forwarding-classes.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 32),
 						tfvalidator.StringDoubleQuoteExclusion(),

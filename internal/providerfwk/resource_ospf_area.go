@@ -155,6 +155,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Configure context identifier in support of edge protection.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress().IPv4Only(),
 					),
@@ -166,6 +167,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Export policy for Inter Area Prefix LSAs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -178,6 +180,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Import policy for Inter Area Prefix LSAs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -190,6 +193,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Export policy for Type 3 Summary LSAs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -202,6 +206,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Import policy for Type 3 Summary LSAs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),

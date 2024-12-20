@@ -177,6 +177,7 @@ func (securityPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute 
 			Description: "List of source address match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -189,6 +190,7 @@ func (securityPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute 
 			Description: "List of destination address match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -231,6 +233,7 @@ func (securityPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute 
 			Description: "List of applications match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -250,6 +253,7 @@ func (securityPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute 
 			Description: "List of dynamic application or group match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),

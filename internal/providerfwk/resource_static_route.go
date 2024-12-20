@@ -164,6 +164,7 @@ func (rsc *staticRoute) Schema(
 				Description: "BGP community.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -204,6 +205,7 @@ func (rsc *staticRoute) Schema(
 				Description: "Next-hop to destination.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						stringvalidator.Any(

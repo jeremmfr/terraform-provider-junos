@@ -126,6 +126,7 @@ func (rsc *forwardingoptionsDhcprelayServergroup) Schema(
 				Description: "IP Addresses of DHCP servers.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress(),
 					),

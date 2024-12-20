@@ -107,6 +107,7 @@ func (rsc *securityLogStream) Schema(
 				Description: "Selects the type of events that may be logged.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),

@@ -132,6 +132,7 @@ func (applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
 			Description: "Application to be included in the set.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -144,6 +145,7 @@ func (applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
 			Description: "Application-set to be included in the set.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),

@@ -125,6 +125,7 @@ func (rsc *snmpCommunity) Schema(
 				Description: "List of source address prefix ranges to accept.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringCIDR(),
 					),
@@ -167,6 +168,7 @@ func (rsc *snmpCommunity) Schema(
 							Description: "List of source address prefix ranges to accept.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									tfvalidator.StringCIDR(),
 								),

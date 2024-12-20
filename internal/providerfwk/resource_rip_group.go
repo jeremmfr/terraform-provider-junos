@@ -141,6 +141,7 @@ func (rsc *ripGroup) Schema(
 				Description: "Export policy.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 63),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -153,6 +154,7 @@ func (rsc *ripGroup) Schema(
 				Description: "Import policy.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 63),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),

@@ -1500,6 +1500,7 @@ func (forwardingoptionsDhcprelayBlockRelayOption) attributesSchema() map[string]
 			Description: "Options precedence order.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.OneOf("15", "16", "60", "77"),
 				),

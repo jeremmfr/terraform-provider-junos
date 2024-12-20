@@ -135,6 +135,7 @@ func (rsc *securityNatStatic) Schema(
 						Description: "Name of interface, routing-instance or zone for traffic source.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.Any(
 									tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
@@ -196,6 +197,7 @@ func (rsc *securityNatStatic) Schema(
 							Description: "CIDR source address to match.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									tfvalidator.StringCIDRNetwork(),
 								),
@@ -207,6 +209,7 @@ func (rsc *securityNatStatic) Schema(
 							Description: "Source address from address book to match.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthBetween(1, 63),
 									tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -219,6 +222,7 @@ func (rsc *securityNatStatic) Schema(
 							Description: "Source port to match.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									stringvalidator.RegexMatches(regexp.MustCompile(
 										`^\d+( to \d+)?$`),
