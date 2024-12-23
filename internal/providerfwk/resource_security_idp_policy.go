@@ -377,6 +377,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Match custom attacks.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -389,6 +390,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Match custom attack groups.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -401,6 +403,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Match destination address.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -413,6 +416,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Don't match destination address.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -425,6 +429,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Match dynamic attack groups.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -445,6 +450,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Match predefined attacks.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -457,6 +463,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Match predefined attack groups.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -469,6 +476,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Match source address.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -481,6 +489,7 @@ func (securityIdpPolicyBlockExemptRuleBlockMatch) attributesSchema() map[string]
 			Description: "Don't match source address.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringDoubleQuoteExclusion(),

@@ -154,6 +154,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP source or destination address.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
 										),
@@ -165,6 +166,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP source or destination address not in this prefix.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
 										),
@@ -176,6 +178,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP destination address.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
 										),
@@ -187,6 +190,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP destination address not in this prefix.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
 										),
@@ -198,6 +202,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Destination MAC address.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.RegexMatches(regexp.MustCompile(
 												`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
@@ -212,6 +217,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Destination MAC address not in this range.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.RegexMatches(regexp.MustCompile(
 												`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
@@ -226,6 +232,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match TCP/UDP destination port.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -238,6 +245,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match TCP/UDP destination port.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -250,6 +258,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP destination prefixes in named list.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 250),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -262,6 +271,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match addresses not in this prefix list.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 250),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -274,6 +284,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match forwarding class.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 64),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -286,6 +297,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match forwarding class.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 64),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -298,6 +310,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match ICMP message code.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -310,6 +323,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match ICMP message code.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -322,6 +336,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match ICMP message type.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -334,6 +349,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match ICMP message type.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -346,6 +362,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match interface name.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.InterfaceWithWildcardFormat),
@@ -365,6 +382,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match Loss Priority.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.OneOf("high", "low", "medium-high", "medium-low"),
 										),
@@ -376,6 +394,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match Loss Priority.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.OneOf("high", "low", "medium-high", "medium-low"),
 										),
@@ -387,6 +406,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match next header protocol type.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -399,6 +419,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match next header protocol type.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -411,6 +432,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match packet length.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.RegexMatches(regexp.MustCompile(
 												`^\d+(-\d+)?$`),
@@ -425,6 +447,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match packet length.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.RegexMatches(regexp.MustCompile(
 												`^\d+(-\d+)?$`),
@@ -439,6 +462,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match policy map.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 64),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -451,6 +475,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match policy map.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 64),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -463,6 +488,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match TCP/UDP source or destination port.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -475,6 +501,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match TCP/UDP source or destination port.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -487,6 +514,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP source or destination prefixes in named list.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 250),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -499,6 +527,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match addresses not in this prefix list.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 250),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -511,6 +540,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP protocol type.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -523,6 +553,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match IP protocol type.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -535,6 +566,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP source address.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
 										),
@@ -546,6 +578,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP source address not in this prefix.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											tfvalidator.StringCIDRNetwork(),
 										),
@@ -557,6 +590,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Source MAC address.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.RegexMatches(regexp.MustCompile(
 												`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
@@ -571,6 +605,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Source MAC address not in this range.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.RegexMatches(regexp.MustCompile(
 												`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
@@ -585,6 +620,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match TCP/UDP source port.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -597,6 +633,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Do not match TCP/UDP source port.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -609,6 +646,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP source prefixes in named list.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 250),
 											tfvalidator.StringDoubleQuoteExclusion(),
@@ -621,6 +659,7 @@ func (rsc *firewallFilter) Schema(
 									Description: "Match IP source prefixes not in this prefix list.",
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
 											stringvalidator.LengthBetween(1, 250),
 											tfvalidator.StringDoubleQuoteExclusion(),

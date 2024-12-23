@@ -100,6 +100,7 @@ func (rsc *snmpView) Schema(
 				Description: "OID include list.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -112,6 +113,7 @@ func (rsc *snmpView) Schema(
 				Description: "OID exclude list.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),

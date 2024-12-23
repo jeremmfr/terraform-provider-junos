@@ -124,6 +124,7 @@ func (rsc *bridgeDomain) Schema(
 				Description: "List of Community VLANs for private vlan bridge domain.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringNumberRange(1, 4094).WithNameInError("VLAN"),
 					),
@@ -157,6 +158,7 @@ func (rsc *bridgeDomain) Schema(
 				Description: "Interface for this bridge domain.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
@@ -202,6 +204,7 @@ func (rsc *bridgeDomain) Schema(
 				Description: "Create bridge-domain for each of the vlan-id specified in the vlan-id-list.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringNumberRange(1, 4094).WithNameInError("VLAN"),
 					),
@@ -268,6 +271,7 @@ func (rsc *bridgeDomain) Schema(
 						Description: "Configure bridge domain specific static remote VXLAN tunnel endpoints.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								tfvalidator.StringIPAddress().IPv4Only(),
 							),

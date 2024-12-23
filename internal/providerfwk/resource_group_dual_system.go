@@ -218,6 +218,7 @@ func (rsc *groupDualSystem) Schema(
 									Description: "List of next-hop.",
 									Validators: []validator.List{
 										listvalidator.SizeAtLeast(1),
+										listvalidator.NoNullValues(),
 										listvalidator.ValueStringsAre(
 											stringvalidator.LengthAtLeast(1),
 											stringvalidator.Any(
@@ -275,6 +276,7 @@ func (rsc *groupDualSystem) Schema(
 						Description: "Destinations network reachable through the IPv4 router.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								tfvalidator.StringCIDR().IPv4Only(),
 							),
@@ -293,6 +295,7 @@ func (rsc *groupDualSystem) Schema(
 						Description: "Destinations network reachable through the IPv6 router.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								tfvalidator.StringCIDR().IPv6Only(),
 							),

@@ -147,6 +147,7 @@ func (securityGlobalPolicyBlockPolicy) attributesSchema() map[string]schema.Attr
 			Description: "List of source address match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -159,6 +160,7 @@ func (securityGlobalPolicyBlockPolicy) attributesSchema() map[string]schema.Attr
 			Description: "List of destination address match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -171,6 +173,7 @@ func (securityGlobalPolicyBlockPolicy) attributesSchema() map[string]schema.Attr
 			Description: "Match multiple source zone.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -183,6 +186,7 @@ func (securityGlobalPolicyBlockPolicy) attributesSchema() map[string]schema.Attr
 			Description: "Match multiple destination zone.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -225,6 +229,7 @@ func (securityGlobalPolicyBlockPolicy) attributesSchema() map[string]schema.Attr
 			Description: "List of applications match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -244,6 +249,7 @@ func (securityGlobalPolicyBlockPolicy) attributesSchema() map[string]schema.Attr
 			Description: "List of dynamic application or group match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),

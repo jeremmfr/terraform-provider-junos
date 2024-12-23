@@ -123,6 +123,7 @@ func (rsc *vlan) Schema(
 				Description: "List of VLAN id or name of community vlans for primary vlan.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 64),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -215,6 +216,7 @@ func (rsc *vlan) Schema(
 				Description: "List of 802.1q VLAN id.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(regexp.MustCompile(
 							`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9])`+
@@ -277,6 +279,7 @@ func (rsc *vlan) Schema(
 						Description: "Configure vlan specific static remote VXLAN tunnel endpoints.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								tfvalidator.StringIPAddress().IPv4Only(),
 							),

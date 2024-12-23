@@ -113,6 +113,7 @@ func (rsc *securityZoneBookAddressSet) Schema(
 				Description: "List of address names.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 63),
 						tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -125,6 +126,7 @@ func (rsc *securityZoneBookAddressSet) Schema(
 				Description: "List of address-set names.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 63),
 						tfvalidator.StringFormat(tfvalidator.AddressNameFormat),

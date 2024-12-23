@@ -152,6 +152,7 @@ func (rsc *routingInstance) Schema(
 				Description: "Export policy for instance RIBs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -164,6 +165,7 @@ func (rsc *routingInstance) Schema(
 				Description: "Import policy for instance RIBs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -176,6 +178,7 @@ func (rsc *routingInstance) Schema(
 				Description: "Configure static remote VXLAN tunnel endpoints.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress().IPv4Only(),
 					),
@@ -187,6 +190,7 @@ func (rsc *routingInstance) Schema(
 				Description: "Configure static ipv6 remote VXLAN tunnel endpoints.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress().IPv6Only(),
 					),
@@ -215,6 +219,7 @@ func (rsc *routingInstance) Schema(
 				Description: "Export policy for VRF instance RIBs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -227,6 +232,7 @@ func (rsc *routingInstance) Schema(
 				Description: "Import policy for VRF instance RIBs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),

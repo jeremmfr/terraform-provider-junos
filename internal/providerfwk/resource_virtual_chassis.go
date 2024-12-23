@@ -238,6 +238,7 @@ func (rsc *virtualChassis) Schema(
 						Description: "Tracing parameters.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								tfvalidator.StringFormat(tfvalidator.DefaultFormatAndSpace),

@@ -153,6 +153,7 @@ func (rsc *interfaceLogical) Schema(
 				Description: "The inbound protocols allowed.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -165,6 +166,7 @@ func (rsc *interfaceLogical) Schema(
 				Description: "The inbound services allowed.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -282,6 +284,7 @@ func (rsc *interfaceLogical) Schema(
 												Description: "Virtual IPv4 addresses.",
 												Validators: []validator.List{
 													listvalidator.SizeAtLeast(1),
+													listvalidator.NoNullValues(),
 													listvalidator.ValueStringsAre(
 														tfvalidator.StringIPAddress().IPv4Only(),
 													),
@@ -680,6 +683,7 @@ func (rsc *interfaceLogical) Schema(
 												Description: "Virtual IPv6 addresses.",
 												Validators: []validator.List{
 													listvalidator.SizeAtLeast(1),
+													listvalidator.NoNullValues(),
 													listvalidator.ValueStringsAre(
 														tfvalidator.StringIPAddress().IPv6Only(),
 													),
@@ -867,6 +871,7 @@ func (rsc *interfaceLogical) Schema(
 								Description: "DHCPV6 client requested option configuration.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -886,6 +891,7 @@ func (rsc *interfaceLogical) Schema(
 								Description: "Interfaces on which to delegate prefix.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.InterfaceFormat),

@@ -99,6 +99,7 @@ func (rsc *securityIdpCustomAttackGroup) Schema(
 				Description: "List of attacks/attack groups belonging to this group.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),

@@ -140,6 +140,7 @@ func (rsc *ospf) Schema(
 				Description: "Export policy.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -166,6 +167,7 @@ func (rsc *ospf) Schema(
 				Description: "Import policy (for external routes or setting priority).",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthAtLeast(1),
 						tfvalidator.StringDoubleQuoteExclusion(),

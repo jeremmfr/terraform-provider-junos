@@ -269,6 +269,7 @@ func (rsc *servicesRpmProbe) Schema(
 							Description: "Trap to send if threshold is met or exceeded.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthAtLeast(1),
 									tfvalidator.StringFormat(tfvalidator.DefaultFormat),
