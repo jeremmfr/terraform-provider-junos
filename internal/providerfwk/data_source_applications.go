@@ -227,7 +227,7 @@ type applicationsDataSourceBlockApplications struct {
 }
 
 type applicationsDataSourceBlockApplicationsBlockTerm struct {
-	Name                   types.String `tfsdk:"name"`
+	Name                   types.String `tfsdk:"name"                     tfdata:"identifier"`
 	Alg                    types.String `tfsdk:"alg"`
 	DestinationPort        types.String `tfsdk:"destination_port"`
 	IcmpCode               types.String `tfsdk:"icmp_code"`
@@ -385,14 +385,12 @@ func (block *applicationsDataSourceBlockApplications) read(itemTrim string) erro
 	case balt.CutPrefixInString(&itemTrim, "source-port "):
 		block.SourcePort = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "term "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		name := tfdata.FirstElementOfJunosLine(itemTrim)
 		var term applicationsDataSourceBlockApplicationsBlockTerm
-		block.Term, term = tfdata.ExtractBlockWithTFTypesString(
-			block.Term, "Name", itemTrimFields[0],
-		)
-		term.Name = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-		if err := term.read(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" ")); err != nil {
+		block.Term, term = tfdata.ExtractBlock(block.Term, types.StringValue(name))
+		balt.CutPrefixInString(&itemTrim, name+" ")
+
+		if err := term.read(itemTrim); err != nil {
 			return err
 		}
 		block.Term = append(block.Term, term)

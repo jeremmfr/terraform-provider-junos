@@ -1,114 +1,201 @@
 package tfdata
 
 import (
+	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// for each struct in blocks (list of struct)
-// search field with name = 'structFieldName' and with type 'types.String'
-//   - if the value of this field is equal with inputValue,
-//     remove element from slice and return the new slice and the element
-//   - if not equal, create a new empty struct and return the slice unaltered and the new struct.
-func ExtractBlockWithTFTypesString[B any](
-	blocks []B, structFieldName, inputValue string,
-) (
-	[]B, B,
-) {
-	for i, block := range blocks {
-		fieldValue := reflect.ValueOf(block).FieldByNameFunc(func(name string) bool {
-			return strings.EqualFold(structFieldName, name)
-		})
-		if !fieldValue.IsValid() {
-			continue
-		}
-		if tfString, ok := fieldValue.Interface().(types.String); ok {
-			if tfString.ValueString() == inputValue {
-				blocks = append(blocks[:i], blocks[i+1:]...)
+const (
+	identifier  = "identifier"
+	identifier1 = "identifier_1"
+	identifier2 = "identifier_2"
+)
 
-				return blocks, block
-			}
-		}
-	}
-	e := new(B)
-
-	return blocks, *e
+type reflectStructField struct {
+	value       reflect.Value
+	structField reflect.StructField
 }
 
 // for each struct in blocks (list of struct)
-// search field with name = 'structField1Name' and with type 'types.String'
-//   - if the value of this field is equal with input1Value,
-//     search again field with name = 'structField2Name' and with type 'types.String'
-//   - if the value of second field is equal with input2Value,
-//     remove element from slice and return the new slice and the element
-//   - if structField1Name and structField2Name not equal with respective value,
-//     create a new empty struct and return the slice unaltered and the new struct.
-func ExtractBlockWith2TFTypesString[B any]( //nolint:ireturn
-	blocks []B, structField1Name, input1Value, structField2Name, input2Value string,
+//
+//   - if the values of fields with identifier tag are equal to the elements of identifierValues
+//     (first element of identifierValues equal to field with tag value identifier or identifier_1,
+//     optional second element of identifierValues equal to field with tag value identifier_2)
+//
+//     -> remove element from slice and return the new slice and the element
+//
+//   - if no one match identifierValues
+//
+//     -> create a new empty struct, assign identifierValues to fields with identifier tag
+//     and return the slice unaltered and the new struct.
+func ExtractBlock[B any](
+	blocks []B, identifierValues ...attr.Value,
 ) (
 	[]B, B,
 ) {
-	for i, block := range blocks {
-		field1Value := reflect.ValueOf(block).FieldByNameFunc(func(name string) bool {
-			return strings.EqualFold(structField1Name, name)
-		})
-		if !field1Value.IsValid() {
+	// read blocks to search if one block match with arguments
+loopBlocks:
+	// FIX ME with go 1.23.O in go.mod
+	// for iBlock, block := range slices.Backward(blocks) {
+	for iBlock := len(blocks) - 1; iBlock >= 0; iBlock-- {
+		block := blocks[iBlock]
+		blockValue := reflect.ValueOf(block)
+		if !blockValue.IsValid() {
 			continue
 		}
-		if tfString, ok := field1Value.Interface().(types.String); ok {
-			if tfString.ValueString() != input1Value {
+
+		blockIdentifierValues := make([]reflect.Value, len(identifierValues))
+		blockIdentifierFound := make(map[string]struct{})
+
+		// read fields to pick up values from fields with identifier tags
+		for iField := range blockValue.NumField() {
+			fieldValue := blockValue.Field(iField)
+			if !fieldValue.IsValid() {
 				continue
 			}
-		} else {
-			continue
-		}
-		field2Value := reflect.ValueOf(block).FieldByNameFunc(func(name string) bool {
-			return strings.EqualFold(structField2Name, name)
-		})
-		if !field2Value.IsValid() {
-			continue
-		}
-		if tfString, ok := field2Value.Interface().(types.String); ok {
-			if tfString.ValueString() == input2Value {
-				blocks = append(blocks[:i], blocks[i+1:]...)
 
-				return blocks, block
+			if blockValue.Type().Field(iField).Anonymous {
+				for iEmbedField := range fieldValue.NumField() {
+					embedFieldValue := fieldValue.Field(iEmbedField)
+					if !embedFieldValue.IsValid() {
+						continue
+					}
+
+					reflectStructField{
+						value:       embedFieldValue,
+						structField: fieldValue.Type().Field(iEmbedField),
+					}.searchIdentifierOnStructField(
+						blockIdentifierFound,
+						blockIdentifierValues,
+					)
+				}
+
+				continue
+			}
+
+			reflectStructField{
+				value:       fieldValue,
+				structField: blockValue.Type().Field(iField),
+			}.searchIdentifierOnStructField(
+				blockIdentifierFound,
+				blockIdentifierValues,
+			)
+		}
+
+		// detect mismatch between tags and arguments
+		if len(blockIdentifierFound) == 0 {
+			panic("no tfdata:identifier tag found on struct")
+		}
+		if len(blockIdentifierFound) != len(identifierValues) {
+			panic(fmt.Sprintf(
+				"mismatch number of tfdata:identifier tags and identifierValues: found %d tags, got %d identifierValues",
+				len(blockIdentifierFound), len(identifierValues),
+			))
+		}
+
+		// check if match with the arguments
+		for iIdent, fieldValue := range blockIdentifierValues {
+			switch attrValue := fieldValue.Interface().(type) {
+			case types.String:
+				if !attrValue.Equal(identifierValues[iIdent].(types.String)) {
+					continue loopBlocks
+				}
+			case types.Int64:
+				if !attrValue.Equal(identifierValues[iIdent].(types.Int64)) {
+					continue loopBlocks
+				}
+			default:
+				panic(fmt.Sprintf(
+					"don't know how to compare field with type %q",
+					fieldValue.Type().Name(),
+				))
 			}
 		}
-	}
-	e := new(B)
 
-	return blocks, *e
+		// match so remove block from slice and return result
+		blocks = append(blocks[:iBlock], blocks[iBlock+1:]...)
+
+		return blocks, block
+	}
+
+	// no blocks match with arguments so generate new block
+	newBlock := new(B)
+	newBlockValue := reflect.ValueOf(newBlock).Elem()
+	for iField := range newBlockValue.NumField() {
+		if newBlockValue.Type().Field(iField).Anonymous {
+			embedNewBlockValue := newBlockValue.Field(iField)
+
+			for iEmbedField := range embedNewBlockValue.NumField() {
+				reflectStructField{
+					value:       embedNewBlockValue.Field(iEmbedField),
+					structField: embedNewBlockValue.Type().Field(iEmbedField),
+				}.assignValueToIdentifier(identifierValues)
+			}
+
+			continue
+		}
+
+		reflectStructField{
+			value:       newBlockValue.Field(iField),
+			structField: newBlockValue.Type().Field(iField),
+		}.assignValueToIdentifier(identifierValues)
+	}
+
+	return blocks, *newBlock
 }
 
-// for each struct in blocks (list of struct)
-// search field with name = 'structFieldName' and with type 'types.Int64'
-//   - if the value of this field is equal with inputValue,
-//     remove element from slice and return the new slice and the element
-//   - if not equal, create a new empty struct and return the slice unaltered and the new struct.
-func ExtractBlockWithTFTypesInt64[B any](
-	blocks []B, structFieldName string, inputValue int64,
-) (
-	[]B, B,
+func (field reflectStructField) searchIdentifierOnStructField(
+	blockIdentifierFound map[string]struct{},
+	blockIdentifierValues []reflect.Value,
 ) {
-	for i, block := range blocks {
-		fieldValue := reflect.ValueOf(block).FieldByNameFunc(func(name string) bool {
-			return strings.EqualFold(structFieldName, name)
-		})
-		if !fieldValue.IsValid() {
-			continue
-		}
-		if tfInt64, ok := fieldValue.Interface().(types.Int64); ok {
-			if tfInt64.ValueInt64() == inputValue {
-				blocks = append(blocks[:i], blocks[i+1:]...)
+	fieldTags := tagsOfStructField(field.structField)
 
-				return blocks, block
-			}
+	switch {
+	case slices.ContainsFunc(fieldTags, func(s string) bool {
+		return strings.EqualFold(s, identifier)
+	}),
+		slices.ContainsFunc(fieldTags, func(s string) bool {
+			return strings.EqualFold(s, identifier1)
+		}):
+		if _, ok := blockIdentifierFound[identifier1]; ok {
+			panic("multiple tfdata " + identifier + " or " + identifier1 + " tags on struct")
 		}
+
+		blockIdentifierFound[identifier1] = struct{}{}
+		blockIdentifierValues[0] = field.value
+	case slices.ContainsFunc(fieldTags, func(s string) bool {
+		return strings.EqualFold(s, identifier2)
+	}):
+		if _, ok := blockIdentifierFound[identifier2]; ok {
+			panic("multiple tfdata " + identifier2 + " tags on struct")
+		}
+
+		blockIdentifierFound[identifier2] = struct{}{}
+		blockIdentifierValues[1] = field.value
 	}
-	e := new(B)
+}
 
-	return blocks, *e
+func (field reflectStructField) assignValueToIdentifier(
+	identifierValues []attr.Value,
+) {
+	fieldTags := tagsOfStructField(field.structField)
+
+	switch {
+	case slices.ContainsFunc(fieldTags, func(s string) bool {
+		return strings.EqualFold(s, identifier)
+	}),
+		slices.ContainsFunc(fieldTags, func(s string) bool {
+			return strings.EqualFold(s, identifier1)
+		}):
+		field.value.Set(reflect.ValueOf(identifierValues[0]))
+	case slices.ContainsFunc(fieldTags, func(s string) bool {
+		return strings.EqualFold(s, identifier2)
+	}):
+		field.value.Set(reflect.ValueOf(identifierValues[1]))
+	}
 }

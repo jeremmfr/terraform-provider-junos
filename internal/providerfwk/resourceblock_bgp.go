@@ -389,7 +389,7 @@ func (block *bgpBlockBgpMultipath) read(itemTrim string) {
 }
 
 type bgpBlockFamily struct {
-	NlriType            types.String                    `tfsdk:"nlri_type"`
+	NlriType            types.String                    `tfsdk:"nlri_type"             tfdata:"identifier"`
 	AcceptedPrefixLimit *bgpBlockFamilyBlockPrefixLimit `tfsdk:"accepted_prefix_limit"`
 	PrefixLimit         *bgpBlockFamilyBlockPrefixLimit `tfsdk:"prefix_limit"`
 }

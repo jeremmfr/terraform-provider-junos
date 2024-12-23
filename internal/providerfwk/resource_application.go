@@ -109,8 +109,9 @@ type applicationData struct {
 	applicationAttrData
 }
 
+//nolint:lll
 type applicationAttrData struct {
-	Name                            types.String           `tfsdk:"name"`
+	Name                            types.String           `tfsdk:"name"                                   tfdata:"identifier,skip_isempty"`
 	ApplicationProtocol             types.String           `tfsdk:"application_protocol"`
 	Description                     types.String           `tfsdk:"description"`
 	DestinationPort                 types.String           `tfsdk:"destination_port"`
@@ -131,7 +132,7 @@ type applicationAttrData struct {
 }
 
 func (rscData *applicationAttrData) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscData, "Name")
+	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
 func (applicationAttrData) attributesSchema() map[string]schema.Attribute {
@@ -399,7 +400,7 @@ type applicationConfig struct {
 }
 
 type applicationAttrConfig struct {
-	Name                            types.String `tfsdk:"name"`
+	Name                            types.String `tfsdk:"name"                                   tfdata:"skip_isempty"`
 	ApplicationProtocol             types.String `tfsdk:"application_protocol"`
 	Description                     types.String `tfsdk:"description"`
 	DestinationPort                 types.String `tfsdk:"destination_port"`
@@ -420,7 +421,7 @@ type applicationAttrConfig struct {
 }
 
 func (config *applicationAttrConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(config, "Name")
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 func (config *applicationAttrConfig) validateConfig(
@@ -586,7 +587,7 @@ func (config *applicationAttrConfig) validateConfig(
 }
 
 type applicationBlockTerm struct {
-	Name                   types.String `tfsdk:"name"`
+	Name                   types.String `tfsdk:"name"                     tfdata:"identifier"`
 	Protocol               types.String `tfsdk:"protocol"`
 	Alg                    types.String `tfsdk:"alg"`
 	DestinationPort        types.String `tfsdk:"destination_port"`
@@ -1000,13 +1001,11 @@ func (rscData *applicationAttrData) read(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "source-port "):
 		rscData.SourcePort = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "term "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		name := tfdata.FirstElementOfJunosLine(itemTrim)
 		var term applicationBlockTerm
-		rscData.Term, term = tfdata.ExtractBlockWithTFTypesString(
-			rscData.Term, "Name", itemTrimFields[0],
-		)
-		term.Name = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+		rscData.Term, term = tfdata.ExtractBlock(rscData.Term, types.StringValue(name))
+		balt.CutPrefixInString(&itemTrim, name+" ")
+
 		if err := term.read(itemTrim); err != nil {
 			return err
 		}

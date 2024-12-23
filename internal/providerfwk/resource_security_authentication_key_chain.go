@@ -222,7 +222,7 @@ type securityAuthenticationKeyChainConfig struct {
 }
 
 type securityAuthenticationKeyChainBlockKey struct {
-	ID                       types.Int64  `tfsdk:"id"`
+	ID                       types.Int64  `tfsdk:"id"                         tfdata:"identifier"`
 	Secret                   types.String `tfsdk:"secret"`
 	StartTime                types.String `tfsdk:"start_time"`
 	Algorithm                types.String `tfsdk:"algorithm"`
@@ -537,10 +537,7 @@ func (rscData *securityAuthenticationKeyChainData) read(
 				if err != nil {
 					return err
 				}
-				rscData.Key, key = tfdata.ExtractBlockWithTFTypesInt64(
-					rscData.Key, "ID", keyID.ValueInt64(),
-				)
-				key.ID = keyID
+				rscData.Key, key = tfdata.ExtractBlock(rscData.Key, keyID)
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 				if err := key.read(itemTrim, junSess); err != nil {

@@ -1089,7 +1089,7 @@ type interfaceLogicalBlockFamilyBlockRPFCheck struct {
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddress struct {
-	CidrIP    types.String                                                `tfsdk:"cidr_ip"`
+	CidrIP    types.String                                                `tfsdk:"cidr_ip"    tfdata:"identifier"`
 	Preferred types.Bool                                                  `tfsdk:"preferred"`
 	Primary   types.Bool                                                  `tfsdk:"primary"`
 	VRRPGroup []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
@@ -1104,7 +1104,7 @@ type interfaceLogicalBlockFamilyInetBlockAddressConfig struct {
 
 //nolint:lll
 type interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup struct {
-	Identifier              types.Int64                                                                `tfsdk:"identifier"`
+	Identifier              types.Int64                                                                `tfsdk:"identifier"               tfdata:"identifier"`
 	VirtualAddress          []types.String                                                             `tfsdk:"virtual_address"`
 	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
 	NoAcceptData            types.Bool                                                                 `tfsdk:"no_accept_data"`
@@ -1197,7 +1197,7 @@ type interfaceLogicalBlockFamilyInet6Config struct {
 }
 
 type interfaceLogicalBlockFamilyInet6BlockAddress struct {
-	CidrIP    types.String                                                 `tfsdk:"cidr_ip"`
+	CidrIP    types.String                                                 `tfsdk:"cidr_ip"    tfdata:"identifier"`
 	Preferred types.Bool                                                   `tfsdk:"preferred"`
 	Primary   types.Bool                                                   `tfsdk:"primary"`
 	VRRPGroup []interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
@@ -1212,7 +1212,7 @@ type interfaceLogicalBlockFamilyInet6BlockAddressConfig struct {
 
 //nolint:lll
 type interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup struct {
-	Identifier              types.Int64                                                                `tfsdk:"identifier"`
+	Identifier              types.Int64                                                                `tfsdk:"identifier"                 tfdata:"identifier"`
 	VirtualAddress          []types.String                                                             `tfsdk:"virtual_address"`
 	VirutalLinkLocalAddress types.String                                                               `tfsdk:"virtual_link_local_address"`
 	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
@@ -2841,15 +2841,11 @@ func (rscData *interfaceLogicalData) read(
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " address "):
-					itemTrimFields := strings.Split(itemTrim, " ")
+					cidrIP := tfdata.FirstElementOfJunosLine(itemTrim)
 					var address interfaceLogicalBlockFamilyInet6BlockAddress
-					rscData.FamilyInet6.Address, address = tfdata.ExtractBlockWithTFTypesString(
-						rscData.FamilyInet6.Address, "CidrIP", itemTrimFields[0],
-					)
-					address.CidrIP = types.StringValue(itemTrimFields[0])
+					rscData.FamilyInet6.Address, address = tfdata.ExtractBlock(rscData.FamilyInet6.Address, types.StringValue(cidrIP))
 
-					if len(itemTrimFields) > 1 {
-						balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+					if balt.CutPrefixInString(&itemTrim, cidrIP+" ") {
 						if err := address.read(itemTrim); err != nil {
 							return err
 						}
@@ -2894,15 +2890,11 @@ func (rscData *interfaceLogicalData) read(
 				}
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " address "):
-					itemTrimFields := strings.Split(itemTrim, " ")
+					cidrIP := tfdata.FirstElementOfJunosLine(itemTrim)
 					var address interfaceLogicalBlockFamilyInetBlockAddress
-					rscData.FamilyInet.Address, address = tfdata.ExtractBlockWithTFTypesString(
-						rscData.FamilyInet.Address, "CidrIP", itemTrimFields[0],
-					)
-					address.CidrIP = types.StringValue(itemTrimFields[0])
+					rscData.FamilyInet.Address, address = tfdata.ExtractBlock(rscData.FamilyInet.Address, types.StringValue(cidrIP))
 
-					if len(itemTrimFields) > 1 {
-						balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+					if balt.CutPrefixInString(&itemTrim, cidrIP+" ") {
 						if err := address.read(itemTrim, junSess); err != nil {
 							return err
 						}
@@ -3045,14 +3037,11 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
 	case balt.CutPrefixInString(&itemTrim, "vrrp-group "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		var vrrpGroup interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup
-		vrrpGroupIdentifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
+		identifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
 		if err != nil {
 			return err
 		}
-		block.VRRPGroup, vrrpGroup = tfdata.ExtractBlockWithTFTypesInt64(
-			block.VRRPGroup, "Identifier", vrrpGroupIdentifier.ValueInt64(),
-		)
-		vrrpGroup.Identifier = vrrpGroupIdentifier
+		block.VRRPGroup, vrrpGroup = tfdata.ExtractBlock(block.VRRPGroup, identifier)
 		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 		switch {
@@ -3190,14 +3179,11 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) read(itemTrim string)
 	case balt.CutPrefixInString(&itemTrim, "vrrp-inet6-group "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		var vrrpGroup interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup
-		vrrpGroupIdentifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
+		identifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
 		if err != nil {
 			return err
 		}
-		block.VRRPGroup, vrrpGroup = tfdata.ExtractBlockWithTFTypesInt64(
-			block.VRRPGroup, "Identifier", vrrpGroupIdentifier.ValueInt64(),
-		)
-		vrrpGroup.Identifier = vrrpGroupIdentifier
+		block.VRRPGroup, vrrpGroup = tfdata.ExtractBlock(block.VRRPGroup, identifier)
 		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 		switch {
