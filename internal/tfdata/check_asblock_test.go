@@ -18,11 +18,12 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 	}
 
 	type block struct {
-		StringAttr     types.String   `tfsdk:"string_attr"`
-		Int64Attr      types.Int64    `tfsdk:"int64_attr"`
-		StringListAttr []types.String `tfsdk:"string_list_attr"`
-		BlockAttr      *block2        `tfsdk:"block_attr"`
-		StructAttr     *struct {
+		StringAttr         types.String   `tfsdk:"string_attr"`
+		StringAttrExcluded types.String   `tfsdk:"string_attr"      tfdata:"skip_isempty"`
+		Int64Attr          types.Int64    `tfsdk:"int64_attr"`
+		StringListAttr     []types.String `tfsdk:"string_list_attr"`
+		BlockAttr          *block2        `tfsdk:"block_attr"`
+		StructAttr         *struct {
 			SubBoolAttr types.Bool `tfsdk:"sub_bool_attr"`
 		} `tfsdk:"struct_attr"`
 	}
@@ -35,7 +36,6 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 	type testCase struct {
 		val            *block
 		val2           *blockWithEmbed
-		excludeFields  []string
 		expectResponse bool
 	}
 
@@ -154,13 +154,13 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 		},
 		"StringAttr_set_but_exclude": {
 			val: &block{
-				StringAttr:     types.StringValue("value_string"),
-				Int64Attr:      types.Int64Null(),
-				StringListAttr: nil,
-				BlockAttr:      nil,
-				StructAttr:     nil,
+				StringAttr:         types.StringNull(),
+				StringAttrExcluded: types.StringValue("value_string"),
+				Int64Attr:          types.Int64Null(),
+				StringListAttr:     nil,
+				BlockAttr:          nil,
+				StructAttr:         nil,
 			},
-			excludeFields:  []string{"StringAttr"},
 			expectResponse: true,
 		},
 		"blockEmbeded_null": {
@@ -197,11 +197,11 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 		"blockEmbeded_embedSet_but_exclude": {
 			val2: &blockWithEmbed{
 				block: block{
-					StringAttr: types.StringValue("value_string"),
+					StringAttr:         types.StringNull(),
+					StringAttrExcluded: types.StringValue("value_string"),
 				},
 				String2Attr: types.StringNull(),
 			},
-			excludeFields:  []string{"StringAttr"},
 			expectResponse: true,
 		},
 	}
@@ -212,11 +212,11 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 
 			switch {
 			case test.val != nil:
-				if resp := tfdata.CheckBlockIsEmpty(test.val, test.excludeFields...); resp != test.expectResponse {
+				if resp := tfdata.CheckBlockIsEmpty(test.val); resp != test.expectResponse {
 					t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
 				}
 			case test.val2 != nil:
-				if resp := tfdata.CheckBlockIsEmpty(test.val2, test.excludeFields...); resp != test.expectResponse {
+				if resp := tfdata.CheckBlockIsEmpty(test.val2); resp != test.expectResponse {
 					t.Errorf("the expected response %v, got %v", test.expectResponse, resp)
 				}
 			default:

@@ -757,39 +757,36 @@ func (rscData *bgpAttrData) read(
 			return err
 		}
 	case balt.CutPrefixInString(&itemTrim, "family evpn "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		nlriType := tfdata.FirstElementOfJunosLine(itemTrim)
 		var familyEvpn bgpBlockFamily
-		rscData.FamilyEvpn, familyEvpn = tfdata.ExtractBlockWithTFTypesString(
-			rscData.FamilyEvpn, "NlriType", itemTrimFields[0],
-		)
-		familyEvpn.NlriType = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-		if err := familyEvpn.read(itemTrim); err != nil {
-			return err
+		rscData.FamilyEvpn, familyEvpn = tfdata.ExtractBlock(rscData.FamilyEvpn, types.StringValue(nlriType))
+
+		if balt.CutPrefixInString(&itemTrim, nlriType+" ") {
+			if err := familyEvpn.read(itemTrim); err != nil {
+				return err
+			}
 		}
 		rscData.FamilyEvpn = append(rscData.FamilyEvpn, familyEvpn)
 	case balt.CutPrefixInString(&itemTrim, "family inet "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		nlriType := tfdata.FirstElementOfJunosLine(itemTrim)
 		var familyInet bgpBlockFamily
-		rscData.FamilyInet, familyInet = tfdata.ExtractBlockWithTFTypesString(
-			rscData.FamilyInet, "NlriType", itemTrimFields[0],
-		)
-		familyInet.NlriType = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-		if err := familyInet.read(itemTrim); err != nil {
-			return err
+		rscData.FamilyInet, familyInet = tfdata.ExtractBlock(rscData.FamilyInet, types.StringValue(nlriType))
+
+		if balt.CutPrefixInString(&itemTrim, nlriType+" ") {
+			if err := familyInet.read(itemTrim); err != nil {
+				return err
+			}
 		}
 		rscData.FamilyInet = append(rscData.FamilyInet, familyInet)
 	case balt.CutPrefixInString(&itemTrim, "family inet6 "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		nlriType := tfdata.FirstElementOfJunosLine(itemTrim)
 		var familyInet6 bgpBlockFamily
-		rscData.FamilyInet6, familyInet6 = tfdata.ExtractBlockWithTFTypesString(
-			rscData.FamilyInet6, "NlriType", itemTrimFields[0],
-		)
-		familyInet6.NlriType = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-		if err := familyInet6.read(itemTrim); err != nil {
-			return err
+		rscData.FamilyInet6, familyInet6 = tfdata.ExtractBlock(rscData.FamilyInet6, types.StringValue(nlriType))
+
+		if balt.CutPrefixInString(&itemTrim, nlriType+" ") {
+			if err := familyInet6.read(itemTrim); err != nil {
+				return err
+			}
 		}
 		rscData.FamilyInet6 = append(rscData.FamilyInet6, familyInet6)
 	case balt.CutPrefixInString(&itemTrim, "multipath"):

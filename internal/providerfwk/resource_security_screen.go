@@ -925,8 +925,8 @@ func (rsc *securityScreen) Schema(
 }
 
 type securityScreenData struct {
-	ID               types.String                     `tfsdk:"id"`
-	Name             types.String                     `tfsdk:"name"`
+	ID               types.String                     `tfsdk:"id"                 tfdata:"skip_isempty"`
+	Name             types.String                     `tfsdk:"name"               tfdata:"skip_isempty"`
 	AlarmWithoutDrop types.Bool                       `tfsdk:"alarm_without_drop"`
 	Description      types.String                     `tfsdk:"description"`
 	Aggregation      *securityScreenBlockAggregation  `tfsdk:"aggregation"`
@@ -938,12 +938,12 @@ type securityScreenData struct {
 }
 
 func (rscData *securityScreenData) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscData, "ID", "Name")
+	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
 type securityScreenConfig struct {
-	ID               types.String                     `tfsdk:"id"`
-	Name             types.String                     `tfsdk:"name"`
+	ID               types.String                     `tfsdk:"id"                 tfdata:"skip_isempty"`
+	Name             types.String                     `tfsdk:"name"               tfdata:"skip_isempty"`
 	AlarmWithoutDrop types.Bool                       `tfsdk:"alarm_without_drop"`
 	Description      types.String                     `tfsdk:"description"`
 	Aggregation      *securityScreenBlockAggregation  `tfsdk:"aggregation"`
@@ -955,7 +955,7 @@ type securityScreenConfig struct {
 }
 
 func (config *securityScreenConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(config, "ID", "Name")
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 type securityScreenBlockWithThreshold struct {
@@ -1201,23 +1201,23 @@ type securityScreenBlockTCPBlockSynFloodConfig struct {
 }
 
 type securityScreenBlockTCPBlockSynFloodBlockWhitelist struct {
-	Name               types.String   `tfsdk:"name"`
+	Name               types.String   `tfsdk:"name"                tfdata:"identifier,skip_isempty"`
 	DestinationAddress []types.String `tfsdk:"destination_address"`
 	SourceAddress      []types.String `tfsdk:"source_address"`
 }
 
 func (block *securityScreenBlockTCPBlockSynFloodBlockWhitelist) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type securityScreenBlockTCPBlockSynFloodBlockWhitelistConfig struct {
-	Name               types.String `tfsdk:"name"`
+	Name               types.String `tfsdk:"name"                tfdata:"skip_isempty"`
 	DestinationAddress types.Set    `tfsdk:"destination_address"`
 	SourceAddress      types.Set    `tfsdk:"source_address"`
 }
 
 func (block *securityScreenBlockTCPBlockSynFloodBlockWhitelistConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type securityScreenBlockUDP struct {
@@ -2565,10 +2565,7 @@ func (block *securityScreenBlockTCPBlockSynFlood) read(itemTrim string) (err err
 	case balt.CutPrefixInString(&itemTrim, "white-list "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
 		var whitelist securityScreenBlockTCPBlockSynFloodBlockWhitelist
-		block.Whitelist, whitelist = tfdata.ExtractBlockWithTFTypesString(
-			block.Whitelist, "Name", name,
-		)
-		whitelist.Name = types.StringValue(name)
+		block.Whitelist, whitelist = tfdata.ExtractBlock(block.Whitelist, types.StringValue(name))
 		balt.CutPrefixInString(&itemTrim, name+" ")
 
 		switch {

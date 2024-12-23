@@ -777,21 +777,21 @@ type firewallFilterConfig struct {
 }
 
 type firewallFilterBlockTerm struct {
-	Name   types.String                      `tfsdk:"name"`
+	Name   types.String                      `tfsdk:"name"   tfdata:"identifier"`
 	Filter types.String                      `tfsdk:"filter"`
 	From   *firewallFilterBlockTermBlockFrom `tfsdk:"from"`
 	Then   *firewallFilterBlockTermBlockThen `tfsdk:"then"`
 }
 
 type firewallFilterBlockTermConfig struct {
-	Name   types.String                            `tfsdk:"name"`
+	Name   types.String                            `tfsdk:"name"   tfdata:"skip_isempty"`
 	Filter types.String                            `tfsdk:"filter"`
 	From   *firewallFilterBlockTermBlockFromConfig `tfsdk:"from"`
 	Then   *firewallFilterBlockTermBlockThen       `tfsdk:"then"`
 }
 
 func (block *firewallFilterBlockTermConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type firewallFilterBlockTermBlockFrom struct {
@@ -2013,10 +2013,9 @@ func (rscData *firewallFilterData) read(
 			case balt.CutPrefixInString(&itemTrim, "term "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var term firewallFilterBlockTerm
-				rscData.Term, term = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Term, "Name", strings.Trim(name, "\""))
-				term.Name = types.StringValue(strings.Trim(name, "\""))
+				rscData.Term, term = tfdata.ExtractBlock(rscData.Term, types.StringValue(strings.Trim(name, "\"")))
 				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "filter "):
 					term.Filter = types.StringValue(strings.Trim(itemTrim, "\""))

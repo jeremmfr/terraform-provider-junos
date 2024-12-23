@@ -306,9 +306,9 @@ func (rsc *vlan) Schema(
 }
 
 type vlanData struct {
-	ID                  types.String    `tfsdk:"id"`
-	Name                types.String    `tfsdk:"name"`
-	RoutingInstance     types.String    `tfsdk:"routing_instance"`
+	ID                  types.String    `tfsdk:"id"                    tfdata:"skip_isempty"`
+	Name                types.String    `tfsdk:"name"                  tfdata:"skip_isempty"`
+	RoutingInstance     types.String    `tfsdk:"routing_instance"      tfdata:"skip_isempty"`
 	CommunityVlans      []types.String  `tfsdk:"community_vlans"`
 	Description         types.String    `tfsdk:"description"`
 	ForwardFilterInput  types.String    `tfsdk:"forward_filter_input"`
@@ -325,13 +325,13 @@ type vlanData struct {
 }
 
 func (rscData *vlanData) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscData, "ID", "Name", "RoutingInstance")
+	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
 type vlanConfig struct {
-	ID                  types.String          `tfsdk:"id"`
-	Name                types.String          `tfsdk:"name"`
-	RoutingInstance     types.String          `tfsdk:"routing_instance"`
+	ID                  types.String          `tfsdk:"id"                    tfdata:"skip_isempty"`
+	Name                types.String          `tfsdk:"name"                  tfdata:"skip_isempty"`
+	RoutingInstance     types.String          `tfsdk:"routing_instance"      tfdata:"skip_isempty"`
 	CommunityVlans      types.Set             `tfsdk:"community_vlans"`
 	Description         types.String          `tfsdk:"description"`
 	ForwardFilterInput  types.String          `tfsdk:"forward_filter_input"`
@@ -348,7 +348,7 @@ type vlanConfig struct {
 }
 
 func (rscConfig *vlanConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscConfig, "ID", "Name", "RoutingInstance")
+	return tfdata.CheckBlockIsEmpty(rscConfig)
 }
 
 type vlanBlockVxlan struct {

@@ -202,7 +202,7 @@ type snmpCommunityConfig struct {
 }
 
 type snmpCommunityBlockRoutingInstance struct {
-	Name           types.String   `tfsdk:"name"`
+	Name           types.String   `tfsdk:"name"             tfdata:"identifier"`
 	ClientListName types.String   `tfsdk:"client_list_name"`
 	Clients        []types.String `tfsdk:"clients"`
 }
@@ -527,18 +527,17 @@ func (rscData *snmpCommunityData) read(
 			case balt.CutPrefixInString(&itemTrim, "view "):
 				rscData.View = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
-				itemTrimFields := strings.Split(itemTrim, " ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var routingInstance snmpCommunityBlockRoutingInstance
-				rscData.RoutingInstance, routingInstance = tfdata.ExtractBlockWithTFTypesString(
-					rscData.RoutingInstance, "Name", itemTrimFields[0],
-				)
-				routingInstance.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-				switch {
-				case balt.CutPrefixInString(&itemTrim, "client-list-name "):
-					routingInstance.ClientListName = types.StringValue(strings.Trim(itemTrim, "\""))
-				case balt.CutPrefixInString(&itemTrim, "clients "):
-					routingInstance.Clients = append(routingInstance.Clients, types.StringValue(itemTrim))
+				rscData.RoutingInstance, routingInstance = tfdata.ExtractBlock(rscData.RoutingInstance, types.StringValue(name))
+
+				if balt.CutPrefixInString(&itemTrim, name+" ") {
+					switch {
+					case balt.CutPrefixInString(&itemTrim, "client-list-name "):
+						routingInstance.ClientListName = types.StringValue(strings.Trim(itemTrim, "\""))
+					case balt.CutPrefixInString(&itemTrim, "clients "):
+						routingInstance.Clients = append(routingInstance.Clients, types.StringValue(itemTrim))
+					}
 				}
 				rscData.RoutingInstance = append(rscData.RoutingInstance, routingInstance)
 			}

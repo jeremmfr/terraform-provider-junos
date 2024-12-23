@@ -210,25 +210,25 @@ type policyoptionsPolicyStatementConfig struct {
 }
 
 type policyoptionsPolicyStatementBlockTerm struct {
-	Name types.String                           `tfsdk:"name"`
+	Name types.String                           `tfsdk:"name" tfdata:"identifier,skip_isempty"`
 	From *policyoptionsPolicyStatementBlockFrom `tfsdk:"from"`
 	To   *policyoptionsPolicyStatementBlockTo   `tfsdk:"to"`
 	Then *policyoptionsPolicyStatementBlockThen `tfsdk:"then"`
 }
 
 func (block *policyoptionsPolicyStatementBlockTerm) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type policyoptionsPolicyStatementBlockTermConfig struct {
-	Name types.String                                 `tfsdk:"name"`
+	Name types.String                                 `tfsdk:"name" tfdata:"skip_isempty"`
 	From *policyoptionsPolicyStatementBlockFromConfig `tfsdk:"from"`
 	To   *policyoptionsPolicyStatementBlockToConfig   `tfsdk:"to"`
 	Then *policyoptionsPolicyStatementBlockThenConfig `tfsdk:"then"`
 }
 
 func (block *policyoptionsPolicyStatementBlockTermConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type policyoptionsPolicyStatementBlockFrom struct {
@@ -2259,10 +2259,9 @@ func (rscData *policyoptionsPolicyStatementData) read(
 			case balt.CutPrefixInString(&itemTrim, "term "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var term policyoptionsPolicyStatementBlockTerm
-				rscData.Term, term = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Term, "Name", strings.Trim(name, "\""))
-				term.Name = types.StringValue(strings.Trim(name, "\""))
+				rscData.Term, term = tfdata.ExtractBlock(rscData.Term, types.StringValue(strings.Trim(name, "\"")))
 				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "from "):
 					if term.From == nil {

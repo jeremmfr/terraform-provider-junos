@@ -237,7 +237,7 @@ type snmpV3VacmAccessgroupConfig struct {
 }
 
 type snmpV3VacmAccessgroupBlockContextPrefix struct {
-	Prefix       types.String                                               `tfsdk:"prefix"`
+	Prefix       types.String                                               `tfsdk:"prefix"        tfdata:"identifier"`
 	AccessConfig []snmpV3VacmAccessgroupBlockContextPrefixBlockAccessConfig `tfsdk:"access_config"`
 }
 
@@ -247,8 +247,8 @@ type snmpV3VacmAccessgroupBlockContextPrefixConfig struct {
 }
 
 type snmpV3VacmAccessgroupBlockContextPrefixBlockAccessConfig struct {
-	Model        types.String `tfsdk:"model"`
-	Level        types.String `tfsdk:"level"`
+	Model        types.String `tfsdk:"model"         tfdata:"identifier_1,skip_isempty"`
+	Level        types.String `tfsdk:"level"         tfdata:"identifier_2,skip_isempty"`
 	ContextMatch types.String `tfsdk:"context_match"`
 	NotifyView   types.String `tfsdk:"notify_view"`
 	ReadView     types.String `tfsdk:"read_view"`
@@ -256,7 +256,7 @@ type snmpV3VacmAccessgroupBlockContextPrefixBlockAccessConfig struct {
 }
 
 func (block *snmpV3VacmAccessgroupBlockContextPrefixBlockAccessConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Model", "Level")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 func (rsc *snmpV3VacmAccessgroup) ValidateConfig(
@@ -666,11 +666,11 @@ func (rscData *snmpV3VacmAccessgroupData) read(
 					return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "default-context-prefix security-model", itemTrim)
 				}
 				var defaultContextPrefix snmpV3VacmAccessgroupBlockContextPrefixBlockAccessConfig
-				rscData.DefaultContextPrefix, defaultContextPrefix = tfdata.ExtractBlockWith2TFTypesString(
-					rscData.DefaultContextPrefix, "Model", itemTrimFields[0], "Level", itemTrimFields[2])
-				defaultContextPrefix.Model = types.StringValue(itemTrimFields[0])
-				defaultContextPrefix.Level = types.StringValue(itemTrimFields[2])
+				rscData.DefaultContextPrefix, defaultContextPrefix = tfdata.ExtractBlock(
+					rscData.DefaultContextPrefix, types.StringValue(itemTrimFields[0]), types.StringValue(itemTrimFields[2]),
+				)
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" security-level "+itemTrimFields[2]+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "context-match "):
 					defaultContextPrefix.ContextMatch = types.StringValue(itemTrim)
@@ -685,21 +685,21 @@ func (rscData *snmpV3VacmAccessgroupData) read(
 			case balt.CutPrefixInString(&itemTrim, "context-prefix "):
 				prefix := tfdata.FirstElementOfJunosLine(itemTrim)
 				var contextPrefix snmpV3VacmAccessgroupBlockContextPrefix
-				rscData.ContextPrefix, contextPrefix = tfdata.ExtractBlockWithTFTypesString(
-					rscData.ContextPrefix, "Prefix", strings.Trim(prefix, "\""))
-				contextPrefix.Prefix = types.StringValue(strings.Trim(prefix, "\""))
-				balt.CutPrefixInString(&itemTrim, prefix+" ")
-				if balt.CutPrefixInString(&itemTrim, "security-model ") {
+				rscData.ContextPrefix, contextPrefix = tfdata.ExtractBlock(
+					rscData.ContextPrefix, types.StringValue(strings.Trim(prefix, "\"")),
+				)
+
+				if balt.CutPrefixInString(&itemTrim, prefix+" security-model ") {
 					itemTrimFields := strings.Split(itemTrim, " ")
 					if len(itemTrimFields) < 3 { // <model> security-level <level>
 						return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "security-model", itemTrim)
 					}
 					var accessConfig snmpV3VacmAccessgroupBlockContextPrefixBlockAccessConfig
-					contextPrefix.AccessConfig, accessConfig = tfdata.ExtractBlockWith2TFTypesString(
-						contextPrefix.AccessConfig, "Model", itemTrimFields[0], "Level", itemTrimFields[2])
-					accessConfig.Model = types.StringValue(itemTrimFields[0])
-					accessConfig.Level = types.StringValue(itemTrimFields[2])
+					contextPrefix.AccessConfig, accessConfig = tfdata.ExtractBlock(
+						contextPrefix.AccessConfig, types.StringValue(itemTrimFields[0]), types.StringValue(itemTrimFields[2]),
+					)
 					balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" security-level "+itemTrimFields[2]+" ")
+
 					switch {
 					case balt.CutPrefixInString(&itemTrim, "context-match "):
 						accessConfig.ContextMatch = types.StringValue(itemTrim)
