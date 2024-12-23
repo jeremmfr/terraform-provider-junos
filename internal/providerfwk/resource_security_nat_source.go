@@ -349,7 +349,7 @@ type securityNatSourceBlockFromToConfig struct {
 }
 
 type securityNatSourceBlockRule struct {
-	Name  types.String                          `tfsdk:"name"`
+	Name  types.String                          `tfsdk:"name"  tfdata:"identifier"`
 	Match *securityNatSourceBlockRuleBlockMatch `tfsdk:"match"`
 	Then  *securityNatSourceBlockRuleBlockThen  `tfsdk:"then"`
 }
@@ -796,13 +796,11 @@ func (rscData *securityNatSourceData) read(
 				}
 				rscData.To.Value = append(rscData.To.Value, types.StringValue(itemTrimFields[1]))
 			case balt.CutPrefixInString(&itemTrim, "rule "):
-				itemTrimFields := strings.Split(itemTrim, " ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var rule securityNatSourceBlockRule
-				rscData.Rule, rule = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Rule, "Name", itemTrimFields[0],
-				)
-				rule.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				rscData.Rule, rule = tfdata.ExtractBlock(rscData.Rule, types.StringValue(name))
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "match "):
 					if rule.Match == nil {

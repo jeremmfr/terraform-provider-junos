@@ -340,7 +340,7 @@ type securityIdpPolicyConfig struct {
 }
 
 type securityIdpPolicyBlockExemptRule struct {
-	Name        types.String                                `tfsdk:"name"`
+	Name        types.String                                `tfsdk:"name"        tfdata:"identifier"`
 	Description types.String                                `tfsdk:"description"`
 	Match       *securityIdpPolicyBlockExemptRuleBlockMatch `tfsdk:"match"`
 }
@@ -517,7 +517,7 @@ func (block *securityIdpPolicyBlockExemptRuleBlockMatchConfig) isEmpty() bool {
 }
 
 type securityIdpPolicyBlockIpsRule struct {
-	Name        types.String                             `tfsdk:"name"`
+	Name        types.String                             `tfsdk:"name"        tfdata:"identifier"`
 	Description types.String                             `tfsdk:"description"`
 	Terminal    types.Bool                               `tfsdk:"terminal"`
 	Match       *securityIdpPolicyBlockIpsRuleBlockMatch `tfsdk:"match"`
@@ -1381,10 +1381,9 @@ func (rscData *securityIdpPolicyData) read(
 			case balt.CutPrefixInString(&itemTrim, "rulebase-exempt rule "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var exemptRule securityIdpPolicyBlockExemptRule
-				rscData.ExemptRule, exemptRule = tfdata.ExtractBlockWithTFTypesString(
-					rscData.ExemptRule, "Name", strings.Trim(name, "\""),
+				rscData.ExemptRule, exemptRule = tfdata.ExtractBlock(
+					rscData.ExemptRule, types.StringValue(strings.Trim(name, "\"")),
 				)
-				exemptRule.Name = types.StringValue(strings.Trim(name, "\""))
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				exemptRule.read(itemTrim)
@@ -1393,10 +1392,9 @@ func (rscData *securityIdpPolicyData) read(
 			case balt.CutPrefixInString(&itemTrim, "rulebase-ips rule "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var ipsRule securityIdpPolicyBlockIpsRule
-				rscData.IpsRule, ipsRule = tfdata.ExtractBlockWithTFTypesString(
-					rscData.IpsRule, "Name", strings.Trim(name, "\""),
+				rscData.IpsRule, ipsRule = tfdata.ExtractBlock(
+					rscData.IpsRule, types.StringValue(strings.Trim(name, "\"")),
 				)
-				ipsRule.Name = types.StringValue(strings.Trim(name, "\""))
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				if err := ipsRule.read(itemTrim); err != nil {

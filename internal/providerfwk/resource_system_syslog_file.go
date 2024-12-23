@@ -442,7 +442,7 @@ type systemSyslogFileBlockArchiveConfig struct {
 }
 
 type systemSyslogFileBlockArchiveBlockSites struct {
-	URL             types.String `tfsdk:"url"`
+	URL             types.String `tfsdk:"url"              tfdata:"identifier"`
 	Password        types.String `tfsdk:"password"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 }
@@ -912,19 +912,20 @@ func (rscData *systemSyslogFileData) read(
 				case balt.CutPrefixInString(&itemTrim, " archive-sites "):
 					url := tfdata.FirstElementOfJunosLine(itemTrim)
 					var sites systemSyslogFileBlockArchiveBlockSites
-					rscData.Archive.Sites, sites = tfdata.ExtractBlockWithTFTypesString(
-						rscData.Archive.Sites, "URL", strings.Trim(url, "\""),
+					rscData.Archive.Sites, sites = tfdata.ExtractBlock(
+						rscData.Archive.Sites, types.StringValue(strings.Trim(url, "\"")),
 					)
-					sites.URL = types.StringValue(strings.Trim(url, "\""))
-					balt.CutPrefixInString(&itemTrim, url+" ")
-					switch {
-					case balt.CutPrefixInString(&itemTrim, "password "):
-						sites.Password, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "password")
-						if err != nil {
-							return err
+
+					if balt.CutPrefixInString(&itemTrim, url+" ") {
+						switch {
+						case balt.CutPrefixInString(&itemTrim, "password "):
+							sites.Password, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "password")
+							if err != nil {
+								return err
+							}
+						case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+							sites.RoutingInstance = types.StringValue(itemTrim)
 						}
-					case balt.CutPrefixInString(&itemTrim, "routing-instance "):
-						sites.RoutingInstance = types.StringValue(itemTrim)
 					}
 					rscData.Archive.Sites = append(rscData.Archive.Sites, sites)
 				}

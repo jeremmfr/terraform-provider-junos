@@ -436,7 +436,7 @@ func (block *securityIpsecVpnBlockManual) hasKnownValue() bool {
 }
 
 type securityIpsecVpnBlockTrafficSelector struct {
-	Name     types.String `tfsdk:"name"`
+	Name     types.String `tfsdk:"name"      tfdata:"identifier"`
 	LocalIP  types.String `tfsdk:"local_ip"`
 	RemoteIP types.String `tfsdk:"remote_ip"`
 }
@@ -1106,10 +1106,11 @@ func (rscData *securityIpsecVpnData) read(
 			case balt.CutPrefixInString(&itemTrim, "traffic-selector "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var trafficSelector securityIpsecVpnBlockTrafficSelector
-				rscData.TrafficSelector, trafficSelector = tfdata.ExtractBlockWithTFTypesString(
-					rscData.TrafficSelector, "Name", strings.Trim(name, "\""))
-				trafficSelector.Name = types.StringValue(strings.Trim(name, "\""))
+				rscData.TrafficSelector, trafficSelector = tfdata.ExtractBlock(
+					rscData.TrafficSelector, types.StringValue(strings.Trim(name, "\"")),
+				)
 				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "local-ip "):
 					trafficSelector.LocalIP = types.StringValue(itemTrim)

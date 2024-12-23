@@ -541,10 +541,10 @@ func (rsc *forwardingoptionsDhcprelayGroup) Schema(
 
 //nolint:lll
 type forwardingoptionsDhcprelayGroupData struct {
-	ID                                   types.String                                                  `tfsdk:"id"`
-	Name                                 types.String                                                  `tfsdk:"name"`
-	RoutingInstance                      types.String                                                  `tfsdk:"routing_instance"`
-	Version                              types.String                                                  `tfsdk:"version"`
+	ID                                   types.String                                                  `tfsdk:"id"                                       tfdata:"skip_isempty"`
+	Name                                 types.String                                                  `tfsdk:"name"                                     tfdata:"skip_isempty"`
+	RoutingInstance                      types.String                                                  `tfsdk:"routing_instance"                         tfdata:"skip_isempty"`
+	Version                              types.String                                                  `tfsdk:"version"                                  tfdata:"skip_isempty"`
 	AccessProfile                        types.String                                                  `tfsdk:"access_profile"`
 	ActiveServerGroup                    types.String                                                  `tfsdk:"active_server_group"`
 	ActiveServerGroupAllowServerChange   types.Bool                                                    `tfsdk:"active_server_group_allow_server_change"`
@@ -588,15 +588,15 @@ type forwardingoptionsDhcprelayGroupData struct {
 }
 
 func (rscData *forwardingoptionsDhcprelayGroupData) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscData, "ID", "Name", "RoutingInstance", "Version")
+	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
 //nolint:lll
 type forwardingoptionsDhcprelayGroupConfig struct {
-	ID                                   types.String                                                  `tfsdk:"id"`
-	Name                                 types.String                                                  `tfsdk:"name"`
-	RoutingInstance                      types.String                                                  `tfsdk:"routing_instance"`
-	Version                              types.String                                                  `tfsdk:"version"`
+	ID                                   types.String                                                  `tfsdk:"id"                                       tfdata:"skip_isempty"`
+	Name                                 types.String                                                  `tfsdk:"name"                                     tfdata:"skip_isempty"`
+	RoutingInstance                      types.String                                                  `tfsdk:"routing_instance"                         tfdata:"skip_isempty"`
+	Version                              types.String                                                  `tfsdk:"version"                                  tfdata:"skip_isempty"`
 	AccessProfile                        types.String                                                  `tfsdk:"access_profile"`
 	ActiveServerGroup                    types.String                                                  `tfsdk:"active_server_group"`
 	ActiveServerGroupAllowServerChange   types.Bool                                                    `tfsdk:"active_server_group_allow_server_change"`
@@ -640,12 +640,12 @@ type forwardingoptionsDhcprelayGroupConfig struct {
 }
 
 func (rscConfig *forwardingoptionsDhcprelayGroupConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscConfig, "ID", "Name", "RoutingInstance", "Version")
+	return tfdata.CheckBlockIsEmpty(rscConfig)
 }
 
 //nolint:lll
 type forwardingoptionsDhcprelayGroupBlockInterface struct {
-	Name                                 types.String                                `tfsdk:"name"`
+	Name                                 types.String                                `tfsdk:"name"                                     tfdata:"identifier"`
 	AccessProfile                        types.String                                `tfsdk:"access_profile"`
 	DynamicProfile                       types.String                                `tfsdk:"dynamic_profile"`
 	DynamicProfileAggregateClients       types.Bool                                  `tfsdk:"dynamic_profile_aggregate_clients"`
@@ -2117,13 +2117,11 @@ func (rscData *forwardingoptionsDhcprelayGroupData) read(
 
 				rscData.AuthenticationUsernameInclude.read(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "interface "):
-				itemTrimFields := strings.Split(itemTrim, " ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var interFace forwardingoptionsDhcprelayGroupBlockInterface
-				rscData.Interface, interFace = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Interface, "Name", itemTrimFields[0],
-				)
-				interFace.Name = types.StringValue(itemTrimFields[0])
-				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ") {
+				rscData.Interface, interFace = tfdata.ExtractBlock(rscData.Interface, types.StringValue(name))
+
+				if balt.CutPrefixInString(&itemTrim, name+" ") {
 					if err := interFace.read(itemTrim, rscData.Version.ValueString()); err != nil {
 						return err
 					}
