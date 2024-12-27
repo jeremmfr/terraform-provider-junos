@@ -1677,18 +1677,17 @@ func (rscData *eventoptionsPolicyData) read(
 				rscData.AttributesMatch = append(rscData.AttributesMatch, attributesMatch)
 			case balt.CutPrefixInString(&itemTrim, "within "):
 				itemTrimFields := strings.Split(itemTrim, " ")
-				var within eventoptionsPolicyBlockWithin
 				withinTimeInterval, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
 				if err != nil {
 					return err
 				}
-				rscData.Within, within = tfdata.ExtractBlock(rscData.Within, withinTimeInterval)
+				rscData.Within = tfdata.AppendPotentialNewBlock(rscData.Within, withinTimeInterval)
+				within := &rscData.Within[len(rscData.Within)-1]
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 				if err := within.read(itemTrim); err != nil {
 					return err
 				}
-				rscData.Within = append(rscData.Within, within)
 			}
 		}
 	}
@@ -1715,16 +1714,13 @@ func (block *eventoptionsPolicyBlockThen) read(itemTrim string) (err error) {
 		}
 	case balt.CutPrefixInString(&itemTrim, "event-script "):
 		filename := tfdata.FirstElementOfJunosLine(itemTrim)
-		var eventScript eventoptionsPolicyBlockThenBlockEventScript
-		block.EventScript, eventScript = tfdata.ExtractBlock(
-			block.EventScript, types.StringValue(strings.Trim(filename, "\"")),
-		)
+		block.EventScript = tfdata.AppendPotentialNewBlock(block.EventScript, types.StringValue(strings.Trim(filename, "\"")))
+		eventScript := &block.EventScript[len(block.EventScript)-1]
 		balt.CutPrefixInString(&itemTrim, filename+" ")
 
 		if err := eventScript.read(itemTrim); err != nil {
 			return err
 		}
-		block.EventScript = append(block.EventScript, eventScript)
 	case balt.CutPrefixInString(&itemTrim, "execute-commands "):
 		if block.ExecuteCommands == nil {
 			block.ExecuteCommands = &eventoptionsPolicyBlockThenBlockExecuteCommands{}
@@ -1741,14 +1737,13 @@ func (block *eventoptionsPolicyBlockThen) read(itemTrim string) (err error) {
 		} else {
 			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "upload filename destination", itemTrim)
 		}
-		var upload eventoptionsPolicyBlockThenBlockUpload
-		block.Upload, upload = tfdata.ExtractBlock(
+		block.Upload = tfdata.AppendPotentialNewBlock(
 			block.Upload, types.StringValue(strings.Trim(filename, "\"")), types.StringValue(strings.Trim(destination, "\"")),
 		)
+		upload := &block.Upload[len(block.Upload)-1]
 		if err := upload.read(itemTrim); err != nil {
 			return err
 		}
-		block.Upload = append(block.Upload, upload)
 	}
 
 	return nil
@@ -1790,12 +1785,11 @@ func (block *eventoptionsPolicyBlockThenBlockEventScript) read(itemTrim string) 
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "arguments "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var arguments eventoptionsPolicyBlockThenBlockEventScriptBlockArguments
-		block.Arguments, arguments = tfdata.ExtractBlock(block.Arguments, types.StringValue(strings.Trim(name, "\"")))
+		block.Arguments = tfdata.AppendPotentialNewBlock(block.Arguments, types.StringValue(strings.Trim(name, "\"")))
+		arguments := &block.Arguments[len(block.Arguments)-1]
 		balt.CutPrefixInString(&itemTrim, name+" ")
 
 		arguments.Value = types.StringValue(strings.Trim(strings.TrimPrefix(itemTrim, name+" "), "\""))
-		block.Arguments = append(block.Arguments, arguments)
 	case balt.CutPrefixInString(&itemTrim, "destination "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
 		if block.Destination == nil {

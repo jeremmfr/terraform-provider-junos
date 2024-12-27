@@ -3611,8 +3611,8 @@ func (block *securityIdpCustomAttackBlockAttackTypeChain) read(itemTrim string) 
 		block.Scope = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "member "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var member securityIdpCustomAttackBlockAttackTypeChainBlockMember
-		block.Member, member = tfdata.ExtractBlock(block.Member, types.StringValue(strings.Trim(name, "\"")))
+		block.Member = tfdata.AppendPotentialNewBlock(block.Member, types.StringValue(strings.Trim(name, "\"")))
+		member := &block.Member[len(block.Member)-1]
 		balt.CutPrefixInString(&itemTrim, name+" ")
 
 		switch {
@@ -3631,8 +3631,6 @@ func (block *securityIdpCustomAttackBlockAttackTypeChain) read(itemTrim string) 
 				return err
 			}
 		}
-
-		block.Member = append(block.Member, member)
 	}
 
 	return nil

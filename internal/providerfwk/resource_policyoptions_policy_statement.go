@@ -2258,8 +2258,8 @@ func (rscData *policyoptionsPolicyStatementData) read(
 				rscData.DynamicDB = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "term "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var term policyoptionsPolicyStatementBlockTerm
-				rscData.Term, term = tfdata.ExtractBlock(rscData.Term, types.StringValue(strings.Trim(name, "\"")))
+				rscData.Term = tfdata.AppendPotentialNewBlock(rscData.Term, types.StringValue(strings.Trim(name, "\"")))
+				term := &rscData.Term[len(rscData.Term)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
@@ -2285,7 +2285,6 @@ func (rscData *policyoptionsPolicyStatementData) read(
 						return err
 					}
 				}
-				rscData.Term = append(rscData.Term, term)
 			case balt.CutPrefixInString(&itemTrim, "from "):
 				if rscData.From == nil {
 					rscData.From = &policyoptionsPolicyStatementBlockFrom{}

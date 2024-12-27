@@ -1037,10 +1037,8 @@ func (rscData *staticRouteData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "qualified-next-hop "):
 				nextHop := tfdata.FirstElementOfJunosLine(itemTrim)
-				var qualifiedNextHop staticRouteBlockQualifiedNextHop
-				rscData.QualifiedNextHop, qualifiedNextHop = tfdata.ExtractBlock(
-					rscData.QualifiedNextHop, types.StringValue(nextHop),
-				)
+				rscData.QualifiedNextHop = tfdata.AppendPotentialNewBlock(rscData.QualifiedNextHop, types.StringValue(nextHop))
+				qualifiedNextHop := &rscData.QualifiedNextHop[len(rscData.QualifiedNextHop)-1]
 
 				if balt.CutPrefixInString(&itemTrim, nextHop+" ") {
 					switch {
@@ -1058,7 +1056,6 @@ func (rscData *staticRouteData) read(
 						}
 					}
 				}
-				rscData.QualifiedNextHop = append(rscData.QualifiedNextHop, qualifiedNextHop)
 			case itemTrim == "readvertise":
 				rscData.Readvertise = types.BoolValue(true)
 			case itemTrim == "no-readvertise":

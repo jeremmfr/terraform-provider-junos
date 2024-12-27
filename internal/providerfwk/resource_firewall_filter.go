@@ -2012,8 +2012,8 @@ func (rscData *firewallFilterData) read(
 				rscData.InterfaceSpecific = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "term "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var term firewallFilterBlockTerm
-				rscData.Term, term = tfdata.ExtractBlock(rscData.Term, types.StringValue(strings.Trim(name, "\"")))
+				rscData.Term = tfdata.AppendPotentialNewBlock(rscData.Term, types.StringValue(strings.Trim(name, "\"")))
+				term := &rscData.Term[len(rscData.Term)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
@@ -2030,7 +2030,6 @@ func (rscData *firewallFilterData) read(
 					}
 					term.Then.read(itemTrim)
 				}
-				rscData.Term = append(rscData.Term, term)
 			}
 		}
 	}

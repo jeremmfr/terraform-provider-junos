@@ -675,8 +675,8 @@ func (rscData *securityNatDestinationData) read(
 				rscData.From.Value = append(rscData.From.Value, types.StringValue(itemTrimFields[1]))
 			case balt.CutPrefixInString(&itemTrim, "rule "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var rule securityNatDestinationBlockRule
-				rscData.Rule, rule = tfdata.ExtractBlock(rscData.Rule, types.StringValue(name))
+				rscData.Rule = tfdata.AppendPotentialNewBlock(rscData.Rule, types.StringValue(name))
+				rule := &rscData.Rule[len(rscData.Rule)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
@@ -715,7 +715,6 @@ func (rscData *securityNatDestinationData) read(
 						rule.Then.Type = types.StringValue(itemTrim)
 					}
 				}
-				rscData.Rule = append(rscData.Rule, rule)
 			}
 		}
 	}

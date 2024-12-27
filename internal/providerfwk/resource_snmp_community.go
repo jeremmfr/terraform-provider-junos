@@ -528,8 +528,8 @@ func (rscData *snmpCommunityData) read(
 				rscData.View = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var routingInstance snmpCommunityBlockRoutingInstance
-				rscData.RoutingInstance, routingInstance = tfdata.ExtractBlock(rscData.RoutingInstance, types.StringValue(name))
+				rscData.RoutingInstance = tfdata.AppendPotentialNewBlock(rscData.RoutingInstance, types.StringValue(name))
+				routingInstance := &rscData.RoutingInstance[len(rscData.RoutingInstance)-1]
 
 				if balt.CutPrefixInString(&itemTrim, name+" ") {
 					switch {
@@ -539,7 +539,6 @@ func (rscData *snmpCommunityData) read(
 						routingInstance.Clients = append(routingInstance.Clients, types.StringValue(itemTrim))
 					}
 				}
-				rscData.RoutingInstance = append(rscData.RoutingInstance, routingInstance)
 			}
 		}
 	}

@@ -758,37 +758,34 @@ func (rscData *bgpAttrData) read(
 		}
 	case balt.CutPrefixInString(&itemTrim, "family evpn "):
 		nlriType := tfdata.FirstElementOfJunosLine(itemTrim)
-		var familyEvpn bgpBlockFamily
-		rscData.FamilyEvpn, familyEvpn = tfdata.ExtractBlock(rscData.FamilyEvpn, types.StringValue(nlriType))
+		rscData.FamilyEvpn = tfdata.AppendPotentialNewBlock(rscData.FamilyEvpn, types.StringValue(nlriType))
+		familyEvpn := &rscData.FamilyEvpn[len(rscData.FamilyEvpn)-1]
 
 		if balt.CutPrefixInString(&itemTrim, nlriType+" ") {
 			if err := familyEvpn.read(itemTrim); err != nil {
 				return err
 			}
 		}
-		rscData.FamilyEvpn = append(rscData.FamilyEvpn, familyEvpn)
 	case balt.CutPrefixInString(&itemTrim, "family inet "):
 		nlriType := tfdata.FirstElementOfJunosLine(itemTrim)
-		var familyInet bgpBlockFamily
-		rscData.FamilyInet, familyInet = tfdata.ExtractBlock(rscData.FamilyInet, types.StringValue(nlriType))
+		rscData.FamilyInet = tfdata.AppendPotentialNewBlock(rscData.FamilyInet, types.StringValue(nlriType))
+		familyInet := &rscData.FamilyInet[len(rscData.FamilyInet)-1]
 
 		if balt.CutPrefixInString(&itemTrim, nlriType+" ") {
 			if err := familyInet.read(itemTrim); err != nil {
 				return err
 			}
 		}
-		rscData.FamilyInet = append(rscData.FamilyInet, familyInet)
 	case balt.CutPrefixInString(&itemTrim, "family inet6 "):
 		nlriType := tfdata.FirstElementOfJunosLine(itemTrim)
-		var familyInet6 bgpBlockFamily
-		rscData.FamilyInet6, familyInet6 = tfdata.ExtractBlock(rscData.FamilyInet6, types.StringValue(nlriType))
+		rscData.FamilyInet6 = tfdata.AppendPotentialNewBlock(rscData.FamilyInet6, types.StringValue(nlriType))
+		familyInet6 := &rscData.FamilyInet6[len(rscData.FamilyInet6)-1]
 
 		if balt.CutPrefixInString(&itemTrim, nlriType+" ") {
 			if err := familyInet6.read(itemTrim); err != nil {
 				return err
 			}
 		}
-		rscData.FamilyInet6 = append(rscData.FamilyInet6, familyInet6)
 	case balt.CutPrefixInString(&itemTrim, "multipath"):
 		if rscData.BgpMultipath == nil {
 			rscData.BgpMultipath = &bgpBlockBgpMultipath{}

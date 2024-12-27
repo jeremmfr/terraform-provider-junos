@@ -2836,15 +2836,16 @@ func (rscData *interfaceLogicalData) read(
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " address "):
 					cidrIP := tfdata.FirstElementOfJunosLine(itemTrim)
-					var address interfaceLogicalBlockFamilyInet6BlockAddress
-					rscData.FamilyInet6.Address, address = tfdata.ExtractBlock(rscData.FamilyInet6.Address, types.StringValue(cidrIP))
+					rscData.FamilyInet6.Address = tfdata.AppendPotentialNewBlock(
+						rscData.FamilyInet6.Address, types.StringValue(cidrIP),
+					)
+					address := &rscData.FamilyInet6.Address[len(rscData.FamilyInet6.Address)-1]
 
 					if balt.CutPrefixInString(&itemTrim, cidrIP+" ") {
 						if err := address.read(itemTrim); err != nil {
 							return err
 						}
 					}
-					rscData.FamilyInet6.Address = append(rscData.FamilyInet6.Address, address)
 				case balt.CutPrefixInString(&itemTrim, " dhcpv6-client "):
 					if rscData.FamilyInet6.DHCPv6Client == nil {
 						rscData.FamilyInet6.DHCPv6Client = &interfaceLogicalBlockFamilyInet6BlockDhcpV6Client{}
@@ -2885,15 +2886,14 @@ func (rscData *interfaceLogicalData) read(
 				switch {
 				case balt.CutPrefixInString(&itemTrim, " address "):
 					cidrIP := tfdata.FirstElementOfJunosLine(itemTrim)
-					var address interfaceLogicalBlockFamilyInetBlockAddress
-					rscData.FamilyInet.Address, address = tfdata.ExtractBlock(rscData.FamilyInet.Address, types.StringValue(cidrIP))
+					rscData.FamilyInet.Address = tfdata.AppendPotentialNewBlock(rscData.FamilyInet.Address, types.StringValue(cidrIP))
+					address := &rscData.FamilyInet.Address[len(rscData.FamilyInet.Address)-1]
 
 					if balt.CutPrefixInString(&itemTrim, cidrIP+" ") {
 						if err := address.read(itemTrim, junSess); err != nil {
 							return err
 						}
 					}
-					rscData.FamilyInet.Address = append(rscData.FamilyInet.Address, address)
 				case strings.HasPrefix(itemTrim, " dhcp"):
 					if rscData.FamilyInet.DHCP == nil {
 						rscData.FamilyInet.DHCP = &interfaceLogicalBlockFamilyInetBlockDhcp{}
@@ -3030,12 +3030,12 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
 		block.Preferred = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "vrrp-group "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var vrrpGroup interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup
 		identifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
 		if err != nil {
 			return err
 		}
-		block.VRRPGroup, vrrpGroup = tfdata.ExtractBlock(block.VRRPGroup, identifier)
+		block.VRRPGroup = tfdata.AppendPotentialNewBlock(block.VRRPGroup, identifier)
+		vrrpGroup := &block.VRRPGroup[len(block.VRRPGroup)-1]
 		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 		switch {
@@ -3103,7 +3103,6 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
 				},
 			)
 		}
-		block.VRRPGroup = append(block.VRRPGroup, vrrpGroup)
 	}
 
 	return nil
@@ -3172,12 +3171,12 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) read(itemTrim string)
 		block.Preferred = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "vrrp-inet6-group "):
 		itemTrimFields := strings.Split(itemTrim, " ")
-		var vrrpGroup interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup
 		identifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
 		if err != nil {
 			return err
 		}
-		block.VRRPGroup, vrrpGroup = tfdata.ExtractBlock(block.VRRPGroup, identifier)
+		block.VRRPGroup = tfdata.AppendPotentialNewBlock(block.VRRPGroup, identifier)
+		vrrpGroup := &block.VRRPGroup[len(block.VRRPGroup)-1]
 		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 		switch {
@@ -3240,7 +3239,6 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) read(itemTrim string)
 				},
 			)
 		}
-		block.VRRPGroup = append(block.VRRPGroup, vrrpGroup)
 	}
 
 	return nil

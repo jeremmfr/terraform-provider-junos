@@ -1380,28 +1380,20 @@ func (rscData *securityIdpPolicyData) read(
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "rulebase-exempt rule "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var exemptRule securityIdpPolicyBlockExemptRule
-				rscData.ExemptRule, exemptRule = tfdata.ExtractBlock(
-					rscData.ExemptRule, types.StringValue(strings.Trim(name, "\"")),
-				)
+				rscData.ExemptRule = tfdata.AppendPotentialNewBlock(rscData.ExemptRule, types.StringValue(strings.Trim(name, "\"")))
+				exemptRule := &rscData.ExemptRule[len(rscData.ExemptRule)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				exemptRule.read(itemTrim)
-
-				rscData.ExemptRule = append(rscData.ExemptRule, exemptRule)
 			case balt.CutPrefixInString(&itemTrim, "rulebase-ips rule "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var ipsRule securityIdpPolicyBlockIpsRule
-				rscData.IpsRule, ipsRule = tfdata.ExtractBlock(
-					rscData.IpsRule, types.StringValue(strings.Trim(name, "\"")),
-				)
+				rscData.IpsRule = tfdata.AppendPotentialNewBlock(rscData.IpsRule, types.StringValue(strings.Trim(name, "\"")))
+				ipsRule := &rscData.IpsRule[len(rscData.IpsRule)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				if err := ipsRule.read(itemTrim); err != nil {
 					return err
 				}
-
-				rscData.IpsRule = append(rscData.IpsRule, ipsRule)
 			}
 		}
 	}

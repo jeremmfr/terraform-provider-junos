@@ -717,8 +717,8 @@ func (rscData *securityGlobalPolicyData) read(
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			if balt.CutPrefixInString(&itemTrim, "policy ") {
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var policy securityGlobalPolicyBlockPolicy
-				rscData.Policy, policy = tfdata.ExtractBlock(rscData.Policy, types.StringValue(name))
+				rscData.Policy = tfdata.AppendPotentialNewBlock(rscData.Policy, types.StringValue(name))
+				policy := &rscData.Policy[len(rscData.Policy)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
@@ -764,7 +764,6 @@ func (rscData *securityGlobalPolicyData) read(
 						policy.PermitApplicationServices.read(itemTrim)
 					}
 				}
-				rscData.Policy = append(rscData.Policy, policy)
 			}
 		}
 	}

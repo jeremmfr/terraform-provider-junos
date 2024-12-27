@@ -1105,10 +1105,10 @@ func (rscData *securityIpsecVpnData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "traffic-selector "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var trafficSelector securityIpsecVpnBlockTrafficSelector
-				rscData.TrafficSelector, trafficSelector = tfdata.ExtractBlock(
+				rscData.TrafficSelector = tfdata.AppendPotentialNewBlock(
 					rscData.TrafficSelector, types.StringValue(strings.Trim(name, "\"")),
 				)
+				trafficSelector := &rscData.TrafficSelector[len(rscData.TrafficSelector)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
@@ -1117,7 +1117,6 @@ func (rscData *securityIpsecVpnData) read(
 				case balt.CutPrefixInString(&itemTrim, "remote-ip "):
 					trafficSelector.RemoteIP = types.StringValue(itemTrim)
 				}
-				rscData.TrafficSelector = append(rscData.TrafficSelector, trafficSelector)
 			case balt.CutPrefixInString(&itemTrim, "vpn-monitor "):
 				if rscData.VpnMonitor == nil {
 					rscData.VpnMonitor = &securityIpsecVpnBlockVpnMonitor{}

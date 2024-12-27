@@ -2177,8 +2177,8 @@ func (block *accessAddressAssignmentPoolBlockFamily) read(itemTrim string) (err 
 		}
 	case balt.CutPrefixInString(&itemTrim, "excluded-range "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var excludedRange accessAddressAssignmentPoolBlockFamilyBlockExcludedRange
-		block.ExcludedRange, excludedRange = tfdata.ExtractBlock(block.ExcludedRange, types.StringValue(name))
+		block.ExcludedRange = tfdata.AppendPotentialNewBlock(block.ExcludedRange, types.StringValue(name))
+		excludedRange := &block.ExcludedRange[len(block.ExcludedRange)-1]
 		balt.CutPrefixInString(&itemTrim, name+" ")
 
 		switch {
@@ -2187,11 +2187,10 @@ func (block *accessAddressAssignmentPoolBlockFamily) read(itemTrim string) (err 
 		case balt.CutPrefixInString(&itemTrim, "high "):
 			excludedRange.High = types.StringValue(itemTrim)
 		}
-		block.ExcludedRange = append(block.ExcludedRange, excludedRange)
 	case balt.CutPrefixInString(&itemTrim, "host "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var host accessAddressAssignmentPoolBlockFamilyBlockHost
-		block.Host, host = tfdata.ExtractBlock(block.Host, types.StringValue(strings.Trim(name, "\"")))
+		block.Host = tfdata.AppendPotentialNewBlock(block.Host, types.StringValue(strings.Trim(name, "\"")))
+		host := &block.Host[len(block.Host)-1]
 		balt.CutPrefixInString(&itemTrim, name+" ")
 
 		switch {
@@ -2202,12 +2201,11 @@ func (block *accessAddressAssignmentPoolBlockFamily) read(itemTrim string) (err 
 		case itemTrim == "user-name":
 			host.UserName = types.BoolValue(true)
 		}
-		block.Host = append(block.Host, host)
 	case balt.CutPrefixInString(&itemTrim, "range "):
 		if block.Type.ValueString() == junos.InetW {
 			name := tfdata.FirstElementOfJunosLine(itemTrim)
-			var inetRange accessAddressAssignmentPoolBlockFamilyBlockInetRange
-			block.InetRange, inetRange = tfdata.ExtractBlock(block.InetRange, types.StringValue(name))
+			block.InetRange = tfdata.AppendPotentialNewBlock(block.InetRange, types.StringValue(name))
+			inetRange := &block.InetRange[len(block.InetRange)-1]
 			balt.CutPrefixInString(&itemTrim, name+" ")
 
 			switch {
@@ -2216,11 +2214,10 @@ func (block *accessAddressAssignmentPoolBlockFamily) read(itemTrim string) (err 
 			case balt.CutPrefixInString(&itemTrim, "high "):
 				inetRange.High = types.StringValue(itemTrim)
 			}
-			block.InetRange = append(block.InetRange, inetRange)
 		} else if block.Type.ValueString() == junos.Inet6W {
 			name := tfdata.FirstElementOfJunosLine(itemTrim)
-			var inet6Range accessAddressAssignmentPoolBlockFamilyBlockInet6Range
-			block.Inet6Range, inet6Range = tfdata.ExtractBlock(block.Inet6Range, types.StringValue(name))
+			block.Inet6Range = tfdata.AppendPotentialNewBlock(block.Inet6Range, types.StringValue(name))
+			inet6Range := &block.Inet6Range[len(block.Inet6Range)-1]
 			balt.CutPrefixInString(&itemTrim, name+" ")
 
 			switch {
@@ -2234,7 +2231,6 @@ func (block *accessAddressAssignmentPoolBlockFamily) read(itemTrim string) (err 
 					return err
 				}
 			}
-			block.Inet6Range = append(block.Inet6Range, inet6Range)
 		}
 	}
 

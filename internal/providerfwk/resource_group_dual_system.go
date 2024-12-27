@@ -875,15 +875,14 @@ func (rscData *groupDualSystemData) read(
 				}
 
 				destination := tfdata.FirstElementOfJunosLine(itemTrim)
-				var staticRoute groupDualSystemBlockRoutingOptionsBlockStaticRoute
-				rscData.RoutingOptions.StaticRoute, staticRoute = tfdata.ExtractBlock(
+				rscData.RoutingOptions.StaticRoute = tfdata.AppendPotentialNewBlock(
 					rscData.RoutingOptions.StaticRoute, types.StringValue(destination),
 				)
+				staticRoute := &rscData.RoutingOptions.StaticRoute[len(rscData.RoutingOptions.StaticRoute)-1]
 
 				if balt.CutPrefixInString(&itemTrim, destination+" next-hop ") {
 					staticRoute.NextHop = append(staticRoute.NextHop, types.StringValue(itemTrim))
 				}
-				rscData.RoutingOptions.StaticRoute = append(rscData.RoutingOptions.StaticRoute, staticRoute)
 			case balt.CutPrefixInString(&itemTrim, "security "):
 				if rscData.Security == nil {
 					rscData.Security = &groupDualSystemBlockSecurity{}
@@ -939,26 +938,20 @@ func (block *groupDualSystemBlockInterfaceFXP0) read(itemTrim string) {
 		block.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "unit 0 family inet address "):
 		cidrIP := tfdata.FirstElementOfJunosLine(itemTrim)
-		var familyInetAddress groupDualSystemBlockInterfaceFXP0BlockFamilyAddress
-		block.FamilyInetAddress, familyInetAddress = tfdata.ExtractBlock(
-			block.FamilyInetAddress, types.StringValue(cidrIP),
-		)
+		block.FamilyInetAddress = tfdata.AppendPotentialNewBlock(block.FamilyInetAddress, types.StringValue(cidrIP))
+		familyInetAddress := &block.FamilyInetAddress[len(block.FamilyInetAddress)-1]
 
 		if balt.CutPrefixInString(&itemTrim, cidrIP+" ") {
 			familyInetAddress.read(itemTrim)
 		}
-		block.FamilyInetAddress = append(block.FamilyInetAddress, familyInetAddress)
 	case balt.CutPrefixInString(&itemTrim, "unit 0 family inet6 address "):
 		cidrIP := tfdata.FirstElementOfJunosLine(itemTrim)
-		var familyInet6Address groupDualSystemBlockInterfaceFXP0BlockFamilyAddress
-		block.FamilyInet6Address, familyInet6Address = tfdata.ExtractBlock(
-			block.FamilyInet6Address, types.StringValue(cidrIP),
-		)
+		block.FamilyInet6Address = tfdata.AppendPotentialNewBlock(block.FamilyInet6Address, types.StringValue(cidrIP))
+		familyInet6Address := &block.FamilyInet6Address[len(block.FamilyInet6Address)-1]
 
 		if balt.CutPrefixInString(&itemTrim, cidrIP+" ") {
 			familyInet6Address.read(itemTrim)
 		}
-		block.FamilyInet6Address = append(block.FamilyInet6Address, familyInet6Address)
 	}
 }
 

@@ -790,18 +790,17 @@ func (rscData *virtualChassisData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "member "):
 				itemTrimFields := strings.Split(itemTrim, " ")
-				var member virtualChassisBlockMember
 				memberID, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
 				if err != nil {
 					return err
 				}
-				rscData.Member, member = tfdata.ExtractBlock(rscData.Member, memberID)
+				rscData.Member = tfdata.AppendPotentialNewBlock(rscData.Member, memberID)
+				member := &rscData.Member[len(rscData.Member)-1]
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 				if err := member.read(itemTrim); err != nil {
 					return err
 				}
-				rscData.Member = append(rscData.Member, member)
 			case balt.CutPrefixInString(&itemTrim, "traceoptions "):
 				if rscData.Traceoptions == nil {
 					rscData.Traceoptions = &virtualChassisBlockTraceoptions{}

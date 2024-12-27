@@ -911,10 +911,10 @@ func (rscData *systemSyslogFileData) read(
 					rscData.Archive.NoWorldReadable = types.BoolValue(true)
 				case balt.CutPrefixInString(&itemTrim, " archive-sites "):
 					url := tfdata.FirstElementOfJunosLine(itemTrim)
-					var sites systemSyslogFileBlockArchiveBlockSites
-					rscData.Archive.Sites, sites = tfdata.ExtractBlock(
+					rscData.Archive.Sites = tfdata.AppendPotentialNewBlock(
 						rscData.Archive.Sites, types.StringValue(strings.Trim(url, "\"")),
 					)
+					sites := &rscData.Archive.Sites[len(rscData.Archive.Sites)-1]
 
 					if balt.CutPrefixInString(&itemTrim, url+" ") {
 						switch {
@@ -927,7 +927,6 @@ func (rscData *systemSyslogFileData) read(
 							sites.RoutingInstance = types.StringValue(itemTrim)
 						}
 					}
-					rscData.Archive.Sites = append(rscData.Archive.Sites, sites)
 				}
 			case balt.CutPrefixInString(&itemTrim, "structured-data"):
 				if rscData.StructuredData == nil {

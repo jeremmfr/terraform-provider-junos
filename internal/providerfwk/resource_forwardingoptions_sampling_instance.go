@@ -1815,15 +1815,14 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutput) read(itemTr
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var iFace forwardingoptionsSamplingInstanceBlockOutputBlockInterface
-		block.Interface, iFace = tfdata.ExtractBlock(block.Interface, types.StringValue(name))
+		block.Interface = tfdata.AppendPotentialNewBlock(block.Interface, types.StringValue(name))
+		interFace := &block.Interface[len(block.Interface)-1]
 
 		if balt.CutPrefixInString(&itemTrim, name+" ") {
-			if err := iFace.read(itemTrim); err != nil {
+			if err := interFace.read(itemTrim); err != nil {
 				return err
 			}
 		}
-		block.Interface = append(block.Interface, iFace)
 	}
 
 	return nil
@@ -1867,15 +1866,14 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInet6Output) read(itemT
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var iFace forwardingoptionsSamplingInstanceBlockOutputBlockInterface
-		block.Interface, iFace = tfdata.ExtractBlock(block.Interface, types.StringValue(name))
+		block.Interface = tfdata.AppendPotentialNewBlock(block.Interface, types.StringValue(name))
+		interFace := &block.Interface[len(block.Interface)-1]
 
 		if balt.CutPrefixInString(&itemTrim, name+" ") {
-			if err := iFace.read(itemTrim); err != nil {
+			if err := interFace.read(itemTrim); err != nil {
 				return err
 			}
 		}
-		block.Interface = append(block.Interface, iFace)
 	}
 
 	return nil
@@ -1917,15 +1915,14 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) read(itemTr
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var iFace forwardingoptionsSamplingInstanceBlockOutputBlockInterface
-		block.Interface, iFace = tfdata.ExtractBlock(block.Interface, types.StringValue(name))
+		block.Interface = tfdata.AppendPotentialNewBlock(block.Interface, types.StringValue(name))
+		interFace := &block.Interface[len(block.Interface)-1]
 
 		if balt.CutPrefixInString(&itemTrim, name+" ") {
-			if err := iFace.read(itemTrim); err != nil {
+			if err := interFace.read(itemTrim); err != nil {
 				return err
 			}
 		}
-		block.Interface = append(block.Interface, iFace)
 	}
 
 	return nil

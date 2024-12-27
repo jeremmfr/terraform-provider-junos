@@ -386,14 +386,13 @@ func (block *applicationsDataSourceBlockApplications) read(itemTrim string) erro
 		block.SourcePort = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "term "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var term applicationsDataSourceBlockApplicationsBlockTerm
-		block.Term, term = tfdata.ExtractBlock(block.Term, types.StringValue(name))
+		block.Term = tfdata.AppendPotentialNewBlock(block.Term, types.StringValue(name))
+		term := &block.Term[len(block.Term)-1]
 		balt.CutPrefixInString(&itemTrim, name+" ")
 
 		if err := term.read(itemTrim); err != nil {
 			return err
 		}
-		block.Term = append(block.Term, term)
 	case balt.CutPrefixInString(&itemTrim, "uuid "):
 		block.UUID = types.StringValue(itemTrim)
 	}

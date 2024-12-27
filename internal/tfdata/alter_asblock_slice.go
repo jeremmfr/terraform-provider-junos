@@ -81,6 +81,71 @@ loopBlocks:
 	return blocks, *newBlock
 }
 
+// with latest block of slice
+//
+//   - if the values of fields with identifier tag are equal to the elements of identifierValues
+//     (first element of identifierValues equal to field with tag value identifier or identifier_1,
+//     optional second element of identifierValues equal to field with tag value identifier_2)
+//
+//     ->  return the slice unaltered
+//
+//   - if not match identifierValues
+//
+//     -> create a new empty struct, assign identifierValues to fields with identifier tag,
+//     append it to slice, and return the new slice.
+func AppendPotentialNewBlock[B any](
+	blocks []B, identifierValues ...attr.Value,
+) []B {
+	if len(blocks) == 0 {
+		newBlock := new(B)
+		assignIdentifierValuesToBlock(identifierValues, reflect.ValueOf(newBlock).Elem())
+
+		return []B{*newBlock}
+	}
+
+	latestBlockValue := reflect.ValueOf(blocks[len(blocks)-1])
+	lastestOK := true
+	if !latestBlockValue.IsValid() {
+		lastestOK = false
+	} else {
+		blockIdentifierTagsFound := make(map[string]struct{})
+		blockIdentifierValues := make([]reflect.Value, len(identifierValues))
+
+		readBlockIdentifierValues(latestBlockValue, blockIdentifierTagsFound, blockIdentifierValues)
+
+		// detect mismatch between tags and arguments
+		if len(blockIdentifierTagsFound) == 0 {
+			panic("no tfdata identifier tag found on struct")
+		}
+		if len(blockIdentifierTagsFound) != len(identifierValues) {
+			panic(fmt.Sprintf(
+				"mismatch between number of tfdata identifier tags and identifierValues:"+
+					" found %d tags, got %d identifierValues",
+				len(blockIdentifierTagsFound), len(identifierValues),
+			))
+		}
+
+		// check if match with the arguments
+		for iIdent, fieldValue := range blockIdentifierValues {
+			attrValue := fieldValue.Interface().(attr.Value)
+			if !attrValue.Equal(identifierValues[iIdent]) {
+				lastestOK = false
+
+				break
+			}
+		}
+	}
+
+	if lastestOK {
+		return blocks
+	}
+
+	newBlock := new(B)
+	assignIdentifierValuesToBlock(identifierValues, reflect.ValueOf(newBlock).Elem())
+
+	return append(blocks, *newBlock)
+}
+
 func readBlockIdentifierValues(
 	blockValue reflect.Value,
 	blockIdentifierTagsFound map[string]struct{},

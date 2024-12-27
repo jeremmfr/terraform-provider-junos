@@ -1423,14 +1423,13 @@ func (rscData *servicesRpmProbeData) read(
 				rscData.DelegateProbes = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "test "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var test servicesRpmProbeBlockTest
-				rscData.Test, test = tfdata.ExtractBlock(rscData.Test, types.StringValue(strings.Trim(name, "\"")))
+				rscData.Test = tfdata.AppendPotentialNewBlock(rscData.Test, types.StringValue(strings.Trim(name, "\"")))
+				test := &rscData.Test[len(rscData.Test)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				if err := test.read(itemTrim); err != nil {
 					return err
 				}
-				rscData.Test = append(rscData.Test, test)
 			}
 		}
 	}

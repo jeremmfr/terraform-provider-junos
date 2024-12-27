@@ -2308,15 +2308,14 @@ func (rscData *ospfAreaData) read(
 
 			case balt.CutPrefixInString(&itemTrim, "interface "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var interFace ospfAreaBlockInterface
-				rscData.Interface, interFace = tfdata.ExtractBlock(rscData.Interface, types.StringValue(name))
+				rscData.Interface = tfdata.AppendPotentialNewBlock(rscData.Interface, types.StringValue(name))
+				interFace := &rscData.Interface[len(rscData.Interface)-1]
 
 				if balt.CutPrefixInString(&itemTrim, name+" ") {
 					if err := interFace.read(itemTrim, junSess); err != nil {
 						return err
 					}
 				}
-				rscData.Interface = append(rscData.Interface, interFace)
 			case balt.CutPrefixInString(&itemTrim, "area-range "):
 				rangeValue := tfdata.FirstElementOfJunosLine(itemTrim)
 				var areaRange ospfAreaBlockAreaRange
@@ -2511,8 +2510,8 @@ func (block *ospfAreaBlockInterface) read(
 		if err != nil {
 			return err
 		}
-		var authenticationMD5 ospfAreaBlockInterfaceBlockAuthenticationMD5
-		block.AuthenticationMD5, authenticationMD5 = tfdata.ExtractBlock(block.AuthenticationMD5, keyID)
+		block.AuthenticationMD5 = tfdata.AppendPotentialNewBlock(block.AuthenticationMD5, keyID)
+		authenticationMD5 := &block.AuthenticationMD5[len(block.AuthenticationMD5)-1]
 		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 		switch {
@@ -2524,7 +2523,6 @@ func (block *ospfAreaBlockInterface) read(
 		case balt.CutPrefixInString(&itemTrim, "start-time "):
 			authenticationMD5.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 		}
-		block.AuthenticationMD5 = append(block.AuthenticationMD5, authenticationMD5)
 	case balt.CutPrefixInString(&itemTrim, "bandwidth-based-metrics bandwidth "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		if len(itemTrimFields) < 3 { // <bandwidth> metric <metric>

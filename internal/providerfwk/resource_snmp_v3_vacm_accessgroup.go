@@ -684,10 +684,10 @@ func (rscData *snmpV3VacmAccessgroupData) read(
 				rscData.DefaultContextPrefix = append(rscData.DefaultContextPrefix, defaultContextPrefix)
 			case balt.CutPrefixInString(&itemTrim, "context-prefix "):
 				prefix := tfdata.FirstElementOfJunosLine(itemTrim)
-				var contextPrefix snmpV3VacmAccessgroupBlockContextPrefix
-				rscData.ContextPrefix, contextPrefix = tfdata.ExtractBlock(
+				rscData.ContextPrefix = tfdata.AppendPotentialNewBlock(
 					rscData.ContextPrefix, types.StringValue(strings.Trim(prefix, "\"")),
 				)
+				contextPrefix := &rscData.ContextPrefix[len(rscData.ContextPrefix)-1]
 
 				if balt.CutPrefixInString(&itemTrim, prefix+" security-model ") {
 					itemTrimFields := strings.Split(itemTrim, " ")
@@ -712,7 +712,6 @@ func (rscData *snmpV3VacmAccessgroupData) read(
 					}
 					contextPrefix.AccessConfig = append(contextPrefix.AccessConfig, accessConfig)
 				}
-				rscData.ContextPrefix = append(rscData.ContextPrefix, contextPrefix)
 			}
 		}
 	}

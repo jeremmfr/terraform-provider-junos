@@ -1002,14 +1002,13 @@ func (rscData *applicationAttrData) read(itemTrim string) (err error) {
 		rscData.SourcePort = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "term "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var term applicationBlockTerm
-		rscData.Term, term = tfdata.ExtractBlock(rscData.Term, types.StringValue(name))
+		rscData.Term = tfdata.AppendPotentialNewBlock(rscData.Term, types.StringValue(name))
+		term := &rscData.Term[len(rscData.Term)-1]
 		balt.CutPrefixInString(&itemTrim, name+" ")
 
 		if err := term.read(itemTrim); err != nil {
 			return err
 		}
-		rscData.Term = append(rscData.Term, term)
 	case balt.CutPrefixInString(&itemTrim, "uuid "):
 		rscData.UUID = types.StringValue(itemTrim)
 	}
