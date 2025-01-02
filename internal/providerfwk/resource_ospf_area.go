@@ -1102,7 +1102,7 @@ type ospfAreaBlockVirtualLink struct {
 	TransitDelay       types.Int64  `tfsdk:"transit_delay"`
 }
 
-func (rsc *ospfArea) ValidateConfig(
+func (rsc *ospfArea) ValidateConfig( //nolint:gocognit
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
 	var config ospfAreaConfig
