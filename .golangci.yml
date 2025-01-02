@@ -90,6 +90,10 @@ linters-settings:
       - name: import-alias-naming
       - name: import-shadowing
       - name: unhandled-error
+  tagalign:
+    order:
+      - tfsdk
+      - tfdata
   tagliatelle:
     case:
       rules:

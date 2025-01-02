@@ -110,13 +110,13 @@ func (rsc *forwardingoptionsEvpnVxlan) Schema(
 }
 
 type forwardingoptionsEvpnVxlanData struct {
-	ID              types.String `tfsdk:"id"`
-	RoutingInstance types.String `tfsdk:"routing_instance"`
+	ID              types.String `tfsdk:"id"               tfdata:"skip_isempty"`
+	RoutingInstance types.String `tfsdk:"routing_instance" tfdata:"skip_isempty"`
 	SharedTunnels   types.Bool   `tfsdk:"shared_tunnels"`
 }
 
 func (rscData *forwardingoptionsEvpnVxlanData) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscData, "ID", "RoutingInstance")
+	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
 func (rsc *forwardingoptionsEvpnVxlan) ValidateConfig(

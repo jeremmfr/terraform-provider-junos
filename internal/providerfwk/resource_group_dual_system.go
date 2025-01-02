@@ -311,9 +311,9 @@ func (rsc *groupDualSystem) Schema(
 }
 
 type groupDualSystemData struct {
-	ID             types.String                        `tfsdk:"id"`
-	Name           types.String                        `tfsdk:"name"`
-	ApplyGroups    types.Bool                          `tfsdk:"apply_groups"`
+	ID             types.String                        `tfsdk:"id"              tfdata:"skip_isempty"`
+	Name           types.String                        `tfsdk:"name"            tfdata:"skip_isempty"`
+	ApplyGroups    types.Bool                          `tfsdk:"apply_groups"    tfdata:"skip_isempty"`
 	InterfaceFXP0  *groupDualSystemBlockInterfaceFXP0  `tfsdk:"interface_fxp0"`
 	RoutingOptions *groupDualSystemBlockRoutingOptions `tfsdk:"routing_options"`
 	Security       *groupDualSystemBlockSecurity       `tfsdk:"security"`
@@ -321,13 +321,13 @@ type groupDualSystemData struct {
 }
 
 func (rscData *groupDualSystemData) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscData, "ID", "Name", "ApplyGroups")
+	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
 type groupDualSystemConfig struct {
-	ID             types.String                              `tfsdk:"id"`
-	Name           types.String                              `tfsdk:"name"`
-	ApplyGroups    types.Bool                                `tfsdk:"apply_groups"`
+	ID             types.String                              `tfsdk:"id"              tfdata:"skip_isempty"`
+	Name           types.String                              `tfsdk:"name"            tfdata:"skip_isempty"`
+	ApplyGroups    types.Bool                                `tfsdk:"apply_groups"    tfdata:"skip_isempty"`
 	InterfaceFXP0  *groupDualSystemBlockInterfaceFXP0Config  `tfsdk:"interface_fxp0"`
 	RoutingOptions *groupDualSystemBlockRoutingOptionsConfig `tfsdk:"routing_options"`
 	Security       *groupDualSystemBlockSecurity             `tfsdk:"security"`
@@ -335,7 +335,7 @@ type groupDualSystemConfig struct {
 }
 
 func (config *groupDualSystemConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(config, "ID", "Name", "ApplyGroups")
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 type groupDualSystemBlockInterfaceFXP0 struct {
@@ -359,7 +359,7 @@ func (block *groupDualSystemBlockInterfaceFXP0Config) isEmpty() bool {
 }
 
 type groupDualSystemBlockInterfaceFXP0BlockFamilyAddress struct {
-	CidrIP     types.String `tfsdk:"cidr_ip"`
+	CidrIP     types.String `tfsdk:"cidr_ip"     tfdata:"identifier"`
 	MasterOnly types.Bool   `tfsdk:"master_only"`
 	Preferred  types.Bool   `tfsdk:"preferred"`
 	Primary    types.Bool   `tfsdk:"primary"`
@@ -374,7 +374,7 @@ type groupDualSystemBlockRoutingOptionsConfig struct {
 }
 
 type groupDualSystemBlockRoutingOptionsBlockStaticRoute struct {
-	Destination types.String   `tfsdk:"destination"`
+	Destination types.String   `tfsdk:"destination" tfdata:"identifier"`
 	NextHop     []types.String `tfsdk:"next_hop"`
 }
 
@@ -878,17 +878,14 @@ func (rscData *groupDualSystemData) read(
 				}
 
 				destination := tfdata.FirstElementOfJunosLine(itemTrim)
-				var staticRoute groupDualSystemBlockRoutingOptionsBlockStaticRoute
-				rscData.RoutingOptions.StaticRoute, staticRoute = tfdata.ExtractBlockWithTFTypesString(
-					rscData.RoutingOptions.StaticRoute, "Destination", destination,
+				rscData.RoutingOptions.StaticRoute = tfdata.AppendPotentialNewBlock(
+					rscData.RoutingOptions.StaticRoute, types.StringValue(destination),
 				)
-				staticRoute.Destination = types.StringValue(destination)
+				staticRoute := &rscData.RoutingOptions.StaticRoute[len(rscData.RoutingOptions.StaticRoute)-1]
 
 				if balt.CutPrefixInString(&itemTrim, destination+" next-hop ") {
 					staticRoute.NextHop = append(staticRoute.NextHop, types.StringValue(itemTrim))
 				}
-				rscData.RoutingOptions.StaticRoute = append(rscData.RoutingOptions.StaticRoute,
-					staticRoute)
 			case balt.CutPrefixInString(&itemTrim, "security "):
 				if rscData.Security == nil {
 					rscData.Security = &groupDualSystemBlockSecurity{}
@@ -944,34 +941,30 @@ func (block *groupDualSystemBlockInterfaceFXP0) read(itemTrim string) {
 		block.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "unit 0 family inet address "):
 		cidrIP := tfdata.FirstElementOfJunosLine(itemTrim)
-		var familyInetAddress groupDualSystemBlockInterfaceFXP0BlockFamilyAddress
-		block.FamilyInetAddress, familyInetAddress = tfdata.ExtractBlockWithTFTypesString(
-			block.FamilyInetAddress, "CidrIP", cidrIP,
-		)
-		familyInetAddress.CidrIP = types.StringValue(cidrIP)
-		familyInetAddress.read(itemTrim)
+		block.FamilyInetAddress = tfdata.AppendPotentialNewBlock(block.FamilyInetAddress, types.StringValue(cidrIP))
+		familyInetAddress := &block.FamilyInetAddress[len(block.FamilyInetAddress)-1]
 
-		block.FamilyInetAddress = append(block.FamilyInetAddress, familyInetAddress)
+		if balt.CutPrefixInString(&itemTrim, cidrIP+" ") {
+			familyInetAddress.read(itemTrim)
+		}
 	case balt.CutPrefixInString(&itemTrim, "unit 0 family inet6 address "):
 		cidrIP := tfdata.FirstElementOfJunosLine(itemTrim)
-		var familyInet6Address groupDualSystemBlockInterfaceFXP0BlockFamilyAddress
-		block.FamilyInet6Address, familyInet6Address = tfdata.ExtractBlockWithTFTypesString(
-			block.FamilyInet6Address, "CidrIP", cidrIP,
-		)
-		familyInet6Address.CidrIP = types.StringValue(cidrIP)
-		familyInet6Address.read(itemTrim)
+		block.FamilyInet6Address = tfdata.AppendPotentialNewBlock(block.FamilyInet6Address, types.StringValue(cidrIP))
+		familyInet6Address := &block.FamilyInet6Address[len(block.FamilyInet6Address)-1]
 
-		block.FamilyInet6Address = append(block.FamilyInet6Address, familyInet6Address)
+		if balt.CutPrefixInString(&itemTrim, cidrIP+" ") {
+			familyInet6Address.read(itemTrim)
+		}
 	}
 }
 
 func (block *groupDualSystemBlockInterfaceFXP0BlockFamilyAddress) read(itemTrim string) {
 	switch {
-	case strings.HasSuffix(itemTrim, " master-only"):
+	case strings.HasSuffix(itemTrim, "master-only"):
 		block.MasterOnly = types.BoolValue(true)
-	case strings.HasSuffix(itemTrim, " preferred"):
+	case strings.HasSuffix(itemTrim, "preferred"):
 		block.Preferred = types.BoolValue(true)
-	case strings.HasSuffix(itemTrim, " primary"):
+	case strings.HasSuffix(itemTrim, "primary"):
 		block.Primary = types.BoolValue(true)
 	}
 }

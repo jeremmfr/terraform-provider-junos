@@ -317,24 +317,24 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainConfig) hasKnownValue() 
 
 //nolint:lll
 type securityIdpCustomAttackBlockAttackTypeChainBlockMember struct {
-	Name                types.String                                                                    `tfsdk:"name"`
+	Name                types.String                                                                    `tfsdk:"name"                  tfdata:"identifier,skip_isempty"`
 	AttackTypeAnomaly   *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeAnomaly   `tfsdk:"attack_type_anomaly"`
 	AttackTypeSignature *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeSignature `tfsdk:"attack_type_signature"`
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMember) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 //nolint:lll
 type securityIdpCustomAttackBlockAttackTypeChainBlockMemberConfig struct {
-	Name                types.String                                                                          `tfsdk:"name"`
+	Name                types.String                                                                          `tfsdk:"name"                  tfdata:"skip_isempty"`
 	AttackTypeAnomaly   *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeAnomaly         `tfsdk:"attack_type_anomaly"`
 	AttackTypeSignature *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeSignatureConfig `tfsdk:"attack_type_signature"`
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMemberConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "Name")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeAnomaly struct {
@@ -3613,11 +3613,8 @@ func (block *securityIdpCustomAttackBlockAttackTypeChain) read(itemTrim string) 
 		block.Scope = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "member "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var member securityIdpCustomAttackBlockAttackTypeChainBlockMember
-		block.Member, member = tfdata.ExtractBlockWithTFTypesString(
-			block.Member, "Name", strings.Trim(name, "\""),
-		)
-		member.Name = types.StringValue(strings.Trim(name, "\""))
+		block.Member = tfdata.AppendPotentialNewBlock(block.Member, types.StringValue(strings.Trim(name, "\"")))
+		member := &block.Member[len(block.Member)-1]
 		balt.CutPrefixInString(&itemTrim, name+" ")
 
 		switch {
@@ -3636,8 +3633,6 @@ func (block *securityIdpCustomAttackBlockAttackTypeChain) read(itemTrim string) 
 				return err
 			}
 		}
-
-		block.Member = append(block.Member, member)
 	}
 
 	return nil

@@ -4,35 +4,42 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
+const skipIsEmpty = "skip_isempty"
+
 // check if block struct doesn't have either:
 //   - an framework attribute with not null value
-//   - a slice with at least an alement
-//   - a not nil pointer.
-func CheckBlockIsEmpty[B any](block B, excludeFields ...string) bool {
-	v := reflect.Indirect(reflect.ValueOf(block).Elem())
+//   - a slice with at least an element
+//   - a not nil pointer
+//
+// fields with tag tfdata:"skip_isempty" are excluded.
+func CheckBlockIsEmpty[B any](block B) bool {
+	blockValue := reflect.Indirect(reflect.ValueOf(block).Elem())
 
-	return checkBlockValueIsEmpty(v, excludeFields...)
+	return checkBlockValueIsEmpty(blockValue)
 }
 
-func checkBlockValueIsEmpty(v reflect.Value, excludeFields ...string) bool {
-	for i := range v.NumField() {
-		if slices.Contains(excludeFields, v.Type().Field(i).Name) {
+func checkBlockValueIsEmpty(blockValue reflect.Value) bool {
+	for iField := range blockValue.NumField() {
+		if slices.ContainsFunc(tagsOfStructField(blockValue.Type().Field(iField)), func(s string) bool {
+			return strings.EqualFold(s, skipIsEmpty)
+		}) {
 			continue
 		}
 
-		fieldValue := v.Field(i)
+		fieldValue := blockValue.Field(iField)
 		if !fieldValue.IsValid() {
 			continue
 		}
 
-		if v.Type().Field(i).Anonymous {
-			vv := reflect.Indirect(reflect.NewAt(fieldValue.Type(), fieldValue.Addr().UnsafePointer()).Elem())
+		if blockValue.Type().Field(iField).Anonymous {
+			embedBlockValue := reflect.Indirect(reflect.NewAt(fieldValue.Type(), fieldValue.Addr().UnsafePointer()).Elem())
 
-			if !checkBlockValueIsEmpty(vv, excludeFields...) {
+			if !checkBlockValueIsEmpty(embedBlockValue) {
 				return false
 			}
 
@@ -63,7 +70,7 @@ func checkBlockValueIsEmpty(v reflect.Value, excludeFields ...string) bool {
 
 		panic(fmt.Sprintf(
 			"don't know how to determine if field %q (type: %s) is empty",
-			v.Type().Field(i).Name, fieldValue.Type().Name(),
+			blockValue.Type().Field(iField).Name, fieldValue.Type().Name(),
 		))
 	}
 
@@ -74,26 +81,26 @@ func checkBlockValueIsEmpty(v reflect.Value, excludeFields ...string) bool {
 //   - an framework attribute with known value (not null and not unknown)
 //   - an pointer to an other struct with a known framework attribute value.
 func CheckBlockHasKnownValue[B any](block B, excludeFields ...string) bool {
-	v := reflect.Indirect(reflect.ValueOf(block).Elem())
+	blockValue := reflect.Indirect(reflect.ValueOf(block).Elem())
 
-	return checkBlockValueHasKnownValue(v, excludeFields...)
+	return checkBlockValueHasKnownValue(blockValue, excludeFields...)
 }
 
-func checkBlockValueHasKnownValue(v reflect.Value, excludeFields ...string) bool {
-	for i := range v.NumField() {
-		if slices.Contains(excludeFields, v.Type().Field(i).Name) {
+func checkBlockValueHasKnownValue(blockValue reflect.Value, excludeFields ...string) bool {
+	for iField := range blockValue.NumField() {
+		if slices.Contains(excludeFields, blockValue.Type().Field(iField).Name) {
 			continue
 		}
 
-		fieldValue := v.Field(i)
+		fieldValue := blockValue.Field(iField)
 		if !fieldValue.IsValid() {
 			continue
 		}
 
-		if v.Type().Field(i).Anonymous {
-			vv := reflect.Indirect(reflect.NewAt(fieldValue.Type(), fieldValue.Addr().UnsafePointer()).Elem())
+		if blockValue.Type().Field(iField).Anonymous {
+			embedBlockValue := reflect.Indirect(reflect.NewAt(fieldValue.Type(), fieldValue.Addr().UnsafePointer()).Elem())
 
-			if checkBlockValueHasKnownValue(vv, excludeFields...) {
+			if checkBlockValueHasKnownValue(embedBlockValue, excludeFields...) {
 				return true
 			}
 
@@ -110,7 +117,7 @@ func checkBlockValueHasKnownValue(v reflect.Value, excludeFields ...string) bool
 
 		if fieldValue.Type().Kind() == reflect.Pointer {
 			if !fieldValue.IsNil() {
-				if CheckBlockHasKnownValue(v.Field(i).Interface()) {
+				if CheckBlockHasKnownValue(blockValue.Field(iField).Interface()) {
 					return true
 				}
 			}
@@ -120,7 +127,7 @@ func checkBlockValueHasKnownValue(v reflect.Value, excludeFields ...string) bool
 
 		panic(fmt.Sprintf(
 			"don't know how to determine if field %q (type: %s) is known",
-			v.Type().Field(i).Name, fieldValue.Type().Name(),
+			blockValue.Type().Field(iField).Name, fieldValue.Type().Name(),
 		))
 	}
 

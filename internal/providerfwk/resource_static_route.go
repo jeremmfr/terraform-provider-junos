@@ -400,7 +400,7 @@ type staticRouteConfig struct {
 }
 
 type staticRouteBlockQualifiedNextHop struct {
-	NextHop    types.String `tfsdk:"next_hop"`
+	NextHop    types.String `tfsdk:"next_hop"   tfdata:"identifier"`
 	Interface  types.String `tfsdk:"interface"`
 	Metric     types.Int64  `tfsdk:"metric"`
 	Preference types.Int64  `tfsdk:"preference"`
@@ -1038,28 +1038,26 @@ func (rscData *staticRouteData) read(
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "qualified-next-hop "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var qualifiedNextHop staticRouteBlockQualifiedNextHop
-				rscData.QualifiedNextHop, qualifiedNextHop = tfdata.ExtractBlockWithTFTypesString(
-					rscData.QualifiedNextHop, "NextHop", itemTrimFields[0],
-				)
-				qualifiedNextHop.NextHop = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-				switch {
-				case balt.CutPrefixInString(&itemTrim, "interface "):
-					qualifiedNextHop.Interface = types.StringValue(itemTrim)
-				case balt.CutPrefixInString(&itemTrim, "metric "):
-					qualifiedNextHop.Metric, err = tfdata.ConvAtoi64Value(itemTrim)
-					if err != nil {
-						return err
-					}
-				case balt.CutPrefixInString(&itemTrim, "preference "):
-					qualifiedNextHop.Preference, err = tfdata.ConvAtoi64Value(itemTrim)
-					if err != nil {
-						return err
+				nextHop := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.QualifiedNextHop = tfdata.AppendPotentialNewBlock(rscData.QualifiedNextHop, types.StringValue(nextHop))
+				qualifiedNextHop := &rscData.QualifiedNextHop[len(rscData.QualifiedNextHop)-1]
+
+				if balt.CutPrefixInString(&itemTrim, nextHop+" ") {
+					switch {
+					case balt.CutPrefixInString(&itemTrim, "interface "):
+						qualifiedNextHop.Interface = types.StringValue(itemTrim)
+					case balt.CutPrefixInString(&itemTrim, "metric "):
+						qualifiedNextHop.Metric, err = tfdata.ConvAtoi64Value(itemTrim)
+						if err != nil {
+							return err
+						}
+					case balt.CutPrefixInString(&itemTrim, "preference "):
+						qualifiedNextHop.Preference, err = tfdata.ConvAtoi64Value(itemTrim)
+						if err != nil {
+							return err
+						}
 					}
 				}
-				rscData.QualifiedNextHop = append(rscData.QualifiedNextHop, qualifiedNextHop)
 			case itemTrim == "readvertise":
 				rscData.Readvertise = types.BoolValue(true)
 			case itemTrim == "no-readvertise":

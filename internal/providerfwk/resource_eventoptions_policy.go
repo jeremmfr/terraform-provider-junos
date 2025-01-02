@@ -666,8 +666,9 @@ type eventoptionsPolicyBlockThenBlockChangeConfigurtionConfig struct {
 	Username                      types.String `tfsdk:"user_name"`
 }
 
+//nolint:lll
 type eventoptionsPolicyBlockThenBlockEventScript struct {
-	Filename       types.String                                                `tfsdk:"filename"`
+	Filename       types.String                                                `tfsdk:"filename"        tfdata:"identifier"`
 	OutputFilename types.String                                                `tfsdk:"output_filename"`
 	OutputFormat   types.String                                                `tfsdk:"output_format"`
 	Username       types.String                                                `tfsdk:"user_name"`
@@ -685,7 +686,7 @@ type eventoptionsPolicyBlockThenBlockEventScriptConfig struct {
 }
 
 type eventoptionsPolicyBlockThenBlockEventScriptBlockArguments struct {
-	Name  types.String `tfsdk:"name"`
+	Name  types.String `tfsdk:"name"  tfdata:"identifier"`
 	Value types.String `tfsdk:"value"`
 }
 
@@ -717,8 +718,8 @@ func (block *eventoptionsPolicyBlockThenBlockDestination) hasKnownValue() bool {
 }
 
 type eventoptionsPolicyBlockThenBlockUpload struct {
-	Filename      types.String `tfsdk:"filename"`
-	Destination   types.String `tfsdk:"destination"`
+	Filename      types.String `tfsdk:"filename"       tfdata:"identifier_1"`
+	Destination   types.String `tfsdk:"destination"    tfdata:"identifier_2"`
 	RetryCount    types.Int64  `tfsdk:"retry_count"`
 	RetryInterval types.Int64  `tfsdk:"retry_interval"`
 	TransferDelay types.Int64  `tfsdk:"transfer_delay"`
@@ -732,23 +733,27 @@ type eventoptionsPolicyBlockAttributesMatch struct {
 }
 
 type eventoptionsPolicyBlockWithin struct {
-	TimeInterval types.Int64    `tfsdk:"time_interval"`
+	TimeInterval types.Int64    `tfsdk:"time_interval" tfdata:"identifier,skip_isempty"`
 	Events       []types.String `tfsdk:"events"`
 	NotEvents    []types.String `tfsdk:"not_events"`
 	TriggerCount types.Int64    `tfsdk:"trigger_count"`
 	TriggerWhen  types.String   `tfsdk:"trigger_when"`
 }
 
+func (block *eventoptionsPolicyBlockWithin) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
 type eventoptionsPolicyBlockWithinConfig struct {
-	TimeInterval types.Int64  `tfsdk:"time_interval"`
+	TimeInterval types.Int64  `tfsdk:"time_interval" tfdata:"skip_isempty"`
 	Events       types.Set    `tfsdk:"events"`
 	NotEvents    types.Set    `tfsdk:"not_events"`
 	TriggerCount types.Int64  `tfsdk:"trigger_count"`
 	TriggerWhen  types.String `tfsdk:"trigger_when"`
 }
 
-func (block *eventoptionsPolicyBlockWithin) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "TimeInterval")
+func (block *eventoptionsPolicyBlockWithinConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 //nolint:gocognit
@@ -1057,7 +1062,7 @@ func (rsc *eventoptionsPolicy) ValidateConfig(
 
 		withinTimeInterval := make(map[int64]struct{})
 		for i, block := range configWithin {
-			if !block.TimeInterval.IsNull() {
+			if !block.TimeInterval.IsUnknown() {
 				timeInterval := block.TimeInterval.ValueInt64()
 				if _, ok := withinTimeInterval[timeInterval]; ok {
 					resp.Diagnostics.AddAttributeError(
@@ -1067,6 +1072,13 @@ func (rsc *eventoptionsPolicy) ValidateConfig(
 					)
 				}
 				withinTimeInterval[timeInterval] = struct{}{}
+			}
+			if block.isEmpty() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("within").AtListIndex(i).AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					fmt.Sprintf("within block %d is empty", block.TimeInterval.ValueInt64()),
+				)
 			}
 			if !block.TriggerWhen.IsNull() &&
 				!block.TriggerWhen.IsUnknown() &&
@@ -1301,7 +1313,7 @@ func (rscData *eventoptionsPolicyData) set(
 		withinTimeInterval[timeInterval] = struct{}{}
 		if block.isEmpty() {
 			return path.Root("within").AtListIndex(i).AtName("time_interval"),
-				fmt.Errorf("within block %q is empty", timeInterval)
+				fmt.Errorf("within block %d is empty", timeInterval)
 		}
 
 		blockSet, pathErr, err := block.configSet(setPrefix, path.Root("within").AtListIndex(i))
@@ -1670,21 +1682,17 @@ func (rscData *eventoptionsPolicyData) read(
 				rscData.AttributesMatch = append(rscData.AttributesMatch, attributesMatch)
 			case balt.CutPrefixInString(&itemTrim, "within "):
 				itemTrimFields := strings.Split(itemTrim, " ")
-				var within eventoptionsPolicyBlockWithin
 				withinTimeInterval, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
 				if err != nil {
 					return err
 				}
-				rscData.Within, within = tfdata.ExtractBlockWithTFTypesInt64(
-					rscData.Within, "TimeInterval", withinTimeInterval.ValueInt64(),
-				)
-				within.TimeInterval = withinTimeInterval
+				rscData.Within = tfdata.AppendPotentialNewBlock(rscData.Within, withinTimeInterval)
+				within := &rscData.Within[len(rscData.Within)-1]
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 				if err := within.read(itemTrim); err != nil {
 					return err
 				}
-				rscData.Within = append(rscData.Within, within)
 			}
 		}
 	}
@@ -1711,17 +1719,13 @@ func (block *eventoptionsPolicyBlockThen) read(itemTrim string) (err error) {
 		}
 	case balt.CutPrefixInString(&itemTrim, "event-script "):
 		filename := tfdata.FirstElementOfJunosLine(itemTrim)
-		var eventScript eventoptionsPolicyBlockThenBlockEventScript
-		block.EventScript, eventScript = tfdata.ExtractBlockWithTFTypesString(
-			block.EventScript, "Filename", strings.Trim(filename, "\""),
-		)
-		eventScript.Filename = types.StringValue(strings.Trim(filename, "\""))
+		block.EventScript = tfdata.AppendPotentialNewBlock(block.EventScript, types.StringValue(strings.Trim(filename, "\"")))
+		eventScript := &block.EventScript[len(block.EventScript)-1]
 		balt.CutPrefixInString(&itemTrim, filename+" ")
 
 		if err := eventScript.read(itemTrim); err != nil {
 			return err
 		}
-		block.EventScript = append(block.EventScript, eventScript)
 	case balt.CutPrefixInString(&itemTrim, "execute-commands "):
 		if block.ExecuteCommands == nil {
 			block.ExecuteCommands = &eventoptionsPolicyBlockThenBlockExecuteCommands{}
@@ -1738,16 +1742,13 @@ func (block *eventoptionsPolicyBlockThen) read(itemTrim string) (err error) {
 		} else {
 			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "upload filename destination", itemTrim)
 		}
-		var upload eventoptionsPolicyBlockThenBlockUpload
-		block.Upload, upload = tfdata.ExtractBlockWith2TFTypesString(
-			block.Upload, "Filename", strings.Trim(filename, "\""), "Destination", strings.Trim(destination, "\""),
+		block.Upload = tfdata.AppendPotentialNewBlock(
+			block.Upload, types.StringValue(strings.Trim(filename, "\"")), types.StringValue(strings.Trim(destination, "\"")),
 		)
-		upload.Filename = types.StringValue(strings.Trim(filename, "\""))
-		upload.Destination = types.StringValue(strings.Trim(destination, "\""))
+		upload := &block.Upload[len(block.Upload)-1]
 		if err := upload.read(itemTrim); err != nil {
 			return err
 		}
-		block.Upload = append(block.Upload, upload)
 	}
 
 	return nil
@@ -1789,14 +1790,11 @@ func (block *eventoptionsPolicyBlockThenBlockEventScript) read(itemTrim string) 
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "arguments "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
-		var arguments eventoptionsPolicyBlockThenBlockEventScriptBlockArguments
-		block.Arguments, arguments = tfdata.ExtractBlockWithTFTypesString(
-			block.Arguments, "Name", strings.Trim(name, "\""),
-		)
-		arguments.Name = types.StringValue(strings.Trim(name, "\""))
+		block.Arguments = tfdata.AppendPotentialNewBlock(block.Arguments, types.StringValue(strings.Trim(name, "\"")))
+		arguments := &block.Arguments[len(block.Arguments)-1]
 		balt.CutPrefixInString(&itemTrim, name+" ")
+
 		arguments.Value = types.StringValue(strings.Trim(strings.TrimPrefix(itemTrim, name+" "), "\""))
-		block.Arguments = append(block.Arguments, arguments)
 	case balt.CutPrefixInString(&itemTrim, "destination "):
 		name := tfdata.FirstElementOfJunosLine(itemTrim)
 		if block.Destination == nil {

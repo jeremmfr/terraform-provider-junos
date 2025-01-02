@@ -353,7 +353,7 @@ type virtualChassisBlockAlias struct {
 }
 
 type virtualChassisBlockMember struct {
-	ID                 types.Int64  `tfsdk:"id"`
+	ID                 types.Int64  `tfsdk:"id"                  tfdata:"identifier,skip_isempty"`
 	Location           types.String `tfsdk:"location"`
 	MastershipPriority types.Int64  `tfsdk:"mastership_priority"`
 	NoManagementVlan   types.Bool   `tfsdk:"no_management_vlan"`
@@ -362,7 +362,7 @@ type virtualChassisBlockMember struct {
 }
 
 func (block *virtualChassisBlockMember) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block, "ID")
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type virtualChassisBlockTraceoptions struct {
@@ -791,21 +791,17 @@ func (rscData *virtualChassisData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "member "):
 				itemTrimFields := strings.Split(itemTrim, " ")
-				var member virtualChassisBlockMember
 				memberID, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
 				if err != nil {
 					return err
 				}
-				rscData.Member, member = tfdata.ExtractBlockWithTFTypesInt64(
-					rscData.Member, "ID", memberID.ValueInt64(),
-				)
-				member.ID = memberID
+				rscData.Member = tfdata.AppendPotentialNewBlock(rscData.Member, memberID)
+				member := &rscData.Member[len(rscData.Member)-1]
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 				if err := member.read(itemTrim); err != nil {
 					return err
 				}
-				rscData.Member = append(rscData.Member, member)
 			case balt.CutPrefixInString(&itemTrim, "traceoptions "):
 				if rscData.Traceoptions == nil {
 					rscData.Traceoptions = &virtualChassisBlockTraceoptions{}

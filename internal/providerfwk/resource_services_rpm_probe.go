@@ -507,8 +507,9 @@ type servicesRpmProbeConfig struct {
 	Test           types.List   `tfsdk:"test"`
 }
 
+//nolint:lll
 type servicesRpmProbeBlockTest struct {
-	Name                    types.String                              `tfsdk:"name"`
+	Name                    types.String                              `tfsdk:"name"                       tfdata:"identifier"`
 	DataFill                types.String                              `tfsdk:"data_fill"`
 	DataSize                types.Int64                               `tfsdk:"data_size"`
 	DestinationInterface    types.String                              `tfsdk:"destination_interface"`
@@ -1423,17 +1424,13 @@ func (rscData *servicesRpmProbeData) read(
 				rscData.DelegateProbes = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "test "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var test servicesRpmProbeBlockTest
-				rscData.Test, test = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Test, "Name", strings.Trim(name, "\""),
-				)
-				test.Name = types.StringValue(strings.Trim(name, "\""))
+				rscData.Test = tfdata.AppendPotentialNewBlock(rscData.Test, types.StringValue(strings.Trim(name, "\"")))
+				test := &rscData.Test[len(rscData.Test)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				if err := test.read(itemTrim); err != nil {
 					return err
 				}
-				rscData.Test = append(rscData.Test, test)
 			}
 		}
 	}

@@ -394,25 +394,21 @@ func (rscData *applicationsData) read(
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "application "):
-				itemTrimFields := strings.Split(itemTrim, " ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var application applicationAttrData
-				rscData.Application, application = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Application, "Name", itemTrimFields[0],
-				)
-				application.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				rscData.Application, application = tfdata.ExtractBlock(rscData.Application, types.StringValue(name))
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				if err := application.read(itemTrim); err != nil {
 					return err
 				}
 				rscData.Application = append(rscData.Application, application)
 			case balt.CutPrefixInString(&itemTrim, "application-set "):
-				itemTrimFields := strings.Split(itemTrim, " ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var applicationSet applicationSetAttrData
-				rscData.ApplicationSet, applicationSet = tfdata.ExtractBlockWithTFTypesString(
-					rscData.ApplicationSet, "Name", itemTrimFields[0],
-				)
-				applicationSet.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				rscData.ApplicationSet, applicationSet = tfdata.ExtractBlock(rscData.ApplicationSet, types.StringValue(name))
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				applicationSet.read(itemTrim)
 				rscData.ApplicationSet = append(rscData.ApplicationSet, applicationSet)
 			}

@@ -372,7 +372,7 @@ type ripNeighborConfig struct {
 }
 
 type ripNeighborBlockAuthenticationSelectiveMd5 struct {
-	KeyID     types.Int64  `tfsdk:"key_id"`
+	KeyID     types.Int64  `tfsdk:"key_id"     tfdata:"identifier"`
 	Key       types.String `tfsdk:"key"`
 	StartTime types.String `tfsdk:"start_time"`
 }
@@ -1077,12 +1077,10 @@ func (rscData *ripNeighborData) read(
 				if err != nil {
 					return err
 				}
-				var authenticationSelectiveMD5 ripNeighborBlockAuthenticationSelectiveMd5
-				rscData.AuthenticationSelectiveMD5, authenticationSelectiveMD5 = tfdata.ExtractBlockWithTFTypesInt64(
-					rscData.AuthenticationSelectiveMD5, "KeyID", keyID.ValueInt64(),
-				)
-				authenticationSelectiveMD5.KeyID = keyID
+				rscData.AuthenticationSelectiveMD5 = tfdata.AppendPotentialNewBlock(rscData.AuthenticationSelectiveMD5, keyID)
+				authenticationSelectiveMD5 := &rscData.AuthenticationSelectiveMD5[len(rscData.AuthenticationSelectiveMD5)-1]
 				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "key "):
 					authenticationSelectiveMD5.Key, err = junSess.JunosDecode(
@@ -1095,7 +1093,6 @@ func (rscData *ripNeighborData) read(
 				case balt.CutPrefixInString(&itemTrim, "start-time "):
 					authenticationSelectiveMD5.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 				}
-				rscData.AuthenticationSelectiveMD5 = append(rscData.AuthenticationSelectiveMD5, authenticationSelectiveMD5)
 			case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
 				if rscData.BfdLivenessDetection == nil {
 					rscData.BfdLivenessDetection = &ripBlockBfdLivenessDetection{}

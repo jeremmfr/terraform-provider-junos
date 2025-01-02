@@ -293,7 +293,7 @@ type securityNatDestinationBlockFromConfig struct {
 }
 
 type securityNatDestinationBlockRule struct {
-	Name                   types.String                              `tfsdk:"name"`
+	Name                   types.String                              `tfsdk:"name"                     tfdata:"identifier"`
 	DestinationAddress     types.String                              `tfsdk:"destination_address"`
 	DestinationAddressName types.String                              `tfsdk:"destination_address_name"`
 	Application            []types.String                            `tfsdk:"application"`
@@ -680,13 +680,11 @@ func (rscData *securityNatDestinationData) read(
 				}
 				rscData.From.Value = append(rscData.From.Value, types.StringValue(itemTrimFields[1]))
 			case balt.CutPrefixInString(&itemTrim, "rule "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var rule securityNatDestinationBlockRule
-				rscData.Rule, rule = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Rule, "Name", itemTrimFields[0],
-				)
-				rule.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.Rule = tfdata.AppendPotentialNewBlock(rscData.Rule, types.StringValue(name))
+				rule := &rscData.Rule[len(rscData.Rule)-1]
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "match destination-address "):
 					rule.DestinationAddress = types.StringValue(itemTrim)
@@ -723,7 +721,6 @@ func (rscData *securityNatDestinationData) read(
 						rule.Then.Type = types.StringValue(itemTrim)
 					}
 				}
-				rscData.Rule = append(rscData.Rule, rule)
 			}
 		}
 	}

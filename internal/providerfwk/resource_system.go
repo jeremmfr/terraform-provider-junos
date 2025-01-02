@@ -1908,7 +1908,7 @@ type systemBlockAccountingConfig struct {
 }
 
 type systemBlockAccountingBlockDestinationRadiusServer struct {
-	Address                 types.String `tfsdk:"address"`
+	Address                 types.String `tfsdk:"address"                  tfdata:"identifier"`
 	Secret                  types.String `tfsdk:"secret"`
 	AccountingPort          types.Int64  `tfsdk:"accounting_port"`
 	AccountingRetry         types.Int64  `tfsdk:"accounting_retry"`
@@ -1925,7 +1925,7 @@ type systemBlockAccountingBlockDestinationRadiusServer struct {
 }
 
 type systemBlockAccountingBlockDestinationTacplusServer struct {
-	Address          types.String `tfsdk:"address"`
+	Address          types.String `tfsdk:"address"           tfdata:"identifier"`
 	Port             types.Int64  `tfsdk:"port"`
 	RoutingInstance  types.String `tfsdk:"routing_instance"`
 	Secret           types.String `tfsdk:"secret"`
@@ -2053,7 +2053,7 @@ func (block *systemBlockLoginConfig) isEmpty() bool {
 }
 
 type systemBlockNameServerOpts struct {
-	Address         types.String `tfsdk:"address"`
+	Address         types.String `tfsdk:"address"          tfdata:"identifier"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 }
 
@@ -4052,17 +4052,16 @@ func (rscData *systemData) read(
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "name-server "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var nameServerOpts systemBlockNameServerOpts
-				rscData.NameServerOpts, nameServerOpts = tfdata.ExtractBlockWithTFTypesString(
-					rscData.NameServerOpts, "Address", itemTrimFields[0],
-				)
-				nameServerOpts.Address = types.StringValue(itemTrimFields[0])
-				rscData.NameServer = append(rscData.NameServer, types.StringValue(itemTrimFields[0]))
-				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" routing-instance ") {
+				address := tfdata.FirstElementOfJunosLine(itemTrim)
+
+				rscData.NameServer = append(rscData.NameServer, types.StringValue(address))
+
+				rscData.NameServerOpts = tfdata.AppendPotentialNewBlock(rscData.NameServerOpts, types.StringValue(address))
+				nameServerOpts := &rscData.NameServerOpts[len(rscData.NameServerOpts)-1]
+
+				if balt.CutPrefixInString(&itemTrim, address+" routing-instance ") {
 					nameServerOpts.RoutingInstance = types.StringValue(itemTrim)
 				}
-				rscData.NameServerOpts = append(rscData.NameServerOpts, nameServerOpts)
 			case itemTrim == "no-multicast-echo":
 				rscData.NoMulticastEcho = types.BoolValue(true)
 			case itemTrim == "no-ping-record-route":
@@ -4243,32 +4242,31 @@ func (block *systemBlockAccounting) read(
 	case balt.CutPrefixInString(&itemTrim, "destination radius"):
 		block.DestinationRadius = types.BoolValue(true)
 		if balt.CutPrefixInString(&itemTrim, " server ") {
-			itemTrimFields := strings.Split(itemTrim, " ")
-			var destinationRadiusServer systemBlockAccountingBlockDestinationRadiusServer
-			block.DestinationRadiusServer, destinationRadiusServer = tfdata.ExtractBlockWithTFTypesString(
-				block.DestinationRadiusServer, "Address", itemTrimFields[0],
+			address := tfdata.FirstElementOfJunosLine(itemTrim)
+			block.DestinationRadiusServer = tfdata.AppendPotentialNewBlock(
+				block.DestinationRadiusServer, types.StringValue(address),
 			)
-			destinationRadiusServer.Address = types.StringValue(itemTrimFields[0])
-			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+			destinationRadiusServer := &block.DestinationRadiusServer[len(block.DestinationRadiusServer)-1]
+			balt.CutPrefixInString(&itemTrim, address+" ")
+
 			if err := destinationRadiusServer.read(itemTrim, junSess); err != nil {
 				return err
 			}
-			block.DestinationRadiusServer = append(block.DestinationRadiusServer, destinationRadiusServer)
 		}
 	case balt.CutPrefixInString(&itemTrim, "destination tacplus"):
 		block.DestinationTacplus = types.BoolValue(true)
 		if balt.CutPrefixInString(&itemTrim, " server ") {
-			itemTrimFields := strings.Split(itemTrim, " ")
-			var destinationTacplusServer systemBlockAccountingBlockDestinationTacplusServer
-			block.DestinationTacplusServer, destinationTacplusServer = tfdata.ExtractBlockWithTFTypesString(
-				block.DestinationTacplusServer, "Address", itemTrimFields[0],
+			address := tfdata.FirstElementOfJunosLine(itemTrim)
+			block.DestinationTacplusServer = tfdata.AppendPotentialNewBlock(
+				block.DestinationTacplusServer, types.StringValue(address),
 			)
-			destinationTacplusServer.Address = types.StringValue(itemTrimFields[0])
-			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-			if err := destinationTacplusServer.read(itemTrim, junSess); err != nil {
-				return err
+			destinationTacplusServer := &block.DestinationTacplusServer[len(block.DestinationTacplusServer)-1]
+
+			if balt.CutPrefixInString(&itemTrim, address+" ") {
+				if err := destinationTacplusServer.read(itemTrim, junSess); err != nil {
+					return err
+				}
 			}
-			block.DestinationTacplusServer = append(block.DestinationTacplusServer, destinationTacplusServer)
 		}
 	}
 

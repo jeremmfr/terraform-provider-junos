@@ -435,7 +435,7 @@ type forwardingoptionsSamplingBlockFamilyInetOutputBlockFile struct {
 
 //nolint:lll
 type forwardingoptionsSamplingBlockFamilyInetOutputBlockFlowServer struct {
-	Hostname                                         types.String `tfsdk:"hostname"`
+	Hostname                                         types.String `tfsdk:"hostname"                                              tfdata:"identifier"`
 	Port                                             types.Int64  `tfsdk:"port"`
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
@@ -664,7 +664,7 @@ func (block *forwardingoptionsSamplingBlockFamilyMplsOutputConfig) isEmpty() boo
 
 //nolint:lll
 type forwardingoptionsSamplingBlockOutputBlockFlowServer struct {
-	Hostname                                         types.String `tfsdk:"hostname"`
+	Hostname                                         types.String `tfsdk:"hostname"                                              tfdata:"identifier"`
 	Port                                             types.Int64  `tfsdk:"port"`
 	AggregationAutonomousSystem                      types.Bool   `tfsdk:"aggregation_autonomous_system"`
 	AggregationDestinationPrefix                     types.Bool   `tfsdk:"aggregation_destination_prefix"`
@@ -690,7 +690,7 @@ func (forwardingoptionsSamplingBlockOutputBlockFlowServer) attributesSchema() ma
 }
 
 type forwardingoptionsSamplingBlockOutputBlockInterface struct {
-	Name          types.String `tfsdk:"name"`
+	Name          types.String `tfsdk:"name"           tfdata:"identifier"`
 	EngineID      types.Int64  `tfsdk:"engine_id"`
 	EngineType    types.Int64  `tfsdk:"engine_type"`
 	SourceAddress types.String `tfsdk:"source_address"`
@@ -1896,13 +1896,11 @@ func (block *forwardingoptionsSamplingBlockFamilyInetOutput) read(itemTrim strin
 	case balt.CutPrefixInString(&itemTrim, "inline-jflow source-address "):
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		hostname := tfdata.FirstElementOfJunosLine(itemTrim)
 		var flowServer forwardingoptionsSamplingBlockFamilyInetOutputBlockFlowServer
-		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
-			block.FlowServer, "Hostname", itemTrimFields[0],
-		)
-		flowServer.Hostname = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+		block.FlowServer, flowServer = tfdata.ExtractBlock(block.FlowServer, types.StringValue(hostname))
+		balt.CutPrefixInString(&itemTrim, hostname+" ")
+
 		switch {
 		case balt.CutPrefixInString(&itemTrim, "port "):
 			flowServer.Port, err = tfdata.ConvAtoi64Value(itemTrim)
@@ -1949,17 +1947,15 @@ func (block *forwardingoptionsSamplingBlockFamilyInetOutput) read(itemTrim strin
 		}
 		block.FlowServer = append(block.FlowServer, flowServer)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
-		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingBlockOutputBlockInterface
-		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
-			block.Interface, "Name", itemTrimFields[0],
-		)
-		iFace.Name = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-		if err := iFace.read(itemTrim); err != nil {
-			return err
+		name := tfdata.FirstElementOfJunosLine(itemTrim)
+		block.Interface = tfdata.AppendPotentialNewBlock(block.Interface, types.StringValue(name))
+		interFace := &block.Interface[len(block.Interface)-1]
+
+		if balt.CutPrefixInString(&itemTrim, name+" ") {
+			if err := interFace.read(itemTrim); err != nil {
+				return err
+			}
 		}
-		block.Interface = append(block.Interface, iFace)
 	}
 
 	return nil
@@ -1985,13 +1981,11 @@ func (block *forwardingoptionsSamplingBlockFamilyInet6Output) read(itemTrim stri
 			return err
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		hostname := tfdata.FirstElementOfJunosLine(itemTrim)
 		var flowServer forwardingoptionsSamplingBlockOutputBlockFlowServer
-		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
-			block.FlowServer, "Hostname", itemTrimFields[0],
-		)
-		flowServer.Hostname = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+		block.FlowServer, flowServer = tfdata.ExtractBlock(block.FlowServer, types.StringValue(hostname))
+		balt.CutPrefixInString(&itemTrim, hostname+" ")
+
 		if err := flowServer.read(itemTrim); err != nil {
 			return err
 		}
@@ -2004,17 +1998,15 @@ func (block *forwardingoptionsSamplingBlockFamilyInet6Output) read(itemTrim stri
 	case balt.CutPrefixInString(&itemTrim, "inline-jflow source-address "):
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
-		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingBlockOutputBlockInterface
-		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
-			block.Interface, "Name", itemTrimFields[0],
-		)
-		iFace.Name = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-		if err := iFace.read(itemTrim); err != nil {
-			return err
+		name := tfdata.FirstElementOfJunosLine(itemTrim)
+		block.Interface = tfdata.AppendPotentialNewBlock(block.Interface, types.StringValue(name))
+		interFace := &block.Interface[len(block.Interface)-1]
+
+		if balt.CutPrefixInString(&itemTrim, name+" ") {
+			if err := interFace.read(itemTrim); err != nil {
+				return err
+			}
 		}
-		block.Interface = append(block.Interface, iFace)
 	}
 
 	return nil
@@ -2038,29 +2030,25 @@ func (block *forwardingoptionsSamplingBlockFamilyMplsOutput) read(itemTrim strin
 			return err
 		}
 	case balt.CutPrefixInString(&itemTrim, "flow-server "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		hostname := tfdata.FirstElementOfJunosLine(itemTrim)
 		var flowServer forwardingoptionsSamplingBlockOutputBlockFlowServer
-		block.FlowServer, flowServer = tfdata.ExtractBlockWithTFTypesString(
-			block.FlowServer, "Hostname", itemTrimFields[0],
-		)
-		flowServer.Hostname = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+		block.FlowServer, flowServer = tfdata.ExtractBlock(block.FlowServer, types.StringValue(hostname))
+		balt.CutPrefixInString(&itemTrim, hostname+" ")
+
 		if err := flowServer.read(itemTrim); err != nil {
 			return err
 		}
 		block.FlowServer = append(block.FlowServer, flowServer)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
-		itemTrimFields := strings.Split(itemTrim, " ")
-		var iFace forwardingoptionsSamplingBlockOutputBlockInterface
-		block.Interface, iFace = tfdata.ExtractBlockWithTFTypesString(
-			block.Interface, "Name", itemTrimFields[0],
-		)
-		iFace.Name = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-		if err := iFace.read(itemTrim); err != nil {
-			return err
+		name := tfdata.FirstElementOfJunosLine(itemTrim)
+		block.Interface = tfdata.AppendPotentialNewBlock(block.Interface, types.StringValue(name))
+		interFace := &block.Interface[len(block.Interface)-1]
+
+		if balt.CutPrefixInString(&itemTrim, name+" ") {
+			if err := interFace.read(itemTrim); err != nil {
+				return err
+			}
 		}
-		block.Interface = append(block.Interface, iFace)
 	}
 
 	return nil
