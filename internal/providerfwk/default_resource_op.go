@@ -7,6 +7,7 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -30,6 +31,11 @@ type resourceDataReadFrom1String interface {
 type resourceDataReadFrom2String interface {
 	resourceDataNullID
 	read(context.Context, string, string, *junos.Session) error
+}
+
+type resourceDataReadFrom1Int1String interface {
+	resourceDataNullID
+	read(context.Context, int64, string, *junos.Session) error
 }
 
 type resourceDataReadFrom3String interface {
@@ -219,6 +225,14 @@ func defaultResourceRead(
 		err = data2.read(
 			ctx,
 			mainAttrValues[0].(string),
+			mainAttrValues[1].(string),
+			junSess,
+		)
+	}
+	if data2, ok := data.(resourceDataReadFrom1Int1String); ok {
+		err = data2.read(
+			ctx,
+			mainAttrValues[0].(int64),
 			mainAttrValues[1].(string),
 			junSess,
 		)
@@ -471,6 +485,29 @@ func defaultResourceImportState(
 		}
 
 		err = data2.read(ctx, idList[0], idList[1], junSess)
+	}
+	if data2, ok := data.(resourceDataReadFrom1Int1String); ok {
+		idList := strings.Split(req.ID, junos.IDSeparator)
+		if len(idList) < 2 {
+			resp.Diagnostics.AddError(
+				"Bad ID Format",
+				fmt.Sprintf("missing element(s) in id with separator %q", junos.IDSeparator),
+			)
+
+			return
+		}
+
+		idInt64, convErr := utils.ConvAtoi64(idList[0])
+		if convErr != nil {
+			resp.Diagnostics.AddError(
+				"Bad ID Format",
+				fmt.Sprintf("first element in id must be a number: got %q", idList[0]),
+			)
+
+			return
+		}
+
+		err = data2.read(ctx, idInt64, idList[1], junSess)
 	}
 	if data3, ok := data.(resourceDataReadFrom3String); ok {
 		idList := strings.Split(req.ID, junos.IDSeparator)
