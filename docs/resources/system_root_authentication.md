@@ -31,7 +31,7 @@ The following arguments are supported:
 -> **Note**
   One of `encrypted_password` or `plain_text_password` arguments is required.
 
-- **encrypted_password** (Optional, String)  
+- **encrypted_password** (Optional, String, Sensitive)  
   Encrypted password string.  
   If `plain_text_password` is used in Terraform config,
   the value of this argument is left blank to avoid conflict.
