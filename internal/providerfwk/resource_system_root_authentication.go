@@ -89,6 +89,7 @@ func (rsc *systemRootAuthentication) Schema(
 			},
 			"encrypted_password": schema.StringAttribute{
 				Optional:    true,
+				Sensitive:   true,
 				Description: "Encrypted password string.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 128),
