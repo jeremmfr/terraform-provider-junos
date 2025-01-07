@@ -524,7 +524,8 @@ func checkSystemLoginUserExists(
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "system login user " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"system login user " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
