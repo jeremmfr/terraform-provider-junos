@@ -105,6 +105,7 @@ func (rsc *securityIkePolicy) Schema(
 				Description: "IKE proposals list.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 32),
 						tfvalidator.StringDoubleQuoteExclusion(),

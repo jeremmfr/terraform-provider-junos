@@ -115,6 +115,7 @@ func (rsc *policyoptionsPrefixList) Schema(
 				Description: "Address prefixes.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringCIDRNetwork(),
 					),

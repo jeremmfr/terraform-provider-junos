@@ -21,8 +21,8 @@ resource "junos_security_idp_custom_attack_group" "demo_idp_custom_attack_group"
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
-  The name of idp custom-attack-group.
-- **member** (Optional, Set of String)  
+  Custom attack group name.
+- **member** (Required, Set of String)  
   List of attacks/attack groups belonging to this group.
 
 ## Attribute Reference

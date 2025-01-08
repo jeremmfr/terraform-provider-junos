@@ -215,7 +215,7 @@ type securityZoneDataSourceData struct {
 }
 
 type securityZoneDataSourceBlockInterface struct {
-	Name             types.String   `tfsdk:"name"`
+	Name             types.String   `tfsdk:"name"              tfdata:"identifier"`
 	InboundProtocols []types.String `tfsdk:"inbound_protocols"`
 	InboundServices  []types.String `tfsdk:"inbound_services"`
 }

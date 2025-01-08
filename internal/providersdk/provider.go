@@ -174,12 +174,8 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"junos_access_address_assignment_pool": resourceAccessAddressAssignPool(),
-
 			"junos_chassis_cluster":    resourceChassisCluster(),
 			"junos_chassis_redundancy": resourceChassisRedundancy(),
-
-			"junos_group_dual_system": resourceGroupDualSystem(),
 
 			"junos_igmp_snooping_vlan": resourceIgmpSnoopingVlan(),
 
@@ -194,13 +190,9 @@ func Provider() *schema.Provider {
 
 			"junos_routing_options": resourceRoutingOptions(),
 
-			"junos_security_dynamic_address_feed_server":                 resourceSecurityDynamicAddressFeedServer(),
-			"junos_security_dynamic_address_name":                        resourceSecurityDynamicAddressName(),
-			"junos_security_idp_custom_attack":                           resourceSecurityIdpCustomAttack(),
-			"junos_security_idp_custom_attack_group":                     resourceSecurityIdpCustomAttackGroup(),
-			"junos_security_idp_policy":                                  resourceSecurityIdpPolicy(),
-			"junos_security_screen":                                      resourceSecurityScreen(),
-			"junos_security_screen_whitelist":                            resourceSecurityScreenWhiteList(),
+			"junos_security_dynamic_address_feed_server": resourceSecurityDynamicAddressFeedServer(),
+			"junos_security_dynamic_address_name":        resourceSecurityDynamicAddressName(),
+
 			"junos_security_utm_custom_url_category":                     resourceSecurityUtmCustomURLCategory(),
 			"junos_security_utm_custom_url_pattern":                      resourceSecurityUtmCustomURLPattern(),
 			"junos_security_utm_policy":                                  resourceSecurityUtmPolicy(),
@@ -212,14 +204,12 @@ func Provider() *schema.Provider {
 
 			"junos_services_advanced_anti_malware_policy":                resourceServicesAdvancedAntiMalwarePolicy(),
 			"junos_services_proxy_profile":                               resourceServicesProxyProfile(),
-			"junos_services_rpm_probe":                                   resourceServicesRpmProbe(),
 			"junos_services_ssl_initiation_profile":                      resourceServicesSSLInitiationProfile(),
 			"junos_services_security_intelligence_policy":                resourceServicesSecurityIntellPolicy(),
 			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_services_user_identification_ad_access_domain":        resourceServicesUserIdentAdAccessDomain(),
 			"junos_services_user_identification_device_identity_profile": resourceServicesUserIdentDeviceIdentityProfile(),
 
-			"junos_system_login_class":                     resourceSystemLoginClass(),
 			"junos_system_ntp_server":                      resourceSystemNtpServer(),
 			"junos_system_services_dhcp_localserver_group": resourceSystemServicesDhcpLocalServerGroup(),
 		},

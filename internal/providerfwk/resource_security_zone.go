@@ -191,6 +191,7 @@ func (securityZoneData) attributesSchema() map[string]schema.Attribute {
 			Description: "The inbound protocols allowed.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 32),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -203,6 +204,7 @@ func (securityZoneData) attributesSchema() map[string]schema.Attribute {
 			Description: "The inbound services allowed.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 32),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -389,7 +391,7 @@ func (securityZoneBlockAddressBookRange) attributesSchema() map[string]schema.At
 }
 
 type securityZoneBlockAddressBookSet struct {
-	Name        types.String   `tfsdk:"name"`
+	Name        types.String   `tfsdk:"name"        tfdata:"identifier"`
 	Address     []types.String `tfsdk:"address"`
 	AddressSet  []types.String `tfsdk:"address_set"`
 	Description types.String   `tfsdk:"description"`
@@ -411,6 +413,7 @@ func (securityZoneBlockAddressBookSet) attributesSchema() map[string]schema.Attr
 			Description: "List of address names.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -423,6 +426,7 @@ func (securityZoneBlockAddressBookSet) attributesSchema() map[string]schema.Attr
 			Description: "List of address-set names.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -1086,21 +1090,20 @@ func (rscData *securityZoneData) read(
 					})
 				}
 			case balt.CutPrefixInString(&itemTrim, "address-book address-set "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var adSet securityZoneBlockAddressBookSet
-				rscData.AddressBookSet, adSet = tfdata.ExtractBlockWithTFTypesString(
-					rscData.AddressBookSet, "Name", itemTrimFields[0])
-				adSet.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				var addressBookSet securityZoneBlockAddressBookSet
+				rscData.AddressBookSet, addressBookSet = tfdata.ExtractBlock(rscData.AddressBookSet, types.StringValue(name))
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "description "):
-					adSet.Description = types.StringValue(strings.Trim(itemTrim, "\""))
+					addressBookSet.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "address "):
-					adSet.Address = append(adSet.Address, types.StringValue(itemTrim))
+					addressBookSet.Address = append(addressBookSet.Address, types.StringValue(itemTrim))
 				case balt.CutPrefixInString(&itemTrim, "address-set "):
-					adSet.AddressSet = append(adSet.AddressSet, types.StringValue(itemTrim))
+					addressBookSet.AddressSet = append(addressBookSet.AddressSet, types.StringValue(itemTrim))
 				}
-				rscData.AddressBookSet = append(rscData.AddressBookSet, adSet)
+				rscData.AddressBookSet = append(rscData.AddressBookSet, addressBookSet)
 			case balt.CutPrefixInString(&itemTrim, "advance-policy-based-routing-profile "):
 				rscData.AdvancePolicyBasedRoutingProfile = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "description "):
@@ -1120,16 +1123,17 @@ func (rscData *securityZoneData) read(
 			case itemTrim == "tcp-rst":
 				rscData.TCPRst = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "interfaces "):
-				itemTrimFields := strings.Split(itemTrim, " ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
 				var interFace securityZoneDataSourceBlockInterface
-				rscData.Interface, interFace = tfdata.ExtractBlockWithTFTypesString(rscData.Interface, "Name", itemTrimFields[0])
-				interFace.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-				switch {
-				case balt.CutPrefixInString(&itemTrim, "host-inbound-traffic protocols "):
-					interFace.InboundProtocols = append(interFace.InboundProtocols, types.StringValue(itemTrim))
-				case balt.CutPrefixInString(&itemTrim, "host-inbound-traffic system-services "):
-					interFace.InboundServices = append(interFace.InboundServices, types.StringValue(itemTrim))
+				rscData.Interface, interFace = tfdata.ExtractBlock(rscData.Interface, types.StringValue(name))
+
+				if balt.CutPrefixInString(&itemTrim, name+" ") {
+					switch {
+					case balt.CutPrefixInString(&itemTrim, "host-inbound-traffic protocols "):
+						interFace.InboundProtocols = append(interFace.InboundProtocols, types.StringValue(itemTrim))
+					case balt.CutPrefixInString(&itemTrim, "host-inbound-traffic system-services "):
+						interFace.InboundServices = append(interFace.InboundServices, types.StringValue(itemTrim))
+					}
 				}
 				rscData.Interface = append(rscData.Interface, interFace)
 			}

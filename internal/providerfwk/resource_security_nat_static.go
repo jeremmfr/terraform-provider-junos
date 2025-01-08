@@ -135,6 +135,7 @@ func (rsc *securityNatStatic) Schema(
 						Description: "Name of interface, routing-instance or zone for traffic source.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.Any(
 									tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
@@ -196,6 +197,7 @@ func (rsc *securityNatStatic) Schema(
 							Description: "CIDR source address to match.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									tfvalidator.StringCIDRNetwork(),
 								),
@@ -207,6 +209,7 @@ func (rsc *securityNatStatic) Schema(
 							Description: "Source address from address book to match.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									stringvalidator.LengthBetween(1, 63),
 									tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -219,6 +222,7 @@ func (rsc *securityNatStatic) Schema(
 							Description: "Source port to match.",
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
+								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
 									stringvalidator.RegexMatches(regexp.MustCompile(
 										`^\d+( to \d+)?$`),
@@ -315,7 +319,7 @@ type securityNatStaticBlockFromConfig struct {
 }
 
 type securityNatStaticBlockRule struct {
-	Name                   types.String                    `tfsdk:"name"`
+	Name                   types.String                    `tfsdk:"name"                     tfdata:"identifier"`
 	DestinationAddress     types.String                    `tfsdk:"destination_address"`
 	DestinationAddressName types.String                    `tfsdk:"destination_address_name"`
 	DestinationPort        types.Int64                     `tfsdk:"destination_port"`
@@ -930,13 +934,11 @@ func (rscData *securityNatStaticData) read(
 				}
 				rscData.From.Value = append(rscData.From.Value, types.StringValue(itemTrimFields[1]))
 			case balt.CutPrefixInString(&itemTrim, "rule "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var rule securityNatStaticBlockRule
-				rscData.Rule, rule = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Rule, "Name", itemTrimFields[0],
-				)
-				rule.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.Rule = tfdata.AppendPotentialNewBlock(rscData.Rule, types.StringValue(name))
+				rule := &rscData.Rule[len(rscData.Rule)-1]
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "match destination-address "):
 					rule.DestinationAddress = types.StringValue(itemTrim)
@@ -992,7 +994,6 @@ func (rscData *securityNatStaticData) read(
 						}
 					}
 				}
-				rscData.Rule = append(rscData.Rule, rule)
 			}
 		}
 	}

@@ -106,14 +106,14 @@ type applicationSetData struct {
 }
 
 type applicationSetAttrData struct {
-	Name           types.String   `tfsdk:"name"`
+	Name           types.String   `tfsdk:"name"            tfdata:"identifier,skip_isempty"`
 	Applications   []types.String `tfsdk:"applications"`
 	ApplicationSet []types.String `tfsdk:"application_set"`
 	Description    types.String   `tfsdk:"description"`
 }
 
 func (rscData *applicationSetAttrData) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscData, "Name")
+	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
 func (applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
@@ -132,6 +132,7 @@ func (applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
 			Description: "Application to be included in the set.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -144,6 +145,7 @@ func (applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
 			Description: "Application-set to be included in the set.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -167,14 +169,14 @@ type applicationSetConfig struct {
 }
 
 type applicationSetAttrConfig struct {
-	Name           types.String `tfsdk:"name"`
+	Name           types.String `tfsdk:"name"            tfdata:"skip_isempty"`
 	Applications   types.List   `tfsdk:"applications"`
 	ApplicationSet types.List   `tfsdk:"application_set"`
 	Description    types.String `tfsdk:"description"`
 }
 
 func (config *applicationSetAttrConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(config, "Name")
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 func (config *applicationSetAttrConfig) validateConfig(

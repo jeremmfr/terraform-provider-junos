@@ -164,6 +164,7 @@ func (securityAddressBookData) attributesSchema() map[string]schema.Attribute {
 			Description: "List of zones to attach address book to.",
 			Validators: []validator.List{
 				listvalidator.SizeAtLeast(1),
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
@@ -347,7 +348,7 @@ func (securityAddressBookBlockWildcardAddress) attributesSchema() map[string]sch
 }
 
 type securityAddressBookBlockAddressSet struct {
-	Name        types.String   `tfsdk:"name"`
+	Name        types.String   `tfsdk:"name"        tfdata:"identifier"`
 	Address     []types.String `tfsdk:"address"`
 	AddressSet  []types.String `tfsdk:"address_set"`
 	Description types.String   `tfsdk:"description"`
@@ -369,6 +370,7 @@ func (securityAddressBookBlockAddressSet) attributesSchema() map[string]schema.A
 			Description: "List of address names.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -381,6 +383,7 @@ func (securityAddressBookBlockAddressSet) attributesSchema() map[string]schema.A
 			Description: "List of address-set names.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 63),
 					tfvalidator.StringFormat(tfvalidator.AddressNameFormat),
@@ -925,20 +928,20 @@ func (rscData *securityAddressBookData) read(
 					})
 				}
 			case balt.CutPrefixInString(&itemTrim, "address-set "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var adSet securityAddressBookBlockAddressSet
-				rscData.AddressSet, adSet = tfdata.ExtractBlockWithTFTypesString(rscData.AddressSet, "Name", itemTrimFields[0])
-				adSet.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				var addressSet securityAddressBookBlockAddressSet
+				rscData.AddressSet, addressSet = tfdata.ExtractBlock(rscData.AddressSet, types.StringValue(name))
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "description "):
-					adSet.Description = types.StringValue(strings.Trim(itemTrim, "\""))
+					addressSet.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "address "):
-					adSet.Address = append(adSet.Address, types.StringValue(itemTrim))
+					addressSet.Address = append(addressSet.Address, types.StringValue(itemTrim))
 				case balt.CutPrefixInString(&itemTrim, "address-set "):
-					adSet.AddressSet = append(adSet.AddressSet, types.StringValue(itemTrim))
+					addressSet.AddressSet = append(addressSet.AddressSet, types.StringValue(itemTrim))
 				}
-				rscData.AddressSet = append(rscData.AddressSet, adSet)
+				rscData.AddressSet = append(rscData.AddressSet, addressSet)
 			case balt.CutPrefixInString(&itemTrim, "attach zone "):
 				rscData.AttachZone = append(rscData.AttachZone, types.StringValue(itemTrim))
 			}

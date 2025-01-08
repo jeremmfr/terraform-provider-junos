@@ -149,6 +149,7 @@ func (rsc *systemLoginUser) Schema(
 				Attributes: map[string]schema.Attribute{
 					"encrypted_password": schema.StringAttribute{
 						Optional:    true,
+						Sensitive:   true,
 						Description: "Encrypted password string.",
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 128),
@@ -177,6 +178,7 @@ func (rsc *systemLoginUser) Schema(
 						Description: "Secure shell (ssh) public key string.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								tfvalidator.StringDoubleQuoteExclusion(),
@@ -522,7 +524,8 @@ func checkSystemLoginUserExists(
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig + "system login user " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(junos.CmdShowConfig +
+		"system login user " + name + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}

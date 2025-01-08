@@ -124,6 +124,7 @@ func (rsc *securityIkeGateway) Schema(
 				Description: "Addresses or hostnames of peer:1 primary, upto 4 backups.",
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 5),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress(),
 					),

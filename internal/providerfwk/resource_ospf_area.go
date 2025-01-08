@@ -155,6 +155,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Configure context identifier in support of edge protection.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress().IPv4Only(),
 					),
@@ -166,6 +167,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Export policy for Inter Area Prefix LSAs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -178,6 +180,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Import policy for Inter Area Prefix LSAs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -190,6 +193,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Export policy for Type 3 Summary LSAs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -202,6 +206,7 @@ func (rsc *ospfArea) Schema(
 				Description: "Import policy for Type 3 Summary LSAs.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 250),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -926,7 +931,7 @@ type ospfAreaConfig struct {
 
 //nolint:lll
 type ospfAreaBlockInterface struct {
-	Name                                        types.String                                       `tfsdk:"name"`
+	Name                                        types.String                                       `tfsdk:"name"                                              tfdata:"identifier"`
 	AuthenticationSimplePassword                types.String                                       `tfsdk:"authentication_simple_password"`
 	DeadInterval                                types.Int64                                        `tfsdk:"dead_interval"`
 	DemandCircuit                               types.Bool                                         `tfsdk:"demand_circuit"`
@@ -1007,7 +1012,7 @@ type ospfAreaBlockInterfaceConfig struct {
 }
 
 type ospfAreaBlockInterfaceBlockAuthenticationMD5 struct {
-	KeyID     types.Int64  `tfsdk:"key_id"`
+	KeyID     types.Int64  `tfsdk:"key_id"     tfdata:"identifier"`
 	Key       types.String `tfsdk:"key"`
 	StartTime types.String `tfsdk:"start_time"`
 }
@@ -1043,7 +1048,7 @@ type ospfAreaBlockInterfaceBlockNeighbor struct {
 }
 
 type ospfAreaBlockAreaRange struct {
-	Range          types.String `tfsdk:"range"`
+	Range          types.String `tfsdk:"range"           tfdata:"identifier"`
 	Exact          types.Bool   `tfsdk:"exact"`
 	OverrideMetric types.Int64  `tfsdk:"override_metric"`
 	Restrict       types.Bool   `tfsdk:"restrict"`
@@ -1084,8 +1089,8 @@ func (block *ospfAreaBlockStub) hasKnownValue() bool {
 }
 
 type ospfAreaBlockVirtualLink struct {
-	NeighborID         types.String `tfsdk:"neighbor_id"`
-	TransitArea        types.String `tfsdk:"transit_area"`
+	NeighborID         types.String `tfsdk:"neighbor_id"         tfdata:"identifier_1"`
+	TransitArea        types.String `tfsdk:"transit_area"        tfdata:"identifier_2"`
 	DeadInterval       types.Int64  `tfsdk:"dead_interval"`
 	DemandCircuit      types.Bool   `tfsdk:"demand_circuit"`
 	Disable            types.Bool   `tfsdk:"disable"`
@@ -1097,7 +1102,7 @@ type ospfAreaBlockVirtualLink struct {
 	TransitDelay       types.Int64  `tfsdk:"transit_delay"`
 }
 
-func (rsc *ospfArea) ValidateConfig(
+func (rsc *ospfArea) ValidateConfig( //nolint:gocognit
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
 	var config ospfAreaConfig
@@ -2307,29 +2312,24 @@ func (rscData *ospfAreaData) read(
 				rscData.NoContextIdentifierAdvertisement = types.BoolValue(true)
 
 			case balt.CutPrefixInString(&itemTrim, "interface "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var interFace ospfAreaBlockInterface
-				rscData.Interface, interFace = tfdata.ExtractBlockWithTFTypesString(
-					rscData.Interface, "Name", itemTrimFields[0],
-				)
-				interFace.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.Interface = tfdata.AppendPotentialNewBlock(rscData.Interface, types.StringValue(name))
+				interFace := &rscData.Interface[len(rscData.Interface)-1]
 
-				if err := interFace.read(itemTrim, junSess); err != nil {
-					return err
+				if balt.CutPrefixInString(&itemTrim, name+" ") {
+					if err := interFace.read(itemTrim, junSess); err != nil {
+						return err
+					}
 				}
-				rscData.Interface = append(rscData.Interface, interFace)
 			case balt.CutPrefixInString(&itemTrim, "area-range "):
-				itemTrimFields := strings.Split(itemTrim, " ")
+				rangeValue := tfdata.FirstElementOfJunosLine(itemTrim)
 				var areaRange ospfAreaBlockAreaRange
-				rscData.AreaRange, areaRange = tfdata.ExtractBlockWithTFTypesString(
-					rscData.AreaRange, "Range", itemTrimFields[0],
-				)
-				areaRange.Range = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				rscData.AreaRange, areaRange = tfdata.ExtractBlock(rscData.AreaRange, types.StringValue(rangeValue))
 
-				if err := areaRange.read(itemTrim); err != nil {
-					return err
+				if balt.CutPrefixInString(&itemTrim, rangeValue+" ") {
+					if err := areaRange.read(itemTrim); err != nil {
+						return err
+					}
 				}
 				rscData.AreaRange = append(rscData.AreaRange, areaRange)
 			case balt.CutPrefixInString(&itemTrim, "nssa"):
@@ -2364,35 +2364,34 @@ func (rscData *ospfAreaData) read(
 					return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "virtual-link", itemTrim)
 				}
 				var virtualLink ospfAreaBlockVirtualLink
-				rscData.VirtualLink, virtualLink = tfdata.ExtractBlockWith2TFTypesString(
-					rscData.VirtualLink, "NeighborID", itemTrimFields[1], "TransitArea", itemTrimFields[3],
+				rscData.VirtualLink, virtualLink = tfdata.ExtractBlock(
+					rscData.VirtualLink, types.StringValue(itemTrimFields[1]), types.StringValue(itemTrimFields[3]),
 				)
-				virtualLink.NeighborID = types.StringValue(itemTrimFields[1])
-				virtualLink.TransitArea = types.StringValue(itemTrimFields[3])
-				balt.CutPrefixInString(&itemTrim, "neighbor-id "+itemTrimFields[1]+" transit-area "+itemTrimFields[3]+" ")
 
-				switch {
-				case balt.CutPrefixInString(&itemTrim, "dead-interval "):
-					virtualLink.DeadInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-				case itemTrim == "demand-circuit":
-					virtualLink.DemandCircuit = types.BoolValue(true)
-				case itemTrim == "disable":
-					virtualLink.Disable = types.BoolValue(true)
-				case itemTrim == "flood-reduction":
-					virtualLink.FloodReduction = types.BoolValue(true)
-				case balt.CutPrefixInString(&itemTrim, "hello-interval "):
-					virtualLink.HelloInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-				case balt.CutPrefixInString(&itemTrim, "ipsec-sa "):
-					virtualLink.IpsecSA = types.StringValue(strings.Trim(itemTrim, "\""))
-				case balt.CutPrefixInString(&itemTrim, "mtu "):
-					virtualLink.Mtu, err = tfdata.ConvAtoi64Value(itemTrim)
-				case balt.CutPrefixInString(&itemTrim, "retransmit-interval "):
-					virtualLink.RetransmitInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-				case balt.CutPrefixInString(&itemTrim, "transit-delay "):
-					virtualLink.TransitDelay, err = tfdata.ConvAtoi64Value(itemTrim)
-				}
-				if err != nil {
-					return err
+				if balt.CutPrefixInString(&itemTrim, "neighbor-id "+itemTrimFields[1]+" transit-area "+itemTrimFields[3]+" ") {
+					switch {
+					case balt.CutPrefixInString(&itemTrim, "dead-interval "):
+						virtualLink.DeadInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+					case itemTrim == "demand-circuit":
+						virtualLink.DemandCircuit = types.BoolValue(true)
+					case itemTrim == "disable":
+						virtualLink.Disable = types.BoolValue(true)
+					case itemTrim == "flood-reduction":
+						virtualLink.FloodReduction = types.BoolValue(true)
+					case balt.CutPrefixInString(&itemTrim, "hello-interval "):
+						virtualLink.HelloInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+					case balt.CutPrefixInString(&itemTrim, "ipsec-sa "):
+						virtualLink.IpsecSA = types.StringValue(strings.Trim(itemTrim, "\""))
+					case balt.CutPrefixInString(&itemTrim, "mtu "):
+						virtualLink.Mtu, err = tfdata.ConvAtoi64Value(itemTrim)
+					case balt.CutPrefixInString(&itemTrim, "retransmit-interval "):
+						virtualLink.RetransmitInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+					case balt.CutPrefixInString(&itemTrim, "transit-delay "):
+						virtualLink.TransitDelay, err = tfdata.ConvAtoi64Value(itemTrim)
+					}
+					if err != nil {
+						return err
+					}
 				}
 				rscData.VirtualLink = append(rscData.VirtualLink, virtualLink)
 			}
@@ -2516,11 +2515,8 @@ func (block *ospfAreaBlockInterface) read(
 		if err != nil {
 			return err
 		}
-		var authenticationMD5 ospfAreaBlockInterfaceBlockAuthenticationMD5
-		block.AuthenticationMD5, authenticationMD5 = tfdata.ExtractBlockWithTFTypesInt64(
-			block.AuthenticationMD5, "KeyID", keyID.ValueInt64(),
-		)
-		authenticationMD5.KeyID = keyID
+		block.AuthenticationMD5 = tfdata.AppendPotentialNewBlock(block.AuthenticationMD5, keyID)
+		authenticationMD5 := &block.AuthenticationMD5[len(block.AuthenticationMD5)-1]
 		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
 		switch {
@@ -2532,7 +2528,6 @@ func (block *ospfAreaBlockInterface) read(
 		case balt.CutPrefixInString(&itemTrim, "start-time "):
 			authenticationMD5.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 		}
-		block.AuthenticationMD5 = append(block.AuthenticationMD5, authenticationMD5)
 	case balt.CutPrefixInString(&itemTrim, "bandwidth-based-metrics bandwidth "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		if len(itemTrimFields) < 3 { // <bandwidth> metric <metric>
@@ -2646,16 +2641,14 @@ func (block *ospfAreaBlockNssa) read(itemTrim string) (err error) {
 		block.NoSummaries = types.BoolValue(true)
 
 	case balt.CutPrefixInString(&itemTrim, "area-range "):
-		itemTrimFields := strings.Split(itemTrim, " ")
+		rangeValue := tfdata.FirstElementOfJunosLine(itemTrim)
 		var areaRange ospfAreaBlockAreaRange
-		block.AreaRange, areaRange = tfdata.ExtractBlockWithTFTypesString(
-			block.AreaRange, "Range", itemTrimFields[0],
-		)
-		areaRange.Range = types.StringValue(itemTrimFields[0])
-		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+		block.AreaRange, areaRange = tfdata.ExtractBlock(block.AreaRange, types.StringValue(rangeValue))
 
-		if err := areaRange.read(itemTrim); err != nil {
-			return err
+		if balt.CutPrefixInString(&itemTrim, rangeValue+" ") {
+			if err := areaRange.read(itemTrim); err != nil {
+				return err
+			}
 		}
 		block.AreaRange = append(block.AreaRange, areaRange)
 	case balt.CutPrefixInString(&itemTrim, "default-lsa"):

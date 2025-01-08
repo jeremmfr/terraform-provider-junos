@@ -100,6 +100,7 @@ func (rsc *system) Schema(
 				Description: "Order in which authentication methods are invoked.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						stringvalidator.OneOf("password", "radius", "tacplus"),
 					),
@@ -155,6 +156,7 @@ func (rsc *system) Schema(
 				Description: "DNS name servers.",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
+					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress(),
 					),
@@ -308,6 +310,7 @@ func (rsc *system) Schema(
 						Description: "Events to be logged.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf("change-log", "interactive-commands", "login"),
 							),
@@ -577,6 +580,7 @@ func (rsc *system) Schema(
 						Description: "Destination networks reachable through the router.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								tfvalidator.StringCIDR().IPv6Only(),
 							),
@@ -815,6 +819,7 @@ func (rsc *system) Schema(
 						Description: "License keys.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								tfvalidator.StringDoubleQuoteExclusion(),
@@ -857,6 +862,7 @@ func (rsc *system) Schema(
 						Description: "Sources from which logins are denied.",
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
+							setvalidator.NoNullValues(),
 							setvalidator.ValueStringsAre(
 								stringvalidator.LengthAtLeast(1),
 								stringvalidator.Any(
@@ -1111,6 +1117,7 @@ func (rsc *system) Schema(
 						Description: "Order in which authentication methods are invoked on auxiliary port.",
 						Validators: []validator.List{
 							listvalidator.SizeAtLeast(1),
+							listvalidator.NoNullValues(),
 							listvalidator.ValueStringsAre(
 								stringvalidator.OneOf("password", "radius", "tacplus"),
 							),
@@ -1150,6 +1157,7 @@ func (rsc *system) Schema(
 						Description: "Order in which authentication methods are invoked on console port.",
 						Validators: []validator.List{
 							listvalidator.SizeAtLeast(1),
+							listvalidator.NoNullValues(),
 							listvalidator.ValueStringsAre(
 								stringvalidator.OneOf("password", "radius", "tacplus"),
 							),
@@ -1297,6 +1305,7 @@ func (rsc *system) Schema(
 								Description: "Tracing parameters.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf("all", "debug", "incoming", "outgoing"),
 									),
@@ -1330,6 +1339,7 @@ func (rsc *system) Schema(
 								Description: "Order in which authentication methods are invoked.",
 								Validators: []validator.List{
 									listvalidator.SizeAtLeast(1),
+									listvalidator.NoNullValues(),
 									listvalidator.ValueStringsAre(
 										stringvalidator.OneOf("password", "radius", "tacplus"),
 									),
@@ -1341,6 +1351,7 @@ func (rsc *system) Schema(
 								Description: "Specify the ciphers allowed for protocol version 2.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
@@ -1381,6 +1392,7 @@ func (rsc *system) Schema(
 								Description: "Specify permissible SSH host-key algorithms.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
@@ -1393,6 +1405,7 @@ func (rsc *system) Schema(
 								Description: "Specify ssh key-exchange for Diffie-Hellman keys.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
@@ -1412,6 +1425,7 @@ func (rsc *system) Schema(
 								Description: "Message Authentication Code algorithms allowed (SSHv2).",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
@@ -1459,6 +1473,7 @@ func (rsc *system) Schema(
 								Description: "Specify ssh protocol versions supported.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf("v1", "v2"),
 									),
@@ -1506,6 +1521,7 @@ func (rsc *system) Schema(
 								Description: "Specify the name of one or more interfaces.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
@@ -1534,6 +1550,7 @@ func (rsc *system) Schema(
 								Description: "Specify the name of one or more interfaces.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
 									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
@@ -1891,7 +1908,7 @@ type systemBlockAccountingConfig struct {
 }
 
 type systemBlockAccountingBlockDestinationRadiusServer struct {
-	Address                 types.String `tfsdk:"address"`
+	Address                 types.String `tfsdk:"address"                  tfdata:"identifier"`
 	Secret                  types.String `tfsdk:"secret"`
 	AccountingPort          types.Int64  `tfsdk:"accounting_port"`
 	AccountingRetry         types.Int64  `tfsdk:"accounting_retry"`
@@ -1908,7 +1925,7 @@ type systemBlockAccountingBlockDestinationRadiusServer struct {
 }
 
 type systemBlockAccountingBlockDestinationTacplusServer struct {
-	Address          types.String `tfsdk:"address"`
+	Address          types.String `tfsdk:"address"           tfdata:"identifier"`
 	Port             types.Int64  `tfsdk:"port"`
 	RoutingInstance  types.String `tfsdk:"routing_instance"`
 	Secret           types.String `tfsdk:"secret"`
@@ -2036,7 +2053,7 @@ func (block *systemBlockLoginConfig) isEmpty() bool {
 }
 
 type systemBlockNameServerOpts struct {
-	Address         types.String `tfsdk:"address"`
+	Address         types.String `tfsdk:"address"          tfdata:"identifier"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 }
 
@@ -4035,17 +4052,16 @@ func (rscData *systemData) read(
 					return err
 				}
 			case balt.CutPrefixInString(&itemTrim, "name-server "):
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var nameServerOpts systemBlockNameServerOpts
-				rscData.NameServerOpts, nameServerOpts = tfdata.ExtractBlockWithTFTypesString(
-					rscData.NameServerOpts, "Address", itemTrimFields[0],
-				)
-				nameServerOpts.Address = types.StringValue(itemTrimFields[0])
-				rscData.NameServer = append(rscData.NameServer, types.StringValue(itemTrimFields[0]))
-				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" routing-instance ") {
+				address := tfdata.FirstElementOfJunosLine(itemTrim)
+
+				rscData.NameServer = append(rscData.NameServer, types.StringValue(address))
+
+				rscData.NameServerOpts = tfdata.AppendPotentialNewBlock(rscData.NameServerOpts, types.StringValue(address))
+				nameServerOpts := &rscData.NameServerOpts[len(rscData.NameServerOpts)-1]
+
+				if balt.CutPrefixInString(&itemTrim, address+" routing-instance ") {
 					nameServerOpts.RoutingInstance = types.StringValue(itemTrim)
 				}
-				rscData.NameServerOpts = append(rscData.NameServerOpts, nameServerOpts)
 			case itemTrim == "no-multicast-echo":
 				rscData.NoMulticastEcho = types.BoolValue(true)
 			case itemTrim == "no-ping-record-route":
@@ -4226,32 +4242,31 @@ func (block *systemBlockAccounting) read(
 	case balt.CutPrefixInString(&itemTrim, "destination radius"):
 		block.DestinationRadius = types.BoolValue(true)
 		if balt.CutPrefixInString(&itemTrim, " server ") {
-			itemTrimFields := strings.Split(itemTrim, " ")
-			var destinationRadiusServer systemBlockAccountingBlockDestinationRadiusServer
-			block.DestinationRadiusServer, destinationRadiusServer = tfdata.ExtractBlockWithTFTypesString(
-				block.DestinationRadiusServer, "Address", itemTrimFields[0],
+			address := tfdata.FirstElementOfJunosLine(itemTrim)
+			block.DestinationRadiusServer = tfdata.AppendPotentialNewBlock(
+				block.DestinationRadiusServer, types.StringValue(address),
 			)
-			destinationRadiusServer.Address = types.StringValue(itemTrimFields[0])
-			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+			destinationRadiusServer := &block.DestinationRadiusServer[len(block.DestinationRadiusServer)-1]
+			balt.CutPrefixInString(&itemTrim, address+" ")
+
 			if err := destinationRadiusServer.read(itemTrim, junSess); err != nil {
 				return err
 			}
-			block.DestinationRadiusServer = append(block.DestinationRadiusServer, destinationRadiusServer)
 		}
 	case balt.CutPrefixInString(&itemTrim, "destination tacplus"):
 		block.DestinationTacplus = types.BoolValue(true)
 		if balt.CutPrefixInString(&itemTrim, " server ") {
-			itemTrimFields := strings.Split(itemTrim, " ")
-			var destinationTacplusServer systemBlockAccountingBlockDestinationTacplusServer
-			block.DestinationTacplusServer, destinationTacplusServer = tfdata.ExtractBlockWithTFTypesString(
-				block.DestinationTacplusServer, "Address", itemTrimFields[0],
+			address := tfdata.FirstElementOfJunosLine(itemTrim)
+			block.DestinationTacplusServer = tfdata.AppendPotentialNewBlock(
+				block.DestinationTacplusServer, types.StringValue(address),
 			)
-			destinationTacplusServer.Address = types.StringValue(itemTrimFields[0])
-			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
-			if err := destinationTacplusServer.read(itemTrim, junSess); err != nil {
-				return err
+			destinationTacplusServer := &block.DestinationTacplusServer[len(block.DestinationTacplusServer)-1]
+
+			if balt.CutPrefixInString(&itemTrim, address+" ") {
+				if err := destinationTacplusServer.read(itemTrim, junSess); err != nil {
+					return err
+				}
 			}
-			block.DestinationTacplusServer = append(block.DestinationTacplusServer, destinationTacplusServer)
 		}
 	}
 

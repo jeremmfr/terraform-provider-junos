@@ -344,7 +344,7 @@ func (rsc *interfaceSt0Unit) searchNewAvailable(junSess *junos.Session) (string,
 			st0int = append(st0int, lineFields[0])
 		}
 	}
-	for i := 0; i <= 1073741823; i++ {
+	for i := range 1073741823 {
 		if !slices.Contains(st0int, "st0."+strconv.Itoa(i)) {
 			return "st0." + strconv.Itoa(i), nil
 		}

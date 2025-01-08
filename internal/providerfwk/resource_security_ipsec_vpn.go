@@ -142,6 +142,7 @@ func (rsc *securityIpsecVpn) Schema(
 				Description: "Negotiate multiple SAs with forwarding-classes.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
 						stringvalidator.LengthBetween(1, 32),
 						tfvalidator.StringDoubleQuoteExclusion(),
@@ -436,7 +437,7 @@ func (block *securityIpsecVpnBlockManual) hasKnownValue() bool {
 }
 
 type securityIpsecVpnBlockTrafficSelector struct {
-	Name     types.String `tfsdk:"name"`
+	Name     types.String `tfsdk:"name"      tfdata:"identifier"`
 	LocalIP  types.String `tfsdk:"local_ip"`
 	RemoteIP types.String `tfsdk:"remote_ip"`
 }
@@ -1105,18 +1106,18 @@ func (rscData *securityIpsecVpnData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "traffic-selector "):
 				name := tfdata.FirstElementOfJunosLine(itemTrim)
-				var trafficSelector securityIpsecVpnBlockTrafficSelector
-				rscData.TrafficSelector, trafficSelector = tfdata.ExtractBlockWithTFTypesString(
-					rscData.TrafficSelector, "Name", strings.Trim(name, "\""))
-				trafficSelector.Name = types.StringValue(strings.Trim(name, "\""))
+				rscData.TrafficSelector = tfdata.AppendPotentialNewBlock(
+					rscData.TrafficSelector, types.StringValue(strings.Trim(name, "\"")),
+				)
+				trafficSelector := &rscData.TrafficSelector[len(rscData.TrafficSelector)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "local-ip "):
 					trafficSelector.LocalIP = types.StringValue(itemTrim)
 				case balt.CutPrefixInString(&itemTrim, "remote-ip "):
 					trafficSelector.RemoteIP = types.StringValue(itemTrim)
 				}
-				rscData.TrafficSelector = append(rscData.TrafficSelector, trafficSelector)
 			case balt.CutPrefixInString(&itemTrim, "vpn-monitor "):
 				if rscData.VpnMonitor == nil {
 					rscData.VpnMonitor = &securityIpsecVpnBlockVpnMonitor{}

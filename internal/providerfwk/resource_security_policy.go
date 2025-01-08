@@ -145,7 +145,7 @@ type securityPolicyConfig struct {
 
 //nolint:lll
 type securityPolicyBlockPolicy struct {
-	Name                            types.String                                             `tfsdk:"name"`
+	Name                            types.String                                             `tfsdk:"name"                               tfdata:"identifier"`
 	MatchSourceAddress              []types.String                                           `tfsdk:"match_source_address"`
 	MatchDestinationAddress         []types.String                                           `tfsdk:"match_destination_address"`
 	Then                            types.String                                             `tfsdk:"then"`
@@ -177,6 +177,7 @@ func (securityPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute 
 			Description: "List of source address match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -189,6 +190,7 @@ func (securityPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute 
 			Description: "List of destination address match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -231,6 +233,7 @@ func (securityPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute 
 			Description: "List of applications match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -250,6 +253,7 @@ func (securityPolicyBlockPolicy) attributesSchema() map[string]schema.Attribute 
 			Description: "List of dynamic application or group match.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthBetween(1, 250),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -976,11 +980,11 @@ func (rscData *securityPolicyData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			if balt.CutPrefixInString(&itemTrim, "policy ") {
-				itemTrimFields := strings.Split(itemTrim, " ")
-				var policy securityPolicyBlockPolicy
-				rscData.Policy, policy = tfdata.ExtractBlockWithTFTypesString(rscData.Policy, "Name", itemTrimFields[0])
-				policy.Name = types.StringValue(itemTrimFields[0])
-				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.Policy = tfdata.AppendPotentialNewBlock(rscData.Policy, types.StringValue(name))
+				policy := &rscData.Policy[len(rscData.Policy)-1]
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
 				switch {
 				case balt.CutPrefixInString(&itemTrim, "match source-address "):
 					policy.MatchSourceAddress = append(policy.MatchSourceAddress,
@@ -1023,7 +1027,6 @@ func (rscData *securityPolicyData) read(
 						policy.PermitApplicationServices.read(itemTrim)
 					}
 				}
-				rscData.Policy = append(rscData.Policy, policy)
 			}
 		}
 	}

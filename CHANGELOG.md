@@ -1,6 +1,71 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.11.0 (2025-01-08)
+
+FEATURES:
+
+* add **junos_mstp** resource (Partial fix [#732](https://github.com/jeremmfr/terraform-provider-junos/issues/732))
+* add **junos_mstp_interface** resource (Partial fix [#732](https://github.com/jeremmfr/terraform-provider-junos/issues/732))
+* add **junos_mstp_msti** resource (Partial fix [#732](https://github.com/jeremmfr/terraform-provider-junos/issues/732))
+
+ENHANCEMENTS:
+
+* **resource/***: set and list attributes, in resources using the new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework), now test that they contain only non-null values
+* **resource/junos_access_address_assignment_pool**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `user_name` argument inside `host` block inside `family` block (`hardware_address` is now optional)
+  * `host` block, `xauth_attributes_primary_dns` and `xauth_attributes_secondary_dns` arguments inside `family` block can now be configured when `type` = `inet6`
+* **resource/junos_group_dual_system**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false* (but still accepted for `apply_groups` argument)  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_security_idp_custom_attack**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * `recommended_action` argument is now optional
+  * values of `ip_flags` argument in `protocol_ipv4` block has now a plan validator to one of `df`, `mf`, `rb`, `no-df`, `no-mf` or `no-rb`
+  * values of `tcp_flags` argument in `protocol_tcp` block has now a plan validator to one of `ack`, `fin`, `psh`, `r1`, `r2`, `rst`, `syn`, `urg`, `no-acl`, `no-fin`, `no-psh`, `no-r1`, `no-r2`, `no-rst`, `no-syn` or `no-urg`
+* **resource/junos_security_idp_custom_attack_group**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+* **resource/junos_security_idp_policy**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_security_screen**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `aggregation` block argument
+* **resource/junos_security_screen_whitelist**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+* **resource/junos_services_rpm_probe**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_system_login_class**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  * values of `allowed_days` argument now have a plan validator to be one of the valid days (`sunday`, `monday`, ...)  
+  * values of `permissions` argument now have a plan validator to be one of the valid permission flags (`access`, `access-control`, `admin`, ...)  
+* **resource/junos_system_login_user**, **resource/junos_system_root_authentication**: mark `encrypted_password` attribute as sensitive (to obscure the value in Terraform output) even if the data is encrypted
+
+BUG FIXES:
+
+* **resource/junos_forwardingoptions_dhcprelay**: fix validation of `attempts` must be in range (1..10) when `version` = v6 in `bulk_leasequery` block
+
 ## v2.10.0 (2024-10-25)
 
 FEATURES:

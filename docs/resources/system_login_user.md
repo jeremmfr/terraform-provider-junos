@@ -31,7 +31,7 @@ The following arguments are supported:
   User identifier (uid) (100..64000).
 - **authentication** (Optional, Block)  
   Authentication method.
-  - **encrypted_password** (Optional, String)  
+  - **encrypted_password** (Optional, String, Sensitive)  
     Encrypted password string.  
     Conflict with `plain_text_password`.  
     If the encrypted password is present on Junos device and `plain_text_password` is used

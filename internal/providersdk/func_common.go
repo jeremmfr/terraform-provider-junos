@@ -2,7 +2,6 @@ package providersdk
 
 import (
 	"fmt"
-	"net"
 	"slices"
 	"sort"
 	"strings"
@@ -27,67 +26,6 @@ func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
 			Summary:  w.Error(),
 		})
 	}
-}
-
-func validateIPMaskFunc() schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-		v := i.(string)
-		err := validateIPwithMask(v)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       err.Error(),
-				AttributePath: path,
-			})
-		}
-
-		return diags
-	}
-}
-
-func validateIPwithMask(ip string) error {
-	if !strings.Contains(ip, "/") {
-		return fmt.Errorf("%v missing mask", ip)
-	}
-	_, ipnet, err := net.ParseCIDR(ip)
-	if err != nil || ipnet == nil {
-		return fmt.Errorf("%v is not a valid CIDR", ip)
-	}
-
-	return nil
-}
-
-func validateCIDRNetworkFunc() schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-		v := i.(string)
-		err := validateCIDRNetwork(v)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       err.Error(),
-				AttributePath: path,
-			})
-		}
-
-		return diags
-	}
-}
-
-func validateCIDRNetwork(network string) error {
-	if !strings.Contains(network, "/") {
-		return fmt.Errorf("%v missing mask", network)
-	}
-	_, ipnet, err := net.ParseCIDR(network)
-	if err != nil || ipnet == nil {
-		return fmt.Errorf("%v is not a valid CIDR", network)
-	}
-	if network != ipnet.String() {
-		return fmt.Errorf("%v is not a valid network CIDR", network)
-	}
-
-	return nil
 }
 
 func validateNameObjectJunos(exclude []string, length int, format formatName) schema.SchemaValidateDiagFunc {
@@ -174,20 +112,4 @@ func copyAndRemoveItemMapList(
 	}
 
 	return list
-}
-
-func validateIsIPv6Address(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-
-		return warnings, errors
-	}
-
-	ip := net.ParseIP(v)
-	if four, six := ip.To4(), ip.To16(); four != nil || six == nil {
-		errors = append(errors, fmt.Errorf("expected %s to contain a valid IPv6 address, got: %s", k, v))
-	}
-
-	return warnings, errors
 }

@@ -66,15 +66,17 @@ The following arguments are supported:
     Need to be a valid IP address.
 - **host** (Optional, Block List)  
   For each name of host to declare.  
-  `type` need to be `inet`.
+  Need to set one of `hardware_address` or `user_name`.  
   - **name** (Required, String)  
-    Hostname.
-  - **hardware_address** (Required, String)  
+    Hostname for static reservations.
+  - **ip_address** (Required, String)  
+    Reserved address.  
+    Need to be a valid IP address.
+  - **hardware_address** (Optional, String)  
     Hardware address.  
     Need to be a valid MAC address.
-  - **Reserved address** (Required, String)  
-    Hardware address.  
-    Need to be a valid IPv4 address.
+  - **user_name** (Optional, Boolean)  
+    Set subscriber user name as host identifier.
 - **inet_range** (Optional, Block List)  
   For each name of address range to declare.  
   `type` need to be `inet`.
@@ -102,16 +104,14 @@ The following arguments are supported:
     IPv6 delegated prefix length (1..128).
 - **xauth_attributes_primary_dns** (Optional, String)  
   Specify the primary-dns IP address.  
-  Need to be a valid IPv4 address with mask.  
-  `type` need to be `inet`.
+  Need to be a valid IPv4 address with mask or IPv6 address without mask.
 - **xauth_attributes_primary_wins** (Optional, String)  
   Specify the primary-wins IP address.  
   Need to be a valid IPv4 address with mask.  
   `type` need to be `inet`.
 - **xauth_attributes_secondary_dns** (Optional, String)  
   Specify the secondary-dns IP address.  
-  Need to be a valid IPv4 address with mask.  
-  `type` need to be `inet`.
+  Need to be a valid IPv4 address with mask or IPv6 address without mask.
 - **xauth_attributes_secondary_wins** (Optional, String)  
   Specify the secondary-wins IP address.  
   Need to be a valid IPv4 address with mask.  
