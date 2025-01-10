@@ -4,3 +4,8 @@ resource "junos_system_ntp_server" "testacc_ntpServer" {
   version = 4
   key     = 1
 }
+
+resource "junos_system_ntp_server" "testacc_ntpServer2" {
+  address = "192.0.2.2"
+  nts {}
+}

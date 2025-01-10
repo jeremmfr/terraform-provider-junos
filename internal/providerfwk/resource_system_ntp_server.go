@@ -7,6 +7,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -24,9 +25,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &systemNtpServer{}
-	_ resource.ResourceWithConfigure   = &systemNtpServer{}
-	_ resource.ResourceWithImportState = &systemNtpServer{}
+	_ resource.Resource                   = &systemNtpServer{}
+	_ resource.ResourceWithConfigure      = &systemNtpServer{}
+	_ resource.ResourceWithValidateConfig = &systemNtpServer{}
+	_ resource.ResourceWithImportState    = &systemNtpServer{}
 )
 
 type systemNtpServer struct {
@@ -124,16 +126,103 @@ func (rsc *systemNtpServer) Schema(
 				},
 			},
 		},
+		Blocks: map[string]schema.Block{
+			"nts": schema.SingleNestedBlock{
+				Description: "Enable NTS protocol for this server.",
+				Attributes: map[string]schema.Attribute{
+					"remote_identity_distinguished_name_container": schema.StringAttribute{
+						Optional:    true,
+						Description: "Container string for distinguished name of server to remote identity of server for verification.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"remote_identity_distinguished_name_wildcard": schema.StringAttribute{
+						Optional:    true,
+						Description: "Wildcard string for distinguished name of server to remote identity of server for verification.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"remote_identity_hostname": schema.StringAttribute{
+						Optional:    true,
+						Description: "Fully-qualified domain name to remote identity of server for verification.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
+		},
 	}
 }
 
 type systemNtpServerData struct {
-	ID              types.String `tfsdk:"id"`
-	Address         types.String `tfsdk:"address"`
-	Key             types.Int64  `tfsdk:"key"`
-	Prefer          types.Bool   `tfsdk:"prefer"`
-	RoutingInstance types.String `tfsdk:"routing_instance"`
-	Version         types.Int64  `tfsdk:"version"`
+	ID              types.String             `tfsdk:"id"`
+	Address         types.String             `tfsdk:"address"`
+	Key             types.Int64              `tfsdk:"key"`
+	Prefer          types.Bool               `tfsdk:"prefer"`
+	RoutingInstance types.String             `tfsdk:"routing_instance"`
+	Version         types.Int64              `tfsdk:"version"`
+	Nts             *systemNtpServerBlockNts `tfsdk:"nts"`
+}
+
+type systemNtpServerBlockNts struct {
+	RemoteIdentityDistinguishedNameContainer types.String `tfsdk:"remote_identity_distinguished_name_container"`
+	RemoteIdentityDistinguishedNameWildcard  types.String `tfsdk:"remote_identity_distinguished_name_wildcard"`
+	RemoteIdentityHostname                   types.String `tfsdk:"remote_identity_hostname"`
+}
+
+func (rsc *systemNtpServer) ValidateConfig(
+	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
+) {
+	var config systemNtpServerData
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.Nts != nil {
+		if !config.Nts.RemoteIdentityDistinguishedNameContainer.IsNull() &&
+			!config.Nts.RemoteIdentityDistinguishedNameContainer.IsUnknown() &&
+			!config.Nts.RemoteIdentityDistinguishedNameWildcard.IsNull() &&
+			!config.Nts.RemoteIdentityDistinguishedNameWildcard.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nts").AtName("remote_identity_distinguished_name_container"),
+				tfdiag.ConflictConfigErrSummary,
+				"remote_identity_distinguished_name_container and remote_identity_distinguished_name_wildcard"+
+					" cannot be configured together",
+			)
+		}
+		if !config.Nts.RemoteIdentityDistinguishedNameContainer.IsNull() &&
+			!config.Nts.RemoteIdentityDistinguishedNameContainer.IsUnknown() &&
+			!config.Nts.RemoteIdentityHostname.IsNull() &&
+			!config.Nts.RemoteIdentityHostname.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nts").AtName("remote_identity_distinguished_name_container"),
+				tfdiag.ConflictConfigErrSummary,
+				"remote_identity_distinguished_name_container and remote_identity_hostname"+
+					" cannot be configured together",
+			)
+		}
+		if !config.Nts.RemoteIdentityDistinguishedNameWildcard.IsNull() &&
+			!config.Nts.RemoteIdentityDistinguishedNameWildcard.IsUnknown() &&
+			!config.Nts.RemoteIdentityHostname.IsNull() &&
+			!config.Nts.RemoteIdentityHostname.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("nts").AtName("remote_identity_distinguished_name_wildcard"),
+				tfdiag.ConflictConfigErrSummary,
+				"remote_identity_distinguished_name_wildcard and remote_identity_hostname"+
+					" cannot be configured together",
+			)
+		}
+	}
 }
 
 func (rsc *systemNtpServer) Create(
@@ -323,6 +412,20 @@ func (rscData *systemNtpServerData) set(
 			utils.ConvI64toa(rscData.Version.ValueInt64()))
 	}
 
+	if rscData.Nts != nil {
+		configSet = append(configSet, setPrefix+"nts")
+
+		if v := rscData.Nts.RemoteIdentityDistinguishedNameContainer.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"nts remote-identity distinguished-name container \""+v+"\"")
+		}
+		if v := rscData.Nts.RemoteIdentityDistinguishedNameWildcard.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"nts remote-identity distinguished-name wildcard \""+v+"\"")
+		}
+		if v := rscData.Nts.RemoteIdentityHostname.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"nts remote-identity hostname \""+v+"\"")
+		}
+	}
+
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
@@ -350,6 +453,21 @@ func (rscData *systemNtpServerData) read(
 				rscData.Key, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
 					return err
+				}
+			case balt.CutPrefixInString(&itemTrim, "nts"):
+				if rscData.Nts == nil {
+					rscData.Nts = &systemNtpServerBlockNts{}
+				}
+
+				if balt.CutPrefixInString(&itemTrim, " ") {
+					switch {
+					case balt.CutPrefixInString(&itemTrim, "remote-identity distinguished-name container "):
+						rscData.Nts.RemoteIdentityDistinguishedNameContainer = types.StringValue(strings.Trim(itemTrim, "\""))
+					case balt.CutPrefixInString(&itemTrim, "remote-identity distinguished-name wildcard "):
+						rscData.Nts.RemoteIdentityDistinguishedNameWildcard = types.StringValue(strings.Trim(itemTrim, "\""))
+					case balt.CutPrefixInString(&itemTrim, "remote-identity hostname "):
+						rscData.Nts.RemoteIdentityHostname = types.StringValue(strings.Trim(itemTrim, "\""))
+					}
 				}
 			case itemTrim == "prefer":
 				rscData.Prefer = types.BoolValue(true)
