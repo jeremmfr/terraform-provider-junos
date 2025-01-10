@@ -1,9 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccResourceSystemNtpServer_basic(t *testing.T) {
@@ -12,7 +13,7 @@ func TestAccResourceSystemNtpServer_basic(t *testing.T) {
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSystemNtpServerConfigCreate(),
+				ConfigDirectory: config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_ntp_server.testacc_ntpServer",
 						"address", "192.0.2.1"),
@@ -25,7 +26,7 @@ func TestAccResourceSystemNtpServer_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceSystemNtpServerConfigUpdate(),
+				ConfigDirectory: config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_ntp_server.testacc_ntpServer",
 						"routing_instance", "testacc_ntpServer"),
@@ -38,29 +39,4 @@ func TestAccResourceSystemNtpServer_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccResourceSystemNtpServerConfigCreate() string {
-	return `
-resource "junos_system_ntp_server" "testacc_ntpServer" {
-  address = "192.0.2.1"
-  prefer  = true
-  version = 4
-  key     = 1
-}
-`
-}
-
-func testAccResourceSystemNtpServerConfigUpdate() string {
-	return `
-resource "junos_routing_instance" "testacc_ntpServer" {
-  name = "testacc_ntpServer"
-}
-resource "junos_system_ntp_server" "testacc_ntpServer" {
-  address          = "192.0.2.1"
-  prefer           = true
-  version          = 4
-  routing_instance = junos_routing_instance.testacc_ntpServer.name
-}
-`
 }
