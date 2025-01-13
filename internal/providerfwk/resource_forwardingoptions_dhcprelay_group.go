@@ -334,7 +334,7 @@ func (rsc *forwardingoptionsDhcprelayGroup) Schema(
 		Blocks: map[string]schema.Block{
 			"authentication_username_include": schema.SingleNestedBlock{
 				Description: "DHCP authentication, add username options.",
-				Attributes:  forwardingoptionsDhcprelayBlockAuthenticationUsernameInclude{}.attributesSchema(),
+				Attributes:  dhcpBlockAuthenticationUsernameInclude{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
@@ -400,7 +400,6 @@ func (rsc *forwardingoptionsDhcprelayGroup) Schema(
 								tfvalidator.BoolTrue(),
 							},
 						},
-
 						"service_profile": schema.StringAttribute{
 							Optional:    true,
 							Description: "Dynamic profile to use for default service activation.",
@@ -467,14 +466,14 @@ func (rsc *forwardingoptionsDhcprelayGroup) Schema(
 			},
 			"liveness_detection_method_bfd": schema.SingleNestedBlock{
 				Description: "Liveness detection method BFD options.",
-				Attributes:  forwardingoptionsDhcprelayBlockLivenessDetectionMethodBfd{}.attributesSchema(),
+				Attributes:  dhcpBlockLivenessDetectionMethodBfd{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
 			"liveness_detection_method_layer2": schema.SingleNestedBlock{
 				Description: "Liveness detection method address resolution options.",
-				Attributes:  forwardingoptionsDhcprelayBlockLivenessDetectionMethodLayer2{}.attributesSchema(),
+				Attributes:  dhcpBlockLivenessDetectionMethodLayer2{}.attributesSchema(),
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
@@ -541,50 +540,50 @@ func (rsc *forwardingoptionsDhcprelayGroup) Schema(
 
 //nolint:lll
 type forwardingoptionsDhcprelayGroupData struct {
-	ID                                   types.String                                                  `tfsdk:"id"                                       tfdata:"skip_isempty"`
-	Name                                 types.String                                                  `tfsdk:"name"                                     tfdata:"skip_isempty"`
-	RoutingInstance                      types.String                                                  `tfsdk:"routing_instance"                         tfdata:"skip_isempty"`
-	Version                              types.String                                                  `tfsdk:"version"                                  tfdata:"skip_isempty"`
-	AccessProfile                        types.String                                                  `tfsdk:"access_profile"`
-	ActiveServerGroup                    types.String                                                  `tfsdk:"active_server_group"`
-	ActiveServerGroupAllowServerChange   types.Bool                                                    `tfsdk:"active_server_group_allow_server_change"`
-	AuthenticationPassword               types.String                                                  `tfsdk:"authentication_password"`
-	ClientResponseTTL                    types.Int64                                                   `tfsdk:"client_response_ttl"`
-	Description                          types.String                                                  `tfsdk:"description"`
-	DynamicProfile                       types.String                                                  `tfsdk:"dynamic_profile"`
-	DynamicProfileAggregateClients       types.Bool                                                    `tfsdk:"dynamic_profile_aggregate_clients"`
-	DynamicProfileAggregateClientsAction types.String                                                  `tfsdk:"dynamic_profile_aggregate_clients_action"`
-	DynamicProfileUsePrimary             types.String                                                  `tfsdk:"dynamic_profile_use_primary"`
-	ForwardOnly                          types.Bool                                                    `tfsdk:"forward_only"`
-	ForwardOnlyRoutingInstance           types.String                                                  `tfsdk:"forward_only_routing_instance"`
-	LivenessDetectionFailureAction       types.String                                                  `tfsdk:"liveness_detection_failure_action"`
-	MaximumHopCount                      types.Int64                                                   `tfsdk:"maximum_hop_count"`
-	MinimumWaitTime                      types.Int64                                                   `tfsdk:"minimum_wait_time"`
-	RelayAgentOption79                   types.Bool                                                    `tfsdk:"relay_agent_option_79"`
-	RemoteIDMismatchDisconnect           types.Bool                                                    `tfsdk:"remote_id_mismatch_disconnect"`
-	RouteSuppressionAccess               types.Bool                                                    `tfsdk:"route_suppression_access"`
-	RouteSuppressionAccessInternal       types.Bool                                                    `tfsdk:"route_suppression_access_internal"`
-	RouteSuppressionDestination          types.Bool                                                    `tfsdk:"route_suppression_destination"`
-	ServerMatchDefaultAction             types.String                                                  `tfsdk:"server_match_default_action"`
-	ServiceProfile                       types.String                                                  `tfsdk:"service_profile"`
-	ShortCycleProtectionLockoutMaxTime   types.Int64                                                   `tfsdk:"short_cycle_protection_lockout_max_time"`
-	ShortCycleProtectionLockoutMinTime   types.Int64                                                   `tfsdk:"short_cycle_protection_lockout_min_time"`
-	SourceIPChange                       types.Bool                                                    `tfsdk:"source_ip_change"`
-	VendorSpecificInformationHostName    types.Bool                                                    `tfsdk:"vendor_specific_information_host_name"`
-	VendorSpecificInformationLocation    types.Bool                                                    `tfsdk:"vendor_specific_information_location"`
-	AuthenticationUsernameInclude        *forwardingoptionsDhcprelayBlockAuthenticationUsernameInclude `tfsdk:"authentication_username_include"`
-	Interface                            []forwardingoptionsDhcprelayGroupBlockInterface               `tfsdk:"interface"`
-	LeaseTimeValidation                  *forwardingoptionsDhcprelayBlockLeaseTimeValidation           `tfsdk:"lease_time_validation"`
-	LivenessDetectionMethodBfd           *forwardingoptionsDhcprelayBlockLivenessDetectionMethodBfd    `tfsdk:"liveness_detection_method_bfd"`
-	LivenessDetectionMethodLayer2        *forwardingoptionsDhcprelayBlockLivenessDetectionMethodLayer2 `tfsdk:"liveness_detection_method_layer2"`
-	OverridesV4                          *forwardingoptionsDhcprelayBlockOverridesV4                   `tfsdk:"overrides_v4"`
-	OverridesV6                          *forwardingoptionsDhcprelayBlockOverridesV6                   `tfsdk:"overrides_v6"`
-	RelayAgentInterfaceID                *forwardingoptionsDhcprelayBlockRelayAgentInterfaceID         `tfsdk:"relay_agent_interface_id"`
-	RelayAgentRemoteID                   *forwardingoptionsDhcprelayBlockRelayAgentRemoteID            `tfsdk:"relay_agent_remote_id"`
-	RelayOption                          *forwardingoptionsDhcprelayBlockRelayOption                   `tfsdk:"relay_option"`
-	RelayOption82                        *forwardingoptionsDhcprelayBlockRelayOption82                 `tfsdk:"relay_option_82"`
-	ServerMatchAddress                   []forwardingoptionsDhcprelayBlockServerMatchAddress           `tfsdk:"server_match_address"`
-	ServerMatchDuid                      []forwardingoptionsDhcprelayBlockServerMatchDuid              `tfsdk:"server_match_duid"`
+	ID                                   types.String                                          `tfsdk:"id"                                       tfdata:"skip_isempty"`
+	Name                                 types.String                                          `tfsdk:"name"                                     tfdata:"skip_isempty"`
+	RoutingInstance                      types.String                                          `tfsdk:"routing_instance"                         tfdata:"skip_isempty"`
+	Version                              types.String                                          `tfsdk:"version"                                  tfdata:"skip_isempty"`
+	AccessProfile                        types.String                                          `tfsdk:"access_profile"`
+	ActiveServerGroup                    types.String                                          `tfsdk:"active_server_group"`
+	ActiveServerGroupAllowServerChange   types.Bool                                            `tfsdk:"active_server_group_allow_server_change"`
+	AuthenticationPassword               types.String                                          `tfsdk:"authentication_password"`
+	ClientResponseTTL                    types.Int64                                           `tfsdk:"client_response_ttl"`
+	Description                          types.String                                          `tfsdk:"description"`
+	DynamicProfile                       types.String                                          `tfsdk:"dynamic_profile"`
+	DynamicProfileAggregateClients       types.Bool                                            `tfsdk:"dynamic_profile_aggregate_clients"`
+	DynamicProfileAggregateClientsAction types.String                                          `tfsdk:"dynamic_profile_aggregate_clients_action"`
+	DynamicProfileUsePrimary             types.String                                          `tfsdk:"dynamic_profile_use_primary"`
+	ForwardOnly                          types.Bool                                            `tfsdk:"forward_only"`
+	ForwardOnlyRoutingInstance           types.String                                          `tfsdk:"forward_only_routing_instance"`
+	LivenessDetectionFailureAction       types.String                                          `tfsdk:"liveness_detection_failure_action"`
+	MaximumHopCount                      types.Int64                                           `tfsdk:"maximum_hop_count"`
+	MinimumWaitTime                      types.Int64                                           `tfsdk:"minimum_wait_time"`
+	RelayAgentOption79                   types.Bool                                            `tfsdk:"relay_agent_option_79"`
+	RemoteIDMismatchDisconnect           types.Bool                                            `tfsdk:"remote_id_mismatch_disconnect"`
+	RouteSuppressionAccess               types.Bool                                            `tfsdk:"route_suppression_access"`
+	RouteSuppressionAccessInternal       types.Bool                                            `tfsdk:"route_suppression_access_internal"`
+	RouteSuppressionDestination          types.Bool                                            `tfsdk:"route_suppression_destination"`
+	ServerMatchDefaultAction             types.String                                          `tfsdk:"server_match_default_action"`
+	ServiceProfile                       types.String                                          `tfsdk:"service_profile"`
+	ShortCycleProtectionLockoutMaxTime   types.Int64                                           `tfsdk:"short_cycle_protection_lockout_max_time"`
+	ShortCycleProtectionLockoutMinTime   types.Int64                                           `tfsdk:"short_cycle_protection_lockout_min_time"`
+	SourceIPChange                       types.Bool                                            `tfsdk:"source_ip_change"`
+	VendorSpecificInformationHostName    types.Bool                                            `tfsdk:"vendor_specific_information_host_name"`
+	VendorSpecificInformationLocation    types.Bool                                            `tfsdk:"vendor_specific_information_location"`
+	AuthenticationUsernameInclude        *dhcpBlockAuthenticationUsernameInclude               `tfsdk:"authentication_username_include"`
+	Interface                            []forwardingoptionsDhcprelayGroupBlockInterface       `tfsdk:"interface"`
+	LeaseTimeValidation                  *forwardingoptionsDhcprelayBlockLeaseTimeValidation   `tfsdk:"lease_time_validation"`
+	LivenessDetectionMethodBfd           *dhcpBlockLivenessDetectionMethodBfd                  `tfsdk:"liveness_detection_method_bfd"`
+	LivenessDetectionMethodLayer2        *dhcpBlockLivenessDetectionMethodLayer2               `tfsdk:"liveness_detection_method_layer2"`
+	OverridesV4                          *forwardingoptionsDhcprelayBlockOverridesV4           `tfsdk:"overrides_v4"`
+	OverridesV6                          *forwardingoptionsDhcprelayBlockOverridesV6           `tfsdk:"overrides_v6"`
+	RelayAgentInterfaceID                *forwardingoptionsDhcprelayBlockRelayAgentInterfaceID `tfsdk:"relay_agent_interface_id"`
+	RelayAgentRemoteID                   *forwardingoptionsDhcprelayBlockRelayAgentRemoteID    `tfsdk:"relay_agent_remote_id"`
+	RelayOption                          *forwardingoptionsDhcprelayBlockRelayOption           `tfsdk:"relay_option"`
+	RelayOption82                        *forwardingoptionsDhcprelayBlockRelayOption82         `tfsdk:"relay_option_82"`
+	ServerMatchAddress                   []forwardingoptionsDhcprelayBlockServerMatchAddress   `tfsdk:"server_match_address"`
+	ServerMatchDuid                      []forwardingoptionsDhcprelayBlockServerMatchDuid      `tfsdk:"server_match_duid"`
 }
 
 func (rscData *forwardingoptionsDhcprelayGroupData) isEmpty() bool {
@@ -593,50 +592,50 @@ func (rscData *forwardingoptionsDhcprelayGroupData) isEmpty() bool {
 
 //nolint:lll
 type forwardingoptionsDhcprelayGroupConfig struct {
-	ID                                   types.String                                                  `tfsdk:"id"                                       tfdata:"skip_isempty"`
-	Name                                 types.String                                                  `tfsdk:"name"                                     tfdata:"skip_isempty"`
-	RoutingInstance                      types.String                                                  `tfsdk:"routing_instance"                         tfdata:"skip_isempty"`
-	Version                              types.String                                                  `tfsdk:"version"                                  tfdata:"skip_isempty"`
-	AccessProfile                        types.String                                                  `tfsdk:"access_profile"`
-	ActiveServerGroup                    types.String                                                  `tfsdk:"active_server_group"`
-	ActiveServerGroupAllowServerChange   types.Bool                                                    `tfsdk:"active_server_group_allow_server_change"`
-	AuthenticationPassword               types.String                                                  `tfsdk:"authentication_password"`
-	ClientResponseTTL                    types.Int64                                                   `tfsdk:"client_response_ttl"`
-	Description                          types.String                                                  `tfsdk:"description"`
-	DynamicProfile                       types.String                                                  `tfsdk:"dynamic_profile"`
-	DynamicProfileAggregateClients       types.Bool                                                    `tfsdk:"dynamic_profile_aggregate_clients"`
-	DynamicProfileAggregateClientsAction types.String                                                  `tfsdk:"dynamic_profile_aggregate_clients_action"`
-	DynamicProfileUsePrimary             types.String                                                  `tfsdk:"dynamic_profile_use_primary"`
-	ForwardOnly                          types.Bool                                                    `tfsdk:"forward_only"`
-	ForwardOnlyRoutingInstance           types.String                                                  `tfsdk:"forward_only_routing_instance"`
-	LivenessDetectionFailureAction       types.String                                                  `tfsdk:"liveness_detection_failure_action"`
-	MaximumHopCount                      types.Int64                                                   `tfsdk:"maximum_hop_count"`
-	MinimumWaitTime                      types.Int64                                                   `tfsdk:"minimum_wait_time"`
-	RelayAgentOption79                   types.Bool                                                    `tfsdk:"relay_agent_option_79"`
-	RemoteIDMismatchDisconnect           types.Bool                                                    `tfsdk:"remote_id_mismatch_disconnect"`
-	RouteSuppressionAccess               types.Bool                                                    `tfsdk:"route_suppression_access"`
-	RouteSuppressionAccessInternal       types.Bool                                                    `tfsdk:"route_suppression_access_internal"`
-	RouteSuppressionDestination          types.Bool                                                    `tfsdk:"route_suppression_destination"`
-	ServerMatchDefaultAction             types.String                                                  `tfsdk:"server_match_default_action"`
-	ServiceProfile                       types.String                                                  `tfsdk:"service_profile"`
-	ShortCycleProtectionLockoutMaxTime   types.Int64                                                   `tfsdk:"short_cycle_protection_lockout_max_time"`
-	ShortCycleProtectionLockoutMinTime   types.Int64                                                   `tfsdk:"short_cycle_protection_lockout_min_time"`
-	SourceIPChange                       types.Bool                                                    `tfsdk:"source_ip_change"`
-	VendorSpecificInformationHostName    types.Bool                                                    `tfsdk:"vendor_specific_information_host_name"`
-	VendorSpecificInformationLocation    types.Bool                                                    `tfsdk:"vendor_specific_information_location"`
-	AuthenticationUsernameInclude        *forwardingoptionsDhcprelayBlockAuthenticationUsernameInclude `tfsdk:"authentication_username_include"`
-	Interface                            types.Set                                                     `tfsdk:"interface"`
-	LeaseTimeValidation                  *forwardingoptionsDhcprelayBlockLeaseTimeValidation           `tfsdk:"lease_time_validation"`
-	LivenessDetectionMethodBfd           *forwardingoptionsDhcprelayBlockLivenessDetectionMethodBfd    `tfsdk:"liveness_detection_method_bfd"`
-	LivenessDetectionMethodLayer2        *forwardingoptionsDhcprelayBlockLivenessDetectionMethodLayer2 `tfsdk:"liveness_detection_method_layer2"`
-	OverridesV4                          *forwardingoptionsDhcprelayBlockOverridesV4                   `tfsdk:"overrides_v4"`
-	OverridesV6                          *forwardingoptionsDhcprelayBlockOverridesV6                   `tfsdk:"overrides_v6"`
-	RelayAgentInterfaceID                *forwardingoptionsDhcprelayBlockRelayAgentInterfaceID         `tfsdk:"relay_agent_interface_id"`
-	RelayAgentRemoteID                   *forwardingoptionsDhcprelayBlockRelayAgentRemoteID            `tfsdk:"relay_agent_remote_id"`
-	RelayOption                          *forwardingoptionsDhcprelayBlockRelayOptionConfig             `tfsdk:"relay_option"`
-	RelayOption82                        *forwardingoptionsDhcprelayBlockRelayOption82                 `tfsdk:"relay_option_82"`
-	ServerMatchAddress                   types.Set                                                     `tfsdk:"server_match_address"`
-	ServerMatchDuid                      types.Set                                                     `tfsdk:"server_match_duid"`
+	ID                                   types.String                                          `tfsdk:"id"                                       tfdata:"skip_isempty"`
+	Name                                 types.String                                          `tfsdk:"name"                                     tfdata:"skip_isempty"`
+	RoutingInstance                      types.String                                          `tfsdk:"routing_instance"                         tfdata:"skip_isempty"`
+	Version                              types.String                                          `tfsdk:"version"                                  tfdata:"skip_isempty"`
+	AccessProfile                        types.String                                          `tfsdk:"access_profile"`
+	ActiveServerGroup                    types.String                                          `tfsdk:"active_server_group"`
+	ActiveServerGroupAllowServerChange   types.Bool                                            `tfsdk:"active_server_group_allow_server_change"`
+	AuthenticationPassword               types.String                                          `tfsdk:"authentication_password"`
+	ClientResponseTTL                    types.Int64                                           `tfsdk:"client_response_ttl"`
+	Description                          types.String                                          `tfsdk:"description"`
+	DynamicProfile                       types.String                                          `tfsdk:"dynamic_profile"`
+	DynamicProfileAggregateClients       types.Bool                                            `tfsdk:"dynamic_profile_aggregate_clients"`
+	DynamicProfileAggregateClientsAction types.String                                          `tfsdk:"dynamic_profile_aggregate_clients_action"`
+	DynamicProfileUsePrimary             types.String                                          `tfsdk:"dynamic_profile_use_primary"`
+	ForwardOnly                          types.Bool                                            `tfsdk:"forward_only"`
+	ForwardOnlyRoutingInstance           types.String                                          `tfsdk:"forward_only_routing_instance"`
+	LivenessDetectionFailureAction       types.String                                          `tfsdk:"liveness_detection_failure_action"`
+	MaximumHopCount                      types.Int64                                           `tfsdk:"maximum_hop_count"`
+	MinimumWaitTime                      types.Int64                                           `tfsdk:"minimum_wait_time"`
+	RelayAgentOption79                   types.Bool                                            `tfsdk:"relay_agent_option_79"`
+	RemoteIDMismatchDisconnect           types.Bool                                            `tfsdk:"remote_id_mismatch_disconnect"`
+	RouteSuppressionAccess               types.Bool                                            `tfsdk:"route_suppression_access"`
+	RouteSuppressionAccessInternal       types.Bool                                            `tfsdk:"route_suppression_access_internal"`
+	RouteSuppressionDestination          types.Bool                                            `tfsdk:"route_suppression_destination"`
+	ServerMatchDefaultAction             types.String                                          `tfsdk:"server_match_default_action"`
+	ServiceProfile                       types.String                                          `tfsdk:"service_profile"`
+	ShortCycleProtectionLockoutMaxTime   types.Int64                                           `tfsdk:"short_cycle_protection_lockout_max_time"`
+	ShortCycleProtectionLockoutMinTime   types.Int64                                           `tfsdk:"short_cycle_protection_lockout_min_time"`
+	SourceIPChange                       types.Bool                                            `tfsdk:"source_ip_change"`
+	VendorSpecificInformationHostName    types.Bool                                            `tfsdk:"vendor_specific_information_host_name"`
+	VendorSpecificInformationLocation    types.Bool                                            `tfsdk:"vendor_specific_information_location"`
+	AuthenticationUsernameInclude        *dhcpBlockAuthenticationUsernameInclude               `tfsdk:"authentication_username_include"`
+	Interface                            types.Set                                             `tfsdk:"interface"`
+	LeaseTimeValidation                  *forwardingoptionsDhcprelayBlockLeaseTimeValidation   `tfsdk:"lease_time_validation"`
+	LivenessDetectionMethodBfd           *dhcpBlockLivenessDetectionMethodBfd                  `tfsdk:"liveness_detection_method_bfd"`
+	LivenessDetectionMethodLayer2        *dhcpBlockLivenessDetectionMethodLayer2               `tfsdk:"liveness_detection_method_layer2"`
+	OverridesV4                          *forwardingoptionsDhcprelayBlockOverridesV4           `tfsdk:"overrides_v4"`
+	OverridesV6                          *forwardingoptionsDhcprelayBlockOverridesV6           `tfsdk:"overrides_v6"`
+	RelayAgentInterfaceID                *forwardingoptionsDhcprelayBlockRelayAgentInterfaceID `tfsdk:"relay_agent_interface_id"`
+	RelayAgentRemoteID                   *forwardingoptionsDhcprelayBlockRelayAgentRemoteID    `tfsdk:"relay_agent_remote_id"`
+	RelayOption                          *forwardingoptionsDhcprelayBlockRelayOptionConfig     `tfsdk:"relay_option"`
+	RelayOption82                        *forwardingoptionsDhcprelayBlockRelayOption82         `tfsdk:"relay_option_82"`
+	ServerMatchAddress                   types.Set                                             `tfsdk:"server_match_address"`
+	ServerMatchDuid                      types.Set                                             `tfsdk:"server_match_duid"`
 }
 
 func (config *forwardingoptionsDhcprelayGroupConfig) isEmpty() bool {
@@ -2113,7 +2112,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) read(
 
 			case balt.CutPrefixInString(&itemTrim, "authentication username-include "):
 				if rscData.AuthenticationUsernameInclude == nil {
-					rscData.AuthenticationUsernameInclude = &forwardingoptionsDhcprelayBlockAuthenticationUsernameInclude{}
+					rscData.AuthenticationUsernameInclude = &dhcpBlockAuthenticationUsernameInclude{}
 				}
 
 				rscData.AuthenticationUsernameInclude.read(itemTrim)
@@ -2140,7 +2139,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "liveness-detection method bfd "):
 				if rscData.LivenessDetectionMethodBfd == nil {
-					rscData.LivenessDetectionMethodBfd = &forwardingoptionsDhcprelayBlockLivenessDetectionMethodBfd{}
+					rscData.LivenessDetectionMethodBfd = &dhcpBlockLivenessDetectionMethodBfd{}
 				}
 
 				if err := rscData.LivenessDetectionMethodBfd.read(itemTrim); err != nil {
@@ -2148,7 +2147,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) read(
 				}
 			case balt.CutPrefixInString(&itemTrim, "liveness-detection method layer2-liveness-detection "):
 				if rscData.LivenessDetectionMethodLayer2 == nil {
-					rscData.LivenessDetectionMethodLayer2 = &forwardingoptionsDhcprelayBlockLivenessDetectionMethodLayer2{}
+					rscData.LivenessDetectionMethodLayer2 = &dhcpBlockLivenessDetectionMethodLayer2{}
 				}
 
 				if err := rscData.LivenessDetectionMethodLayer2.read(itemTrim); err != nil {
