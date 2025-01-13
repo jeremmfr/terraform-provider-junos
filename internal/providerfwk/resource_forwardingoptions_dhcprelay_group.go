@@ -1005,6 +1005,16 @@ func (rsc *forwardingoptionsDhcprelayGroup) ValidateConfig( //nolint:gocognit,go
 
 	if !config.DynamicProfileAggregateClients.IsNull() &&
 		!config.DynamicProfileAggregateClients.IsUnknown() &&
+		!config.DynamicProfileUsePrimary.IsNull() &&
+		!config.DynamicProfileUsePrimary.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("dynamic_profile_aggregate_clients"),
+			tfdiag.ConflictConfigErrSummary,
+			"dynamic_profile_aggregate_clients and dynamic_profile_use_primary cannot be configured together",
+		)
+	}
+	if !config.DynamicProfileAggregateClients.IsNull() &&
+		!config.DynamicProfileAggregateClients.IsUnknown() &&
 		config.DynamicProfile.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("dynamic_profile_aggregate_clients"),
@@ -1106,6 +1116,17 @@ func (rsc *forwardingoptionsDhcprelayGroup) ValidateConfig( //nolint:gocognit,go
 
 			if !block.DynamicProfileAggregateClients.IsNull() &&
 				!block.DynamicProfileAggregateClients.IsUnknown() &&
+				!block.DynamicProfileUsePrimary.IsNull() &&
+				!block.DynamicProfileUsePrimary.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("interface"),
+					tfdiag.ConflictConfigErrSummary,
+					fmt.Sprintf("dynamic_profile_aggregate_clients and dynamic_profile_use_primary cannot be configured together"+
+						" in interface block %q", block.Name.ValueString()),
+				)
+			}
+			if !block.DynamicProfileAggregateClients.IsNull() &&
+				!block.DynamicProfileAggregateClients.IsUnknown() &&
 				block.DynamicProfile.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("interface"),
@@ -1118,7 +1139,7 @@ func (rsc *forwardingoptionsDhcprelayGroup) ValidateConfig( //nolint:gocognit,go
 				!block.DynamicProfileAggregateClientsAction.IsUnknown() &&
 				block.DynamicProfileAggregateClients.IsNull() {
 				resp.Diagnostics.AddAttributeError(
-					path.Root("dynamic_profile_aggregate_clients_action"),
+					path.Root("interface"),
 					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("dynamic_profile_aggregate_clients must be specified with dynamic_profile_aggregate_clients_action"+
 						" in interface block %q", block.Name.ValueString()),
@@ -1128,29 +1149,48 @@ func (rsc *forwardingoptionsDhcprelayGroup) ValidateConfig( //nolint:gocognit,go
 				!block.DynamicProfileUsePrimary.IsUnknown() &&
 				block.DynamicProfile.IsNull() {
 				resp.Diagnostics.AddAttributeError(
-					path.Root("dynamic_profile_use_primary"),
+					path.Root("interface"),
 					tfdiag.MissingConfigErrSummary,
 					fmt.Sprintf("dynamic_profile must be specified with dynamic_profile_use_primary"+
 						" in interface block %q", block.Name.ValueString()),
 				)
 			}
-			if block.OverridesV4 != nil && block.OverridesV4.hasKnownValue() &&
-				version == "v6" {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("interface"),
-					tfdiag.ConflictConfigErrSummary,
-					fmt.Sprintf("overrides_v4 cannot be configured when version = v6"+
-						" in interface block %q", block.Name.ValueString()),
-				)
+			if block.OverridesV4 != nil {
+				if block.OverridesV4.isEmpty() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("interface"),
+						tfdiag.MissingConfigErrSummary,
+						fmt.Sprintf("overrides_v4 block is empty"+
+							" in interface block %q", block.Name.ValueString()),
+					)
+				}
+				if block.OverridesV4.hasKnownValue() && version == "v6" {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("interface"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("overrides_v4 cannot be configured when version = v6"+
+							" in interface block %q", block.Name.ValueString()),
+					)
+				}
 			}
-			if block.OverridesV6 != nil && block.OverridesV6.hasKnownValue() &&
-				(version == "v4" || config.Version.IsNull()) {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("interface"),
-					tfdiag.ConflictConfigErrSummary,
-					fmt.Sprintf("overrides_v6 cannot be configured when version = v4"+
-						" in interface block %q", block.Name.ValueString()),
-				)
+			if block.OverridesV6 != nil {
+				if block.OverridesV6.isEmpty() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("interface"),
+						tfdiag.MissingConfigErrSummary,
+						fmt.Sprintf("overrides_v6 block is empty"+
+							" in interface block %q", block.Name.ValueString()),
+					)
+				}
+				if block.OverridesV6.hasKnownValue() &&
+					(version == "v4" || config.Version.IsNull()) {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("interface"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("overrides_v6 cannot be configured when version = v4"+
+							" in interface block %q", block.Name.ValueString()),
+					)
+				}
 			}
 		}
 	}
@@ -1177,6 +1217,24 @@ func (rsc *forwardingoptionsDhcprelayGroup) ValidateConfig( //nolint:gocognit,go
 				path.Root("liveness_detection_method_layer2").AtName("*"),
 				tfdiag.MissingConfigErrSummary,
 				"liveness_detection_method_layer2 block is empty",
+			)
+		}
+	}
+	if config.OverridesV4 != nil {
+		if config.OverridesV4.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("overrides_v4").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"overrides_v4 block is empty",
+			)
+		}
+	}
+	if config.OverridesV6 != nil {
+		if config.OverridesV6.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("overrides_v6").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"overrides_v6 block is empty",
 			)
 		}
 	}

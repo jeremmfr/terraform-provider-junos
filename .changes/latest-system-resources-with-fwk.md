@@ -17,3 +17,6 @@ BUG FIXES:
 * **resource/junos_forwardingoptions_dhcprelay**:
   * fix missing detection of conflict between `dynamic_profile_aggregate_clients` and `dynamic_profile_use_primary` arguments in config validation
   * fix missing detection of empty `overrides_v4` and `overrides_v6` block arguments in config validation
+* **resource/junos_forwardingoptions_dhcprelay_group**:
+  * fix missing detection of conflict between `dynamic_profile_aggregate_clients` and `dynamic_profile_use_primary` arguments in config validation
+  * fix missing detection of empty `overrides_v4` and `overrides_v6` block arguments in config validation
