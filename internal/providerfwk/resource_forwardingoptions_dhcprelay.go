@@ -1078,6 +1078,16 @@ func (rsc *forwardingoptionsDhcprelay) ValidateConfig( //nolint:gocognit,gocyclo
 
 	if !config.DynamicProfileAggregateClients.IsNull() &&
 		!config.DynamicProfileAggregateClients.IsUnknown() &&
+		!config.DynamicProfileUsePrimary.IsNull() &&
+		!config.DynamicProfileUsePrimary.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("dynamic_profile_aggregate_clients"),
+			tfdiag.ConflictConfigErrSummary,
+			"dynamic_profile_aggregate_clients and dynamic_profile_use_primary cannot be configured together",
+		)
+	}
+	if !config.DynamicProfileAggregateClients.IsNull() &&
+		!config.DynamicProfileAggregateClients.IsUnknown() &&
 		config.DynamicProfile.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("dynamic_profile_aggregate_clients"),
@@ -1176,6 +1186,24 @@ func (rsc *forwardingoptionsDhcprelay) ValidateConfig( //nolint:gocognit,gocyclo
 				path.Root("liveness_detection_method_layer2").AtName("*"),
 				tfdiag.MissingConfigErrSummary,
 				"liveness_detection_method_layer2 block is empty",
+			)
+		}
+	}
+	if config.OverridesV4 != nil {
+		if config.OverridesV4.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("overrides_v4").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"overrides_v4 block is empty",
+			)
+		}
+	}
+	if config.OverridesV6 != nil {
+		if config.OverridesV6.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("overrides_v6").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"overrides_v6 block is empty",
 			)
 		}
 	}
