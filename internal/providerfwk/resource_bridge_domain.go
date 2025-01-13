@@ -331,8 +331,8 @@ type bridgeDomainConfig struct {
 	Vxlan            *bridgeDomainBlockVxlanConfig `tfsdk:"vxlan"`
 }
 
-func (rscConfig *bridgeDomainConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscConfig)
+func (config *bridgeDomainConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 type bridgeDomainBlockVxlan struct {

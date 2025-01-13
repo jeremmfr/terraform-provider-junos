@@ -639,8 +639,8 @@ type forwardingoptionsDhcprelayGroupConfig struct {
 	ServerMatchDuid                      types.Set                                                     `tfsdk:"server_match_duid"`
 }
 
-func (rscConfig *forwardingoptionsDhcprelayGroupConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscConfig)
+func (config *forwardingoptionsDhcprelayGroupConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 //nolint:lll
@@ -1941,6 +1941,24 @@ func (block *forwardingoptionsDhcprelayGroupBlockInterface) configSet(
 	if block.Exclude.ValueBool() {
 		configSet = append(configSet, setPrefix+"exclude")
 	}
+	if v := block.ServiceProfile.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"service-profile \""+v+"\"")
+	}
+	if !block.ShortCycleProtectionLockoutMaxTime.IsNull() {
+		configSet = append(configSet, setPrefix+"short-cycle-protection lockout-max-time "+
+			utils.ConvI64toa(block.ShortCycleProtectionLockoutMaxTime.ValueInt64()))
+	}
+	if !block.ShortCycleProtectionLockoutMinTime.IsNull() {
+		configSet = append(configSet, setPrefix+"short-cycle-protection lockout-min-time "+
+			utils.ConvI64toa(block.ShortCycleProtectionLockoutMinTime.ValueInt64()))
+	}
+	if block.Trace.ValueBool() {
+		configSet = append(configSet, setPrefix+"trace")
+	}
+	if v := block.Upto.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"upto "+v)
+	}
+
 	if block.OverridesV4 != nil {
 		if block.OverridesV4.isEmpty() {
 			return configSet,
@@ -1978,23 +1996,6 @@ func (block *forwardingoptionsDhcprelayGroupBlockInterface) configSet(
 				fmt.Errorf(err.Error()+" in interface block %q", block.Name.ValueString())
 		}
 		configSet = append(configSet, blockSet...)
-	}
-	if v := block.ServiceProfile.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"service-profile \""+v+"\"")
-	}
-	if !block.ShortCycleProtectionLockoutMaxTime.IsNull() {
-		configSet = append(configSet, setPrefix+"short-cycle-protection lockout-max-time "+
-			utils.ConvI64toa(block.ShortCycleProtectionLockoutMaxTime.ValueInt64()))
-	}
-	if !block.ShortCycleProtectionLockoutMinTime.IsNull() {
-		configSet = append(configSet, setPrefix+"short-cycle-protection lockout-min-time "+
-			utils.ConvI64toa(block.ShortCycleProtectionLockoutMinTime.ValueInt64()))
-	}
-	if block.Trace.ValueBool() {
-		configSet = append(configSet, setPrefix+"trace")
-	}
-	if v := block.Upto.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"upto "+v)
 	}
 
 	return configSet, nil
@@ -2279,7 +2280,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
-	if v := rscData.RoutingInstance.ValueString(); v != junos.DefaultW {
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
 	delPrefix += "forwarding-options dhcp-relay "

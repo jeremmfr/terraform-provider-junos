@@ -2252,7 +2252,7 @@ func (rscData *forwardingoptionsDhcprelayData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
-	if v := rscData.RoutingInstance.ValueString(); v != junos.DefaultW {
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
 	delPrefix += "forwarding-options dhcp-relay "

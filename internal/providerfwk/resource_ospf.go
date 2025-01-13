@@ -1261,7 +1261,7 @@ func (rscData *ospfData) del(
 		ospfVersion = junos.OspfV3
 	}
 	delPrefix := junos.DeleteLS
-	if v := rscData.RoutingInstance.ValueString(); v != junos.DefaultW {
+	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
 	delPrefix += "protocols " + ospfVersion + " "
