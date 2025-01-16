@@ -11,6 +11,7 @@ ENHANCEMENTS:
   optional boolean attributes doesn't accept value *false*  
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **data-source/junos_system_information** data-source now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
 
 BUG FIXES:
 

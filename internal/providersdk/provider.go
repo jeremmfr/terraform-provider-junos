@@ -210,9 +210,6 @@ func Provider() *schema.Provider {
 			"junos_services_user_identification_ad_access_domain":        resourceServicesUserIdentAdAccessDomain(),
 			"junos_services_user_identification_device_identity_profile": resourceServicesUserIdentDeviceIdentityProfile(),
 		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"junos_system_information": dataSourceSystemInformation(),
-		},
 		ConfigureContextFunc: configureProvider,
 	}
 }
