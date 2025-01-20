@@ -1,9 +1,10 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDataSourceSystemInformation_basic(t *testing.T) {
@@ -12,8 +13,9 @@ func TestAccDataSourceSystemInformation_basic(t *testing.T) {
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSystemInformationConfig(),
+				ConfigDirectory: config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.junos_system_information.test", "id"),
 					resource.TestCheckResourceAttrSet("data.junos_system_information.test", "hardware_model"),
 					resource.TestCheckResourceAttrSet("data.junos_system_information.test", "os_name"),
 					resource.TestCheckResourceAttrSet("data.junos_system_information.test", "os_version"),
@@ -23,10 +25,4 @@ func TestAccDataSourceSystemInformation_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccSystemInformationConfig() string {
-	return `
-data "junos_system_information" "test" {}
-`
 }

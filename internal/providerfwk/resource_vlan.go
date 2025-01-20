@@ -350,8 +350,8 @@ type vlanConfig struct {
 	Vxlan               *vlanBlockVxlanConfig `tfsdk:"vxlan"`
 }
 
-func (rscConfig *vlanConfig) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(rscConfig)
+func (config *vlanConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 type vlanBlockVxlan struct {
