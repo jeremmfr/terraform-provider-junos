@@ -38,6 +38,8 @@ The following arguments are supported:
   Declare `profile category` configuration to categorize feed data into this dynamic address.  
   Need to set one of `profile_feed_name` or `profile_category`.  
   See [below for nested schema](#profile_category-arguments).
+- **session_scan** (Optional, Boolean)  
+  Trigger session scan when the IP address is added.
 
 ### profile_category arguments
 

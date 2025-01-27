@@ -115,6 +115,13 @@ func (rsc *securityDynamicAddressName) Schema(
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
+			"session_scan": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Trigger session scan when the IP address is added.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"profile_category": schema.SingleNestedBlock{
@@ -184,6 +191,7 @@ type securityDynamicAddressNameData struct {
 	Name            types.String                                    `tfsdk:"name"`
 	Description     types.String                                    `tfsdk:"description"`
 	ProfileFeedName types.String                                    `tfsdk:"profile_feed_name"`
+	SessionScan     types.Bool                                      `tfsdk:"session_scan"`
 	ProfileCategory *securityDynamicAddressNameBlockProfileCategory `tfsdk:"profile_category"`
 }
 
@@ -192,6 +200,7 @@ type securityDynamicAddressNameConfig struct {
 	Name            types.String                                          `tfsdk:"name"`
 	Description     types.String                                          `tfsdk:"description"`
 	ProfileFeedName types.String                                          `tfsdk:"profile_feed_name"`
+	SessionScan     types.Bool                                            `tfsdk:"session_scan"`
 	ProfileCategory *securityDynamicAddressNameBlockProfileCategoryConfig `tfsdk:"profile_category"`
 }
 
@@ -463,6 +472,9 @@ func (rscData *securityDynamicAddressNameData) set(
 	if v := rscData.ProfileFeedName.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"profile feed-name "+v)
 	}
+	if rscData.SessionScan.ValueBool() {
+		configSet = append(configSet, setPrefix+"session-scan")
+	}
 
 	if rscData.ProfileCategory != nil {
 		blockSet, pathErr, err := rscData.ProfileCategory.configSet(setPrefix)
@@ -547,6 +559,8 @@ func (rscData *securityDynamicAddressNameData) read(
 						return err
 					}
 				}
+			case itemTrim == "session-scan":
+				rscData.SessionScan = types.BoolValue(true)
 			}
 		}
 	}
