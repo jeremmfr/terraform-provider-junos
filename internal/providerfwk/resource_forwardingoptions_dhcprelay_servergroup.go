@@ -9,7 +9,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -120,14 +120,14 @@ func (rsc *forwardingoptionsDhcprelayServergroup) Schema(
 					stringvalidator.OneOf("v4", "v6"),
 				},
 			},
-			"ip_address": schema.ListAttribute{
+			"ip_address": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
 				Description: "IP Addresses of DHCP servers.",
-				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
-					listvalidator.NoNullValues(),
-					listvalidator.ValueStringsAre(
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
+					setvalidator.ValueStringsAre(
 						tfvalidator.StringIPAddress(),
 					),
 				},
