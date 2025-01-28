@@ -209,12 +209,6 @@ func Provider() *schema.Provider {
 			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_services_user_identification_ad_access_domain":        resourceServicesUserIdentAdAccessDomain(),
 			"junos_services_user_identification_device_identity_profile": resourceServicesUserIdentDeviceIdentityProfile(),
-
-			"junos_system_ntp_server":                      resourceSystemNtpServer(),
-			"junos_system_services_dhcp_localserver_group": resourceSystemServicesDhcpLocalServerGroup(),
-		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"junos_system_information": dataSourceSystemInformation(),
 		},
 		ConfigureContextFunc: configureProvider,
 	}

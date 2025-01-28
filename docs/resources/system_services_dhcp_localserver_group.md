@@ -100,16 +100,16 @@ The following arguments are supported:
     Include the vlan tag(s).
 - **dynamic_profile** (Optional, String)  
   Dynamic profile to use.
-- **dynamic_profile_use_primary** (Optional, String)  
-  Dynamic profile to use on the primary interface.  
-  `dynamic_profile` need to be set.  
-  Conflict with `dynamic_profile_aggregate_clients`.
 - **dynamic_profile_aggregate_clients** (Optional, Boolean)  
   Aggregate client profiles.
 - **dynamic_profile_aggregate_clients_action** (Optional, String)  
   Merge or replace the client dynamic profiles.  
   Need to be `merge` or `replace`.  
   `dynamic_profile_aggregate_clients` need to be true.
+- **dynamic_profile_use_primary** (Optional, String)  
+  Dynamic profile to use on the primary interface.  
+  `dynamic_profile` need to be set.  
+  Conflict with `dynamic_profile_aggregate_clients`.
 - **interface** (Optional, Block Set)  
   For each name of interface to declare.  
   See [below for nested schema](#interface-arguments).
@@ -174,7 +174,7 @@ The following arguments are supported:
   - **clear_on_abort** (Optional, Boolean)  
     Delete client on reconfiguration abort.
   - **support_option_pd_exclude** (Optional, Boolean)  
-    Request prefix exclude option in reconfigure message
+    Request prefix exclude option in reconfigure message.
   - **timeout** (Optional, Number)  
     Initial timeout value for retry (1..10).
   - **token** (Optional, String)  
@@ -248,7 +248,7 @@ The following arguments are supported:
 - **allow_no_end_option** (Optional, Boolean)  
   Allow packets without end-of-option.
 - **asymmetric_lease_time** (Optional, Number)  
-  Use a reduced lease time for the client. In seconds (600..86400 seconds).
+  Use a reduced lease time for the client (600..86400 seconds).
 - **bootp_support** (Optional, Boolean)  
   Allow processing of bootp requests.
 - **client_discover_match** (Optional, String)  
@@ -298,7 +298,7 @@ The following arguments are supported:
 - **asymmetric_prefix_lease_time** (Optional, Number)  
   Use a reduced prefix lease time for the client. In seconds (600..86400 seconds).
 - **client_negotiation_match_incoming_interface** (Optional, Boolean)  
-  Use incoming interface match criteria for SOLICIT PDU
+  Use incoming interface match criteria for SOLICIT PDU.
 - **delay_advertise_based_on** (Optional, Block Set)  
   For each combination of block arguments, filter options for dhcp-server.
   - **option** (Required, String)  
@@ -328,7 +328,7 @@ The following arguments are supported:
 - **process_inform** (Optional, Boolean)  
   Process INFORM PDUs.
 - **process_inform_pool** (Optional, String)  
-  Pool name for family inet.
+  Pool name for family inet6.
 - **protocol_attributes** (Optional, String)  
   DHCPv6 attributes to use as defined under access protocol-attributes.
 - **rapid_commit** (Optional, Boolean)  

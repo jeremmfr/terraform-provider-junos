@@ -1134,7 +1134,7 @@ func upgradeForwardingoptionsDhcprelayGroupV0toV1(
 	dataV1.VendorSpecificInformationHostName = dataV0.VendorSpecificInformationHostName
 	dataV1.VendorSpecificInformationLocation = dataV0.VendorSpecificInformationLocation
 	if len(dataV0.AuthenticationUsernameInclude) > 0 {
-		dataV1.AuthenticationUsernameInclude = &forwardingoptionsDhcprelayBlockAuthenticationUsernameInclude{
+		dataV1.AuthenticationUsernameInclude = &dhcpBlockAuthenticationUsernameInclude{
 			CircuitType:                          dataV0.AuthenticationUsernameInclude[0].CircuitType,
 			ClientID:                             dataV0.AuthenticationUsernameInclude[0].ClientID,
 			ClientIDExcludeHeaders:               dataV0.AuthenticationUsernameInclude[0].ClientIDExcludeHeaders,
@@ -1223,7 +1223,7 @@ func upgradeForwardingoptionsDhcprelayGroupV0toV1(
 		}
 	}
 	if len(dataV0.LivenessDetectionMethodBfd) > 0 {
-		dataV1.LivenessDetectionMethodBfd = &forwardingoptionsDhcprelayBlockLivenessDetectionMethodBfd{
+		dataV1.LivenessDetectionMethodBfd = &dhcpBlockLivenessDetectionMethodBfd{
 			DetectionTimeThreshold:    dataV0.LivenessDetectionMethodBfd[0].DetectionTimeThreshold,
 			HolddownInterval:          dataV0.LivenessDetectionMethodBfd[0].HolddownInterval,
 			MinimumInterval:           dataV0.LivenessDetectionMethodBfd[0].MinimumInterval,
@@ -1237,7 +1237,7 @@ func upgradeForwardingoptionsDhcprelayGroupV0toV1(
 		}
 	}
 	if len(dataV0.LivenessDetectionMethodLayer2) > 0 {
-		dataV1.LivenessDetectionMethodLayer2 = &forwardingoptionsDhcprelayBlockLivenessDetectionMethodLayer2{
+		dataV1.LivenessDetectionMethodLayer2 = &dhcpBlockLivenessDetectionMethodLayer2{
 			MaxConsecutiveRetries: dataV0.LivenessDetectionMethodLayer2[0].MaxConsecutiveRetries,
 			TransmitInterval:      dataV0.LivenessDetectionMethodLayer2[0].TransmitInterval,
 		}

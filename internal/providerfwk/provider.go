@@ -229,6 +229,7 @@ func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataS
 		newRoutesDataSource,
 		newRoutingInstanceDataSource,
 		newSecurityZoneDataSource,
+		newSystemInformationDataSource,
 	}
 }
 
@@ -329,8 +330,10 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSystemResource,
 		newSystemLoginClassResource,
 		newSystemLoginUserResource,
+		newSystemNtpServerResource,
 		newSystemRadiusServerResource,
 		newSystemRootAuthenticationResource,
+		newSystemServicesDhcpLocalserverGroupResource,
 		newSystemSyslogFileResource,
 		newSystemSyslogHostResource,
 		newSystemSyslogUserResource,
