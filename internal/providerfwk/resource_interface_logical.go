@@ -1104,6 +1104,7 @@ type interfaceLogicalBlockFamilyBlockRPFCheck struct {
 	ModeLoose  types.Bool   `tfsdk:"mode_loose"`
 }
 
+//nolint:lll
 type interfaceLogicalBlockFamilyInetBlockAddress struct {
 	CidrIP        types.String                                                `tfsdk:"cidr_ip"                 tfdata:"identifier"`
 	Preferred     types.Bool                                                  `tfsdk:"preferred"`
