@@ -1052,7 +1052,7 @@ type interfaceLogicalData struct {
 	SecurityZone             types.String                      `tfsdk:"security_zone"`
 	VlanID                   types.Int64                       `tfsdk:"vlan_id"`
 	VlanNoCompute            types.Bool                        `tfsdk:"vlan_no_compute"`
-	VirtualGWAcceptData 	 types.Bool                        `tfsdk:"virtual_gateway_accept_data"`
+	VirtualGWAcceptData      types.Bool                        `tfsdk:"virtual_gateway_accept_data"`
 	FamilyInet               *interfaceLogicalBlockFamilyInet  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6 `tfsdk:"family_inet6"`
 	Tunnel                   *interfaceLogicalBlockTunnel      `tfsdk:"tunnel"`
@@ -1071,7 +1071,7 @@ type interfaceLogicalConfig struct {
 	SecurityZone             types.String                            `tfsdk:"security_zone"`
 	VlanID                   types.Int64                             `tfsdk:"vlan_id"`
 	VlanNoCompute            types.Bool                              `tfsdk:"vlan_no_compute"`
-	VirtualGWAcceptData 	 types.Bool                              `tfsdk:"virtual_gateway_accept_data"`
+	VirtualGWAcceptData      types.Bool                              `tfsdk:"virtual_gateway_accept_data"`
 	FamilyInet               *interfaceLogicalBlockFamilyInetConfig  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6Config `tfsdk:"family_inet6"`
 	Tunnel                   *interfaceLogicalBlockTunnel            `tfsdk:"tunnel"`
@@ -1105,19 +1105,19 @@ type interfaceLogicalBlockFamilyBlockRPFCheck struct {
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddress struct {
-	CidrIP                types.String                                                `tfsdk:"cidr_ip"    tfdata:"identifier"`
-	Preferred             types.Bool                                                  `tfsdk:"preferred"`
-	Primary               types.Bool                                                  `tfsdk:"primary"`
-	VRRPGroup             []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
-	VirtualGatewayAddress types.String                                                `tfsdk:"virtual_gateway_address"`
+	CidrIP        types.String                                                `tfsdk:"cidr_ip"                 tfdata:"identifier"`
+	Preferred     types.Bool                                                  `tfsdk:"preferred"`
+	Primary       types.Bool                                                  `tfsdk:"primary"`
+	VRRPGroup     []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
+	VirtGWAddress types.String                                                `tfsdk:"virtual_gateway_address"`
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddressConfig struct {
-	CidrIP                types.String `tfsdk:"cidr_ip"`
-	Preferred             types.Bool   `tfsdk:"preferred"`
-	Primary               types.Bool   `tfsdk:"primary"`
-	VRRPGroup             types.List   `tfsdk:"vrrp_group"`
-	VirtualGatewayAddress types.String `tfsdk:"virtual_gateway_address"`
+	CidrIP        types.String `tfsdk:"cidr_ip"`
+	Preferred     types.Bool   `tfsdk:"preferred"`
+	Primary       types.Bool   `tfsdk:"primary"`
+	VRRPGroup     types.List   `tfsdk:"vrrp_group"`
+	VirtGWAddress types.String `tfsdk:"virtual_gateway_address"`
 }
 
 //nolint:lll
@@ -2521,8 +2521,8 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 	if block.Primary.ValueBool() {
 		configSet = append(configSet, setPrefix+" primary")
 	}
-	if !block.VirtualGatewayAddress.IsNull() {
-		configSet = append(configSet, setPrefix+" virtual-gateway-address "+block.VirtualGatewayAddress.ValueString())
+	if !block.VirtGWAddress.IsNull() {
+		configSet = append(configSet, setPrefix+" virtual-gateway-address "+block.VirtGWAddress.ValueString())
 	}
 	vrrpGroupID := make(map[int64]struct{})
 	for i, vrrpGroup := range block.VRRPGroup {
@@ -3061,7 +3061,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
 	case itemTrim == "preferred":
 		block.Preferred = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "virtual-gateway-address "):
-		block.VirtualGatewayAddress = types.StringValue(itemTrim)
+		block.VirtGWAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "vrrp-group "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		identifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
