@@ -31,7 +31,7 @@ The following arguments are supported:
 - **version** (Optional, String, Forces new resource)  
   Version for DHCP or DHCPv6.  
   Need to be `v4` or `v6`.
-- **ip_address** (Optional, List of String)  
+- **ip_address** (Optional, Set of String)  
   IP Addresses of DHCP servers.
 
 ## Attribute Reference
