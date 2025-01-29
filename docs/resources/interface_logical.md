@@ -152,9 +152,9 @@ The following arguments are supported:
 - **primary** (Optional, Boolean)  
   Candidate for primary address in system.
 - **virtual_gateway_address** (Optional, String)
-  IPv4 address of Virtual Gateway 
-- **vrrp_group** (Optional, Block List)  
-  For each vrrp group to declare.  
+  IPv4 address of Virtual Gateway.
+- **vrrp_group** (Optional, Block List)
+  For each vrrp group to declare.
   See [below for nested schema](#vrrp_group-arguments-for-address-in-family_inet).
 
 ---
