@@ -196,6 +196,13 @@ func (rsc *interfaceLogical) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"virtual_gateway_accept_data": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Accept packets destined for virtual gateway address.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"family_inet": schema.SingleNestedBlock{
@@ -263,6 +270,13 @@ func (rsc *interfaceLogical) Schema(
 									Description: "Candidate for primary address in system.",
 									Validators: []validator.Bool{
 										tfvalidator.BoolTrue(),
+									},
+								},
+								"virtual_gateway_address": schema.StringAttribute{
+									Optional:    true,
+									Description: "Virtual gateway ip address.",
+									Validators: []validator.String{
+										tfvalidator.StringIPAddress().IPv4Only(),
 									},
 								},
 							},
@@ -1038,6 +1052,7 @@ type interfaceLogicalData struct {
 	SecurityZone             types.String                      `tfsdk:"security_zone"`
 	VlanID                   types.Int64                       `tfsdk:"vlan_id"`
 	VlanNoCompute            types.Bool                        `tfsdk:"vlan_no_compute"`
+	VirtualGWAcceptData      types.Bool                        `tfsdk:"virtual_gateway_accept_data"`
 	FamilyInet               *interfaceLogicalBlockFamilyInet  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6 `tfsdk:"family_inet6"`
 	Tunnel                   *interfaceLogicalBlockTunnel      `tfsdk:"tunnel"`
@@ -1056,6 +1071,7 @@ type interfaceLogicalConfig struct {
 	SecurityZone             types.String                            `tfsdk:"security_zone"`
 	VlanID                   types.Int64                             `tfsdk:"vlan_id"`
 	VlanNoCompute            types.Bool                              `tfsdk:"vlan_no_compute"`
+	VirtualGWAcceptData      types.Bool                              `tfsdk:"virtual_gateway_accept_data"`
 	FamilyInet               *interfaceLogicalBlockFamilyInetConfig  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6Config `tfsdk:"family_inet6"`
 	Tunnel                   *interfaceLogicalBlockTunnel            `tfsdk:"tunnel"`
@@ -1088,18 +1104,21 @@ type interfaceLogicalBlockFamilyBlockRPFCheck struct {
 	ModeLoose  types.Bool   `tfsdk:"mode_loose"`
 }
 
+//nolint:lll
 type interfaceLogicalBlockFamilyInetBlockAddress struct {
-	CidrIP    types.String                                                `tfsdk:"cidr_ip"    tfdata:"identifier"`
-	Preferred types.Bool                                                  `tfsdk:"preferred"`
-	Primary   types.Bool                                                  `tfsdk:"primary"`
-	VRRPGroup []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
+	CidrIP        types.String                                                `tfsdk:"cidr_ip"                 tfdata:"identifier"`
+	Preferred     types.Bool                                                  `tfsdk:"preferred"`
+	Primary       types.Bool                                                  `tfsdk:"primary"`
+	VRRPGroup     []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
+	VirtGWAddress types.String                                                `tfsdk:"virtual_gateway_address"`
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddressConfig struct {
-	CidrIP    types.String `tfsdk:"cidr_ip"`
-	Preferred types.Bool   `tfsdk:"preferred"`
-	Primary   types.Bool   `tfsdk:"primary"`
-	VRRPGroup types.List   `tfsdk:"vrrp_group"`
+	CidrIP        types.String `tfsdk:"cidr_ip"`
+	Preferred     types.Bool   `tfsdk:"preferred"`
+	Primary       types.Bool   `tfsdk:"primary"`
+	VRRPGroup     types.List   `tfsdk:"vrrp_group"`
+	VirtGWAddress types.String `tfsdk:"virtual_gateway_address"`
 }
 
 //nolint:lll
@@ -2322,6 +2341,9 @@ func (rscData *interfaceLogicalData) set(
 		}
 		configSet = append(configSet, setPrefix+"disable")
 	}
+	if rscData.VirtualGWAcceptData.ValueBool() {
+		configSet = append(configSet, setPrefix+"virtual-gateway-accept-data")
+	}
 	if v := rscData.Encapsulation.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"encapsulation "+v)
 	}
@@ -2499,6 +2521,9 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 	}
 	if block.Primary.ValueBool() {
 		configSet = append(configSet, setPrefix+" primary")
+	}
+	if !block.VirtGWAddress.IsNull() {
+		configSet = append(configSet, setPrefix+" virtual-gateway-address "+block.VirtGWAddress.ValueString())
 	}
 	vrrpGroupID := make(map[int64]struct{})
 	for i, vrrpGroup := range block.VRRPGroup {
@@ -2833,6 +2858,8 @@ func (rscData *interfaceLogicalData) read(
 				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			case itemTrim == "disable":
 				rscData.Disable = types.BoolValue(true)
+			case itemTrim == "virtual-gateway-accept-data":
+				rscData.VirtualGWAcceptData = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "encapsulation "):
 				rscData.Encapsulation = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "family inet6"):
@@ -3034,6 +3061,8 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
 		block.Primary = types.BoolValue(true)
 	case itemTrim == "preferred":
 		block.Preferred = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "virtual-gateway-address "):
+		block.VirtGWAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "vrrp-group "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		identifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
@@ -3367,6 +3396,7 @@ func (rscData *interfaceLogicalData) delOpts(
 		delPrefix + "family inet6",
 		delPrefix + "tunnel",
 		delPrefix + "vlan-id",
+		delPrefix + "virtual-gateway-accept-data",
 	}
 
 	return junSess.ConfigSet(configSet)
