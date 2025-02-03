@@ -109,6 +109,8 @@ The following arguments are supported:
 - **vlan_no_compute** (Optional, Boolean)  
   Disable the automatic compute of the `vlan_id` argument when not set.  
   Unnecessary if name has `.0` suffix or `st0.`, `irb.`, `vlan.` prefix because it's already disabled.
+- **virtual_gateway_accept_data** (Optional, Boolean)
+  Accept packets destined for virtual gateway address
 
 ---
 
@@ -149,8 +151,10 @@ The following arguments are supported:
   Preferred address on interface.
 - **primary** (Optional, Boolean)  
   Candidate for primary address in system.
-- **vrrp_group** (Optional, Block List)  
-  For each vrrp group to declare.  
+- **virtual_gateway_address** (Optional, String)
+  IPv4 address of Virtual Gateway.
+- **vrrp_group** (Optional, Block List)
+  For each vrrp group to declare.
   See [below for nested schema](#vrrp_group-arguments-for-address-in-family_inet).
 
 ---
