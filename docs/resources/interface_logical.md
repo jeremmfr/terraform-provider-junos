@@ -102,6 +102,12 @@ The following arguments are supported:
 - **tunnel** (Optional, Block)  
   Tunnel parameters.  
   See [below for nested schema](#tunnel-arguments).
+- **virtual_gateway_accept_data** (Optional, Boolean)  
+  Accept packets destined for virtual gateway address.
+- **virtual_gateway_v4_mac** (Optional, String)  
+  Virtual gateway IPV4 virtual MAC address.
+- **virtual_gateway_v6_mac** (Optional, String)  
+  Virtual gateway IPV6 virtual MAC address.
 - **vlan_id** (Optional, Computed, Number)  
   Virtual LAN identifier value for 802.1q VLAN tags.  
   If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
@@ -109,8 +115,6 @@ The following arguments are supported:
 - **vlan_no_compute** (Optional, Boolean)  
   Disable the automatic compute of the `vlan_id` argument when not set.  
   Unnecessary if name has `.0` suffix or `st0.`, `irb.`, `vlan.` prefix because it's already disabled.
-- **virtual_gateway_accept_data** (Optional, Boolean)
-  Accept packets destined for virtual gateway address
 
 ---
 
@@ -151,10 +155,10 @@ The following arguments are supported:
   Preferred address on interface.
 - **primary** (Optional, Boolean)  
   Candidate for primary address in system.
-- **virtual_gateway_address** (Optional, String)
-  IPv4 address of Virtual Gateway.
-- **vrrp_group** (Optional, Block List)
-  For each vrrp group to declare.
+- **virtual_gateway_address** (Optional, String)  
+  Virtual gateway IP address.
+- **vrrp_group** (Optional, Block List)  
+  For each vrrp group to declare.  
   See [below for nested schema](#vrrp_group-arguments-for-address-in-family_inet).
 
 ---
@@ -262,6 +266,8 @@ The following arguments are supported:
   Preferred address on interface.
 - **primary** (Optional, Boolean)  
   Candidate for primary address in system.
+- **virtual_gateway_address** (Optional, String)  
+  Virtual gateway IP address.
 - **vrrp_group** (Optional, Block List)  
   For each vrrp group to declare.  
   See [below for nested schema](#vrrp_group-arguments-for-address-in-family_inet6).

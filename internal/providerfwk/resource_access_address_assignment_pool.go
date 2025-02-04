@@ -583,7 +583,7 @@ func (rsc *accessAddressAssignmentPool) Schema(
 									Optional:    true,
 									Description: "Hardware address.",
 									Validators: []validator.String{
-										tfvalidator.StringMACAddress(),
+										tfvalidator.StringMACAddress().WithMac48ColonHexa(),
 									},
 								},
 								"user_name": schema.BoolAttribute{

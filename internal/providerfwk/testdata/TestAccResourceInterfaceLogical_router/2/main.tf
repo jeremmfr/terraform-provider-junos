@@ -14,3 +14,17 @@ resource "junos_interface_logical" "testacc_interface_logical" {
     ttl                          = 203
   }
 }
+resource "junos_interface_logical" "testacc_interface_logical3" {
+  name = "irb.100"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.2/24"
+    }
+
+  }
+  family_inet6 {
+    address {
+      cidr_ip = "fe80::1/64"
+    }
+  }
+}

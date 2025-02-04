@@ -181,6 +181,27 @@ func (rsc *interfaceLogical) Schema(
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
+			"virtual_gateway_accept_data": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Accept packets destined for virtual gateway address.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"virtual_gateway_v4_mac": schema.StringAttribute{
+				Optional:    true,
+				Description: "Virtual gateway IPV4 virtual MAC address.",
+				Validators: []validator.String{
+					tfvalidator.StringMACAddress().WithMac48ColonHexa(),
+				},
+			},
+			"virtual_gateway_v6_mac": schema.StringAttribute{
+				Optional:    true,
+				Description: "Virtual gateway IPV6 virtual MAC address.",
+				Validators: []validator.String{
+					tfvalidator.StringMACAddress().WithMac48ColonHexa(),
+				},
+			},
 			"vlan_id": schema.Int64Attribute{
 				Optional:    true,
 				Computed:    true,
@@ -192,13 +213,6 @@ func (rsc *interfaceLogical) Schema(
 			"vlan_no_compute": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Disable the automatic compute of the `vlan_id` argument when not set.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
-				},
-			},
-			"virtual_gateway_accept_data": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Accept packets destined for virtual gateway address.",
 				Validators: []validator.Bool{
 					tfvalidator.BoolTrue(),
 				},
@@ -274,7 +288,7 @@ func (rsc *interfaceLogical) Schema(
 								},
 								"virtual_gateway_address": schema.StringAttribute{
 									Optional:    true,
-									Description: "Virtual gateway ip address.",
+									Description: "Virtual gateway IP address.",
 									Validators: []validator.String{
 										tfvalidator.StringIPAddress().IPv4Only(),
 									},
@@ -678,6 +692,13 @@ func (rsc *interfaceLogical) Schema(
 										tfvalidator.BoolTrue(),
 									},
 								},
+								"virtual_gateway_address": schema.StringAttribute{
+									Optional:    true,
+									Description: "Virtual gateway IP address.",
+									Validators: []validator.String{
+										tfvalidator.StringIPAddress().IPv6Only(),
+									},
+								},
 							},
 							Blocks: map[string]schema.Block{
 								"vrrp_group": schema.ListNestedBlock{
@@ -1050,9 +1071,11 @@ type interfaceLogicalData struct {
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
 	SecurityZone             types.String                      `tfsdk:"security_zone"`
+	VirtualGatewayAcceptData types.Bool                        `tfsdk:"virtual_gateway_accept_data"`
+	VirtualGatewayV4Mac      types.String                      `tfsdk:"virtual_gateway_v4_mac"`
+	VirtualGatewayV6Mac      types.String                      `tfsdk:"virtual_gateway_v6_mac"`
 	VlanID                   types.Int64                       `tfsdk:"vlan_id"`
 	VlanNoCompute            types.Bool                        `tfsdk:"vlan_no_compute"`
-	VirtualGWAcceptData      types.Bool                        `tfsdk:"virtual_gateway_accept_data"`
 	FamilyInet               *interfaceLogicalBlockFamilyInet  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6 `tfsdk:"family_inet6"`
 	Tunnel                   *interfaceLogicalBlockTunnel      `tfsdk:"tunnel"`
@@ -1069,9 +1092,11 @@ type interfaceLogicalConfig struct {
 	SecurityInboundProtocols types.Set                               `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  types.Set                               `tfsdk:"security_inbound_services"`
 	SecurityZone             types.String                            `tfsdk:"security_zone"`
+	VirtualGatewayAcceptData types.Bool                              `tfsdk:"virtual_gateway_accept_data"`
+	VirtualGatewayV4Mac      types.String                            `tfsdk:"virtual_gateway_v4_mac"`
+	VirtualGatewayV6Mac      types.String                            `tfsdk:"virtual_gateway_v6_mac"`
 	VlanID                   types.Int64                             `tfsdk:"vlan_id"`
 	VlanNoCompute            types.Bool                              `tfsdk:"vlan_no_compute"`
-	VirtualGWAcceptData      types.Bool                              `tfsdk:"virtual_gateway_accept_data"`
 	FamilyInet               *interfaceLogicalBlockFamilyInetConfig  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6Config `tfsdk:"family_inet6"`
 	Tunnel                   *interfaceLogicalBlockTunnel            `tfsdk:"tunnel"`
@@ -1106,19 +1131,19 @@ type interfaceLogicalBlockFamilyBlockRPFCheck struct {
 
 //nolint:lll
 type interfaceLogicalBlockFamilyInetBlockAddress struct {
-	CidrIP        types.String                                                `tfsdk:"cidr_ip"                 tfdata:"identifier"`
-	Preferred     types.Bool                                                  `tfsdk:"preferred"`
-	Primary       types.Bool                                                  `tfsdk:"primary"`
-	VRRPGroup     []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
-	VirtGWAddress types.String                                                `tfsdk:"virtual_gateway_address"`
+	CidrIP                types.String                                                `tfsdk:"cidr_ip"                 tfdata:"identifier"`
+	Preferred             types.Bool                                                  `tfsdk:"preferred"`
+	Primary               types.Bool                                                  `tfsdk:"primary"`
+	VirtualGatewayAddress types.String                                                `tfsdk:"virtual_gateway_address"`
+	VRRPGroup             []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddressConfig struct {
-	CidrIP        types.String `tfsdk:"cidr_ip"`
-	Preferred     types.Bool   `tfsdk:"preferred"`
-	Primary       types.Bool   `tfsdk:"primary"`
-	VRRPGroup     types.List   `tfsdk:"vrrp_group"`
-	VirtGWAddress types.String `tfsdk:"virtual_gateway_address"`
+	CidrIP                types.String `tfsdk:"cidr_ip"`
+	Preferred             types.Bool   `tfsdk:"preferred"`
+	Primary               types.Bool   `tfsdk:"primary"`
+	VirtualGatewayAddress types.String `tfsdk:"virtual_gateway_address"`
+	VRRPGroup             types.List   `tfsdk:"vrrp_group"`
 }
 
 //nolint:lll
@@ -1215,18 +1240,21 @@ type interfaceLogicalBlockFamilyInet6Config struct {
 	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck                `tfsdk:"rpf_check"`
 }
 
+//nolint:lll
 type interfaceLogicalBlockFamilyInet6BlockAddress struct {
-	CidrIP    types.String                                                 `tfsdk:"cidr_ip"    tfdata:"identifier"`
-	Preferred types.Bool                                                   `tfsdk:"preferred"`
-	Primary   types.Bool                                                   `tfsdk:"primary"`
-	VRRPGroup []interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
+	CidrIP                types.String                                                 `tfsdk:"cidr_ip"                 tfdata:"identifier"`
+	Preferred             types.Bool                                                   `tfsdk:"preferred"`
+	Primary               types.Bool                                                   `tfsdk:"primary"`
+	VirtualGatewayAddress types.String                                                 `tfsdk:"virtual_gateway_address"`
+	VRRPGroup             []interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
 }
 
 type interfaceLogicalBlockFamilyInet6BlockAddressConfig struct {
-	CidrIP    types.String `tfsdk:"cidr_ip"`
-	Preferred types.Bool   `tfsdk:"preferred"`
-	Primary   types.Bool   `tfsdk:"primary"`
-	VRRPGroup types.List   `tfsdk:"vrrp_group"`
+	CidrIP                types.String `tfsdk:"cidr_ip"`
+	Preferred             types.Bool   `tfsdk:"preferred"`
+	Primary               types.Bool   `tfsdk:"primary"`
+	VirtualGatewayAddress types.String `tfsdk:"virtual_gateway_address"`
+	VRRPGroup             types.List   `tfsdk:"vrrp_group"`
 }
 
 //nolint:lll
@@ -1307,7 +1335,7 @@ type interfaceLogicalBlockTunnel struct {
 	TTL                        types.Int64  `tfsdk:"ttl"`
 }
 
-//nolint:gocognit
+//nolint:gocognit,gocyclo
 func (rsc *interfaceLogical) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
@@ -1315,6 +1343,34 @@ func (rsc *interfaceLogical) ValidateConfig(
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	if !config.Name.IsNull() && !config.Name.IsUnknown() &&
+		!strings.HasPrefix(config.Name.ValueString(), "irb.") {
+		if !config.VirtualGatewayAcceptData.IsNull() &&
+			!config.VirtualGatewayAcceptData.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("virtual_gateway_accept_data"),
+				tfdiag.ConflictConfigErrSummary,
+				"cannot set virtual_gateway_accept_data if interface name doesn't have 'irb.' prefix",
+			)
+		}
+		if !config.VirtualGatewayV4Mac.IsNull() &&
+			!config.VirtualGatewayV4Mac.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("virtual_gateway_v4_mac"),
+				tfdiag.ConflictConfigErrSummary,
+				"cannot set virtual_gateway_v4_mac if interface name doesn't have 'irb.' prefix",
+			)
+		}
+		if !config.VirtualGatewayV6Mac.IsNull() &&
+			!config.VirtualGatewayV6Mac.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("virtual_gateway_v6_mac"),
+				tfdiag.ConflictConfigErrSummary,
+				"cannot set virtual_gateway_v6_mac if interface name doesn't have 'irb.' prefix",
+			)
+		}
 	}
 
 	if config.SecurityZone.IsNull() {
@@ -1400,6 +1456,20 @@ func (rsc *interfaceLogical) ValidateConfig(
 					}
 					addressCIDRIP[cidrIP] = struct{}{}
 				}
+
+				if !address.VirtualGatewayAddress.IsNull() &&
+					!address.VirtualGatewayAddress.IsUnknown() &&
+					!config.Name.IsNull() && !config.Name.IsUnknown() {
+					if !strings.HasPrefix(config.Name.ValueString(), "irb.") {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("family_inet").AtName("address").AtListIndex(i).AtName("virtual_gateway_address"),
+							tfdiag.ConflictConfigErrSummary,
+							fmt.Sprintf("cannot set virtual_gateway_address if interface name doesn't have 'irb.' prefix"+
+								" in address block %q in family_inet block", address.CidrIP.ValueString()),
+						)
+					}
+				}
+
 				if !address.VRRPGroup.IsNull() && !address.VRRPGroup.IsUnknown() {
 					var configVRRPGroup []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroupConfig
 					asDiags := address.VRRPGroup.ElementsAs(ctx, &configVRRPGroup, false)
@@ -1541,6 +1611,20 @@ func (rsc *interfaceLogical) ValidateConfig(
 					}
 					addressCIDRIP[cidrIP] = struct{}{}
 				}
+
+				if !address.VirtualGatewayAddress.IsNull() &&
+					!address.VirtualGatewayAddress.IsUnknown() &&
+					!config.Name.IsNull() && !config.Name.IsUnknown() {
+					if !strings.HasPrefix(config.Name.ValueString(), "irb.") {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("family_inet6").AtName("address").AtListIndex(i).AtName("virtual_gateway_address"),
+							tfdiag.ConflictConfigErrSummary,
+							fmt.Sprintf("cannot set virtual_gateway_address if interface name doesn't have 'irb.' prefix"+
+								" in address block %q in family_inet6 block", address.CidrIP.ValueString()),
+						)
+					}
+				}
+
 				if !address.VRRPGroup.IsNull() && !address.VRRPGroup.IsUnknown() {
 					var configVRRPGroup []interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroupConfig
 					asDiags := address.VRRPGroup.ElementsAs(ctx, &configVRRPGroup, false)
@@ -1626,7 +1710,6 @@ func (rsc *interfaceLogical) ValidateConfig(
 			}
 		}
 	}
-
 	if config.Tunnel != nil {
 		if config.Tunnel.Destination.IsNull() {
 			resp.Diagnostics.AddAttributeError(
@@ -2341,12 +2424,40 @@ func (rscData *interfaceLogicalData) set(
 		}
 		configSet = append(configSet, setPrefix+"disable")
 	}
-	if rscData.VirtualGWAcceptData.ValueBool() {
-		configSet = append(configSet, setPrefix+"virtual-gateway-accept-data")
-	}
 	if v := rscData.Encapsulation.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"encapsulation "+v)
 	}
+	if rscData.VirtualGatewayAcceptData.ValueBool() {
+		configSet = append(configSet, setPrefix+"virtual-gateway-accept-data")
+	}
+	if v := rscData.VirtualGatewayV4Mac.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"virtual-gateway-v4-mac "+v)
+	}
+	if v := rscData.VirtualGatewayV6Mac.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"virtual-gateway-v6-mac "+v)
+	}
+	if !rscData.VlanID.IsNull() {
+		configSet = append(configSet, setPrefix+"vlan-id "+
+			utils.ConvI64toa(rscData.VlanID.ValueInt64()))
+	}
+
+	if v := rscData.RoutingInstance.ValueString(); v != "" {
+		configSet = append(configSet, junos.SetLS+junos.RoutingInstancesWS+v+" interface "+rscData.Name.ValueString())
+	}
+	if securityZone := rscData.SecurityZone.ValueString(); securityZone != "" {
+		configSet = append(configSet, "set security zones security-zone "+securityZone+
+			" interfaces "+rscData.Name.ValueString())
+
+		for _, v := range rscData.SecurityInboundProtocols {
+			configSet = append(configSet, "set security zones security-zone "+securityZone+
+				" interfaces "+rscData.Name.ValueString()+" host-inbound-traffic protocols "+v.ValueString())
+		}
+		for _, v := range rscData.SecurityInboundServices {
+			configSet = append(configSet, "set security zones security-zone "+securityZone+
+				" interfaces "+rscData.Name.ValueString()+" host-inbound-traffic system-services "+v.ValueString())
+		}
+	}
+
 	if rscData.FamilyInet != nil {
 		configSet = append(configSet, setPrefix+"family inet")
 
@@ -2448,22 +2559,6 @@ func (rscData *interfaceLogicalData) set(
 			configSet = append(configSet, setPrefix+"family inet6 sampling output")
 		}
 	}
-	if v := rscData.RoutingInstance.ValueString(); v != "" {
-		configSet = append(configSet, junos.SetLS+junos.RoutingInstancesWS+v+" interface "+rscData.Name.ValueString())
-	}
-	if securityZone := rscData.SecurityZone.ValueString(); securityZone != "" {
-		configSet = append(configSet, "set security zones security-zone "+securityZone+
-			" interfaces "+rscData.Name.ValueString())
-
-		for _, v := range rscData.SecurityInboundProtocols {
-			configSet = append(configSet, "set security zones security-zone "+securityZone+
-				" interfaces "+rscData.Name.ValueString()+" host-inbound-traffic protocols "+v.ValueString())
-		}
-		for _, v := range rscData.SecurityInboundServices {
-			configSet = append(configSet, "set security zones security-zone "+securityZone+
-				" interfaces "+rscData.Name.ValueString()+" host-inbound-traffic system-services "+v.ValueString())
-		}
-	}
 	if rscData.Tunnel != nil {
 		configSet = append(configSet, setPrefix+"tunnel destination "+rscData.Tunnel.Destination.ValueString())
 		configSet = append(configSet, setPrefix+"tunnel source "+rscData.Tunnel.Source.ValueString())
@@ -2495,10 +2590,6 @@ func (rscData *interfaceLogicalData) set(
 				utils.ConvI64toa(rscData.Tunnel.TTL.ValueInt64()))
 		}
 	}
-	if !rscData.VlanID.IsNull() {
-		configSet = append(configSet, setPrefix+"vlan-id "+
-			utils.ConvI64toa(rscData.VlanID.ValueInt64()))
-	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
@@ -2510,21 +2601,22 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix += "family inet address " + block.CidrIP.ValueString()
+	setPrefix += "family inet address " + block.CidrIP.ValueString() + " "
 
 	configSet := []string{
 		setPrefix,
 	}
 
 	if block.Preferred.ValueBool() {
-		configSet = append(configSet, setPrefix+" preferred")
+		configSet = append(configSet, setPrefix+"preferred")
 	}
 	if block.Primary.ValueBool() {
-		configSet = append(configSet, setPrefix+" primary")
+		configSet = append(configSet, setPrefix+"primary")
 	}
-	if !block.VirtGWAddress.IsNull() {
-		configSet = append(configSet, setPrefix+" virtual-gateway-address "+block.VirtGWAddress.ValueString())
+	if v := block.VirtualGatewayAddress.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"virtual-gateway-address "+v)
 	}
+
 	vrrpGroupID := make(map[int64]struct{})
 	for i, vrrpGroup := range block.VRRPGroup {
 		if strings.HasPrefix(setPrefix, "set interfaces st0.") {
@@ -2540,71 +2632,98 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 		}
 		vrrpGroupID[identifier] = struct{}{}
 
-		setPrefixVRRPGroup := setPrefix + " vrrp-group " + utils.ConvI64toa(vrrpGroup.Identifier.ValueInt64()) + " "
-		for _, v := range vrrpGroup.VirtualAddress {
-			configSet = append(configSet, setPrefixVRRPGroup+"virtual-address "+v.ValueString())
+		blockSet, pathErr, err := vrrpGroup.configSet(
+			setPrefix,
+			pathRoot.AtName("vrrp_group").AtListIndex(i),
+			fmt.Sprintf(" in address block %q in family_inet block", block.CidrIP.ValueString()),
+		)
+		if err != nil {
+			return configSet, pathErr, err
 		}
-		if !vrrpGroup.AdvertiseInterval.IsNull() {
-			configSet = append(configSet, setPrefixVRRPGroup+"advertise-interval "+
-				utils.ConvI64toa(vrrpGroup.AdvertiseInterval.ValueInt64()))
-		}
-		if v := vrrpGroup.AuthenticationKey.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixVRRPGroup+"authentication-key \""+v+"\"")
-		}
-		if v := vrrpGroup.AuthenticationType.ValueString(); v != "" {
-			configSet = append(configSet, setPrefixVRRPGroup+"authentication-type "+v)
-		}
-		if vrrpGroup.AcceptData.ValueBool() {
-			configSet = append(configSet, setPrefixVRRPGroup+"accept-data")
-		}
-		if vrrpGroup.NoAcceptData.ValueBool() {
-			configSet = append(configSet, setPrefixVRRPGroup+"no-accept-data")
-		}
-		if !vrrpGroup.AdvertisementsThreshold.IsNull() {
-			configSet = append(configSet, setPrefixVRRPGroup+"advertisements-threshold "+
-				utils.ConvI64toa(vrrpGroup.AdvertisementsThreshold.ValueInt64()))
-		}
-		if vrrpGroup.Preempt.ValueBool() {
-			configSet = append(configSet, setPrefixVRRPGroup+"preempt")
-		}
-		if vrrpGroup.NoPreempt.ValueBool() {
-			configSet = append(configSet, setPrefixVRRPGroup+"no-preempt")
-		}
-		if !vrrpGroup.Priority.IsNull() {
-			configSet = append(configSet, setPrefixVRRPGroup+"priority "+
-				utils.ConvI64toa(vrrpGroup.Priority.ValueInt64()))
-		}
-		trackInterfaceInterface := make(map[string]struct{})
-		for ii, trackInterface := range vrrpGroup.TrackInterface {
-			interFace := trackInterface.Interface.ValueString()
-			if _, ok := trackInterfaceInterface[interFace]; ok {
-				return configSet,
-					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_interface").AtListIndex(ii).AtName("interface"),
-					fmt.Errorf("multiple track_interface blocks with the same interface %q"+
-						" in vrrp_group block %d in address block %q in family_inet block",
-						interFace, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
-			}
-			trackInterfaceInterface[interFace] = struct{}{}
+		configSet = append(configSet, blockSet...)
+	}
 
-			configSet = append(configSet, setPrefixVRRPGroup+"track interface "+trackInterface.Interface.ValueString()+
-				" priority-cost "+utils.ConvI64toa(trackInterface.PriorityCost.ValueInt64()))
-		}
-		trackRouteRoute := make(map[string]struct{})
-		for ii, trackRoute := range vrrpGroup.TrackRoute {
-			route := trackRoute.Route.ValueString()
-			if _, ok := trackRouteRoute[route]; ok {
-				return configSet,
-					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_route").AtListIndex(ii).AtName("route"),
-					fmt.Errorf("multiple track_route blocks with the same route %q"+
-						" in vrrp_group block %d in address block %q in family_inet block",
-						route, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
-			}
-			trackRouteRoute[route] = struct{}{}
+	return configSet, path.Empty(), nil
+}
 
-			configSet = append(configSet, setPrefixVRRPGroup+"track route "+trackRoute.Route.ValueString()+
+func (block *interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup) configSet(
+	setPrefix string, pathRoot path.Path, blockErrorSuffix string,
+) (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
+	configSet := make([]string, 0)
+	setPrefix += "vrrp-group " + utils.ConvI64toa(block.Identifier.ValueInt64()) + " "
+
+	for _, v := range block.VirtualAddress {
+		configSet = append(configSet, setPrefix+"virtual-address "+v.ValueString())
+	}
+	if !block.AdvertiseInterval.IsNull() {
+		configSet = append(configSet, setPrefix+"advertise-interval "+
+			utils.ConvI64toa(block.AdvertiseInterval.ValueInt64()))
+	}
+	if v := block.AuthenticationKey.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
+	}
+	if v := block.AuthenticationType.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication-type "+v)
+	}
+	if block.AcceptData.ValueBool() {
+		configSet = append(configSet, setPrefix+"accept-data")
+	}
+	if block.NoAcceptData.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-accept-data")
+	}
+	if !block.AdvertisementsThreshold.IsNull() {
+		configSet = append(configSet, setPrefix+"advertisements-threshold "+
+			utils.ConvI64toa(block.AdvertisementsThreshold.ValueInt64()))
+	}
+	if block.Preempt.ValueBool() {
+		configSet = append(configSet, setPrefix+"preempt")
+	}
+	if block.NoPreempt.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-preempt")
+	}
+	if !block.Priority.IsNull() {
+		configSet = append(configSet, setPrefix+"priority "+
+			utils.ConvI64toa(block.Priority.ValueInt64()))
+	}
+
+	trackInterfaceInterface := make(map[string]struct{})
+	for i, trackInterface := range block.TrackInterface {
+		interFace := trackInterface.Interface.ValueString()
+		if _, ok := trackInterfaceInterface[interFace]; ok {
+			return configSet,
+				pathRoot.AtName("track_interface").AtListIndex(i).AtName("interface"),
+				fmt.Errorf("multiple track_interface blocks with the same interface %q"+
+					" in vrrp_group block %d"+blockErrorSuffix,
+					interFace, block.Identifier.ValueInt64())
+		}
+		trackInterfaceInterface[interFace] = struct{}{}
+
+		configSet = append(configSet,
+			setPrefix+"track interface "+trackInterface.Interface.ValueString()+
+				" priority-cost "+utils.ConvI64toa(trackInterface.PriorityCost.ValueInt64()),
+		)
+	}
+	trackRouteRoute := make(map[string]struct{})
+	for i, trackRoute := range block.TrackRoute {
+		route := trackRoute.Route.ValueString()
+		if _, ok := trackRouteRoute[route]; ok {
+			return configSet,
+				pathRoot.AtName("track_route").AtListIndex(i).AtName("route"),
+				fmt.Errorf("multiple track_route blocks with the same route %q"+
+					" in vrrp_group block %d"+blockErrorSuffix,
+					route, block.Identifier.ValueInt64())
+		}
+		trackRouteRoute[route] = struct{}{}
+
+		configSet = append(configSet,
+			setPrefix+"track route "+trackRoute.Route.ValueString()+
 				" routing-instance "+trackRoute.RoutingInstance.ValueString()+
-				" priority-cost "+utils.ConvI64toa(trackRoute.PriorityCost.ValueInt64()))
-		}
+				" priority-cost "+utils.ConvI64toa(trackRoute.PriorityCost.ValueInt64()),
+		)
 	}
 
 	return configSet, path.Empty(), nil
@@ -2617,18 +2736,22 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	setPrefix += "family inet6 address " + block.CidrIP.ValueString()
+	setPrefix += "family inet6 address " + block.CidrIP.ValueString() + " "
 
 	configSet := []string{
 		setPrefix,
 	}
 
 	if block.Preferred.ValueBool() {
-		configSet = append(configSet, setPrefix+" preferred")
+		configSet = append(configSet, setPrefix+"preferred")
 	}
 	if block.Primary.ValueBool() {
-		configSet = append(configSet, setPrefix+" primary")
+		configSet = append(configSet, setPrefix+"primary")
 	}
+	if v := block.VirtualGatewayAddress.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"virtual-gateway-address "+v)
+	}
+
 	vrrpGroupID := make(map[int64]struct{})
 	for i, vrrpGroup := range block.VRRPGroup {
 		if strings.HasPrefix(setPrefix, "set interfaces st0.") {
@@ -2644,68 +2767,95 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 		}
 		vrrpGroupID[identifier] = struct{}{}
 
-		setPrefixVRRPGroup := setPrefix + " vrrp-inet6-group " + utils.ConvI64toa(vrrpGroup.Identifier.ValueInt64()) + " "
-		for _, v := range vrrpGroup.VirtualAddress {
-			configSet = append(configSet, setPrefixVRRPGroup+"virtual-inet6-address "+v.ValueString())
+		blockSet, pathErr, err := vrrpGroup.configSet(
+			setPrefix,
+			pathRoot.AtName("vrrp_group").AtListIndex(i),
+			fmt.Sprintf(" in address block %q in family_inet6 block", block.CidrIP.ValueString()),
+		)
+		if err != nil {
+			return configSet, pathErr, err
 		}
+		configSet = append(configSet, blockSet...)
+	}
+
+	return configSet, path.Empty(), nil
+}
+
+func (block *interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup) configSet(
+	setPrefix string, pathRoot path.Path, blockErrorSuffix string,
+) (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
+	setPrefix += "vrrp-inet6-group " + utils.ConvI64toa(block.Identifier.ValueInt64()) + " "
+
+	configSet := []string{
+		setPrefix + "virtual-link-local-address " + block.VirutalLinkLocalAddress.ValueString(),
+	}
+	for _, v := range block.VirtualAddress {
+		configSet = append(configSet, setPrefix+"virtual-inet6-address "+v.ValueString())
+	}
+
+	if !block.AdvertiseInterval.IsNull() {
+		configSet = append(configSet, setPrefix+"inet6-advertise-interval "+
+			utils.ConvI64toa(block.AdvertiseInterval.ValueInt64()))
+	}
+	if block.AcceptData.ValueBool() {
+		configSet = append(configSet, setPrefix+"accept-data")
+	}
+	if block.NoAcceptData.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-accept-data")
+	}
+	if !block.AdvertisementsThreshold.IsNull() {
+		configSet = append(configSet, setPrefix+"advertisements-threshold "+
+			utils.ConvI64toa(block.AdvertisementsThreshold.ValueInt64()))
+	}
+	if block.Preempt.ValueBool() {
+		configSet = append(configSet, setPrefix+"preempt")
+	}
+	if block.NoPreempt.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-preempt")
+	}
+	if !block.Priority.IsNull() {
+		configSet = append(configSet, setPrefix+"priority "+
+			utils.ConvI64toa(block.Priority.ValueInt64()))
+	}
+
+	trackInterfaceInterface := make(map[string]struct{})
+	for i, trackInterface := range block.TrackInterface {
+		interFace := trackInterface.Interface.ValueString()
+		if _, ok := trackInterfaceInterface[interFace]; ok {
+			return configSet,
+				pathRoot.AtName("track_interface").AtListIndex(i).AtName("interface"),
+				fmt.Errorf("multiple track_interface blocks with the same interface %q"+
+					" in vrrp_group block %d"+blockErrorSuffix,
+					interFace, block.Identifier.ValueInt64())
+		}
+		trackInterfaceInterface[interFace] = struct{}{}
+
 		configSet = append(configSet,
-			setPrefixVRRPGroup+"virtual-link-local-address "+vrrpGroup.VirutalLinkLocalAddress.ValueString())
+			setPrefix+"track interface "+trackInterface.Interface.ValueString()+
+				" priority-cost "+utils.ConvI64toa(trackInterface.PriorityCost.ValueInt64()),
+		)
+	}
+	trackRouteRoute := make(map[string]struct{})
+	for i, trackRoute := range block.TrackRoute {
+		route := trackRoute.Route.ValueString()
+		if _, ok := trackRouteRoute[route]; ok {
+			return configSet,
+				pathRoot.AtName("track_route").AtListIndex(i).AtName("route"),
+				fmt.Errorf("multiple track_route blocks with the same route %q"+
+					" in vrrp_group block %d"+blockErrorSuffix,
+					route, block.Identifier.ValueInt64())
+		}
+		trackRouteRoute[route] = struct{}{}
 
-		if !vrrpGroup.AdvertiseInterval.IsNull() {
-			configSet = append(configSet, setPrefixVRRPGroup+"inet6-advertise-interval "+
-				utils.ConvI64toa(vrrpGroup.AdvertiseInterval.ValueInt64()))
-		}
-		if vrrpGroup.AcceptData.ValueBool() {
-			configSet = append(configSet, setPrefixVRRPGroup+"accept-data")
-		}
-		if vrrpGroup.NoAcceptData.ValueBool() {
-			configSet = append(configSet, setPrefixVRRPGroup+"no-accept-data")
-		}
-		if !vrrpGroup.AdvertisementsThreshold.IsNull() {
-			configSet = append(configSet, setPrefixVRRPGroup+"advertisements-threshold "+
-				utils.ConvI64toa(vrrpGroup.AdvertisementsThreshold.ValueInt64()))
-		}
-		if vrrpGroup.Preempt.ValueBool() {
-			configSet = append(configSet, setPrefixVRRPGroup+"preempt")
-		}
-		if vrrpGroup.NoPreempt.ValueBool() {
-			configSet = append(configSet, setPrefixVRRPGroup+"no-preempt")
-		}
-		if !vrrpGroup.Priority.IsNull() {
-			configSet = append(configSet, setPrefixVRRPGroup+"priority "+
-				utils.ConvI64toa(vrrpGroup.Priority.ValueInt64()))
-		}
-		trackInterfaceInterface := make(map[string]struct{})
-		for ii, trackInterface := range vrrpGroup.TrackInterface {
-			interFace := trackInterface.Interface.ValueString()
-			if _, ok := trackInterfaceInterface[interFace]; ok {
-				return configSet,
-					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_interface").AtListIndex(ii).AtName("interface"),
-					fmt.Errorf("multiple track_interface blocks with the same interface %q"+
-						" in vrrp_group block %d in address block %q in family_inet6 block",
-						interFace, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
-			}
-			trackInterfaceInterface[interFace] = struct{}{}
-
-			configSet = append(configSet, setPrefixVRRPGroup+"track interface "+trackInterface.Interface.ValueString()+
-				" priority-cost "+utils.ConvI64toa(trackInterface.PriorityCost.ValueInt64()))
-		}
-		trackRouteRoute := make(map[string]struct{})
-		for ii, trackRoute := range vrrpGroup.TrackRoute {
-			route := trackRoute.Route.ValueString()
-			if _, ok := trackRouteRoute[route]; ok {
-				return configSet,
-					pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("track_route").AtListIndex(ii).AtName("route"),
-					fmt.Errorf("multiple track_route blocks with the same route %q"+
-						" in vrrp_group block %d in address block %q in family_inet6 block",
-						route, vrrpGroup.Identifier.ValueInt64(), block.CidrIP.ValueString())
-			}
-			trackRouteRoute[route] = struct{}{}
-
-			configSet = append(configSet, setPrefixVRRPGroup+"track route "+trackRoute.Route.ValueString()+
+		configSet = append(configSet,
+			setPrefix+"track route "+trackRoute.Route.ValueString()+
 				" routing-instance "+trackRoute.RoutingInstance.ValueString()+
-				" priority-cost "+utils.ConvI64toa(trackRoute.PriorityCost.ValueInt64()))
-		}
+				" priority-cost "+utils.ConvI64toa(trackRoute.PriorityCost.ValueInt64()),
+		)
 	}
 
 	return configSet, path.Empty(), nil
@@ -2858,8 +3008,6 @@ func (rscData *interfaceLogicalData) read(
 				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			case itemTrim == "disable":
 				rscData.Disable = types.BoolValue(true)
-			case itemTrim == "virtual-gateway-accept-data":
-				rscData.VirtualGWAcceptData = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "encapsulation "):
 				rscData.Encapsulation = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "family inet6"):
@@ -2998,6 +3146,12 @@ func (rscData *interfaceLogicalData) read(
 						return err
 					}
 				}
+			case itemTrim == "virtual-gateway-accept-data":
+				rscData.VirtualGatewayAcceptData = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "virtual-gateway-v4-mac "):
+				rscData.VirtualGatewayV4Mac = types.StringValue(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "virtual-gateway-v6-mac "):
+				rscData.VirtualGatewayV6Mac = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "vlan-id "):
 				rscData.VlanID, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
@@ -3062,7 +3216,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
 	case itemTrim == "preferred":
 		block.Preferred = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "virtual-gateway-address "):
-		block.VirtGWAddress = types.StringValue(itemTrim)
+		block.VirtualGatewayAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "vrrp-group "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		identifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
@@ -3073,71 +3227,81 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) read(
 		vrrpGroup := &block.VRRPGroup[len(block.VRRPGroup)-1]
 		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
-		switch {
-		case balt.CutPrefixInString(&itemTrim, "virtual-address "):
-			vrrpGroup.VirtualAddress = append(vrrpGroup.VirtualAddress, types.StringValue(itemTrim))
-		case itemTrim == "accept-data":
-			vrrpGroup.AcceptData = types.BoolValue(true)
-		case balt.CutPrefixInString(&itemTrim, "advertise-interval "):
-			vrrpGroup.AdvertiseInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
-		case balt.CutPrefixInString(&itemTrim, "advertisements-threshold "):
-			vrrpGroup.AdvertisementsThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
-		case balt.CutPrefixInString(&itemTrim, "authentication-key "):
-			vrrpGroup.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
-			if err != nil {
-				return err
-			}
-		case balt.CutPrefixInString(&itemTrim, "authentication-type "):
-			vrrpGroup.AuthenticationType = types.StringValue(itemTrim)
-		case itemTrim == "no-accept-data":
-			vrrpGroup.NoAcceptData = types.BoolValue(true)
-		case itemTrim == "no-preempt":
-			vrrpGroup.NoPreempt = types.BoolValue(true)
-		case itemTrim == "preempt":
-			vrrpGroup.Preempt = types.BoolValue(true)
-		case balt.CutPrefixInString(&itemTrim, "priority "):
-			vrrpGroup.Priority, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
-		case balt.CutPrefixInString(&itemTrim, "track interface "):
-			itemTrackFields := strings.Split(itemTrim, " ")
-			if len(itemTrackFields) < 3 { // <interface> priority-cost <priority_cost>
-				return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "track interface", itemTrim)
-			}
-			cost, err := tfdata.ConvAtoi64Value(itemTrackFields[2])
-			if err != nil {
-				return err
-			}
-			vrrpGroup.TrackInterface = append(vrrpGroup.TrackInterface,
-				interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface{
-					Interface:    types.StringValue(itemTrackFields[0]),
-					PriorityCost: cost,
-				},
-			)
-		case balt.CutPrefixInString(&itemTrim, "track route "):
-			itemTrackFields := strings.Split(itemTrim, " ")
-			if len(itemTrackFields) < 5 { // <route> routing-instance <routing_instance> priority-cost <priority_cost>
-				return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "track route", itemTrim)
-			}
-			cost, err := tfdata.ConvAtoi64Value(itemTrackFields[4])
-			if err != nil {
-				return err
-			}
-			vrrpGroup.TrackRoute = append(vrrpGroup.TrackRoute,
-				interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute{
-					Route:           types.StringValue(itemTrackFields[0]),
-					RoutingInstance: types.StringValue(itemTrackFields[2]),
-					PriorityCost:    cost,
-				},
-			)
+		if err := vrrpGroup.read(itemTrim, junSess); err != nil {
+			return err
 		}
+	}
+
+	return nil
+}
+
+func (block *interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup) read(
+	itemTrim string, junSess *junos.Session,
+) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "virtual-address "):
+		block.VirtualAddress = append(block.VirtualAddress, types.StringValue(itemTrim))
+	case itemTrim == "accept-data":
+		block.AcceptData = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "advertise-interval "):
+		block.AdvertiseInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "advertisements-threshold "):
+		block.AdvertisementsThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "authentication-key "):
+		block.AuthenticationKey, err = junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "authentication-type "):
+		block.AuthenticationType = types.StringValue(itemTrim)
+	case itemTrim == "no-accept-data":
+		block.NoAcceptData = types.BoolValue(true)
+	case itemTrim == "no-preempt":
+		block.NoPreempt = types.BoolValue(true)
+	case itemTrim == "preempt":
+		block.Preempt = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "priority "):
+		block.Priority, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "track interface "):
+		itemTrackFields := strings.Split(itemTrim, " ")
+		if len(itemTrackFields) < 3 { // <interface> priority-cost <priority_cost>
+			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "track interface", itemTrim)
+		}
+		cost, err := tfdata.ConvAtoi64Value(itemTrackFields[2])
+		if err != nil {
+			return err
+		}
+		block.TrackInterface = append(block.TrackInterface,
+			interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface{
+				Interface:    types.StringValue(itemTrackFields[0]),
+				PriorityCost: cost,
+			},
+		)
+	case balt.CutPrefixInString(&itemTrim, "track route "):
+		itemTrackFields := strings.Split(itemTrim, " ")
+		if len(itemTrackFields) < 5 { // <route> routing-instance <routing_instance> priority-cost <priority_cost>
+			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "track route", itemTrim)
+		}
+		cost, err := tfdata.ConvAtoi64Value(itemTrackFields[4])
+		if err != nil {
+			return err
+		}
+		block.TrackRoute = append(block.TrackRoute,
+			interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute{
+				Route:           types.StringValue(itemTrackFields[0]),
+				RoutingInstance: types.StringValue(itemTrackFields[2]),
+				PriorityCost:    cost,
+			},
+		)
 	}
 
 	return nil
@@ -3204,6 +3368,8 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) read(itemTrim string)
 		block.Primary = types.BoolValue(true)
 	case itemTrim == "preferred":
 		block.Preferred = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "virtual-gateway-address "):
+		block.VirtualGatewayAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "vrrp-inet6-group "):
 		itemTrimFields := strings.Split(itemTrim, " ")
 		identifier, err := tfdata.ConvAtoi64Value(itemTrimFields[0])
@@ -3214,66 +3380,74 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) read(itemTrim string)
 		vrrpGroup := &block.VRRPGroup[len(block.VRRPGroup)-1]
 		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
-		switch {
-		case balt.CutPrefixInString(&itemTrim, "virtual-inet6-address "):
-			vrrpGroup.VirtualAddress = append(vrrpGroup.VirtualAddress, types.StringValue(itemTrim))
-		case balt.CutPrefixInString(&itemTrim, "virtual-link-local-address "):
-			vrrpGroup.VirutalLinkLocalAddress = types.StringValue(itemTrim)
-		case itemTrim == "accept-data":
-			vrrpGroup.AcceptData = types.BoolValue(true)
-		case balt.CutPrefixInString(&itemTrim, "inet6-advertise-interval "):
-			vrrpGroup.AdvertiseInterval, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
-		case balt.CutPrefixInString(&itemTrim, "advertisements-threshold "):
-			vrrpGroup.AdvertisementsThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
-		case itemTrim == "no-accept-data":
-			vrrpGroup.NoAcceptData = types.BoolValue(true)
-		case itemTrim == "no-preempt":
-			vrrpGroup.NoPreempt = types.BoolValue(true)
-		case itemTrim == "preempt":
-			vrrpGroup.Preempt = types.BoolValue(true)
-		case balt.CutPrefixInString(&itemTrim, "priority "):
-			vrrpGroup.Priority, err = tfdata.ConvAtoi64Value(itemTrim)
-			if err != nil {
-				return err
-			}
-		case balt.CutPrefixInString(&itemTrim, "track interface "):
-			itemTrackFields := strings.Split(itemTrim, " ")
-			if len(itemTrackFields) < 3 { // <interface> priority-cost <priority_cost>
-				return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "track interface", itemTrim)
-			}
-			cost, err := tfdata.ConvAtoi64Value(itemTrackFields[2])
-			if err != nil {
-				return err
-			}
-			vrrpGroup.TrackInterface = append(vrrpGroup.TrackInterface,
-				interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface{
-					Interface:    types.StringValue(itemTrackFields[0]),
-					PriorityCost: cost,
-				},
-			)
-		case balt.CutPrefixInString(&itemTrim, "track route "):
-			itemTrackFields := strings.Split(itemTrim, " ")
-			if len(itemTrackFields) < 5 { // <route> routing-instance <routing_instance> priority-cost <priority_cost>
-				return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "track route", itemTrim)
-			}
-			cost, err := tfdata.ConvAtoi64Value(itemTrackFields[4])
-			if err != nil {
-				return err
-			}
-			vrrpGroup.TrackRoute = append(vrrpGroup.TrackRoute,
-				interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute{
-					Route:           types.StringValue(itemTrackFields[0]),
-					RoutingInstance: types.StringValue(itemTrackFields[2]),
-					PriorityCost:    cost,
-				},
-			)
+		if err := vrrpGroup.read(itemTrim); err != nil {
+			return err
 		}
+	}
+
+	return nil
+}
+
+func (block *interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup) read(itemTrim string) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "virtual-inet6-address "):
+		block.VirtualAddress = append(block.VirtualAddress, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "virtual-link-local-address "):
+		block.VirutalLinkLocalAddress = types.StringValue(itemTrim)
+	case itemTrim == "accept-data":
+		block.AcceptData = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "inet6-advertise-interval "):
+		block.AdvertiseInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "advertisements-threshold "):
+		block.AdvertisementsThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case itemTrim == "no-accept-data":
+		block.NoAcceptData = types.BoolValue(true)
+	case itemTrim == "no-preempt":
+		block.NoPreempt = types.BoolValue(true)
+	case itemTrim == "preempt":
+		block.Preempt = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "priority "):
+		block.Priority, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "track interface "):
+		itemTrackFields := strings.Split(itemTrim, " ")
+		if len(itemTrackFields) < 3 { // <interface> priority-cost <priority_cost>
+			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "track interface", itemTrim)
+		}
+		cost, err := tfdata.ConvAtoi64Value(itemTrackFields[2])
+		if err != nil {
+			return err
+		}
+		block.TrackInterface = append(block.TrackInterface,
+			interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface{
+				Interface:    types.StringValue(itemTrackFields[0]),
+				PriorityCost: cost,
+			},
+		)
+	case balt.CutPrefixInString(&itemTrim, "track route "):
+		itemTrackFields := strings.Split(itemTrim, " ")
+		if len(itemTrackFields) < 5 { // <route> routing-instance <routing_instance> priority-cost <priority_cost>
+			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "track route", itemTrim)
+		}
+		cost, err := tfdata.ConvAtoi64Value(itemTrackFields[4])
+		if err != nil {
+			return err
+		}
+		block.TrackRoute = append(block.TrackRoute,
+			interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute{
+				Route:           types.StringValue(itemTrackFields[0]),
+				RoutingInstance: types.StringValue(itemTrackFields[2]),
+				PriorityCost:    cost,
+			},
+		)
 	}
 
 	return nil
@@ -3395,8 +3569,10 @@ func (rscData *interfaceLogicalData) delOpts(
 		delPrefix + "family inet",
 		delPrefix + "family inet6",
 		delPrefix + "tunnel",
-		delPrefix + "vlan-id",
 		delPrefix + "virtual-gateway-accept-data",
+		delPrefix + "virtual-gateway-v4-mac",
+		delPrefix + "virtual-gateway-v6-mac",
+		delPrefix + "vlan-id",
 	}
 
 	return junSess.ConfigSet(configSet)

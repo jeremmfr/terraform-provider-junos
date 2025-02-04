@@ -102,6 +102,12 @@ The following attributes are exported:
 - **tunnel** (Block)  
   Tunnel parameters.  
   See [below for nested schema](#tunnel-arguments).
+- **virtual_gateway_accept_data** (Boolean)  
+  Accept packets destined for virtual gateway address.
+- **virtual_gateway_v4_mac** (String)  
+  Virtual gateway IPV4 virtual MAC address.
+- **virtual_gateway_v6_mac** (String)  
+  Virtual gateway IPV6 virtual MAC address.
 - **vlan_id** (Number)  
   Virtual LAN identifier value for 802.1q VLAN tags.
 
@@ -140,6 +146,8 @@ The following attributes are exported:
   Preferred address on interface.
 - **primary** (Boolean)  
   Candidate for primary address in system.
+- **virtual_gateway_address** (String)  
+  Virtual gateway ip address.
 - **vrrp_group** (Block List)  
   List of vrrp group configurations.  
   See [below for nested schema](#vrrp_group-attributes-for-address-in-family_inet).
@@ -239,6 +247,8 @@ The following attributes are exported:
   Preferred address on interface.
 - **primary** (Boolean)  
   Candidate for primary address in system.
+- **virtual_gateway_address** (String)  
+  Virtual gateway ip address.
 - **vrrp_group** (Block List)  
   List of vrrp group configurations.  
   See [below for nested schema](#vrrp_group-attributes-for-address-in-family_inet6).
