@@ -125,6 +125,18 @@ func (dsc *interfaceLogicalDataSource) Schema(
 				Computed:    true,
 				Description: "Security zone where the interface is.",
 			},
+			"virtual_gateway_accept_data": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Accept packets destined for virtual gateway address.",
+			},
+			"virtual_gateway_v4_mac": schema.StringAttribute{
+				Computed:    true,
+				Description: "Virtual gateway IPV4 virtual MAC address.",
+			},
+			"virtual_gateway_v6_mac": schema.StringAttribute{
+				Computed:    true,
+				Description: "Virtual gateway IPV6 virtual MAC address.",
+			},
 			"vlan_id": schema.Int64Attribute{
 				Computed:    true,
 				Description: "Virtual LAN identifier value for 802.1q VLAN tags.",
@@ -139,9 +151,10 @@ func (dsc *interfaceLogicalDataSource) Schema(
 					"sampling_input":  types.BoolType,
 					"sampling_output": types.BoolType,
 					"address": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
-						"cidr_ip":   types.StringType,
-						"preferred": types.BoolType,
-						"primary":   types.BoolType,
+						"cidr_ip":                 types.StringType,
+						"preferred":               types.BoolType,
+						"primary":                 types.BoolType,
+						"virtual_gateway_address": types.StringType,
 						"vrrp_group": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 							"identifier":               types.Int64Type,
 							"virtual_address":          types.ListType{}.WithElementType(types.StringType),
@@ -203,9 +216,10 @@ func (dsc *interfaceLogicalDataSource) Schema(
 					"sampling_input":  types.BoolType,
 					"sampling_output": types.BoolType,
 					"address": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
-						"cidr_ip":   types.StringType,
-						"preferred": types.BoolType,
-						"primary":   types.BoolType,
+						"cidr_ip":                 types.StringType,
+						"preferred":               types.BoolType,
+						"primary":                 types.BoolType,
+						"virtual_gateway_address": types.StringType,
 						"vrrp_group": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 							"identifier":                 types.Int64Type,
 							"virtual_address":            types.ListType{}.WithElementType(types.StringType),
@@ -280,6 +294,9 @@ type interfaceLogicalDataSourceData struct {
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
 	SecurityZone             types.String                      `tfsdk:"security_zone"`
+	VirtualGatewayAcceptData types.Bool                        `tfsdk:"virtual_gateway_accept_data"`
+	VirtualGatewayV4Mac      types.String                      `tfsdk:"virtual_gateway_v4_mac"`
+	VirtualGatewayV6Mac      types.String                      `tfsdk:"virtual_gateway_v6_mac"`
 	VlanID                   types.Int64                       `tfsdk:"vlan_id"`
 	FamilyInet               *interfaceLogicalBlockFamilyInet  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6 `tfsdk:"family_inet6"`
@@ -427,5 +444,8 @@ func (dscData *interfaceLogicalDataSourceData) copyFromResourceData(rscData inte
 	dscData.SecurityInboundServices = rscData.SecurityInboundServices
 	dscData.SecurityZone = rscData.SecurityZone
 	dscData.Tunnel = rscData.Tunnel
+	dscData.VirtualGatewayAcceptData = rscData.VirtualGatewayAcceptData
+	dscData.VirtualGatewayV4Mac = rscData.VirtualGatewayV4Mac
+	dscData.VirtualGatewayV6Mac = rscData.VirtualGatewayV6Mac
 	dscData.VlanID = rscData.VlanID
 }
