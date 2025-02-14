@@ -1471,6 +1471,17 @@ func (rsc *interfaceLogical) ValidateConfig(
 				}
 
 				if !address.VRRPGroup.IsNull() && !address.VRRPGroup.IsUnknown() {
+					if !config.Name.IsNull() && !config.Name.IsUnknown() {
+						if strings.HasPrefix(config.Name.ValueString(), "st0.") {
+							resp.Diagnostics.AddAttributeError(
+								path.Root("family_inet").AtName("address").AtListIndex(i).AtName("vrrp_group"),
+								tfdiag.ConflictConfigErrSummary,
+								fmt.Sprintf("cannot set vrrp_group if interface name have 'st0.' prefix"+
+									" in address block %q in family_inet block", address.CidrIP.ValueString()),
+							)
+						}
+					}
+
 					var configVRRPGroup []interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroupConfig
 					asDiags := address.VRRPGroup.ElementsAs(ctx, &configVRRPGroup, false)
 					if asDiags.HasError() {
@@ -1626,6 +1637,17 @@ func (rsc *interfaceLogical) ValidateConfig(
 				}
 
 				if !address.VRRPGroup.IsNull() && !address.VRRPGroup.IsUnknown() {
+					if !config.Name.IsNull() && !config.Name.IsUnknown() {
+						if strings.HasPrefix(config.Name.ValueString(), "st0.") {
+							resp.Diagnostics.AddAttributeError(
+								path.Root("family_inet6").AtName("address").AtListIndex(i).AtName("vrrp_group"),
+								tfdiag.ConflictConfigErrSummary,
+								fmt.Sprintf("cannot set vrrp_group if interface name have 'st0.' prefix"+
+									" in address block %q in family_inet6 block", address.CidrIP.ValueString()),
+							)
+						}
+					}
+
 					var configVRRPGroup []interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroupConfig
 					asDiags := address.VRRPGroup.ElementsAs(ctx, &configVRRPGroup, false)
 					if asDiags.HasError() {
@@ -2619,11 +2641,6 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 
 	vrrpGroupID := make(map[int64]struct{})
 	for i, vrrpGroup := range block.VRRPGroup {
-		if strings.HasPrefix(setPrefix, "set interfaces st0.") {
-			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("*"),
-				errors.New("vrrp not available on st0 interface")
-		}
-
 		identifier := vrrpGroup.Identifier.ValueInt64()
 		if _, ok := vrrpGroupID[identifier]; ok {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("identifier"),
@@ -2754,11 +2771,6 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 
 	vrrpGroupID := make(map[int64]struct{})
 	for i, vrrpGroup := range block.VRRPGroup {
-		if strings.HasPrefix(setPrefix, "set interfaces st0.") {
-			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("*"),
-				errors.New("vrrp not available on st0 interface")
-		}
-
 		identifier := vrrpGroup.Identifier.ValueInt64()
 		if _, ok := vrrpGroupID[identifier]; ok {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("identifier"),
