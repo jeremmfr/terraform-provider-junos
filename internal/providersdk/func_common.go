@@ -95,7 +95,7 @@ func sortSetOfString(list []interface{}) []string {
 }
 
 func copyAndRemoveItemMapList(
-	identifier string, m map[string]interface{}, list []map[string]interface{},
+	identifier string, m map[string]interface{}, list []map[string]interface{}, //nolint:unparam
 ) []map[string]interface{} {
 	if m[identifier] == nil {
 		panic(fmt.Errorf("internal error: can't find identifier %s in map", identifier))
