@@ -652,6 +652,14 @@ func (rsc *security) Schema(
 							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
+					"routing_instance": schema.StringAttribute{
+						Optional:    true,
+						Description: "Routing instance for security-package download.",
+						Validators: []validator.String{
+							stringvalidator.LengthBetween(1, 63),
+							tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+						},
+					},
 					"source_address": schema.StringAttribute{
 						Optional:    true,
 						Description: "Source address to be used for sending download request.",
@@ -1452,6 +1460,7 @@ type securityBlockIdpSecurityPackage struct {
 	AutomaticStartTime        types.String `tfsdk:"automatic_start_time"`
 	InstallIgnoreVersionCheck types.Bool   `tfsdk:"install_ignore_version_check"`
 	ProxyProfile              types.String `tfsdk:"proxy_profile"`
+	RoutingInstance           types.String `tfsdk:"routing_instance"`
 	SourceAddress             types.String `tfsdk:"source_address"`
 	URL                       types.String `tfsdk:"url"`
 }
@@ -2486,6 +2495,9 @@ func (block *securityBlockIdpSecurityPackage) configSet() []string {
 	if v := block.ProxyProfile.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"proxy-profile \""+v+"\"")
 	}
+	if v := block.RoutingInstance.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"routing-instance "+v)
+	}
 	if v := block.SourceAddress.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"source-address "+v)
 	}
@@ -3214,6 +3226,7 @@ func (securityBlockIdpSecurityPackage) junosLines() []string {
 		"idp security-package automatic",
 		"idp security-package install",
 		"idp security-package proxy-profile",
+		"idp security-package routing-instance",
 		"idp security-package source-address",
 		"idp security-package url",
 	}
@@ -3236,6 +3249,8 @@ func (block *securityBlockIdpSecurityPackage) read(itemTrim string) (err error) 
 		block.InstallIgnoreVersionCheck = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "proxy-profile "):
 		block.ProxyProfile = types.StringValue(strings.Trim(itemTrim, "\""))
+	case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+		block.RoutingInstance = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "source-address "):
 		block.SourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "url "):

@@ -27,6 +27,9 @@ resource "junos_security" "testacc_security" {
       }
     }
   }
+  idp_security_package {
+    routing_instance = junos_routing_instance.testacc_security.name
+  }
   idp_sensor_configuration {
     log_suppression {
       include_destination_address = true
