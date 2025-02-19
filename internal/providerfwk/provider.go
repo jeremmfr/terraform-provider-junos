@@ -281,6 +281,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newRipGroupResource,
 		newRipNeighborResource,
 		newRoutingInstanceResource,
+		newRoutingOptionsResource,
 		newRstpResource,
 		newRstpInterfaceResource,
 		newSecurityResource,
