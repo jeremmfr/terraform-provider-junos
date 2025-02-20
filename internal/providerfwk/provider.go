@@ -261,6 +261,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newGroupDualSystemResource,
 		newIccpResource,
 		newIccpPeerResource,
+		newIgmpSnoopingVlanResource,
 		newInterfaceLogicalResource,
 		newInterfacePhysicalDisableResource,
 		newInterfacePhysicalResource,
