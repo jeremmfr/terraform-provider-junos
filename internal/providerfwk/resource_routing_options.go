@@ -129,6 +129,13 @@ func (rsc *routingOptions) Schema(
 					),
 				},
 			},
+			"ipv6_router_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "IPv6 router identifier.",
+				Validators: []validator.String{
+					tfvalidator.StringIPAddress().IPv6Only(),
+				},
+			},
 			"router_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "Router identifier.",
@@ -327,6 +334,7 @@ type routingOptionsData struct {
 	ForwardingTableExportConfigureSingly types.Bool                           `tfsdk:"forwarding_table_export_configure_singly"`
 	InstanceExport                       []types.String                       `tfsdk:"instance_export"`
 	InstanceImport                       []types.String                       `tfsdk:"instance_import"`
+	IPv6RouterID                         types.String                         `tfsdk:"ipv6_router_id"`
 	RouterID                             types.String                         `tfsdk:"router_id"`
 	AutonomousSystem                     *routingOptionsBlockAutonomousSystem `tfsdk:"autonomous_system"`
 	ForwardingTable                      *routingOptionsBlockForwardingTable  `tfsdk:"forwarding_table"`
@@ -340,6 +348,7 @@ type routingOptionsConfig struct {
 	ForwardingTableExportConfigureSingly types.Bool                                `tfsdk:"forwarding_table_export_configure_singly"`
 	InstanceExport                       types.List                                `tfsdk:"instance_export"`
 	InstanceImport                       types.List                                `tfsdk:"instance_import"`
+	IPv6RouterID                         types.String                              `tfsdk:"ipv6_router_id"`
 	RouterID                             types.String                              `tfsdk:"router_id"`
 	AutonomousSystem                     *routingOptionsBlockAutonomousSystem      `tfsdk:"autonomous_system"`
 	ForwardingTable                      *routingOptionsBlockForwardingTableConfig `tfsdk:"forwarding_table"`
@@ -674,6 +683,9 @@ func (rscData *routingOptionsData) set(
 	for _, v := range rscData.InstanceImport {
 		configSet = append(configSet, setPrefix+"instance-import \""+v.ValueString()+"\"")
 	}
+	if v := rscData.IPv6RouterID.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"ipv6-router-id "+v)
+	}
 	if v := rscData.RouterID.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"router-id "+v)
 	}
@@ -831,6 +843,8 @@ func (rscData *routingOptionsData) read(
 				rscData.InstanceExport = append(rscData.InstanceExport, types.StringValue(strings.Trim(itemTrim, "\"")))
 			case balt.CutPrefixInString(&itemTrim, "instance-import "):
 				rscData.InstanceImport = append(rscData.InstanceImport, types.StringValue(strings.Trim(itemTrim, "\"")))
+			case balt.CutPrefixInString(&itemTrim, "ipv6-router-id "):
+				rscData.IPv6RouterID = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "router-id "):
 				rscData.RouterID = types.StringValue(itemTrim)
 			}
@@ -889,6 +903,7 @@ func (rscData *routingOptionsData) delOpts(
 		"graceful-restart",
 		"instance-export",
 		"instance-import",
+		"ipv6-router-id",
 		"router-id",
 	}
 	if forwardingTableExportConfigureSingly {

@@ -83,6 +83,8 @@ The following arguments are supported:
   Export policy for instance RIBs.
 - **instance_import** (Optional, List of String)  
   Import policy for instance RIBs.
+- **ipv6_router_id** (Optional, String)  
+  IPv6 router identifier.
 - **router_id** (Optional, String)  
   Router identifier.
 

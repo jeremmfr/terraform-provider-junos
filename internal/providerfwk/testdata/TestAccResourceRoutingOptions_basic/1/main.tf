@@ -61,5 +61,6 @@ resource "junos_routing_options" "testacc_routing_options" {
   }
   instance_export = [junos_policyoptions_policy_statement.testacc_routing_options2.name]
   instance_import = [junos_policyoptions_policy_statement.testacc_routing_options3.name]
+  ipv6_router_id  = "2001:db8::4"
   router_id       = "192.0.2.4"
 }
