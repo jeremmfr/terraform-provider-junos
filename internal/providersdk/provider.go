@@ -186,8 +186,6 @@ func Provider() *schema.Provider {
 
 			"junos_rib_group": resourceRibGroup(),
 
-			"junos_routing_options": resourceRoutingOptions(),
-
 			"junos_security_utm_custom_url_category":                     resourceSecurityUtmCustomURLCategory(),
 			"junos_security_utm_custom_url_pattern":                      resourceSecurityUtmCustomURLPattern(),
 			"junos_security_utm_policy":                                  resourceSecurityUtmPolicy(),
