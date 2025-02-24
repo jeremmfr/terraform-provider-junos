@@ -1,6 +1,7 @@
 module github.com/jeremmfr/terraform-provider-junos
 
 go 1.22.0
+toolchain go1.23.6
 
 require (
 	github.com/google/go-cmp v0.6.0
@@ -15,7 +16,7 @@ require (
 	github.com/jeremmfr/go-utils v0.12.0
 	github.com/jeremmfr/junosdecode v1.1.1
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.34.0
 )
 
 require (
