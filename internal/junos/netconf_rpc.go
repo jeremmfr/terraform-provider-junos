@@ -44,12 +44,12 @@ type rpcGetSystemInformationReply struct {
 }
 
 type rpcSystemInformation struct {
-	HardwareModel string `xml:"hardware-model"`
-	OsName        string `xml:"os-name"`
-	OsVersion     string `xml:"os-version"`
-	SerialNumber  string `xml:"serial-number"`
-	HostName      string `xml:"host-name"`
-	ClusterNode   *bool  `xml:"cluster-node"`
+	HardwareModel string    `xml:"hardware-model"`
+	OSName        string    `xml:"os-name"`
+	OSVersion     string    `xml:"os-version"`
+	SerialNumber  string    `xml:"serial-number"`
+	HostName      string    `xml:"host-name"`
+	ClusterNode   *struct{} `xml:"cluster-node"`
 }
 
 func (i rpcSystemInformation) NotCompatibleMsg() string {

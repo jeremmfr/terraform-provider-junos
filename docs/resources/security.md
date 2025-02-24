@@ -308,6 +308,8 @@ The following arguments are supported:
   Skip version check when attack database gets installed.
 - **proxy_profile** (Optional, String)  
   Proxy profile of security package download.
+- **routing_instance** (Optional, String)  
+  Routing instance for security-package download.
 - **source_address** (Optional, String)  
   Source address to be used for sending download request.
 - **url** (Optional, String)  

@@ -40,7 +40,7 @@ The following arguments are supported:
 - **forwarding_table** (Optional, Block)  
   Declare `forwarding-table` configuration.
   - **chain_composite_max_label_count** (Optional, Number)  
-    Maximum labels inside chain composite for the platform. (1..8).
+    Maximum labels inside chain composite for the platform (1..8).
   - **chained_composite_next_hop_ingress** (Optional, Set of String)  
     Next-hop chaining mode -> Ingress LSP nexthop settings.
   - **chained_composite_next_hop_transit** (Optional, Set of String)  
@@ -72,17 +72,19 @@ The following arguments are supported:
   Disable management of `forwarding-table export` in this resource to be able to manage them directly
   from `junos_policyoptions_policy_statement` resources with `add_it_to_forwarding_table_export`
   argument.  
-  Conflict with `forwarding_table.0.export`.
+  Conflict with `forwarding_table.export`.
 - **graceful_restart** (Optional, Block)  
-  Declare `graceful-restart` configuration.
+  Graceful or hitless routing restart options.
   - **disable** (Optional, Boolean)  
     Disable graceful restart.
   - **restart_duration** (Optional, Number)  
     Maximum time for which router is in graceful restart (120..10000).
 - **instance_export** (Optional, List of String)  
-  Export policy for instance RIBs
+  Export policy for instance RIBs.
 - **instance_import** (Optional, List of String)  
-  Import policy for instance RIBs
+  Import policy for instance RIBs.
+- **ipv6_router_id** (Optional, String)  
+  IPv6 router identifier.
 - **router_id** (Optional, String)  
   Router identifier.
 

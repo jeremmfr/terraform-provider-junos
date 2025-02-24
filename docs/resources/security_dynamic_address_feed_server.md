@@ -38,7 +38,7 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Text description of feed-server.
 - **feed_name** (Optional, Block List)  
-  For each feed name.
+  For each feed name in feed-server.
   - **name** (Required, String)  
     Security dynamic address feed name in feed-server.
   - **path** (Required, String)  

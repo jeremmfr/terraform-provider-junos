@@ -177,8 +177,6 @@ func Provider() *schema.Provider {
 			"junos_chassis_cluster":    resourceChassisCluster(),
 			"junos_chassis_redundancy": resourceChassisRedundancy(),
 
-			"junos_igmp_snooping_vlan": resourceIgmpSnoopingVlan(),
-
 			"junos_layer2_control": resourceLayer2Control(),
 
 			"junos_lldp_interface":    resourceLldpInterface(),
@@ -187,11 +185,6 @@ func Provider() *schema.Provider {
 			"junos_null_commit_file": resourceNullCommitFile(),
 
 			"junos_rib_group": resourceRibGroup(),
-
-			"junos_routing_options": resourceRoutingOptions(),
-
-			"junos_security_dynamic_address_feed_server": resourceSecurityDynamicAddressFeedServer(),
-			"junos_security_dynamic_address_name":        resourceSecurityDynamicAddressName(),
 
 			"junos_security_utm_custom_url_category":                     resourceSecurityUtmCustomURLCategory(),
 			"junos_security_utm_custom_url_pattern":                      resourceSecurityUtmCustomURLPattern(),
@@ -209,12 +202,6 @@ func Provider() *schema.Provider {
 			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_services_user_identification_ad_access_domain":        resourceServicesUserIdentAdAccessDomain(),
 			"junos_services_user_identification_device_identity_profile": resourceServicesUserIdentDeviceIdentityProfile(),
-
-			"junos_system_ntp_server":                      resourceSystemNtpServer(),
-			"junos_system_services_dhcp_localserver_group": resourceSystemServicesDhcpLocalServerGroup(),
-		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"junos_system_information": dataSourceSystemInformation(),
 		},
 		ConfigureContextFunc: configureProvider,
 	}

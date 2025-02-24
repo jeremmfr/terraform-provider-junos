@@ -24,6 +24,14 @@ The following arguments are supported:
   Address of server.
 - **key** (Optional, Number)  
   Authentication key (1..65534).
+- **nts** (Optional, Block)  
+  Enable NTS protocol for this server.
+  - **remote_identity_distinguished_name_container** (Optional, String)  
+    Container string for distinguished name of server to remote identity of server for verification.
+  - **remote_identity_distinguished_name_wildcard** (Optional, String)  
+    Wildcard string for distinguished name of server to remote identity of server for verification.
+  - **remote_identity_hostname** (Optional, String)  
+    Fully-qualified domain name to remote identity of server for verification.
 - **prefer** (Optional, Boolean)  
   Prefer this peer_serv.
 - **routing_instance** (Optional, String)  

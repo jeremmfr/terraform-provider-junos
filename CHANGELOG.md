@@ -1,6 +1,60 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.12.0 (2025-02-24)
+
+ENHANCEMENTS:
+
+* **resource/junos_forwardingoptions_dhcprelay_servergroup**: `ip_address` argument is no longer ordered
+* **resource/junos_igmp_snooping_vlan**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+* **resource/junos_interface_logical**:
+  * add `virtual_gateway_accept_data`, `virtual_gateway_v4_mac` and `virtual_gateway_v6_mac` arguments
+  * add `virtual_gateway_address` argument in `address` block in `family_inet` and `family_inet6` blocks
+  * move config errors from defined `vrrp_group` block on `st0.` interface during Plan instead of during Apply
+* **data-source/junos_interface_logical**: add `virtual_gateway_accept_data`, `virtual_gateway_v4_mac`, `virtual_gateway_v6_mac` and `virtual_gateway_address` attributes like resource
+* **resource/junos_routing_options**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `ipv6_router_id` argument
+* **resource/junos_security**: add `routing_instance` argument in `idp_security_package` block (Fix [#754](https://github.com/jeremmfr/terraform-provider-junos/issues/754))
+* **resource/junos_system_ntp_server**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attribute doesn't accept value *false*  
+  optional string attribute doesn't accept *empty* value  
+  * add `nts` block argument
+* **resource/junos_security_dynamic_address_feed_server**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+* **resource/junos_security_dynamic_address_name**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `session_scan` argument
+* **resource/junos_system_services_dhcp_localserver_group**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **data-source/junos_system_information** data-source now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+
+BUG FIXES:
+
+* **resource/junos_forwardingoptions_dhcprelay**:
+  * fix missing detection of conflict between `dynamic_profile_aggregate_clients` and `dynamic_profile_use_primary` arguments in config validation
+  * fix missing detection of empty `overrides_v4` and `overrides_v6` block arguments in config validation
+* **resource/junos_forwardingoptions_dhcprelay_group**:
+  * fix missing detection of conflict between `dynamic_profile_aggregate_clients` and `dynamic_profile_use_primary` arguments in config validation
+  * fix missing detection of empty `overrides_v4` and `overrides_v6` block arguments in config validation
+
 ## v2.11.0 (2025-01-08)
 
 FEATURES:
