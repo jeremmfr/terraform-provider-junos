@@ -1,7 +1,7 @@
 package tfdata_test
 
 import (
-	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
@@ -45,11 +45,11 @@ func TestExtractBlock(t *testing.T) {
 		newValString2 types.String
 		newValInt1    types.Int64
 
-		expectValLength            int
-		validateNewVal1string      func(block1string) error
-		validateNewVal2string      func(block2string) error
-		validateNewVal1int         func(block1int) error
-		validateNewValEmbed1string func(blockEmbed1string) error
+		expectValLength         int
+		expectBlock1string      *block1string
+		expectBlock2string      *block2string
+		expectBlock1int         *block1int
+		expectBlockEmbed1string *blockEmbed1string
 	}
 
 	tests := map[string]testCase{
@@ -57,13 +57,8 @@ func TestExtractBlock(t *testing.T) {
 			val1string:      []block1string{},
 			newValString1:   types.StringValue("Third"),
 			expectValLength: 0,
-			validateNewVal1string: func(b block1string) error {
-				if b.Name.ValueString() != "Third" ||
-					!b.Value.IsNull() {
-					return fmt.Errorf("expected newBlock has empty data: got %#v", b)
-				}
-
-				return nil
+			expectBlock1string: &block1string{
+				Name: types.StringValue("Third"),
 			},
 		},
 		"1String - In List": {
@@ -81,13 +76,9 @@ func TestExtractBlock(t *testing.T) {
 			},
 			newValString1:   types.StringValue("Second"),
 			expectValLength: 2,
-			validateNewVal1string: func(b block1string) error {
-				if b.Name.ValueString() != "Second" ||
-					b.Value.ValueString() != "test2" {
-					return fmt.Errorf("expected newBlock has second block data: got %#v", b)
-				}
-
-				return nil
+			expectBlock1string: &block1string{
+				Name:  types.StringValue("Second"),
+				Value: types.StringValue("test2"),
 			},
 		},
 		"1String - Not In List": {
@@ -105,14 +96,8 @@ func TestExtractBlock(t *testing.T) {
 			},
 			newValString1:   types.StringValue("Fourth"),
 			expectValLength: 3,
-			validateNewVal1string: func(b block1string) error {
-				if !b.Name.Equal(types.StringValue("Fourth")) ||
-					!b.Value.IsNull() ||
-					!b.Value2.IsNull() {
-					return fmt.Errorf("expected newBlock has empty data: got %#v", b)
-				}
-
-				return nil
+			expectBlock1string: &block1string{
+				Name: types.StringValue("Fourth"),
 			},
 		},
 		"2String - In List": {
@@ -134,14 +119,10 @@ func TestExtractBlock(t *testing.T) {
 			newValString1:   types.StringValue("Second"),
 			newValString2:   types.StringValue("SecondBis"),
 			expectValLength: 2,
-			validateNewVal2string: func(b block2string) error {
-				if b.Name.ValueString() != "Second" ||
-					b.Name2.ValueString() != "SecondBis" ||
-					b.Value.ValueString() != "test2" {
-					return fmt.Errorf("expected newBlock has second block data: got %#v", b)
-				}
-
-				return nil
+			expectBlock2string: &block2string{
+				Name:  types.StringValue("Second"),
+				Name2: types.StringValue("SecondBis"),
+				Value: types.StringValue("test2"),
 			},
 		},
 		"2String - Not In List": {
@@ -163,14 +144,9 @@ func TestExtractBlock(t *testing.T) {
 			newValString1:   types.StringValue("Fourth"),
 			newValString2:   types.StringValue("SecondBis"),
 			expectValLength: 3,
-			validateNewVal2string: func(b block2string) error {
-				if !b.Name.Equal(types.StringValue("Fourth")) ||
-					!b.Name2.Equal(types.StringValue("SecondBis")) ||
-					!b.Value.IsNull() {
-					return fmt.Errorf("expected newBlock has empty data: got %#v", b)
-				}
-
-				return nil
+			expectBlock2string: &block2string{
+				Name:  types.StringValue("Fourth"),
+				Name2: types.StringValue("SecondBis"),
 			},
 		},
 		"2String - Not In List Bis": {
@@ -192,14 +168,9 @@ func TestExtractBlock(t *testing.T) {
 			newValString1:   types.StringValue("Second"),
 			newValString2:   types.StringValue("Third"),
 			expectValLength: 3,
-			validateNewVal2string: func(b block2string) error {
-				if !b.Name.Equal(types.StringValue("Second")) ||
-					!b.Name2.Equal(types.StringValue("Third")) ||
-					!b.Value.IsNull() {
-					return fmt.Errorf("expected newBlock has empty data: got %#v", b)
-				}
-
-				return nil
+			expectBlock2string: &block2string{
+				Name:  types.StringValue("Second"),
+				Name2: types.StringValue("Third"),
 			},
 		},
 		"1Int - In List": {
@@ -217,13 +188,9 @@ func TestExtractBlock(t *testing.T) {
 			},
 			newValInt1:      types.Int64Value(2),
 			expectValLength: 2,
-			validateNewVal1int: func(b block1int) error {
-				if b.Name.ValueInt64() != 2 ||
-					b.Value.ValueString() != "test2" {
-					return fmt.Errorf("expected newBlock has second block data: got %#v", b)
-				}
-
-				return nil
+			expectBlock1int: &block1int{
+				Name:  types.Int64Value(2),
+				Value: types.StringValue("test2"),
 			},
 		},
 		"1Int - Not In List": {
@@ -241,14 +208,8 @@ func TestExtractBlock(t *testing.T) {
 			},
 			newValInt1:      types.Int64Value(4),
 			expectValLength: 3,
-			validateNewVal1int: func(b block1int) error {
-				if !b.Name.Equal(types.Int64Value(4)) ||
-					!b.Name2.IsNull() ||
-					!b.Value.IsNull() {
-					return fmt.Errorf("expected newBlock has empty data: got %#v", b)
-				}
-
-				return nil
+			expectBlock1int: &block1int{
+				Name: types.Int64Value(4),
 			},
 		},
 		"Embed1String - In List": {
@@ -275,14 +236,12 @@ func TestExtractBlock(t *testing.T) {
 			},
 			newValString1:   types.StringValue("Second"),
 			expectValLength: 2,
-			validateNewValEmbed1string: func(b blockEmbed1string) error {
-				if b.Name.ValueString() != "Second" ||
-					b.Value.ValueString() != "test2" ||
-					b.Value3.ValueString() != "test2.1" {
-					return fmt.Errorf("expected newBlock has second block data: got %#v", b)
-				}
-
-				return nil
+			expectBlockEmbed1string: &blockEmbed1string{
+				block1string: block1string{
+					Name:  types.StringValue("Second"),
+					Value: types.StringValue("test2"),
+				},
+				Value3: types.StringValue("test2.1"),
 			},
 		},
 		"Embed1String - Not In List": {
@@ -306,15 +265,10 @@ func TestExtractBlock(t *testing.T) {
 			},
 			newValString1:   types.StringValue("Fourth"),
 			expectValLength: 3,
-			validateNewValEmbed1string: func(b blockEmbed1string) error {
-				if !b.Name.Equal(types.StringValue("Fourth")) ||
-					!b.Value.IsNull() ||
-					!b.Value2.IsNull() ||
-					!b.Value3.IsNull() {
-					return fmt.Errorf("expected newBlock has empty data: got %#v", b)
-				}
-
-				return nil
+			expectBlockEmbed1string: &blockEmbed1string{
+				block1string: block1string{
+					Name: types.StringValue("Fourth"),
+				},
 			},
 		},
 	}
@@ -324,7 +278,7 @@ func TestExtractBlock(t *testing.T) {
 			t.Parallel()
 
 			switch {
-			case test.val1string != nil:
+			case test.expectBlock1string != nil:
 				var block block1string
 				blocks := test.val1string
 				blocks, block = tfdata.ExtractBlock(blocks,
@@ -334,10 +288,10 @@ func TestExtractBlock(t *testing.T) {
 				if v := len(blocks); v != test.expectValLength {
 					t.Errorf("the expected block length is %d, got %d", test.expectValLength, v)
 				}
-				if err := test.validateNewVal1string(block); err != nil {
-					t.Error(err)
+				if !reflect.DeepEqual(*test.expectBlock1string, block) {
+					t.Errorf("unexpected block: want %#v, got %#v", *test.expectBlock1string, block)
 				}
-			case test.val2string != nil:
+			case test.expectBlock2string != nil:
 				var block block2string
 				blocks := test.val2string
 				blocks, block = tfdata.ExtractBlock(blocks,
@@ -348,10 +302,10 @@ func TestExtractBlock(t *testing.T) {
 				if v := len(blocks); v != test.expectValLength {
 					t.Errorf("the expected block length is %d, got %d", test.expectValLength, v)
 				}
-				if err := test.validateNewVal2string(block); err != nil {
-					t.Error(err)
+				if !reflect.DeepEqual(*test.expectBlock2string, block) {
+					t.Errorf("unexpected block: want %#v, got %#v", *test.expectBlock2string, block)
 				}
-			case test.val1int != nil:
+			case test.expectBlock1int != nil:
 				var block block1int
 				blocks := test.val1int
 				blocks, block = tfdata.ExtractBlock(blocks,
@@ -361,10 +315,10 @@ func TestExtractBlock(t *testing.T) {
 				if v := len(blocks); v != test.expectValLength {
 					t.Errorf("the expected block length is %d, got %d", test.expectValLength, v)
 				}
-				if err := test.validateNewVal1int(block); err != nil {
-					t.Error(err)
+				if !reflect.DeepEqual(*test.expectBlock1int, block) {
+					t.Errorf("unexpected block: want %#v, got %#v", *test.expectBlock1int, block)
 				}
-			case test.valEmbed1string != nil:
+			case test.expectBlockEmbed1string != nil:
 				var block blockEmbed1string
 				blocks := test.valEmbed1string
 				blocks, block = tfdata.ExtractBlock(blocks,
@@ -374,8 +328,8 @@ func TestExtractBlock(t *testing.T) {
 				if v := len(blocks); v != test.expectValLength {
 					t.Errorf("the expected block length is %d, got %d", test.expectValLength, v)
 				}
-				if err := test.validateNewValEmbed1string(block); err != nil {
-					t.Error(err)
+				if !reflect.DeepEqual(*test.expectBlockEmbed1string, block) {
+					t.Errorf("unexpected block: want %#v, got %#v", *test.expectBlockEmbed1string, block)
 				}
 			}
 		})
@@ -420,10 +374,10 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 		newValInt1    types.Int64
 
 		expectValLength               int
-		validateLatestVal1string      func(block1string) error
-		validateLatestVal2string      func(block2string) error
-		validateLatestVal1int         func(block1int) error
-		validateLatestValEmbed1string func(blockEmbed1string) error
+		expectLatestBlock1string      *block1string
+		expectLatestBlock2string      *block2string
+		expectLatestBlock1int         *block1int
+		expectLatestBlockEmbed1string *blockEmbed1string
 	}
 
 	tests := map[string]testCase{
@@ -431,13 +385,8 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			val1string:      []block1string{},
 			newValString1:   types.StringValue("Third"),
 			expectValLength: 1,
-			validateLatestVal1string: func(b block1string) error {
-				if b.Name.ValueString() != "Third" ||
-					!b.Value.IsNull() {
-					return fmt.Errorf("expected lastest block has empty data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlock1string: &block1string{
+				Name: types.StringValue("Third"),
 			},
 		},
 		"1String - In List": {
@@ -455,13 +404,9 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			},
 			newValString1:   types.StringValue("Third"),
 			expectValLength: 3,
-			validateLatestVal1string: func(b block1string) error {
-				if b.Name.ValueString() != "Third" ||
-					b.Value.ValueString() != "test3" {
-					return fmt.Errorf("expected lastest block has third block data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlock1string: &block1string{
+				Name:  types.StringValue("Third"),
+				Value: types.StringValue("test3"),
 			},
 		},
 		"1String - Not In List": {
@@ -479,14 +424,8 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			},
 			newValString1:   types.StringValue("Fourth"),
 			expectValLength: 4,
-			validateLatestVal1string: func(b block1string) error {
-				if !b.Name.Equal(types.StringValue("Fourth")) ||
-					!b.Value.IsNull() ||
-					!b.Value2.IsNull() {
-					return fmt.Errorf("expected lastest block has empty data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlock1string: &block1string{
+				Name: types.StringValue("Fourth"),
 			},
 		},
 		"2String - In List": {
@@ -508,14 +447,10 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			newValString1:   types.StringValue("Third"),
 			newValString2:   types.StringValue("ThirdBis"),
 			expectValLength: 3,
-			validateLatestVal2string: func(b block2string) error {
-				if b.Name.ValueString() != "Third" ||
-					b.Name2.ValueString() != "ThirdBis" ||
-					b.Value.ValueString() != "test3" {
-					return fmt.Errorf("expected lastest block has third block data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlock2string: &block2string{
+				Name:  types.StringValue("Third"),
+				Name2: types.StringValue("ThirdBis"),
+				Value: types.StringValue("test3"),
 			},
 		},
 		"2String - Not In List": {
@@ -537,14 +472,9 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			newValString1:   types.StringValue("Fourth"),
 			newValString2:   types.StringValue("ThirdBis"),
 			expectValLength: 4,
-			validateLatestVal2string: func(b block2string) error {
-				if !b.Name.Equal(types.StringValue("Fourth")) ||
-					!b.Name2.Equal(types.StringValue("ThirdBis")) ||
-					!b.Value.IsNull() {
-					return fmt.Errorf("expected lastest block has empty data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlock2string: &block2string{
+				Name:  types.StringValue("Fourth"),
+				Name2: types.StringValue("ThirdBis"),
 			},
 		},
 		"2String - Not In List Bis": {
@@ -566,14 +496,9 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			newValString1:   types.StringValue("Third"),
 			newValString2:   types.StringValue("Third"),
 			expectValLength: 4,
-			validateLatestVal2string: func(b block2string) error {
-				if !b.Name.Equal(types.StringValue("Third")) ||
-					!b.Name2.Equal(types.StringValue("Third")) ||
-					!b.Value.IsNull() {
-					return fmt.Errorf("expected lastest block has empty data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlock2string: &block2string{
+				Name:  types.StringValue("Third"),
+				Name2: types.StringValue("Third"),
 			},
 		},
 		"1Int - In List": {
@@ -591,13 +516,9 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			},
 			newValInt1:      types.Int64Value(3),
 			expectValLength: 3,
-			validateLatestVal1int: func(b block1int) error {
-				if b.Name.ValueInt64() != 3 ||
-					b.Value.ValueString() != "test3" {
-					return fmt.Errorf("expected lastest block has third block data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlock1int: &block1int{
+				Name:  types.Int64Value(3),
+				Value: types.StringValue("test3"),
 			},
 		},
 		"1Int - Not In List": {
@@ -615,14 +536,8 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			},
 			newValInt1:      types.Int64Value(4),
 			expectValLength: 4,
-			validateLatestVal1int: func(b block1int) error {
-				if !b.Name.Equal(types.Int64Value(4)) ||
-					!b.Name2.IsNull() ||
-					!b.Value.IsNull() {
-					return fmt.Errorf("expected lastest block has empty data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlock1int: &block1int{
+				Name: types.Int64Value(4),
 			},
 		},
 		"Embed1String - In List": {
@@ -649,14 +564,12 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			},
 			newValString1:   types.StringValue("Third"),
 			expectValLength: 3,
-			validateLatestValEmbed1string: func(b blockEmbed1string) error {
-				if b.Name.ValueString() != "Third" ||
-					b.Value.ValueString() != "test3" ||
-					b.Value3.ValueString() != "test3.1" {
-					return fmt.Errorf("expected lastest block has third block data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlockEmbed1string: &blockEmbed1string{
+				block1string: block1string{
+					Name:  types.StringValue("Third"),
+					Value: types.StringValue("test3"),
+				},
+				Value3: types.StringValue("test3.1"),
 			},
 		},
 		"Embed1String - Not In List": {
@@ -680,15 +593,10 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			},
 			newValString1:   types.StringValue("Fourth"),
 			expectValLength: 4,
-			validateLatestValEmbed1string: func(b blockEmbed1string) error {
-				if !b.Name.Equal(types.StringValue("Fourth")) ||
-					!b.Value.IsNull() ||
-					!b.Value2.IsNull() ||
-					!b.Value3.IsNull() {
-					return fmt.Errorf("expected lastest block has empty data: got %#v", b)
-				}
-
-				return nil
+			expectLatestBlockEmbed1string: &blockEmbed1string{
+				block1string: block1string{
+					Name: types.StringValue("Fourth"),
+				},
 			},
 		},
 	}
@@ -698,7 +606,7 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 			t.Parallel()
 
 			switch {
-			case test.val1string != nil:
+			case test.expectLatestBlock1string != nil:
 				blocks := test.val1string
 				blocks = tfdata.AppendPotentialNewBlock(blocks,
 					test.newValString1,
@@ -706,11 +614,10 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 
 				if v := len(blocks); v != test.expectValLength {
 					t.Errorf("the expected block length is %d, got %d", test.expectValLength, v)
+				} else if !reflect.DeepEqual(*test.expectLatestBlock1string, blocks[len(blocks)-1]) {
+					t.Errorf("unexpected latest block: want %#v, got %#v", *test.expectLatestBlock1string, blocks[len(blocks)-1])
 				}
-				if err := test.validateLatestVal1string(blocks[len(blocks)-1]); err != nil {
-					t.Error(err)
-				}
-			case test.val2string != nil:
+			case test.expectLatestBlock2string != nil:
 				blocks := test.val2string
 				blocks = tfdata.AppendPotentialNewBlock(blocks,
 					test.newValString1,
@@ -719,11 +626,10 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 
 				if v := len(blocks); v != test.expectValLength {
 					t.Errorf("the expected block length is %d, got %d", test.expectValLength, v)
+				} else if !reflect.DeepEqual(*test.expectLatestBlock2string, blocks[len(blocks)-1]) {
+					t.Errorf("unexpected latest block: want %#v, got %#v", *test.expectLatestBlock2string, blocks[len(blocks)-1])
 				}
-				if err := test.validateLatestVal2string(blocks[len(blocks)-1]); err != nil {
-					t.Error(err)
-				}
-			case test.val1int != nil:
+			case test.expectLatestBlock1int != nil:
 				blocks := test.val1int
 				blocks = tfdata.AppendPotentialNewBlock(blocks,
 					test.newValInt1,
@@ -731,11 +637,10 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 
 				if v := len(blocks); v != test.expectValLength {
 					t.Errorf("the expected block length is %d, got %d", test.expectValLength, v)
+				} else if !reflect.DeepEqual(*test.expectLatestBlock1int, blocks[len(blocks)-1]) {
+					t.Errorf("unexpected latest block: want %#v, got %#v", *test.expectLatestBlock1int, blocks[len(blocks)-1])
 				}
-				if err := test.validateLatestVal1int(blocks[len(blocks)-1]); err != nil {
-					t.Error(err)
-				}
-			case test.valEmbed1string != nil:
+			case test.expectLatestBlockEmbed1string != nil:
 				blocks := test.valEmbed1string
 				blocks = tfdata.AppendPotentialNewBlock(blocks,
 					test.newValString1,
@@ -743,9 +648,8 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 
 				if v := len(blocks); v != test.expectValLength {
 					t.Errorf("the expected block length is %d, got %d", test.expectValLength, v)
-				}
-				if err := test.validateLatestValEmbed1string(blocks[len(blocks)-1]); err != nil {
-					t.Error(err)
+				} else if !reflect.DeepEqual(*test.expectLatestBlockEmbed1string, blocks[len(blocks)-1]) {
+					t.Errorf("unexpected latest block: want %#v, got %#v", *test.expectLatestBlockEmbed1string, blocks[len(blocks)-1])
 				}
 			}
 		})
