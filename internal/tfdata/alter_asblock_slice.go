@@ -34,10 +34,7 @@ func ExtractBlock[B any](
 ) {
 	// read blocks to search if one block match with arguments
 loopBlocks:
-	// FIX ME with go 1.23.O in go.mod
-	// for iBlock, block := range slices.Backward(blocks) {
-	for iBlock := len(blocks) - 1; iBlock >= 0; iBlock-- {
-		block := blocks[iBlock]
+	for iBlock, block := range slices.Backward(blocks) {
 		blockValue := reflect.ValueOf(block)
 		if !blockValue.IsValid() {
 			continue

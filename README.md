@@ -30,7 +30,7 @@ for provider and resources documentation.
 
 ### In addition to develop
 
-- [Go](https://golang.org/doc/install) `v1.22` or `v1.23`
+- [Go](https://golang.org/doc/install) `v1.23` or `v1.24`
 
 ## Automatic install
 
