@@ -177,8 +177,6 @@ func Provider() *schema.Provider {
 			"junos_chassis_cluster":    resourceChassisCluster(),
 			"junos_chassis_redundancy": resourceChassisRedundancy(),
 
-			"junos_layer2_control": resourceLayer2Control(),
-
 			"junos_lldp_interface":    resourceLldpInterface(),
 			"junos_lldpmed_interface": resourceLldpMedInterface(),
 
