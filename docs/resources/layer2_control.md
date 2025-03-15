@@ -44,7 +44,7 @@ The following arguments are supported:
 - **disable_timeout** (Optional, Number)  
   Disable timeout for BPDU Protect (10..3600 seconds).
 - **interface** (Optional, Block Set)  
-  For each interface, to block BPDU on
+  For each interface, to block BPDU on.
   - **name** (Required, String)  
     Name of interface.
   - **disable** (Optional, Boolean)  
