@@ -2774,7 +2774,7 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 		identifier := vrrpGroup.Identifier.ValueInt64()
 		if _, ok := vrrpGroupID[identifier]; ok {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("identifier"),
-				fmt.Errorf("multiple blocks vrrp_group with the same identifier %d"+
+				fmt.Errorf("multiple vrrp_group blocks with the same identifier %d"+
 					" in address block %q in family_inet6 block", identifier, block.CidrIP.ValueString())
 		}
 		vrrpGroupID[identifier] = struct{}{}
