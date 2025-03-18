@@ -664,8 +664,7 @@ func (rsc *groupDualSystem) ImportState(
 		&data,
 		req,
 		resp,
-		defaultResourceImportDontFindMessage(rsc, req.ID)+
-			" (id must be <name>)",
+		defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "name"),
 	)
 }
 
