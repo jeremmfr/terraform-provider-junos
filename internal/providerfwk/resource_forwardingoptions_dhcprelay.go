@@ -1299,7 +1299,7 @@ func (rsc *forwardingoptionsDhcprelay) ValidateConfig( //nolint:gocognit,gocyclo
 				resp.Diagnostics.AddAttributeError(
 					path.Root("server_match_duid"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple blocks server_match_duid with the same compare %q, value_type %q, value %q",
+					fmt.Sprintf("multiple server_match_duid blocks with the same compare %q, value_type %q, value %q",
 						block.Compare.ValueString(), block.ValueType.ValueString(), block.Value.ValueString()),
 				)
 			}
@@ -1877,7 +1877,7 @@ func (rscData *forwardingoptionsDhcprelayData) set(
 		if _, ok := serverMatchDuidBlock[blockString]; ok {
 			return path.Root("server_match_duid"),
 
-				fmt.Errorf("multiple blocks server_match_duid with the same compare %q, value_type %q, value %q",
+				fmt.Errorf("multiple server_match_duid blocks with the same compare %q, value_type %q, value %q",
 					block.Compare.ValueString(), block.ValueType.ValueString(), block.Value.ValueString())
 		}
 		serverMatchDuidBlock[blockString] = struct{}{}
