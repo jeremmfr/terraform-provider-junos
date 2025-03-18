@@ -177,8 +177,6 @@ func Provider() *schema.Provider {
 			"junos_chassis_cluster":    resourceChassisCluster(),
 			"junos_chassis_redundancy": resourceChassisRedundancy(),
 
-			"junos_lldpmed_interface": resourceLldpMedInterface(),
-
 			"junos_null_commit_file": resourceNullCommitFile(),
 
 			"junos_rib_group": resourceRibGroup(),
