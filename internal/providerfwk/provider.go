@@ -267,6 +267,8 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newInterfacePhysicalResource,
 		newInterfaceSt0UnitResource,
 		newLayer2ControlResource,
+		newLldpInterfaceResource,
+		newLldpMedInterfaceResource,
 		newMstpResource,
 		newMstpInterfaceResource,
 		newMstpMstiResource,
