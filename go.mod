@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.26.0
 	github.com/hashicorp/terraform-plugin-mux v0.18.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.1
-	github.com/hashicorp/terraform-plugin-testing v1.11.0
+	github.com/hashicorp/terraform-plugin-testing v1.12.0
 	github.com/jeremmfr/go-netconf v0.6.0
 	github.com/jeremmfr/go-utils v0.12.0
 	github.com/jeremmfr/junosdecode v1.1.1
@@ -58,7 +58,7 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty v1.16.2 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
