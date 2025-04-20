@@ -294,7 +294,7 @@ func checkServicesUserIdentDeviceIdentityProfileExists(profile string, junSess *
 func setServicesUserIdentDeviceIdentityProfile(
 	d *schema.ResourceData, junSess *junos.Session,
 ) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set services user-identification device-information end-user-profile profile-name " +
 		d.Get("name").(string) + " "

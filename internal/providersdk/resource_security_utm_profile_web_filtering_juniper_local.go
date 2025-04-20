@@ -303,7 +303,7 @@ func checkUtmProfileWebFLocalExists(profile string, junSess *junos.Session) (boo
 }
 
 func setUtmProfileWebFLocal(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set security utm feature-profile web-filtering juniper-local " +
 		"profile \"" + d.Get("name").(string) + "\" "

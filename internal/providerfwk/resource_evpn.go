@@ -599,7 +599,7 @@ func (rscData *evpnData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	setSwitchRIPrefix := junos.SetLS
 	switch routingInstance := rscData.RoutingInstance.ValueString(); routingInstance {

@@ -1192,7 +1192,7 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "
@@ -1267,7 +1267,7 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 func (block *forwardingoptionsSamplingInstanceBlockInput) configSet(
 	setPrefix string,
 ) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	if !block.MaxPacketsPerSecond.IsNull() {
 		configSet = append(configSet, setPrefix+"max-packets-per-second "+
@@ -1296,7 +1296,7 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutput) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "family inet output "
 
 	if !block.AggregateExportInterval.IsNull() {
@@ -1415,7 +1415,7 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInet6Output) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "family inet6 output "
 
 	if !block.AggregateExportInterval.IsNull() {
@@ -1481,7 +1481,7 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "family mpls output "
 
 	if !block.AggregateExportInterval.IsNull() {
@@ -1542,7 +1542,7 @@ func (block *forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer) config
 ) (
 	[]string, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "flow-server " + block.Hostname.ValueString() + " "
 
 	configSet = append(configSet, setPrefix+"port "+
@@ -1602,7 +1602,7 @@ func (block *forwardingoptionsSamplingInstanceBlockOutputBlockFlowServer) config
 }
 
 func (block *forwardingoptionsSamplingInstanceBlockOutputBlockInterface) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "interface " + block.Name.ValueString() + " "
 
 	configSet = append(configSet, setPrefix)

@@ -350,7 +350,7 @@ func checkUtmPolicysExists(policy string, junSess *junos.Session) (bool, error) 
 }
 
 func setUtmPolicy(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set security utm utm-policy \"" + d.Get("name").(string) + "\" "
 	if d.Get("anti_spam_smtp_profile").(string) != "" {

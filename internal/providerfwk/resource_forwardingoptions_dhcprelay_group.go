@@ -1613,7 +1613,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) set(
 			errors.New("at least one of arguments need to be set (in addition to `name`, `routing_instance` and `version`)")
 	}
 
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "

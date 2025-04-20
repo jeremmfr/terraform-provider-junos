@@ -806,7 +806,7 @@ func (rscData *securityPolicyData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security policies" +
 		" from-zone " + rscData.FromZone.ValueString() +
 		" to-zone " + rscData.ToZone.ValueString() +
@@ -904,7 +904,7 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) configSet(
 ) (
 	[]string, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + "then permit application-services "
 
 	if v := block.AdvancedAntiMalwarePolicy.ValueString(); v != "" {
@@ -1092,7 +1092,7 @@ func readSecurityPolicyTunnelPairPolicyLines(
 ) (
 	[]string, error,
 ) {
-	listLines := make([]string, 0)
+	listLines := make([]string, 0, 100)
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
 		"security policies from-zone " + fromZone + " to-zone " + toZone + junos.PipeDisplaySet)
 	if err != nil {

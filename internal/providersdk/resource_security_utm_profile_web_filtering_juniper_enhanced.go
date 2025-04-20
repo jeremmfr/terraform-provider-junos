@@ -410,7 +410,7 @@ func checkUtmProfileWebFEnhancedExists(profile string, junSess *junos.Session) (
 }
 
 func setUtmProfileWebFEnhanced(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set security utm feature-profile web-filtering juniper-enhanced " +
 		"profile \"" + d.Get("name").(string) + "\" "

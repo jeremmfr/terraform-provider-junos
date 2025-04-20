@@ -360,7 +360,7 @@ func (rscData *policyoptionsASPathGroupData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set policy-options as-path-group \"" + rscData.Name.ValueString() + "\" "
 
 	asPathName := make(map[string]struct{})

@@ -2378,7 +2378,7 @@ func checkInterfaceLogicalNCEmpty(
 	if err != nil {
 		return false, false, false, err
 	}
-	showConfigLines := make([]string, 0)
+	showConfigLines := make([]string, 0, 100)
 	// remove unused lines
 	for _, item := range strings.Split(showConfig, "\n") {
 		// exclude ethernet-switching (parameters in junos_interface_physical)
@@ -2670,7 +2670,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup) configSe
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "vrrp-group " + utils.ConvI64toa(block.Identifier.ValueInt64()) + " "
 
 	for _, v := range block.VirtualAddress {

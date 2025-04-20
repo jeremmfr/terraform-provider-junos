@@ -296,7 +296,7 @@ func checkRibGroupExists(group string, junSess *junos.Session) (bool, error) {
 }
 
 func setRibGroup(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set routing-options rib-groups " + d.Get("name").(string) + " "
 	for _, v := range d.Get("import_policy").([]interface{}) {

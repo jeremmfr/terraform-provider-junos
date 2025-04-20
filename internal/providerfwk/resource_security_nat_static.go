@@ -770,7 +770,7 @@ func (rscData *securityNatStaticData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security nat static rule-set " + rscData.Name.ValueString() + " "
 
 	regexpSourcePort := regexp.MustCompile(`^\d+( to \d+)?$`)

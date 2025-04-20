@@ -279,7 +279,7 @@ func (block *forwardingoptionsDhcprelayBlockOverridesV4) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "overrides "
 
 	if block.AllowNoEndOption.ValueBool() {
@@ -546,7 +546,7 @@ func (block *forwardingoptionsDhcprelayBlockOverridesV6) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "overrides "
 
 	if block.AllowSnoopedClients.ValueBool() {
@@ -712,7 +712,7 @@ func (block *forwardingoptionsDhcprelayBlockRelayAgentID) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	if block.IncludeIrbAndL2.ValueBool() {
 		configSet = append(configSet, setPrefix+"include-irb-and-l2")
@@ -1014,7 +1014,7 @@ func (block *forwardingoptionsDhcprelayBlockRelayOption) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "relay-option "
 
 	for _, v := range block.OptionOrder {

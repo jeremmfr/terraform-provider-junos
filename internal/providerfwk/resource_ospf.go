@@ -806,7 +806,7 @@ func (rscData *ospfData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	routingInstance := rscData.RoutingInstance.ValueString()
 	if routingInstance != "" && routingInstance != junos.DefaultW {
@@ -946,7 +946,7 @@ func (block *ospfBlockGracefulRestart) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "graceful-restart "
 
 	if block.Disable.ValueBool() {
@@ -1003,7 +1003,7 @@ func (block *ospfBlockOverload) configSet(setPrefix string) []string {
 }
 
 func (block *ospfBlockSpfOptions) configSet(setPrefix string) []string {
-	configSet := make([]string, 0, 1)
+	configSet := make([]string, 0, 100)
 	setPrefix += "spf-options "
 
 	if !block.Delay.IsNull() {

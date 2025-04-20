@@ -2104,7 +2104,7 @@ func (rscData *securityData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security "
 
 	if rscData.Alg != nil {
@@ -2227,7 +2227,7 @@ func (rscData *securityData) set(
 }
 
 func (block *securityBlockAlg) configSet() []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security alg "
 
 	if block.DNSDisable.ValueBool() {
@@ -2281,7 +2281,7 @@ func (block *securityBlockFlow) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security flow "
 
 	if block.AdvancedOptions != nil {
@@ -2459,7 +2459,7 @@ func (block *securityBlockFlow) configSet() (
 }
 
 func (block *securityBlockForwardingOptions) configSet() []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security forwarding-options "
 
 	if v := block.Inet6Mode.ValueString(); v != "" {
@@ -2476,7 +2476,7 @@ func (block *securityBlockForwardingOptions) configSet() []string {
 }
 
 func (block *securityBlockIdpSecurityPackage) configSet() []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security idp security-package "
 
 	if block.AutomaticEnable.ValueBool() {
@@ -2509,7 +2509,7 @@ func (block *securityBlockIdpSecurityPackage) configSet() []string {
 }
 
 func (block *securityBlockIdpSensorConfiguration) configSet() []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security idp sensor-configuration "
 
 	if !block.LogCacheSize.IsNull() {
@@ -2576,7 +2576,7 @@ func (block *securityBlockIkeTraceoptions) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security ike traceoptions "
 
 	if block.File != nil {
@@ -2631,7 +2631,7 @@ func (block *securityBlockLog) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security log "
 
 	if block.Disable.ValueBool() {
@@ -2710,7 +2710,7 @@ func (block *securityBlockLog) configSet() (
 }
 
 func (block *securityBlockNatSource) configSet() []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security nat source "
 
 	if block.AddressPersistent.ValueBool() {
@@ -2762,7 +2762,7 @@ func (block *securityBlockNatSource) configSet() []string {
 }
 
 func (block *securityBlockUserIdentificationAuthSource) configSet() []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security user-identification authentication-source "
 
 	if !block.ADAuthPriority.IsNull() {
@@ -2790,7 +2790,7 @@ func (block *securityBlockUserIdentificationAuthSource) configSet() []string {
 }
 
 func (block *securityBlockUtm) configSet() []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security utm "
 
 	if v := block.FeatureProfileWebFilteringType.ValueString(); v != "" {
@@ -3618,7 +3618,7 @@ func (block *securityBlockUtm) read(itemTrim string) (err error) {
 func (rscData *securityData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	listLinesToDelete := make([]string, 0, 50)
+	listLinesToDelete := make([]string, 0, 100)
 
 	listLinesToDelete = append(listLinesToDelete, securityBlockAlg{}.junosLines()...)
 	listLinesToDelete = append(listLinesToDelete, securityBlockFlow{}.junosLines()...)

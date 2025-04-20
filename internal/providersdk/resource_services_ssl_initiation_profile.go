@@ -320,7 +320,7 @@ func checkServicesSSLInitiationProfileExists(profile string, junSess *junos.Sess
 }
 
 func setServicesSSLInitiationProfile(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set services ssl initiation profile \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix)

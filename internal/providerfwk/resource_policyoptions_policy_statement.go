@@ -1851,7 +1851,7 @@ func (rscData *policyoptionsPolicyStatementData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set policy-options policy-statement \"" + rscData.Name.ValueString() + "\" "
 
 	if rscData.DynamicDB.ValueBool() {
@@ -1946,7 +1946,7 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "from "
 
 	if block.AggregateContributor.ValueBool() {
@@ -2114,7 +2114,7 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 }
 
 func (block *policyoptionsPolicyStatementBlockTo) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "to "
 
 	for _, v := range block.BgpASPath {
@@ -2176,7 +2176,7 @@ func (block *policyoptionsPolicyStatementBlockThen) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "then "
 
 	if v := block.Action.ValueString(); v != "" {

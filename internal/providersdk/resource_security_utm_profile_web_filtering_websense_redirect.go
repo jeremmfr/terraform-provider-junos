@@ -327,7 +327,7 @@ func checkUtmProfileWebFWebsenseExists(profile string, junSess *junos.Session) (
 }
 
 func setUtmProfileWebFWebsense(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set security utm feature-profile web-filtering websense-redirect " +
 		"profile \"" + d.Get("name").(string) + "\" "

@@ -303,7 +303,7 @@ func (rscData *policyoptionsASPathData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set policy-options as-path \"" + rscData.Name.ValueString() + "\" "
 
 	if rscData.DynamicDB.ValueBool() {

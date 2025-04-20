@@ -1718,7 +1718,7 @@ func (rscData *accessAddressAssignmentPoolData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "
@@ -1752,7 +1752,7 @@ func (block *accessAddressAssignmentPoolBlockFamily) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0, 1)
+	configSet := make([]string, 0, 100)
 	setPrefix += "family "
 
 	familyType := block.Type.ValueString()
@@ -1910,7 +1910,7 @@ func (block *accessAddressAssignmentPoolBlockFamilyBlockDhcpAttributes) configSe
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "dhcp-attributes "
 
 	if v := block.BootFile.ValueString(); v != "" {

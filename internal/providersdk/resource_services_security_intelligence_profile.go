@@ -335,7 +335,7 @@ func checkServicesSecurityIntellProfileExists(profile string, junSess *junos.Ses
 }
 
 func setServicesSecurityIntellProfile(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set services security-intelligence profile \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix+"category "+d.Get("category").(string))

@@ -334,7 +334,7 @@ func (rscData *policyoptionsCommunityData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set policy-options community \"" + rscData.Name.ValueString() + "\" "
 
 	if rscData.DynamicDB.ValueBool() {

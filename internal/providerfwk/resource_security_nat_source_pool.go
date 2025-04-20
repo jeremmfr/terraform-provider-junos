@@ -416,7 +416,7 @@ func (rscData *securityNatSourcePoolData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security nat source pool " + rscData.Name.ValueString() + " "
 
 	for _, v := range rscData.Address {

@@ -475,7 +475,7 @@ func (rscData *securityDynamicAddressFeedServerData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security dynamic-address feed-server " + rscData.Name.ValueString() + " "
 
 	if v := rscData.Hostname.ValueString(); v != "" {

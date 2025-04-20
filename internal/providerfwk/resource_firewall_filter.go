@@ -1726,7 +1726,7 @@ func (rscData *firewallFilterData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set firewall family " + rscData.Family.ValueString() + " filter \"" + rscData.Name.ValueString() + "\" "
 
 	if rscData.InterfaceSpecific.ValueBool() {
@@ -1983,7 +1983,7 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 }
 
 func (block *firewallFilterBlockTermBlockThen) configSet(setPrefix string) []string {
-	configSet := make([]string, 0, 1)
+	configSet := make([]string, 0, 100)
 	setPrefix += "then "
 
 	if v := block.Action.ValueString(); v != "" {

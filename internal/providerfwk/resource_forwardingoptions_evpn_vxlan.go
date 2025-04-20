@@ -314,7 +314,7 @@ func (rscData *forwardingoptionsEvpnVxlanData) set(
 			errors.New("at least one of arguments need to be set (in addition to `routing_instance`)")
 	}
 
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "

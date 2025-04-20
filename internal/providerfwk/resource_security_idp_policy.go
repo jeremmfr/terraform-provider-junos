@@ -1115,7 +1115,7 @@ func (block *securityIdpPolicyBlockExemptRule) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "rulebase-exempt rule \"" + block.Name.ValueString() + "\" "
 
 	if v := block.Description.ValueString(); v != "" {
@@ -1139,7 +1139,7 @@ func (block *securityIdpPolicyBlockExemptRule) configSet(
 }
 
 func (block *securityIdpPolicyBlockExemptRuleBlockMatch) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "match "
 
 	for _, v := range block.CustomAttack {
@@ -1186,7 +1186,7 @@ func (block *securityIdpPolicyBlockIpsRule) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "rulebase-ips rule \"" + block.Name.ValueString() + "\" "
 
 	if v := block.Description.ValueString(); v != "" {

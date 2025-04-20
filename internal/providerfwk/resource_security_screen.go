@@ -1579,7 +1579,7 @@ func (rscData *securityScreenData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security screen ids-option \"" + rscData.Name.ValueString() + "\" "
 
 	if rscData.isEmpty() {
@@ -1684,7 +1684,7 @@ func (block *securityScreenBlockAggregation) configSet(setPrefix string) []strin
 }
 
 func (block *securityScreenBlockIcmp) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "icmp "
 
 	if block.Fragment.ValueBool() {
@@ -1727,7 +1727,7 @@ func (block *securityScreenBlockIP) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "ip "
 
 	if block.BadOption.ValueBool() {
@@ -1803,7 +1803,7 @@ func (block *securityScreenBlockIP) configSet(
 }
 
 func (block *securityScreenBlockIPBlockIPv6ExtensionHeader) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "ipv6-extension-header "
 
 	if block.AhHeader.ValueBool() {
@@ -1909,7 +1909,7 @@ func (block *securityScreenBlockIPBlockTunnel) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "tunnel "
 
 	if block.BadInnerHeader.ValueBool() {
@@ -1944,7 +1944,7 @@ func (block *securityScreenBlockIPBlockTunnel) configSet(
 }
 
 func (block *securityScreenBlockIPBlockTunnelBlockGre) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "gre "
 
 	if block.Gre4in4.ValueBool() {
@@ -1964,7 +1964,7 @@ func (block *securityScreenBlockIPBlockTunnelBlockGre) configSet(setPrefix strin
 }
 
 func (block *securityScreenBlockIPBlockTunnelBlockIpip) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "ipip "
 
 	if block.Dslite.ValueBool() {
@@ -2002,7 +2002,7 @@ func (block *securityScreenBlockTCP) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "tcp "
 
 	if block.FinNoAck.ValueBool() {
@@ -2125,7 +2125,7 @@ func (block *securityScreenBlockTCPBlockSynFlood) configSet(
 }
 
 func (block *securityScreenBlockUDP) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "udp "
 
 	if block.Flood != nil {
