@@ -380,7 +380,7 @@ func (rscData *vstpVlanGroupData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0, len(rscData.Vlan))
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "

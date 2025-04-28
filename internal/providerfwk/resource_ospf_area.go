@@ -1761,7 +1761,7 @@ func (rscData *ospfAreaData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "
@@ -2074,7 +2074,7 @@ func (block *ospfAreaBlockInterface) configSet(
 }
 
 func (block *ospfAreaBlockInterfaceBlockBfdLivenessDetection) configSet(setPrefix string) []string {
-	configSet := make([]string, 0, 1)
+	configSet := make([]string, 0, 100)
 	setPrefix += "bfd-liveness-detection "
 
 	if v := block.AuthenticationAlgorithm.ValueString(); v != "" {

@@ -531,7 +531,7 @@ func (rscData *servicesFlowMonitoringVIPFixTemplateData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set services flow-monitoring version-ipfix template \"" + rscData.Name.ValueString() + "\" "
 
 	configSet = append(configSet, setPrefix+rscData.Type.ValueString())

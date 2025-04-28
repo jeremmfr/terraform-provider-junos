@@ -2961,7 +2961,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeChain) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "attack-type chain "
 
 	if v := block.Expression.ValueString(); v != "" {
@@ -3008,7 +3008,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMember) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "member \"" + block.Name.ValueString() + "\" "
 
 	if block.isEmpty() {
@@ -3193,7 +3193,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignature) configSet(
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIcmp) configSet(
 	setPrefix string, v6 bool,
 ) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	switch v6 {
 	case false:
 		setPrefix += "protocol icmp "
@@ -3248,7 +3248,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIcmp) c
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIPv4) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "protocol ipv4 "
 
 	if v := block.ChecksumValidateMatch.ValueString(); v != "" {
@@ -3320,7 +3320,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIPv4) c
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIPv6) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "protocol ipv6 "
 
 	if v := block.DestinationMatch.ValueString(); v != "" {
@@ -3395,7 +3395,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIPv6) c
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolTCP) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "protocol tcp "
 
 	if v := block.AckNumberMatch.ValueString(); v != "" {
@@ -3497,7 +3497,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolTCP) co
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolUDP) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "protocol udp "
 
 	if v := block.ChecksumValidateMatch.ValueString(); v != "" {

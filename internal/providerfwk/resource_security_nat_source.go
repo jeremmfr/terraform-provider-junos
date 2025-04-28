@@ -661,7 +661,7 @@ func (rscData *securityNatSourceData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security nat source rule-set " + rscData.Name.ValueString() + " "
 
 	regexpPort := regexp.MustCompile(`^\d+( to \d+)?$`)

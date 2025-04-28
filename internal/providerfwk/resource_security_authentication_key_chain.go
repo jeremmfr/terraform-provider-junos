@@ -443,7 +443,7 @@ func (rscData *securityAuthenticationKeyChainData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security authentication-key-chains key-chain \"" + rscData.Name.ValueString() + "\" "
 
 	if v := rscData.Description.ValueString(); v != "" {

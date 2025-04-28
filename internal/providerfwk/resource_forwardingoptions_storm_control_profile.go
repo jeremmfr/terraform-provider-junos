@@ -421,7 +421,7 @@ func (rscData *forwardingoptionsStormControlProfileData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set forwarding-options storm-control-profiles \"" + rscData.Name.ValueString() + "\" "
 
 	if rscData.ActionShutdown.ValueBool() {

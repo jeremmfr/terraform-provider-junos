@@ -605,7 +605,7 @@ func (rscData *virtualChassisData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set virtual-chassis "
 
 	if rscData.AutoSWUpdate.ValueBool() {
@@ -690,7 +690,7 @@ func (rscData *virtualChassisData) set(
 }
 
 func (block *virtualChassisBlockMember) configSet() []string {
-	configSet := make([]string, 0, 1)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set virtual-chassis member " + utils.ConvI64toa(block.ID.ValueInt64()) + " "
 
 	if v := block.Location.ValueString(); v != "" {

@@ -191,7 +191,7 @@ func (block *dhcpBlockAuthenticationUsernameInclude) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "authentication username-include "
 
 	if block.CircuitType.ValueBool() {
@@ -460,7 +460,7 @@ func (dhcpBlockLivenessDetectionMethodBfd) attributesSchema() map[string]schema.
 }
 
 func (block *dhcpBlockLivenessDetectionMethodBfd) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "liveness-detection method bfd "
 
 	if !block.DetectionTimeThreshold.IsNull() {
@@ -564,7 +564,7 @@ func (dhcpBlockLivenessDetectionMethodLayer2) attributesSchema() map[string]sche
 }
 
 func (block *dhcpBlockLivenessDetectionMethodLayer2) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "liveness-detection method layer2-liveness-detection "
 
 	if !block.MaxConsecutiveRetries.IsNull() {

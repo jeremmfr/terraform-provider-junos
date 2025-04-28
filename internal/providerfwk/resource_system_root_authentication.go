@@ -439,7 +439,7 @@ func (rscData *systemRootAuthenticationData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system root-authentication "
 
 	if v := rscData.PlainTextPassword.ValueString(); v != "" {

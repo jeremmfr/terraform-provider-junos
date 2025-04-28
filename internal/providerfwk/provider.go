@@ -321,6 +321,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSecurityZoneOrderedResource,
 		newSecurityZoneBookAddressResource,
 		newSecurityZoneBookAddressSetResource,
+		newServicesResource,
 		newServicesFlowMonitoringV9TemplateResource,
 		newServicesFlowMonitoringVIPFixTemplateResource,
 		newServicesRpmProbeResource,

@@ -273,7 +273,7 @@ func checkServicesSecurityIntellPolicyExists(policy string, junSess *junos.Sessi
 }
 
 func setServicesSecurityIntellPolicy(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set services security-intelligence policy \"" + d.Get("name").(string) + "\" "
 	categoryNameList := make([]string, 0)

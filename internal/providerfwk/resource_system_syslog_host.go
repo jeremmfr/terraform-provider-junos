@@ -496,7 +496,7 @@ func (rscData *systemSyslogHostData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system syslog host " + rscData.Host.ValueString() + " "
 
 	if rscData.AllowDuplicates.ValueBool() {

@@ -299,7 +299,7 @@ func (rscData *policyoptionsPrefixListData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set policy-options prefix-list \"" + rscData.Name.ValueString() + "\" "
 
 	if v := rscData.ApplyPath.ValueString(); v != "" {

@@ -463,7 +463,7 @@ func (rscData *securityDynamicAddressNameData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security dynamic-address address-name " + rscData.Name.ValueString() + " "
 
 	if v := rscData.Description.ValueString(); v != "" {

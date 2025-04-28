@@ -698,7 +698,7 @@ func (rscData *groupDualSystemData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	if rscData.isEmpty() {
 		return path.Root("name"),
@@ -766,7 +766,7 @@ func (block *groupDualSystemBlockInterfaceFXP0) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "interfaces fxp0 "
 
 	if v := block.Description.ValueString(); v != "" {
@@ -823,7 +823,7 @@ func (block *groupDualSystemBlockInterfaceFXP0BlockFamilyAddress) configSet(setP
 }
 
 func (block *groupDualSystemBlockSystem) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "system "
 
 	if v := block.HostName.ValueString(); v != "" {

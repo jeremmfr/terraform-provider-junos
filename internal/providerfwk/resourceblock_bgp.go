@@ -138,7 +138,7 @@ func (bgpBlockBfdLivenessDetection) schema() schema.SingleNestedBlock {
 }
 
 func (block *bgpBlockBfdLivenessDetection) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "bfd-liveness-detection "
 
 	if v := block.AuthenticationAlgorithm.ValueString(); v != "" {

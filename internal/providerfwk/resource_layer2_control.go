@@ -390,7 +390,7 @@ func (rscData *layer2ControlData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set protocols layer2-control "
 
 	if rscData.NonstopBridging.ValueBool() {

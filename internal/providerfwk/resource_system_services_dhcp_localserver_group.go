@@ -1694,7 +1694,7 @@ func (rscData *systemServicesDhcpLocalserverGroupData) set(
 			errors.New("at least one of arguments need to be set (in addition to `name`, `routing_instance` and `version`)")
 	}
 
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "
@@ -2008,7 +2008,7 @@ func (block *systemServicesDhcpLocalserverGroupBlockOverridesV4) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "overrides "
 
 	if block.AllowNoEndOption.ValueBool() {
@@ -2086,7 +2086,7 @@ func (block *systemServicesDhcpLocalserverGroupBlockOverridesV6) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "overrides "
 
 	if block.AlwaysAddOptionDNSServer.ValueBool() {

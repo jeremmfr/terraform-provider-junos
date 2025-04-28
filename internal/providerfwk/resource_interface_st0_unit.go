@@ -337,7 +337,7 @@ func (rsc *interfaceSt0Unit) searchNewAvailable(junSess *junos.Session) (string,
 		return "", err
 	}
 	st0Line := strings.Split(st0, "\n")
-	st0int := make([]string, 0)
+	st0int := make([]string, 0, 100)
 	for _, line := range st0Line {
 		if strings.HasPrefix(line, "st0.") {
 			lineFields := strings.Split(line, " ")

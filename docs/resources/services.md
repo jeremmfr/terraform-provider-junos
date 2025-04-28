@@ -51,7 +51,8 @@ The following arguments are supported:
   - **auth_tls_profile** (Optional, Computed, String)  
     Authentication TLS profile.  
     **Note:** If not set, tls-profile is only read from the Junos configuration
-    (so as not to be in conflict with enrollment process).
+    (so as not to be in conflict with enrollment process) but if `connection` block
+    is not specified, tls-profile is deleted.
   - **proxy_profile** (Optional, String)  
     Proxy profile.
   - **source_address** (Optional, String)  
@@ -63,7 +64,8 @@ The following arguments are supported:
   - **url** (Optional, Computed, String)  
     The url of the cloud server [https://`<ip or hostname>`:`<port>`].  
     **Note:** If not set, url is only read from the Junos configuration
-    (so as not to be in conflict with enrollment process).
+    (so as not to be in conflict with enrollment process) but if `connection` block
+    is not specified, url is deleted.
 - **default_policy** (Optional, Block)  
   Declare `default-policy` configuration.
   - **blacklist_notification_log** (Optional, Boolean)  
@@ -94,6 +96,7 @@ The following arguments are supported:
     `http_action` and `http_inspection_profile` need to be set.
   - **http_file_verdict_unknown** (Optional, String)  
     Action taken for contents with verdict unknown.  
+    Need to be `block` or `permit`.  
     `http_action` and `http_inspection_profile` need to be set.
   - **http_inspection_profile** (Optional, String)  
     Advanced Anti-malware inspection-profile name for HTTP.  
@@ -139,9 +142,9 @@ The following arguments are supported:
   - **automatic_start_time** (Optional, String)  
     Start time to scheduled download and update (MM-DD.hh:mm / YYYY-MM-DD.hh:mm:ss).
   - **ignore_server_validation** (Optional, Boolean)  
-    Disable server authentication for Applicaton Signature download.
+    Disable server authentication for Application Signature download.
   - **proxy_profile** (Optional, String)  
-    Configure web proxy for Application signature download
+    Configure web proxy for Application signature download.
   - **url** (Optional, String)  
     URL for application package download.
 - **enable_performance_mode** (Optional, Block)  
@@ -179,18 +182,20 @@ The following arguments are supported:
 
 ### security_intelligence arguments
 
-- **authentication_token** (Optional, Computed, String)  
-  Token string for authentication to use feed update services.  
-  Conflict with `authentication_tls_profile`.  
-  **Note:** If not set, token is only read from the Junos configuration
-  (so as not to be in conflict with enrollment process).
 - **authentication_tls_profile** (Optional, Computed, String)  
   TLS profile for authentication to use feed update services.  
   Conflict with `authentication_token`.  
   **Note:** If not set, tls-profile is only read from the Junos configuration
-  (so as not to be in conflict with enrollment process).
+  (so as not to be in conflict with enrollment process) but if `security_intelligence` block
+  is not specified, tls-profile is deleted.
+- **authentication_token** (Optional, Computed, String)  
+  Token string for authentication to use feed update services.  
+  Conflict with `authentication_tls_profile`.  
+  **Note:** If not set, token is only read from the Junos configuration
+  (so as not to be in conflict with enrollment process) but if `security_intelligence` block
+  is not specified, token is deleted.
 - **category_disable** (Optional, Set of String)  
-  Categories to be disabled
+  Categories to be disabled.
 - **default_policy** (Optional, Block List)  
   For each name of category, configure default-policy for a category.
   - **category_name** (Required, String)  
@@ -202,7 +207,8 @@ The following arguments are supported:
 - **url** (Optional, Computed, String)  
   Configure the url of feed server [https://`<ip or hostname>`:`<port>`/`<uri>`].  
   **Note:** If not set, url is only read from the Junos configuration
-  (so as not to be in conflict with enrollment process).
+  (so as not to be in conflict with enrollment process) but if `security_intelligence` block
+  is not specified, url is deleted.
 - **url_parameter** (Optional, String, Sensitive)  
   Configure the parameter of url.  
 
@@ -212,17 +218,19 @@ The following arguments are supported:
 
 - **ad_access** (Optional, Block)  
   Enable `active-directory-access`.  
+  **Warning:** If this block is not specified, potential
+  `junos_services_user_identification_ad_access_domain` resources will be deleted.  
   Conflict with `identity_management`.
   - **auth_entry_timeout** (Optional, Number)  
-    Authentication entry timeout number (0, 10-1440) (minutes).
+    Authentication entry timeout number (0, 10-1440 minutes).
   - **filter_exclude** (Optional, Set of String)  
     Exclude addresses.
   - **filter_include** (Optional, Set of String)  
     Include addresses.
   - **firewall_auth_forced_timeout** (Optional, Number)  
-    Firewall auth fallback authentication entry forced timeout number (10-1440) (minutes).
+    Firewall auth fallback authentication entry forced timeout number (10-1440 minutes).
   - **invalid_auth_entry_timeout** (Optional, Number)  
-    Invalid authentication entry timeout number (0, 10-1440) (minutes).
+    Invalid authentication entry timeout number (0, 10-1440 minutes).
   - **no_on_demand_probe** (Optional, Boolean)  
     Disable on-demand probe.
   - **wmi_timeout** (Optional, Number)  
@@ -267,11 +275,11 @@ The following arguments are supported:
   - **token_api** (Optional, String)  
     API of acquiring token for OAuth2 authentication.
 - **authentication_entry_timeout** (Optional, Number)  
-  Authentication entry timeout number (0, 10-1440) (minutes).
-- **batch_query_items_per_batch** (Optional, Number)  
-  Items number per batch query (100..1000).
+  Authentication entry timeout number (0, 10-1440 minutes).
 - **batch_query_interval** (Optional, Number)  
   Query interval for batch query (1..60 seconds).
+- **batch_query_items_per_batch** (Optional, Number)  
+  Items number per batch query (100..1000).
 - **filter_domain** (Optional, Set of String)  
   Domain filter.
 - **filter_exclude_ip_address_book** (Optional, String)  
@@ -283,11 +291,11 @@ The following arguments are supported:
 - **filter_include_ip_address_set** (Optional, String)  
   Referenced address set to include IP filter.
 - **invalid_authentication_entry_timeout** (Optional, Number)  
-  Invalid authentication entry timeout number (0, 10-1440) (minutes).
+  Invalid authentication entry timeout number (0, 10-1440 minutes).
 - **ip_query_disable** (Optional, Boolean)  
   Disable IP query.
 - **ip_query_delay_time** (Optional, Number)  
-  Delay time to send IP query (0~60sec) (0..60 seconds).
+  Delay time to send IP query (0..60 seconds).
 
 ## Attribute Reference
 

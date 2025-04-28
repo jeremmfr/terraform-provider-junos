@@ -351,7 +351,7 @@ func checkServicesUserIdentAdAccessDomainExists(domain string, junSess *junos.Se
 }
 
 func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set services user-identification active-directory-access domain " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix+"user "+d.Get("user_name").(string))

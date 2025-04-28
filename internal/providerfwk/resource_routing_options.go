@@ -675,7 +675,7 @@ func (rscData *routingOptionsData) set(
 	path.Path, error,
 ) {
 	setPrefix := "set routing-options "
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	for _, v := range rscData.InstanceExport {
 		configSet = append(configSet, setPrefix+"instance-export \""+v.ValueString()+"\"")
@@ -731,7 +731,7 @@ func (rscData *routingOptionsData) set(
 
 func (block *routingOptionsBlockForwardingTable) configSet() []string {
 	setPrefix := "set routing-options forwarding-table "
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	if !block.ChainCompositeMaxLabelCount.IsNull() {
 		configSet = append(configSet, setPrefix+"chain-composite-max-label-count "+

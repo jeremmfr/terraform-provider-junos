@@ -261,7 +261,7 @@ func checkServicesProxyProfileExists(profile string, junSess *junos.Session) (bo
 }
 
 func setServicesProxyProfile(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set services proxy profile \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix+"protocol http host "+d.Get("protocol_http_host").(string))
