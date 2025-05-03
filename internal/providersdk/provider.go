@@ -188,12 +188,11 @@ func Provider() *schema.Provider {
 			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
 			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
 
-			"junos_services_advanced_anti_malware_policy":                resourceServicesAdvancedAntiMalwarePolicy(),
-			"junos_services_proxy_profile":                               resourceServicesProxyProfile(),
-			"junos_services_ssl_initiation_profile":                      resourceServicesSSLInitiationProfile(),
-			"junos_services_security_intelligence_policy":                resourceServicesSecurityIntellPolicy(),
-			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
-			"junos_services_user_identification_device_identity_profile": resourceServicesUserIdentDeviceIdentityProfile(),
+			"junos_services_advanced_anti_malware_policy":  resourceServicesAdvancedAntiMalwarePolicy(),
+			"junos_services_proxy_profile":                 resourceServicesProxyProfile(),
+			"junos_services_ssl_initiation_profile":        resourceServicesSSLInitiationProfile(),
+			"junos_services_security_intelligence_policy":  resourceServicesSecurityIntellPolicy(),
+			"junos_services_security_intelligence_profile": resourceServicesSecurityIntellProfile(),
 		},
 		ConfigureContextFunc: configureProvider,
 	}
