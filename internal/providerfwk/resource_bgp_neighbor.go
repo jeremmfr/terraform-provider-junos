@@ -489,9 +489,8 @@ func (rscData *bgpNeighborData) set(
 	}
 	setPrefix += "protocols bgp group \"" + rscData.Group.ValueString() + "\" neighbor " + rscData.IP.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	dataConfigSet, errPath, err := rscData.bgpAttrData.configSet(setPrefix)
 	if err != nil {

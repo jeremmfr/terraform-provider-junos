@@ -593,9 +593,8 @@ func (rscData *securityNatStaticRuleData) set(
 		"rule-set " + rscData.RuleSet.ValueString() +
 		" rule " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	regexpSourcePort := regexp.MustCompile(`^\d+( to \d+)?$`)
 

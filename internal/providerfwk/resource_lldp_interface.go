@@ -382,9 +382,8 @@ func (rscData *lldpInterfaceData) set(
 ) {
 	setPrefix := "set protocols lldp interface " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if rscData.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+"disable")

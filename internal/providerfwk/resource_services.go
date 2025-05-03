@@ -1673,9 +1673,9 @@ func (block *servicesBlockAdvancedAntiMalware) configSet() []string {
 func (block *servicesBlockAdvancedAntiMalwareBlockConnection) configSet() []string {
 	setPrefix := "set services advanced-anti-malware connection "
 	delPrefix := junos.DeleteW + strings.TrimPrefix(setPrefix, junos.SetW)
-	configSet := []string{
-		setPrefix,
-	}
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.AuthTLSProfile.ValueString(); v != "" {
 		// delete old value only if new value must be set
@@ -1702,9 +1702,9 @@ func (block *servicesBlockAdvancedAntiMalwareBlockConnection) configSet() []stri
 
 func (block *servicesBlockAdvancedAntiMalwareBlockDefaultPolicy) configSet() []string {
 	setPrefix := "set services advanced-anti-malware default-policy "
-	configSet := []string{
-		setPrefix,
-	}
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.BlacklistNotificationLog.ValueBool() {
 		configSet = append(configSet, setPrefix+"blacklist-notification log")
@@ -1767,9 +1767,9 @@ func (block *servicesBlockApplicationIdentification) configSet() (
 	error, // error
 ) {
 	setPrefix := "set services application-identification "
-	configSet := []string{
-		setPrefix,
-	}
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.ApplicationSystemCacheTimeout.IsNull() {
 		configSet = append(configSet, setPrefix+"application-system-cache-timeout "+
@@ -1839,9 +1839,9 @@ func (block *servicesBlockApplicationIdentification) configSet() (
 
 func (block *servicesBlockApplicationIdentificationBlockApplicationSystemCache) configSet() []string {
 	setPrefix := "set services application-identification application-system-cache "
-	configSet := []string{
-		setPrefix,
-	}
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.NoMiscellaneousServices.ValueBool() {
 		configSet = append(configSet, setPrefix+"no-miscellaneous-services")
@@ -1878,9 +1878,8 @@ func (block *servicesBlockApplicationIdentificationBlockDownload) configSet() []
 }
 
 func (block *servicesBlockApplicationIdentificationBlockInspectionLimitTCPUDP) configSet(setPrefix string) []string {
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.ByteLimit.IsNull() {
 		configSet = append(configSet, setPrefix+"byte-limit "+
@@ -1970,9 +1969,9 @@ func (block *servicesBlockUserIdentification) configSet() []string {
 
 func (block *servicesBlockUserIdentificationBlockADAccess) configSet() []string {
 	setPrefix := "set services user-identification active-directory-access "
-	configSet := []string{
-		setPrefix,
-	}
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.AuthEntryTimeout.IsNull() {
 		configSet = append(configSet, setPrefix+"authentication-entry-timeout "+
@@ -2055,11 +2054,11 @@ func (block *servicesBlockUserIdentificationBlockIdentityManagement) configSet()
 
 func (block *servicesBlockUserIdentificationBlockIdentityManagementBlockConnection) configSet() []string {
 	setPrefix := "set services user-identification identity-management connection "
-	configSet := []string{
-		setPrefix + "primary address " + block.PrimaryAddress.ValueString(),
-		setPrefix + "primary client-id \"" + block.PrimaryClientID.ValueString() + "\"",
-		setPrefix + "primary client-secret \"" + block.PrimaryClientSecret.ValueString() + "\"",
-	}
+
+	configSet := make([]string, 3, 100)
+	configSet[0] = setPrefix + "primary address " + block.PrimaryAddress.ValueString()
+	configSet[1] = setPrefix + "primary client-id \"" + block.PrimaryClientID.ValueString() + "\""
+	configSet[2] = setPrefix + "primary client-secret \"" + block.PrimaryClientSecret.ValueString() + "\""
 
 	if v := block.ConnectMethod.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"connect-method "+v)
