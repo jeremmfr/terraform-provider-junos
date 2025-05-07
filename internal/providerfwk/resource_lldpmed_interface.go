@@ -525,9 +525,8 @@ func (rscData *lldpMedInterfaceData) set(
 ) {
 	setPrefix := "set protocols lldp-med interface " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if rscData.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+"disable")
@@ -555,9 +554,8 @@ func (block *lldpMedInterfaceBlockLocation) configSet(
 ) {
 	setPrefix += "location "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.CivicBasedCountryCode.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"civic-based country-code "+v)

@@ -31,7 +31,7 @@ func resourceSecurityUtmCustomURLCategory() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
+				ValidateDiagFunc: validateNameObjectJunos(32),
 			},
 			"value": {
 				Type:     schema.TypeList,

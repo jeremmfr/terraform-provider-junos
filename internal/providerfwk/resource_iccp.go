@@ -224,9 +224,8 @@ func (rscData *iccpData) set(
 ) {
 	setPrefix := "set protocols iccp "
 
-	configSet := []string{
-		setPrefix + "local-ip-addr " + rscData.LocalIPAddr.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "local-ip-addr " + rscData.LocalIPAddr.ValueString()
 
 	if v := rscData.AuthenticationKey.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")

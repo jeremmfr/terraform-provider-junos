@@ -34,14 +34,14 @@ func resourceRibGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				ValidateDiagFunc: validateNameObjectJunos(64),
 			},
 			"import_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+					ValidateDiagFunc: validateNameObjectJunos(64),
 				},
 			},
 			"import_rib": {

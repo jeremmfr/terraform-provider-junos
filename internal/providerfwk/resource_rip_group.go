@@ -567,9 +567,8 @@ func (rscData *ripGroupData) set(
 	}
 	setPrefix += "group \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if rscData.DemandCircuit.ValueBool() {
 		configSet = append(configSet, setPrefix+"demand-circuit")

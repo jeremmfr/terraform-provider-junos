@@ -805,9 +805,9 @@ func (block *groupDualSystemBlockInterfaceFXP0) configSet(
 
 func (block *groupDualSystemBlockInterfaceFXP0BlockFamilyAddress) configSet(setPrefix string) []string {
 	setPrefix += "address " + block.CidrIP.ValueString() + " "
-	configSet := []string{
-		setPrefix,
-	}
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.MasterOnly.ValueBool() {
 		configSet = append(configSet, setPrefix+"master-only")

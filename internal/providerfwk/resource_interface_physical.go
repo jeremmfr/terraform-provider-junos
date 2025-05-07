@@ -1775,9 +1775,8 @@ func (rscData *interfacePhysicalData) set(
 ) {
 	setPrefix := "set interfaces " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := rscData.Description.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
@@ -1942,9 +1941,8 @@ func (rscData *interfacePhysicalData) set(
 }
 
 func (block *interfacePhysicalBlockESI) configSet(setPrefix string) []string {
-	configSet := []string{
-		setPrefix + "esi " + block.Mode.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "esi " + block.Mode.ValueString()
 
 	if block.AutoDeriveLACP.ValueBool() {
 		configSet = append(configSet, setPrefix+"esi auto-derive lacp")

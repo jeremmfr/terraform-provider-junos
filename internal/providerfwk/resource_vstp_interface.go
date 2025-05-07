@@ -653,9 +653,8 @@ func (rscData *vstpInterfaceData) set(
 	}
 	setPrefix += "interface " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if rscData.AccessTrunk.ValueBool() {
 		configSet = append(configSet, setPrefix+"access-trunk")

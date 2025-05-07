@@ -1659,9 +1659,8 @@ func (rscData *securityScreenData) set(
 func (block *securityScreenBlockAggregation) configSet(setPrefix string) []string {
 	setPrefix += "aggregation "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.DestinationPrefixMask.IsNull() {
 		configSet = append(configSet, setPrefix+"destination-prefix-mask "+
@@ -1847,9 +1846,8 @@ func (block *securityScreenBlockIPBlockIPv6ExtensionHeader) configSet(setPrefix 
 func (block *securityScreenBlockIPBlockIPv6ExtensionHeaderBlockDestinationHeader) configSet(setPrefix string) []string {
 	setPrefix += "destination-header "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.HomeAddressOption.ValueBool() {
 		configSet = append(configSet, setPrefix+"home-address-option")
@@ -1873,9 +1871,8 @@ func (block *securityScreenBlockIPBlockIPv6ExtensionHeaderBlockDestinationHeader
 func (block *securityScreenBlockIPBlockIPv6ExtensionHeaderBlockHopByHopHeader) configSet(setPrefix string) []string {
 	setPrefix += "hop-by-hop-header "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.CalipsoOption.ValueBool() {
 		configSet = append(configSet, setPrefix+"CALIPSO-option")
@@ -2068,9 +2065,8 @@ func (block *securityScreenBlockTCPBlockSynFlood) configSet(
 ) {
 	setPrefix += "syn-flood "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.AlarmThreshold.IsNull() {
 		configSet = append(configSet, setPrefix+"alarm-threshold "+

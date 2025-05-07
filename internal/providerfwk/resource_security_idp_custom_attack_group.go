@@ -292,9 +292,8 @@ func (rscData *securityIdpCustomAttackGroupData) set(
 ) {
 	setPrefix := "set security idp custom-attack-group \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	for _, v := range rscData.Member {
 		configSet = append(configSet, setPrefix+"group-members \""+v.ValueString()+"\"")

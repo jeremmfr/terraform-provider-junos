@@ -532,9 +532,8 @@ func (rscData *securityLogStreamData) set(
 ) {
 	setPrefix := "set security log stream " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	for _, v := range rscData.Category {
 		configSet = append(configSet, setPrefix+"category "+v.ValueString())

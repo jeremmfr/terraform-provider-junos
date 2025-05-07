@@ -551,9 +551,8 @@ func (rscData *systemLoginUserData) set(
 ) {
 	setPrefix := "set system login user " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix + "class " + rscData.Class.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "class " + rscData.Class.ValueString()
 
 	if !rscData.UID.IsNull() {
 		configSet = append(configSet, setPrefix+"uid "+

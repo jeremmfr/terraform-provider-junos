@@ -520,10 +520,9 @@ func (rscData *securityDynamicAddressFeedServerData) set(
 func (block *securityDynamicAddressFeedServerBlockFeedName) configSet(setPrefix string) []string {
 	setPrefix += "feed-name " + block.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-		setPrefix + "path \"" + block.Path.ValueString() + "\"",
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix
+	configSet[1] = setPrefix + "path \"" + block.Path.ValueString() + "\""
 
 	if v := block.Description.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")

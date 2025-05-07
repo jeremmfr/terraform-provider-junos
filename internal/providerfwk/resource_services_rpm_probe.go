@@ -1072,9 +1072,8 @@ func (rscData *servicesRpmProbeData) set(
 ) {
 	setPrefix := "set services rpm probe \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if rscData.DelegateProbes.ValueBool() {
 		configSet = append(configSet, setPrefix+"delegate-probes")
@@ -1108,9 +1107,8 @@ func (block *servicesRpmProbeBlockTest) configSet(
 ) {
 	setPrefix += "test \"" + block.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.DataFill.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"data-fill "+v)
@@ -1211,9 +1209,8 @@ func (block *servicesRpmProbeBlockTestBlockRpmScale) configSet(
 ) {
 	setPrefix += "rpm-scale "
 
-	configSet := []string{
-		setPrefix + "tests-count " + utils.ConvI64toa(block.TestsCount.ValueInt64()),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "tests-count " + utils.ConvI64toa(block.TestsCount.ValueInt64())
 
 	if v := block.DestinationInterface.ValueString(); v != "" {
 		if block.DestinationSubunitCnt.IsNull() {
@@ -1348,9 +1345,8 @@ func (block *servicesRpmProbeBlockTestBlockRpmScale) configSet(
 func (block *servicesRpmProbeBlockTestBlockThresholds) configSet(setPrefix string) []string {
 	setPrefix += "thresholds "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.EgressTime.IsNull() {
 		configSet = append(configSet, setPrefix+"egress-time "+

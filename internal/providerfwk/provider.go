@@ -325,6 +325,8 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newServicesFlowMonitoringV9TemplateResource,
 		newServicesFlowMonitoringVIPFixTemplateResource,
 		newServicesRpmProbeResource,
+		newServicesUserIdentificationADAccessDomainResource,
+		newServicesUserIdentificationDeviceIdentityProfileResource,
 		newSnmpResource,
 		newSnmpClientlistResource,
 		newSnmpCommunityResource,

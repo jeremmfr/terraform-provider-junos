@@ -361,9 +361,9 @@ func (rscData *vstpVlanData) set(
 	}
 	setPrefix += "protocols vstp vlan " + rscData.VlanID.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
+
 	configSet = append(configSet, rscData.vstpVlanAttrData.configSet(setPrefix)...)
 
 	return path.Empty(), junSess.ConfigSet(configSet)

@@ -1891,9 +1891,8 @@ func (rscData *forwardingoptionsDhcprelayData) set(
 func (block *forwardingoptionsDhcprelayBlockActiveLeasequery) configSet(setPrefix string) []string {
 	setPrefix += "active-leasequery "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.IdleTimeout.IsNull() {
 		configSet = append(configSet, setPrefix+"idle-timeout "+
@@ -1923,9 +1922,8 @@ func (block *forwardingoptionsDhcprelayBlockBulkLeasequery) configSet(
 ) {
 	setPrefix += "bulk-leasequery "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.Attempts.IsNull() {
 		if version == "v6" &&
@@ -1960,9 +1958,8 @@ func (block *forwardingoptionsDhcprelayBlockBulkLeasequery) configSet(
 func (block *forwardingoptionsDhcprelayBlockLeasequery) configSet(setPrefix string) []string {
 	setPrefix += "leasequery "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.Attempts.IsNull() {
 		configSet = append(configSet, setPrefix+"attempts "+

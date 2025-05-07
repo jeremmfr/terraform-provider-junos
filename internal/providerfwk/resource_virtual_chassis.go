@@ -716,9 +716,8 @@ func (block *virtualChassisBlockMember) configSet() []string {
 func (block *virtualChassisBlockTraceoptionsBlockFile) configSet() []string {
 	setPrefix := "set virtual-chassis traceoptions file "
 
-	configSet := []string{
-		setPrefix + "\"" + block.Name.ValueString() + "\"",
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "\"" + block.Name.ValueString() + "\""
 
 	if !block.Files.IsNull() {
 		configSet = append(configSet, setPrefix+"files "+

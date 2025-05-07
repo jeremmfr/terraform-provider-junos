@@ -1895,9 +1895,8 @@ func (block *systemServicesDhcpLocalserverGroupBlockInterface) configSet(
 ) {
 	setPrefix += "interface " + block.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.AccessProfile.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"access-profile \""+v+"\"")
@@ -2170,9 +2169,8 @@ func (block *systemServicesDhcpLocalserverGroupBlockOverridesV6) configSet(
 func (block *systemServicesDhcpLocalserverGroupBlockReconfigure) configSet(setPrefix string) []string {
 	setPrefix += "reconfigure "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.Attempts.IsNull() {
 		configSet = append(configSet, setPrefix+"attempts "+

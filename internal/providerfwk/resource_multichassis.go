@@ -265,9 +265,8 @@ func (rscData *multichassisData) set(
 ) {
 	setPrefix := "set multi-chassis "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if rscData.MCLagConsistencyCheck.ValueBool() {
 		configSet = append(configSet, setPrefix+"mc-lag consistency-check")

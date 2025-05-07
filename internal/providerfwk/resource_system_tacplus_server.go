@@ -322,9 +322,8 @@ func (rscData *systemTacplusServerData) set(
 ) {
 	setPrefix := "set system tacplus-server " + rscData.Address.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !rscData.Port.IsNull() {
 		configSet = append(configSet, setPrefix+"port "+

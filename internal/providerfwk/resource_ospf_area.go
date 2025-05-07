@@ -1870,9 +1870,8 @@ func (block *ospfAreaBlockInterface) configSet(
 ) {
 	setPrefix += "interface " + block.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.AuthenticationSimplePassword.ValueString(); v != "" {
 		if len(block.AuthenticationMD5) > 0 {
@@ -2130,9 +2129,8 @@ func (block *ospfAreaBlockInterfaceBlockBfdLivenessDetection) configSet(setPrefi
 func (block *ospfAreaBlockAreaRange) configSet(setPrefix string) []string {
 	setPrefix += "area-range " + block.Range.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.Exact.ValueBool() {
 		configSet = append(configSet, setPrefix+"exact")
@@ -2157,9 +2155,8 @@ func (block *ospfAreaBlockNssa) configSet(
 ) {
 	setPrefix += "nssa "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.Summaries.ValueBool() {
 		configSet = append(configSet, setPrefix+"summaries")
@@ -2205,9 +2202,8 @@ func (block *ospfAreaBlockVirtualLink) configSet(setPrefix string) []string {
 		" transit-area " + block.TransitArea.ValueString() +
 		" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.DeadInterval.IsNull() {
 		configSet = append(configSet, setPrefix+"dead-interval "+

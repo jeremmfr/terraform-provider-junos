@@ -380,9 +380,8 @@ func (rscData *systemRadiusServerData) set(
 ) {
 	setPrefix := "set system radius-server " + rscData.Address.ValueString() + " "
 
-	configSet := []string{
-		setPrefix + "secret \"" + rscData.Secret.ValueString() + "\"",
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "secret \"" + rscData.Secret.ValueString() + "\""
 
 	if !rscData.AccountingPort.IsNull() {
 		configSet = append(configSet, setPrefix+"accounting-port "+

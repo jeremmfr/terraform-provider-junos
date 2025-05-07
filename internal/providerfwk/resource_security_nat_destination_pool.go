@@ -342,9 +342,9 @@ func (rscData *securityNatDestinationPoolData) set(
 ) {
 	setPrefix := "set security nat destination pool " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix + "address " + rscData.Address.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "address " + rscData.Address.ValueString()
+
 	if !rscData.AddressPort.IsNull() {
 		configSet = append(configSet, setPrefix+"address port "+
 			utils.ConvI64toa(rscData.AddressPort.ValueInt64()))

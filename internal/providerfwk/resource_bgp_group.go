@@ -447,9 +447,8 @@ func (rscData *bgpGroupData) set(
 	}
 	setPrefix += "protocols bgp group \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix + "type " + rscData.Type.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "type " + rscData.Type.ValueString()
 
 	dataConfigSet, errPath, err := rscData.bgpAttrData.configSet(setPrefix)
 	if err != nil {

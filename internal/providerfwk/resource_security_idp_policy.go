@@ -1070,9 +1070,8 @@ func (rscData *securityIdpPolicyData) set(
 ) {
 	setPrefix := "set security idp idp-policy \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	exemptRuleName := make(map[string]struct{})
 	for i, block := range rscData.ExemptRule {

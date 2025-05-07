@@ -2907,9 +2907,8 @@ func (rscData *securityIdpCustomAttackData) set(
 ) {
 	setPrefix := "set security idp custom-attack \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix + "severity " + rscData.Severity.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "severity " + rscData.Severity.ValueString()
 
 	if v := rscData.RecommendedAction.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"recommended-action "+v)
@@ -2944,9 +2943,8 @@ func (rscData *securityIdpCustomAttackData) set(
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeAnomaly) configSet(setPrefix string) []string {
-	configSet := []string{
-		setPrefix + "attack-type anomaly service \"" + block.Service.ValueString() + "\"",
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "attack-type anomaly service \"" + block.Service.ValueString() + "\""
 
 	configSet = append(configSet,
 		block.securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeAnomaly.configSet(setPrefix)...)
@@ -3041,10 +3039,9 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMember) configSet(
 func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeAnomaly) configSet(setPrefix string) []string { //nolint:lll
 	setPrefix += "attack-type anomaly "
 
-	configSet := []string{
-		setPrefix + "direction " + block.Direction.ValueString(),
-		setPrefix + "test \"" + block.Test.ValueString() + "\"",
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix + "direction " + block.Direction.ValueString()
+	configSet[1] = setPrefix + "test \"" + block.Test.ValueString() + "\""
 
 	if v := block.Shellcode.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"shellcode "+v)
@@ -3062,10 +3059,9 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTy
 ) {
 	setPrefix += "attack-type signature "
 
-	configSet := []string{
-		setPrefix + "context \"" + block.Context.ValueString() + "\"",
-		setPrefix + "direction " + block.Direction.ValueString(),
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix + "context \"" + block.Context.ValueString() + "\""
+	configSet[1] = setPrefix + "direction " + block.Direction.ValueString()
 
 	if block.Negate.ValueBool() {
 		configSet = append(configSet, setPrefix+"negate")

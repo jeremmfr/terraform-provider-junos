@@ -1461,9 +1461,8 @@ func (block *eventoptionsPolicyBlockThenBlockEventScript) configSet(
 ) {
 	setPrefix += "event-script \"" + block.Filename.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.OutputFilename.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"output-filename \""+v+"\"")
@@ -1540,9 +1539,8 @@ func (block *eventoptionsPolicyBlockThenBlockUpload) configSet(
 	setPrefix += "upload filename \"" + block.Filename.ValueString() + "\"" +
 		" destination \"" + block.Destination.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.RetryCount.IsNull() {
 		if block.RetryInterval.IsNull() {
@@ -1578,9 +1576,8 @@ func (block *eventoptionsPolicyBlockThenBlockDestination) configSet(
 ) {
 	setPrefix += "destination \"" + block.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.RetryCount.IsNull() {
 		if block.RetryInterval.IsNull() {

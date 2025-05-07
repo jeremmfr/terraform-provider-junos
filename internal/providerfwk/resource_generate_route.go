@@ -572,9 +572,8 @@ func (rscData *generateRouteData) set(
 	}
 	setPrefix += "generate route " + rscData.Destination.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if rscData.Active.ValueBool() {
 		configSet = append(configSet, setPrefix+"active")
