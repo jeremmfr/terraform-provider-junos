@@ -393,9 +393,8 @@ func (rscData *systemNtpServerData) set(
 ) {
 	setPrefix := "set system ntp server " + rscData.Address.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !rscData.Key.IsNull() {
 		configSet = append(configSet, setPrefix+"key "+

@@ -912,9 +912,8 @@ func (rscData *ospfData) set(
 func (block *ospfBlockDatabaseProtection) configSet(setPrefix string) []string {
 	setPrefix += "database-protection "
 
-	configSet := []string{
-		setPrefix + "maximum-lsa " + utils.ConvI64toa(block.MaximumLsa.ValueInt64()),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "maximum-lsa " + utils.ConvI64toa(block.MaximumLsa.ValueInt64())
 
 	if !block.IgnoreCount.IsNull() {
 		configSet = append(configSet, setPrefix+"ignore-count "+
@@ -981,9 +980,8 @@ func (block *ospfBlockGracefulRestart) configSet(
 func (block *ospfBlockOverload) configSet(setPrefix string) []string {
 	setPrefix += "overload "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.AllowRouteLeaking.ValueBool() {
 		configSet = append(configSet, setPrefix+"allow-route-leaking")

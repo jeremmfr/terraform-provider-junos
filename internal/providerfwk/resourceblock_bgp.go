@@ -281,9 +281,8 @@ func (bgpBlockBgpErrorTolerance) schema() schema.SingleNestedBlock {
 func (block *bgpBlockBgpErrorTolerance) configSet(setPrefix string) []string {
 	setPrefix += "bgp-error-tolerance"
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.MalformedRouteLimit.IsNull() {
 		configSet = append(configSet, setPrefix+" malformed-route-limit "+
@@ -360,9 +359,8 @@ func (bgpBlockBgpMultipath) schema() schema.SingleNestedBlock {
 func (block *bgpBlockBgpMultipath) configSet(setPrefix string) []string {
 	setPrefix += "multipath"
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.AllowProtection.ValueBool() {
 		configSet = append(configSet, setPrefix+" allow-protection")
@@ -495,9 +493,8 @@ func (block *bgpBlockFamily) configSet(
 ) {
 	setPrefix += block.NlriType.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.AcceptedPrefixLimit != nil {
 		if !block.AcceptedPrefixLimit.Maximum.IsNull() {
@@ -645,9 +642,8 @@ func (bgpBlockGracefulRestart) schema() schema.SingleNestedBlock {
 func (block *bgpBlockGracefulRestart) configSet(setPrefix string) []string {
 	setPrefix += "graceful-restart"
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+" disable")

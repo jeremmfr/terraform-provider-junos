@@ -3267,9 +3267,8 @@ func (block *systemBlockAccounting) configSet() (
 func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet() []string {
 	setPrefix := "set system accounting destination radius server " + block.Address.ValueString() + " "
 
-	configSet := []string{
-		setPrefix + "secret \"" + block.Secret.ValueString() + "\"",
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "secret \"" + block.Secret.ValueString() + "\""
 
 	if !block.AccountingPort.IsNull() {
 		configSet = append(configSet, setPrefix+"accounting-port "+
@@ -3323,9 +3322,8 @@ func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet() []st
 func (block *systemBlockAccountingBlockDestinationTacplusServer) configSet() []string {
 	setPrefix := "set system accounting destination tacplus server " + block.Address.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.Port.IsNull() {
 		configSet = append(configSet, setPrefix+"port "+

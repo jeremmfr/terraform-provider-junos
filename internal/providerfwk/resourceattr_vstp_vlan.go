@@ -141,7 +141,7 @@ func (rscData *vstpVlanAttrData) validateConfig(
 }
 
 func (rscData *vstpVlanAttrData) configSet(setPrefix string) []string {
-	configSet := make([]string, 0, 10)
+	configSet := make([]string, 0, 100)
 
 	if v := rscData.BackupBridgePriority.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"backup-bridge-priority "+v)

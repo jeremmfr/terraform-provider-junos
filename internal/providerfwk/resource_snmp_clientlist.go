@@ -290,9 +290,8 @@ func (rscData *snmpClientlistData) set(
 ) {
 	setPrefix := "set snmp client-list \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	for _, v := range rscData.Prefix {
 		configSet = append(configSet, setPrefix+v.ValueString())
