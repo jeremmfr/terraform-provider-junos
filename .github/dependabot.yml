@@ -8,8 +8,6 @@ updates:
       interval: daily
     assignees:
       - "jeremmfr"
-    reviewers:
-      - "jeremmfr"
   - package-ecosystem: gomod
     directory: /
     commit-message:
@@ -17,6 +15,4 @@ updates:
     schedule:
       interval: daily
     assignees:
-      - "jeremmfr"
-    reviewers:
       - "jeremmfr"
