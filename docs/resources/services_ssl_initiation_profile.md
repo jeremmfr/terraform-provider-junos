@@ -24,7 +24,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   Profile name (Profile identifier).
 - **actions** (Optional, Block)  
-  Declare `actions` configuration.
+  Traffic related actions.
   - **crl_disable** (Optional, Boolean)  
     Disable CRL validation.
   - **crl_if_not_present** (Optional, String)  

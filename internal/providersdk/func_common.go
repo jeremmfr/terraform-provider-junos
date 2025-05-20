@@ -2,7 +2,6 @@ package providersdk
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -44,16 +43,6 @@ func validateNameObjectJunos(length int) schema.SchemaValidateDiagFunc {
 
 		return diags
 	}
-}
-
-func sortSetOfString(list []interface{}) []string {
-	s := make([]string, len(list))
-	for k, e := range list {
-		s[k] = e.(string)
-	}
-	sort.Strings(s)
-
-	return s
 }
 
 func copyAndRemoveItemMapList(
