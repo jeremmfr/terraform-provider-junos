@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.27.0
 	github.com/hashicorp/terraform-plugin-mux v0.19.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
-	github.com/hashicorp/terraform-plugin-testing v1.12.0
+	github.com/hashicorp/terraform-plugin-testing v1.13.0
 	github.com/jeremmfr/go-netconf v0.6.0
 	github.com/jeremmfr/go-utils v0.12.0
 	github.com/jeremmfr/junosdecode v1.1.1
