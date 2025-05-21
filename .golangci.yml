@@ -1,11 +1,8 @@
-run:
-  timeout: 5m
+version: "2"
 
 linters:
-  enable-all: true
+  default: all
   disable:
-    # deprecated
-    - tenv # deprecated 1.64.0
     # unwanted
     - cyclop
     - depguard
@@ -13,6 +10,7 @@ linters:
     - err113
     - exhaustruct
     - forcetypeassert
+    - funcorder
     - funlen
     - gomoddirectives
     - gosec
@@ -27,87 +25,102 @@ linters:
     - recvcheck
     - varnamelen
     - wsl
-
-linters-settings:
-  gci:
-    custom-order: true
-    sections:
-      - standard
-      - localModule
-      - default
-  gocognit:
-    # minimal code complexity to report, 30 by default
-    min-complexity: 180
-  goconst:
-    # Minimum occurrences of constant string count to trigger issue.
-    min-occurrences: 25
-    # Ignore test files.
-    ignore-tests: true
-  gocritic:
-    enabled-checks:
-      - ruleguard
-    settings:
-      ruleguard:
-        rules: '${configDir}/internal/ruleguard/*.go'
-  gocyclo:
-    # minimal code complexity to report, 30 by default
-    min-complexity: 100
-  gofumpt:
-    extra-rules: true
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment
-      - shadow
-  revive:
-    rules:
-      # defaults
-      - name: blank-imports
-      - name: context-as-argument
-      - name: context-keys-type
-      - name: dot-imports
-      - name: empty-block
-      - name: error-naming
-      - name: error-return
-      - name: error-strings
-      - name: errorf
-      - name: exported
-      - name: increment-decrement
-      - name: indent-error-flow
-      - name: package-comments
-      - name: range
-      - name: receiver-naming
-      - name: redefines-builtin-id
-      - name: superfluous-else
-      - name: time-naming
-      - name: unexported-return
-      - name: unreachable-code
-      - name: unused-parameter
-      - name: var-declaration
-      - name: var-naming
-      # additionals
-      - name: confusing-naming
-      - name: import-alias-naming
-      - name: import-shadowing
-      - name: unhandled-error
-  tagalign:
-    order:
-      - tfsdk
-      - tfdata
-  tagliatelle:
-    case:
+  settings:
+    gocognit:
+      min-complexity: 180
+    goconst:
+      min-occurrences: 25
+    gocritic:
+      enabled-checks:
+        - ruleguard
+      settings:
+        ruleguard:
+          rules: ${base-path}/internal/ruleguard/*.go
+    gocyclo:
+      min-complexity: 100
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+        - shadow
+    revive:
       rules:
-        json: snake
-        tfsdk: snake
+        # defaults
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: unused-parameter
+        - name: var-declaration
+        - name: var-naming
+        # additionals
+        - name: confusing-naming
+        - name: import-alias-naming
+        - name: import-shadowing
+        - name: unhandled-error
+    staticcheck:
+      checks:
+        - "all"
+        - "-QF1002"
+        - "-QF1008"
+        - "-QF1011"
+    tagalign:
+      order:
+        - tfsdk
+        - tfdata
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+          tfsdk: snake
+  exclusions:
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - wrapcheck
+        text: github.com/jeremmfr/terraform-provider-junos/internal
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 
-issues:
-  exclude-rules:
-    - text: "github.com/jeremmfr/terraform-provider-junos/internal"
-      linters:
-        - wrapcheck
-    - path: "internal/providersdk/"
-      linters:
-        - goconst
-    - text: "string `description \"` has "
-      linters:
-        - goconst
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - localModule
+        - default
+      custom-order: true
+    gofumpt:
+      extra-rules: true
+  exclusions:
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
