@@ -190,7 +190,6 @@ func Provider() *schema.Provider {
 
 			"junos_services_advanced_anti_malware_policy":  resourceServicesAdvancedAntiMalwarePolicy(),
 			"junos_services_proxy_profile":                 resourceServicesProxyProfile(),
-			"junos_services_ssl_initiation_profile":        resourceServicesSSLInitiationProfile(),
 			"junos_services_security_intelligence_policy":  resourceServicesSecurityIntellPolicy(),
 			"junos_services_security_intelligence_profile": resourceServicesSecurityIntellProfile(),
 		},
