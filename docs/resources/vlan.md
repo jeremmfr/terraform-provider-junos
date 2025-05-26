@@ -37,6 +37,8 @@ The following arguments are supported:
   Output filter to apply for forwarded packets.
 - **forward_flood_input** (Optional, String)  
   Input filter to apply for ethernet switching flood packets.
+- **interface** (Optional, Set of String)  
+  Interface name for this VLAN.
 - **isolated_vlan** (Optional, String)  
   VLAN id or name of isolated vlan for primary vlan.
 - **l3_interface** (Optional, String)  
