@@ -39,7 +39,7 @@ The following arguments are supported:
   Declare profile default rule.
   - **action** (Required, String)  
     Security intelligence profile action.  
-    Need to be `permit`, `recommended`, `block drop`, `block close` or
+    Need to be `permit`, `recommended`, `sinkhole`, `block drop`, `block close` or
     `block close http (file|message|redirect-url) ...`.
   - **log** (Optional, Boolean)  
     Log security intelligence block action.
@@ -62,7 +62,7 @@ The following arguments are supported:
     Profile matching feed name.
 - **then_action** (Required, String)  
   Security intelligence profile action.  
-  Need to be `permit`, `recommended`, `block drop`, `block close` or
+  Need to be `permit`, `recommended`, `sinkhole`, `block drop`, `block close` or
   `block close http (file|message|redirect-url) ...`.
 - **then_log** (Optional, Boolean)  
   Log security intelligence block action.
