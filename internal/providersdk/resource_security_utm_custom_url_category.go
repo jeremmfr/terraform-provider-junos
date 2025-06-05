@@ -31,7 +31,7 @@ func resourceSecurityUtmCustomURLCategory() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
+				ValidateDiagFunc: validateNameObjectJunos(32),
 			},
 			"value": {
 				Type:     schema.TypeList,
@@ -261,7 +261,7 @@ func checkUtmCustomURLCategorysExists(urlCategory string, junSess *junos.Session
 }
 
 func setUtmCustomURLCategory(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set security utm custom-objects custom-url-category " + d.Get("name").(string) + " "
 	for _, v := range d.Get("value").([]interface{}) {

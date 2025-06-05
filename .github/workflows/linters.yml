@@ -5,10 +5,10 @@ jobs:
     name: golangci-lint
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.23
+      - name: Set up Go 1.24
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
           check-latest: true
         id: go
       - name: Disable cgo
@@ -17,9 +17,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: v1.64.5
+          version: v2.1.6
           args: -c .golangci.yml -v
 
   markdown-lint:
@@ -38,10 +38,10 @@ jobs:
     name: terrafmt
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.23
+      - name: Set up Go 1.24
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
           check-latest: true
         id: go
       - name: Show version

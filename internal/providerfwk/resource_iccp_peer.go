@@ -455,7 +455,7 @@ func (rscData *iccpPeerData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set protocols iccp peer " + rscData.IPAddress.ValueString() + " "
 
 	for _, v := range rscData.RedundancyGroupIDList {

@@ -288,10 +288,9 @@ func (rscData *multichassisProtectionPeerData) set(
 ) {
 	setPrefix := "set multi-chassis multi-chassis-protection " + rscData.IPAddress.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-		setPrefix + "interface " + rscData.Interface.ValueString(),
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix
+	configSet[1] = setPrefix + "interface " + rscData.Interface.ValueString()
 
 	if !rscData.IclDownDelay.IsNull() {
 		configSet = append(configSet, setPrefix+"icl-down-delay "+

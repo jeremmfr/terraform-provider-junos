@@ -443,7 +443,7 @@ func (rscData *securityAuthenticationKeyChainData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security authentication-key-chains key-chain \"" + rscData.Name.ValueString() + "\" "
 
 	if v := rscData.Description.ValueString(); v != "" {
@@ -471,10 +471,9 @@ func (rscData *securityAuthenticationKeyChainData) set(
 func (block *securityAuthenticationKeyChainBlockKey) configSet(setPrefix string) []string {
 	setPrefix += "key " + utils.ConvI64toa(block.ID.ValueInt64()) + " "
 
-	configSet := []string{
-		setPrefix + "secret \"" + block.Secret.ValueString() + "\"",
-		setPrefix + "start-time " + block.StartTime.ValueString(),
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix + "secret \"" + block.Secret.ValueString() + "\""
+	configSet[1] = setPrefix + "start-time " + block.StartTime.ValueString()
 
 	if v := block.Algorithm.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"algorithm "+v)

@@ -694,7 +694,7 @@ func (rscData *systemLoginClassData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system login class " + rscData.Name.ValueString() + " "
 
 	if rscData.isEmpty() {

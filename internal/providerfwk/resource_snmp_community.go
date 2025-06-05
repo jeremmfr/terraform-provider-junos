@@ -450,7 +450,7 @@ func (rscData *snmpCommunityData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set snmp community \"" + rscData.Name.ValueString() + "\" "
 
 	if rscData.AuthorizationReadOnly.ValueBool() {

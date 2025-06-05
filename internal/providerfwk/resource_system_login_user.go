@@ -551,9 +551,8 @@ func (rscData *systemLoginUserData) set(
 ) {
 	setPrefix := "set system login user " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix + "class " + rscData.Class.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "class " + rscData.Class.ValueString()
 
 	if !rscData.UID.IsNull() {
 		configSet = append(configSet, setPrefix+"uid "+
@@ -662,11 +661,12 @@ func (rscData *systemLoginUserData) read(
 func (rscData *systemLoginUserData) readComputed(
 	_ context.Context, junSess *junos.Session,
 ) error {
-	if !rscData.UID.IsUnknown() {
-		return nil
-	}
-	// set to null if an error occurs after
-	rscData.UID = types.Int64Null()
+	defer func() {
+		// set unknown to null if still unknown after reading config
+		if rscData.UID.IsUnknown() {
+			rscData.UID = types.Int64Null()
+		}
+	}()
 
 	if !junSess.HasNetconf() {
 		return nil
@@ -686,7 +686,7 @@ func (rscData *systemLoginUserData) readComputed(
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
-			if balt.CutPrefixInString(&itemTrim, "uid ") {
+			if balt.CutPrefixInString(&itemTrim, "uid ") && rscData.UID.IsUnknown() {
 				rscData.UID, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
 					return err

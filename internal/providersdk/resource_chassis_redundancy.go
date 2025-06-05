@@ -253,7 +253,7 @@ func resourceChassisRedundancyImport(ctx context.Context, d *schema.ResourceData
 }
 
 func setChassisRedundancy(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set chassis redundancy "
 

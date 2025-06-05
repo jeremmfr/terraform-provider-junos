@@ -162,6 +162,20 @@ func (rsc *vlan) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"interface": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Interface name for this VLAN.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
+					setvalidator.ValueStringsAre(
+						stringvalidator.LengthAtLeast(1),
+						tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
+						tfvalidator.String1DotCount(),
+					),
+				},
+			},
 			"isolated_vlan": schema.StringAttribute{
 				Optional:    true,
 				Description: "VLAN id or name of isolated vlan for primary vlan.",
@@ -317,6 +331,7 @@ type vlanData struct {
 	ForwardFilterInput  types.String    `tfsdk:"forward_filter_input"`
 	ForwardFilterOutput types.String    `tfsdk:"forward_filter_output"`
 	ForwardFloodInput   types.String    `tfsdk:"forward_flood_input"`
+	Interface           []types.String  `tfsdk:"interface"`
 	IsolatedVlan        types.String    `tfsdk:"isolated_vlan"`
 	L3Interface         types.String    `tfsdk:"l3_interface"`
 	NoARPSuppression    types.Bool      `tfsdk:"no_arp_suppression"`
@@ -340,6 +355,7 @@ type vlanConfig struct {
 	ForwardFilterInput  types.String          `tfsdk:"forward_filter_input"`
 	ForwardFilterOutput types.String          `tfsdk:"forward_filter_output"`
 	ForwardFloodInput   types.String          `tfsdk:"forward_flood_input"`
+	Interface           types.Set             `tfsdk:"interface"`
 	IsolatedVlan        types.String          `tfsdk:"isolated_vlan"`
 	L3Interface         types.String          `tfsdk:"l3_interface"`
 	NoARPSuppression    types.Bool            `tfsdk:"no_arp_suppression"`
@@ -672,7 +688,7 @@ func (rscData *vlanData) set(
 			errors.New("at least one of arguments need to be set (in addition to `name` and `routing_instance`)")
 	}
 
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "
@@ -694,6 +710,9 @@ func (rscData *vlanData) set(
 	}
 	if v := rscData.ForwardFloodInput.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"forwarding-options flood input \""+v+"\"")
+	}
+	for _, v := range rscData.Interface {
+		configSet = append(configSet, setPrefix+"interface "+v.ValueString())
 	}
 	if v := rscData.IsolatedVlan.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"isolated-vlan "+v)
@@ -792,6 +811,8 @@ func (rscData *vlanData) read(
 				rscData.ForwardFilterOutput = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "forwarding-options flood input "):
 				rscData.ForwardFloodInput = types.StringValue(strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "interface "):
+				rscData.Interface = append(rscData.Interface, types.StringValue(itemTrim))
 			case balt.CutPrefixInString(&itemTrim, "isolated-vlan "):
 				rscData.IsolatedVlan = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "l3-interface "):

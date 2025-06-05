@@ -390,7 +390,7 @@ func (rscData *securityIkePolicyData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security ike policy \"" + rscData.Name.ValueString() + "\" "
 
 	if v := rscData.Mode.ValueString(); v != "" {

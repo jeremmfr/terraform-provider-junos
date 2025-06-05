@@ -806,7 +806,7 @@ func (rscData *ospfData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	routingInstance := rscData.RoutingInstance.ValueString()
 	if routingInstance != "" && routingInstance != junos.DefaultW {
@@ -912,9 +912,8 @@ func (rscData *ospfData) set(
 func (block *ospfBlockDatabaseProtection) configSet(setPrefix string) []string {
 	setPrefix += "database-protection "
 
-	configSet := []string{
-		setPrefix + "maximum-lsa " + utils.ConvI64toa(block.MaximumLsa.ValueInt64()),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "maximum-lsa " + utils.ConvI64toa(block.MaximumLsa.ValueInt64())
 
 	if !block.IgnoreCount.IsNull() {
 		configSet = append(configSet, setPrefix+"ignore-count "+
@@ -946,7 +945,7 @@ func (block *ospfBlockGracefulRestart) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "graceful-restart "
 
 	if block.Disable.ValueBool() {
@@ -981,9 +980,8 @@ func (block *ospfBlockGracefulRestart) configSet(
 func (block *ospfBlockOverload) configSet(setPrefix string) []string {
 	setPrefix += "overload "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.AllowRouteLeaking.ValueBool() {
 		configSet = append(configSet, setPrefix+"allow-route-leaking")
@@ -1003,7 +1001,7 @@ func (block *ospfBlockOverload) configSet(setPrefix string) []string {
 }
 
 func (block *ospfBlockSpfOptions) configSet(setPrefix string) []string {
-	configSet := make([]string, 0, 1)
+	configSet := make([]string, 0, 100)
 	setPrefix += "spf-options "
 
 	if !block.Delay.IsNull() {

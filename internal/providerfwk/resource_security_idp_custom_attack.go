@@ -2907,9 +2907,8 @@ func (rscData *securityIdpCustomAttackData) set(
 ) {
 	setPrefix := "set security idp custom-attack \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix + "severity " + rscData.Severity.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "severity " + rscData.Severity.ValueString()
 
 	if v := rscData.RecommendedAction.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"recommended-action "+v)
@@ -2944,9 +2943,8 @@ func (rscData *securityIdpCustomAttackData) set(
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeAnomaly) configSet(setPrefix string) []string {
-	configSet := []string{
-		setPrefix + "attack-type anomaly service \"" + block.Service.ValueString() + "\"",
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "attack-type anomaly service \"" + block.Service.ValueString() + "\""
 
 	configSet = append(configSet,
 		block.securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeAnomaly.configSet(setPrefix)...)
@@ -2961,7 +2959,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeChain) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "attack-type chain "
 
 	if v := block.Expression.ValueString(); v != "" {
@@ -3008,7 +3006,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMember) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "member \"" + block.Name.ValueString() + "\" "
 
 	if block.isEmpty() {
@@ -3041,10 +3039,9 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMember) configSet(
 func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeAnomaly) configSet(setPrefix string) []string { //nolint:lll
 	setPrefix += "attack-type anomaly "
 
-	configSet := []string{
-		setPrefix + "direction " + block.Direction.ValueString(),
-		setPrefix + "test \"" + block.Test.ValueString() + "\"",
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix + "direction " + block.Direction.ValueString()
+	configSet[1] = setPrefix + "test \"" + block.Test.ValueString() + "\""
 
 	if v := block.Shellcode.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"shellcode "+v)
@@ -3062,10 +3059,9 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTy
 ) {
 	setPrefix += "attack-type signature "
 
-	configSet := []string{
-		setPrefix + "context \"" + block.Context.ValueString() + "\"",
-		setPrefix + "direction " + block.Direction.ValueString(),
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix + "context \"" + block.Context.ValueString() + "\""
+	configSet[1] = setPrefix + "direction " + block.Direction.ValueString()
 
 	if block.Negate.ValueBool() {
 		configSet = append(configSet, setPrefix+"negate")
@@ -3193,7 +3189,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignature) configSet(
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIcmp) configSet(
 	setPrefix string, v6 bool,
 ) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	switch v6 {
 	case false:
 		setPrefix += "protocol icmp "
@@ -3248,7 +3244,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIcmp) c
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIPv4) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "protocol ipv4 "
 
 	if v := block.ChecksumValidateMatch.ValueString(); v != "" {
@@ -3320,7 +3316,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIPv4) c
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIPv6) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "protocol ipv6 "
 
 	if v := block.DestinationMatch.ValueString(); v != "" {
@@ -3395,7 +3391,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolIPv6) c
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolTCP) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "protocol tcp "
 
 	if v := block.AckNumberMatch.ValueString(); v != "" {
@@ -3497,7 +3493,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolTCP) co
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolUDP) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "protocol udp "
 
 	if v := block.ChecksumValidateMatch.ValueString(); v != "" {

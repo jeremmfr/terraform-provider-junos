@@ -1666,7 +1666,7 @@ func checkInterfacePhysicalNCEmpty(
 	if err != nil {
 		return false, false, err
 	}
-	showConfigLines := make([]string, 0)
+	showConfigLines := make([]string, 0, 100)
 	// remove unused lines
 	for _, item := range strings.Split(showConfig, "\n") {
 		// show parameters root on interface exclude unit parameters (except ethernet-switching)
@@ -1775,9 +1775,8 @@ func (rscData *interfacePhysicalData) set(
 ) {
 	setPrefix := "set interfaces " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := rscData.Description.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
@@ -1942,9 +1941,8 @@ func (rscData *interfacePhysicalData) set(
 }
 
 func (block *interfacePhysicalBlockESI) configSet(setPrefix string) []string {
-	configSet := []string{
-		setPrefix + "esi " + block.Mode.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "esi " + block.Mode.ValueString()
 
 	if block.AutoDeriveLACP.ValueBool() {
 		configSet = append(configSet, setPrefix+"esi auto-derive lacp")
@@ -1969,7 +1967,7 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	switch {
 	case strings.HasPrefix(interfaceName, "ae"):
 		setPrefix += "aggregated-ether-options "
@@ -2616,7 +2614,7 @@ func findInterfaceAggregatedCountMax(
 		return "", err
 	}
 
-	listAEFound := make([]string, 0)
+	listAEFound := make([]string, 0, 100)
 	regexpAEchild := regexp.MustCompile(`ether-options 802\.3ad ae\d+$`)
 	regexpAEparent := regexp.MustCompile(`^set ae\d+ `)
 

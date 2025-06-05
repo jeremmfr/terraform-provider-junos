@@ -3023,7 +3023,7 @@ func (rscData *systemData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system "
 
 	for _, v := range rscData.AuthenticationOrder {
@@ -3220,7 +3220,7 @@ func (block *systemBlockAccounting) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0, len(block.Events)+1)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system accounting "
 
 	for _, v := range block.Events {
@@ -3267,9 +3267,8 @@ func (block *systemBlockAccounting) configSet() (
 func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet() []string {
 	setPrefix := "set system accounting destination radius server " + block.Address.ValueString() + " "
 
-	configSet := []string{
-		setPrefix + "secret \"" + block.Secret.ValueString() + "\"",
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "secret \"" + block.Secret.ValueString() + "\""
 
 	if !block.AccountingPort.IsNull() {
 		configSet = append(configSet, setPrefix+"accounting-port "+
@@ -3323,9 +3322,8 @@ func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet() []st
 func (block *systemBlockAccountingBlockDestinationTacplusServer) configSet() []string {
 	setPrefix := "set system accounting destination tacplus server " + block.Address.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.Port.IsNull() {
 		configSet = append(configSet, setPrefix+"port "+
@@ -3356,7 +3354,7 @@ func (block *systemBlockArchivalConfiguration) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system archival configuration "
 
 	archiveSiteURL := make(map[string]struct{})
@@ -3394,7 +3392,7 @@ func (block *systemBlockInternetOptions) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system internet-options "
 
 	if block.GrePathMtuDiscovery.ValueBool() {
@@ -3499,7 +3497,7 @@ func (block *systemBlockLicense) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system license "
 
 	if block.Autoupdate.ValueBool() {
@@ -3542,7 +3540,7 @@ func (block *systemBlockLogin) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system login "
 
 	if v := block.Announcement.ValueString(); v != "" {
@@ -3646,7 +3644,7 @@ func (block *systemBlockNtp) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system ntp "
 
 	if v := block.BootServer.ValueString(); v != "" {
@@ -3686,7 +3684,7 @@ func (block *systemBlockNtp) configSet() (
 }
 
 func (block *systemBlockPorts) configSet() []string { // configSet
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system ports "
 
 	for _, v := range block.AuxiliaryAuthenticationOrder {
@@ -3728,7 +3726,7 @@ func (block *systemBlockServices) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system services "
 
 	if !block.WebManagementSessionIdleTimeout.IsNull() {
@@ -3917,7 +3915,7 @@ func (block *systemBlockSyslog) configSet() (
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system syslog "
 
 	if !block.LogRotateFrequency.IsNull() {
@@ -4727,7 +4725,7 @@ func (block *systemBlockPorts) read(itemTrim string) (err error) {
 }
 
 func (systemBlockServices) junosLines() []string {
-	s := make([]string, 0, 50)
+	s := make([]string, 0, 100)
 	s = append(s, "services web-management session idle-timeout")
 	s = append(s, "services web-management session session-limit")
 	s = append(s, systemBlockServicesBlockNetconfSSH{}.junosLines()...)

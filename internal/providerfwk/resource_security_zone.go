@@ -898,7 +898,7 @@ func (rscData *securityZoneData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security zones security-zone " + rscData.Name.ValueString() + " "
 
 	configSet = append(configSet, setPrefix)

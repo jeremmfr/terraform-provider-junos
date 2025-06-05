@@ -617,7 +617,7 @@ func (rscData *securityGlobalPolicyData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security policies global policy "
 
 	policyName := make(map[string]struct{})

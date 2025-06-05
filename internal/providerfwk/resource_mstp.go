@@ -477,8 +477,7 @@ func (rsc *mstp) ImportState(
 	if data.nullID() {
 		resp.Diagnostics.AddError(
 			tfdiag.NotFoundErrSummary,
-			defaultResourceImportDontFindMessage(rsc, req.ID)+
-				" (id must be <routing_instance>)",
+			defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "routing_instance"),
 		)
 
 		return
@@ -504,7 +503,7 @@ func (rscData *mstpData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "

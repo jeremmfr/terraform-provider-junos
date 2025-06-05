@@ -314,9 +314,8 @@ func (rscData *oamGretunnelInterfaceData) set(
 ) {
 	setPrefix := "set protocols oam gre-tunnel interface " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !rscData.HoldTime.IsNull() {
 		configSet = append(configSet, setPrefix+"hold-time "+

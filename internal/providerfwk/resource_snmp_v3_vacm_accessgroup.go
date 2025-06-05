@@ -564,7 +564,7 @@ func (rscData *snmpV3VacmAccessgroupData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set snmp v3 vacm access group \"" + rscData.Name.ValueString() + "\" "
 
 	defaultContextPrefixModelLevel := make(map[string]struct{})

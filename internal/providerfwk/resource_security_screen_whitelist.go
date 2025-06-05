@@ -297,7 +297,7 @@ func (rscData *securityScreenWhitelistData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security screen white-list " + rscData.Name.ValueString() + " "
 
 	for _, v := range rscData.Address {

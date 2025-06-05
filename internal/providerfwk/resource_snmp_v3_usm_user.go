@@ -681,7 +681,7 @@ func (rscData *snmpV3UsmUserData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set snmp v3 usm "
 	switch v := rscData.EngineType.ValueString(); v {
 	case "local":

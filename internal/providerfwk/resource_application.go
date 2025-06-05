@@ -810,7 +810,7 @@ func (rscData *applicationData) set(
 }
 
 func (rscData applicationAttrData) configSet(blockErrorSuffix string) ([]string, path.Path, error) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set applications application " + rscData.Name.ValueString() + " "
 
 	if v := rscData.ApplicationProtocol.ValueString(); v != "" {
@@ -889,10 +889,9 @@ func (block *applicationBlockTerm) configSet(
 ) {
 	setPrefix += "term " + block.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-		setPrefix + "protocol " + block.Protocol.ValueString(),
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix
+	configSet[1] = setPrefix + "protocol " + block.Protocol.ValueString()
 
 	if v := block.Alg.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"alg "+v)

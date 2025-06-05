@@ -463,7 +463,7 @@ func (rscData *securityDynamicAddressNameData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security dynamic-address address-name " + rscData.Name.ValueString() + " "
 
 	if v := rscData.Description.ValueString(); v != "" {
@@ -496,9 +496,8 @@ func (block *securityDynamicAddressNameBlockProfileCategory) configSet(
 ) {
 	setPrefix += "profile category " + block.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.Feed.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"feed "+v)

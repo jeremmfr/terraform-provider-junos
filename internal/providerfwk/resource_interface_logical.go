@@ -2378,7 +2378,7 @@ func checkInterfaceLogicalNCEmpty(
 	if err != nil {
 		return false, false, false, err
 	}
-	showConfigLines := make([]string, 0)
+	showConfigLines := make([]string, 0, 100)
 	// remove unused lines
 	for _, item := range strings.Split(showConfig, "\n") {
 		// exclude ethernet-switching (parameters in junos_interface_physical)
@@ -2432,9 +2432,8 @@ func (rscData *interfaceLogicalData) set(
 
 	setPrefix := "set interfaces " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := rscData.Description.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
@@ -2625,9 +2624,8 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
 ) {
 	setPrefix += "family inet address " + block.CidrIP.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.Preferred.ValueBool() {
 		configSet = append(configSet, setPrefix+"preferred")
@@ -2670,7 +2668,7 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup) configSe
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "vrrp-group " + utils.ConvI64toa(block.Identifier.ValueInt64()) + " "
 
 	for _, v := range block.VirtualAddress {
@@ -2755,9 +2753,8 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 ) {
 	setPrefix += "family inet6 address " + block.CidrIP.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.Preferred.ValueBool() {
 		configSet = append(configSet, setPrefix+"preferred")
@@ -2774,7 +2771,7 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddress) configSet(
 		identifier := vrrpGroup.Identifier.ValueInt64()
 		if _, ok := vrrpGroupID[identifier]; ok {
 			return configSet, pathRoot.AtName("vrrp_group").AtListIndex(i).AtName("identifier"),
-				fmt.Errorf("multiple blocks vrrp_group with the same identifier %d"+
+				fmt.Errorf("multiple vrrp_group blocks with the same identifier %d"+
 					" in address block %q in family_inet6 block", identifier, block.CidrIP.ValueString())
 		}
 		vrrpGroupID[identifier] = struct{}{}
@@ -2802,9 +2799,9 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup) configS
 ) {
 	setPrefix += "vrrp-inet6-group " + utils.ConvI64toa(block.Identifier.ValueInt64()) + " "
 
-	configSet := []string{
-		setPrefix + "virtual-link-local-address " + block.VirutalLinkLocalAddress.ValueString(),
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "virtual-link-local-address " + block.VirutalLinkLocalAddress.ValueString()
+
 	for _, v := range block.VirtualAddress {
 		configSet = append(configSet, setPrefix+"virtual-inet6-address "+v.ValueString())
 	}
@@ -2881,9 +2878,8 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) configSet(setPrefix strin
 		setPrefix += " "
 	}
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.ClientIdentifierASCII.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"client-identifier ascii \""+v+"\"")
@@ -2950,10 +2946,9 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) configSet(setPrefix strin
 func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client) configSet(setPrefix string) []string {
 	setPrefix += "family inet6 dhcpv6-client "
 
-	configSet := []string{
-		setPrefix + "client-identifier duid-type " + block.ClientIdentifierDuidType.ValueString(),
-		setPrefix + "client-type " + block.ClientType.ValueString(),
-	}
+	configSet := make([]string, 2, 100)
+	configSet[0] = setPrefix + "client-identifier duid-type " + block.ClientIdentifierDuidType.ValueString()
+	configSet[1] = setPrefix + "client-type " + block.ClientType.ValueString()
 
 	if block.ClientIATypeNA.ValueBool() {
 		configSet = append(configSet, setPrefix+"client-ia-type ia-na")

@@ -558,10 +558,10 @@ func upgradeSystemServicesDhcpLocalserverGroupV0toV1(
 ) {
 	//nolint:lll
 	type modelV0 struct {
-		ID                                   types.String `tfsdk:"id"                                       tfdata:"skip_isempty"`
-		Name                                 types.String `tfsdk:"name"                                     tfdata:"skip_isempty"`
-		RoutingInstance                      types.String `tfsdk:"routing_instance"                         tfdata:"skip_isempty"`
-		Version                              types.String `tfsdk:"version"                                  tfdata:"skip_isempty"`
+		ID                                   types.String `tfsdk:"id"`
+		Name                                 types.String `tfsdk:"name"`
+		RoutingInstance                      types.String `tfsdk:"routing_instance"`
+		Version                              types.String `tfsdk:"version"`
 		AccessProfile                        types.String `tfsdk:"access_profile"`
 		AuthenticationPassword               types.String `tfsdk:"authentication_password"`
 		DynamicProfile                       types.String `tfsdk:"dynamic_profile"`
@@ -600,7 +600,7 @@ func upgradeSystemServicesDhcpLocalserverGroupV0toV1(
 			VlanTags                             types.Bool   `tfsdk:"vlan_tags"`
 		} `tfsdk:"authentication_username_include"`
 		Interface []struct {
-			Name                                 types.String `tfsdk:"name"                                     tfdata:"identifier"`
+			Name                                 types.String `tfsdk:"name"`
 			AccessProfile                        types.String `tfsdk:"access_profile"`
 			DynamicProfile                       types.String `tfsdk:"dynamic_profile"`
 			DynamicProfileAggregateClients       types.Bool   `tfsdk:"dynamic_profile_aggregate_clients"`

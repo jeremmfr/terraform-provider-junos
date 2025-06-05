@@ -1270,7 +1270,7 @@ func (rscData *eventoptionsPolicyData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set event-options policy \"" + rscData.Name.ValueString() + "\" "
 
 	for _, v := range rscData.Events {
@@ -1333,7 +1333,7 @@ func (block *eventoptionsPolicyBlockThen) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "then "
 
 	if block.Ignore.ValueBool() {
@@ -1406,7 +1406,7 @@ func (block *eventoptionsPolicyBlockThenBlockChangeConfigurtion) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0, len(block.Commands))
+	configSet := make([]string, 0, 100)
 	setPrefix += "change-configuration "
 
 	for _, v := range block.Commands {
@@ -1461,9 +1461,8 @@ func (block *eventoptionsPolicyBlockThenBlockEventScript) configSet(
 ) {
 	setPrefix += "event-script \"" + block.Filename.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.OutputFilename.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"output-filename \""+v+"\"")
@@ -1504,7 +1503,7 @@ func (block *eventoptionsPolicyBlockThenBlockExecuteCommands) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0, len(block.Commands))
+	configSet := make([]string, 0, 100)
 	setPrefix += "execute-commands "
 
 	for _, v := range block.Commands {
@@ -1540,9 +1539,8 @@ func (block *eventoptionsPolicyBlockThenBlockUpload) configSet(
 	setPrefix += "upload filename \"" + block.Filename.ValueString() + "\"" +
 		" destination \"" + block.Destination.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.RetryCount.IsNull() {
 		if block.RetryInterval.IsNull() {
@@ -1578,9 +1576,8 @@ func (block *eventoptionsPolicyBlockThenBlockDestination) configSet(
 ) {
 	setPrefix += "destination \"" + block.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.RetryCount.IsNull() {
 		if block.RetryInterval.IsNull() {
@@ -1611,7 +1608,7 @@ func (block *eventoptionsPolicyBlockWithin) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "within " + utils.ConvI64toa(block.TimeInterval.ValueInt64()) + " "
 
 	for _, v := range block.Events {

@@ -689,7 +689,7 @@ func (rscData *systemSyslogFileData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set system syslog file \"" + rscData.Filename.ValueString() + "\" "
 
 	if rscData.AllowDuplicates.ValueBool() {

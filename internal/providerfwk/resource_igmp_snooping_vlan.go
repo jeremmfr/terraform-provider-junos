@@ -597,9 +597,8 @@ func (rscData *igmpSnoopingVlanData) set(
 	}
 	setPrefix += "protocols igmp-snooping vlan " + rscData.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if rscData.ImmediateLeave.ValueBool() {
 		configSet = append(configSet, setPrefix+"immediate-leave")
@@ -663,9 +662,8 @@ func (block *igmpSnoopingVlanBlockInterface) configSet(
 ) {
 	setPrefix += "interface " + block.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.GroupLimit.IsNull() {
 		configSet = append(configSet, setPrefix+"group-limit "+

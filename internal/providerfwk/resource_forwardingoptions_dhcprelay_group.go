@@ -1330,7 +1330,7 @@ func (rsc *forwardingoptionsDhcprelayGroup) ValidateConfig( //nolint:gocognit,go
 				resp.Diagnostics.AddAttributeError(
 					path.Root("server_match_duid"),
 					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple blocks server_match_duid with the same compare %q, value_type %q, value %q",
+					fmt.Sprintf("multiple server_match_duid blocks with the same compare %q, value_type %q, value %q",
 						block.Compare.ValueString(), block.ValueType.ValueString(), block.Value.ValueString()),
 				)
 			}
@@ -1613,7 +1613,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) set(
 			errors.New("at least one of arguments need to be set (in addition to `name`, `routing_instance` and `version`)")
 	}
 
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
 		setPrefix += junos.RoutingInstancesWS + v + " "
@@ -1933,7 +1933,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) set(
 		if _, ok := serverMatchDuidBlock[blockString]; ok {
 			return path.Root("server_match_duid"),
 
-				fmt.Errorf("multiple blocks server_match_duid with the same compare %q, value_type %q, value %q",
+				fmt.Errorf("multiple server_match_duid blocks with the same compare %q, value_type %q, value %q",
 					block.Compare.ValueString(), block.ValueType.ValueString(), block.Value.ValueString())
 		}
 		serverMatchDuidBlock[blockString] = struct{}{}
@@ -1952,9 +1952,8 @@ func (block *forwardingoptionsDhcprelayGroupBlockInterface) configSet(
 ) {
 	setPrefix += "interface " + block.Name.ValueString() + " "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if v := block.AccessProfile.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"access-profile \""+v+"\"")

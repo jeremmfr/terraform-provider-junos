@@ -390,7 +390,7 @@ func resourceChassisClusterImport(ctx context.Context, d *schema.ResourceData, m
 }
 
 func setChassisCluster(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setIntPrefix := "set interfaces "
 	for _, v := range d.Get("fab0").([]interface{}) {

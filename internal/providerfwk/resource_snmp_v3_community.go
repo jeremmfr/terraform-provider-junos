@@ -313,9 +313,8 @@ func (rscData *snmpV3CommunityData) set(
 ) {
 	setPrefix := "set snmp v3 snmp-community \"" + rscData.CommunityIndex.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix + "security-name \"" + rscData.SecurityName.ValueString() + "\"",
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "security-name \"" + rscData.SecurityName.ValueString() + "\""
 
 	if v := rscData.CommunityName.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"community-name \""+v+"\"")

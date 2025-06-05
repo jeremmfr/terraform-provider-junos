@@ -754,7 +754,7 @@ func (rscData *securityAddressBookData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security address-book \"" + rscData.Name.ValueString() + "\" "
 
 	if v := rscData.Description.ValueString(); v != "" {

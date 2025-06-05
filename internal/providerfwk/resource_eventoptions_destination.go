@@ -362,7 +362,7 @@ func (rscData *eventoptionsDestinationData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set event-options destinations \"" + rscData.Name.ValueString() + "\" "
 
 	archiveSiteURL := make(map[string]struct{})

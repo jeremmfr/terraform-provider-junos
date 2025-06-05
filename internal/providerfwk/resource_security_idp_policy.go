@@ -1070,9 +1070,8 @@ func (rscData *securityIdpPolicyData) set(
 ) {
 	setPrefix := "set security idp idp-policy \"" + rscData.Name.ValueString() + "\" "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	exemptRuleName := make(map[string]struct{})
 	for i, block := range rscData.ExemptRule {
@@ -1115,7 +1114,7 @@ func (block *securityIdpPolicyBlockExemptRule) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "rulebase-exempt rule \"" + block.Name.ValueString() + "\" "
 
 	if v := block.Description.ValueString(); v != "" {
@@ -1139,7 +1138,7 @@ func (block *securityIdpPolicyBlockExemptRule) configSet(
 }
 
 func (block *securityIdpPolicyBlockExemptRuleBlockMatch) configSet(setPrefix string) []string {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "match "
 
 	for _, v := range block.CustomAttack {
@@ -1186,7 +1185,7 @@ func (block *securityIdpPolicyBlockIpsRule) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "rulebase-ips rule \"" + block.Name.ValueString() + "\" "
 
 	if v := block.Description.ValueString(); v != "" {

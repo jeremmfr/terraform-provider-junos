@@ -568,7 +568,7 @@ func (rscData *routingInstanceData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := junos.SetLS + junos.RoutingInstancesWS + rscData.Name.ValueString() + " "
 
 	if rscData.ConfigureTypeSingly.ValueBool() {

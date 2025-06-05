@@ -50,9 +50,8 @@ func (forwardingoptionsDhcprelayBlockLeaseTimeValidation) attributesSchema() map
 func (block *forwardingoptionsDhcprelayBlockLeaseTimeValidation) configSet(setPrefix string) []string {
 	setPrefix += "lease-time-validation "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if !block.LeaseTimeThreshold.IsNull() {
 		configSet = append(configSet, setPrefix+"lease-time-threshold "+
@@ -279,7 +278,7 @@ func (block *forwardingoptionsDhcprelayBlockOverridesV4) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "overrides "
 
 	if block.AllowNoEndOption.ValueBool() {
@@ -546,7 +545,7 @@ func (block *forwardingoptionsDhcprelayBlockOverridesV6) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "overrides "
 
 	if block.AllowSnoopedClients.ValueBool() {
@@ -712,7 +711,7 @@ func (block *forwardingoptionsDhcprelayBlockRelayAgentID) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	if block.IncludeIrbAndL2.ValueBool() {
 		configSet = append(configSet, setPrefix+"include-irb-and-l2")
@@ -809,9 +808,8 @@ func (block *forwardingoptionsDhcprelayBlockRelayAgentInterfaceID) configSet(
 ) {
 	setPrefix += "relay-agent-interface-id "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	blockSet, pathErr, err := block.forwardingoptionsDhcprelayBlockRelayAgentID.configSet(setPrefix, pathRoot)
 	if err != nil {
@@ -878,9 +876,8 @@ func (block *forwardingoptionsDhcprelayBlockRelayAgentRemoteID) configSet(
 ) {
 	setPrefix += "relay-agent-remote-id "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	blockSet, pathErr, err := block.forwardingoptionsDhcprelayBlockRelayAgentID.configSet(setPrefix, pathRoot)
 	if err != nil {
@@ -1014,7 +1011,7 @@ func (block *forwardingoptionsDhcprelayBlockRelayOption) configSet(
 	path.Path, // pathErr
 	error, // error
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix += "relay-option "
 
 	for _, v := range block.OptionOrder {
@@ -1685,9 +1682,8 @@ func (forwardingoptionsDhcprelayBlockRelayOption82) blocksSchema() map[string]sc
 func (block *forwardingoptionsDhcprelayBlockRelayOption82) configSet(setPrefix string) []string {
 	setPrefix += "relay-option-82 "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.ExcludeRelayAgentIdentifier.ValueBool() {
 		configSet = append(configSet, setPrefix+"exclude-relay-agent-identifier")
@@ -1762,9 +1758,8 @@ type forwardingoptionsDhcprelayBlockRelayOption82BlockCircuitID struct {
 func (block *forwardingoptionsDhcprelayBlockRelayOption82BlockCircuitID) configSet(setPrefix string) []string {
 	setPrefix += "circuit-id "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.IncludeIrbAndL2.ValueBool() {
 		configSet = append(configSet, setPrefix+"include-irb-and-l2")
@@ -1835,9 +1830,8 @@ type forwardingoptionsDhcprelayBlockRelayOption82BlockRemoteID struct {
 func (block *forwardingoptionsDhcprelayBlockRelayOption82BlockRemoteID) configSet(setPrefix string) []string {
 	setPrefix += "remote-id "
 
-	configSet := []string{
-		setPrefix,
-	}
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
 
 	if block.HostnameOnly.ValueBool() {
 		configSet = append(configSet, setPrefix+"hostname-only")

@@ -326,7 +326,7 @@ func (rscData *securityIkeProposalData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set security ike proposal \"" + rscData.Name.ValueString() + "\" "
 
 	if v := rscData.AuthenticationMethod.ValueString(); v != "" {

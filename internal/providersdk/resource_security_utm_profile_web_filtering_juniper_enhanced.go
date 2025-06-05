@@ -69,7 +69,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 128, formatDefault),
+							ValidateDiagFunc: validateNameObjectJunos(128),
 						},
 						"action": {
 							Type:         schema.TypeString,
@@ -410,7 +410,7 @@ func checkUtmProfileWebFEnhancedExists(profile string, junSess *junos.Session) (
 }
 
 func setUtmProfileWebFEnhanced(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set security utm feature-profile web-filtering juniper-enhanced " +
 		"profile \"" + d.Get("name").(string) + "\" "

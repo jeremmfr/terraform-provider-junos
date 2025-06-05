@@ -31,7 +31,7 @@ func resourceSecurityUtmCustomURLPattern() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
+				ValidateDiagFunc: validateNameObjectJunos(32),
 			},
 			"value": {
 				Type:     schema.TypeList,
@@ -259,7 +259,7 @@ func checkUtmCustomURLPatternsExists(urlPattern string, junSess *junos.Session) 
 }
 
 func setUtmCustomURLPattern(d *schema.ResourceData, junSess *junos.Session) error {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 
 	setPrefix := "set security utm custom-objects url-pattern " + d.Get("name").(string) + " "
 	for _, v := range d.Get("value").([]interface{}) {

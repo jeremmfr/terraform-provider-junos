@@ -2,11 +2,11 @@ package tfplanmodifier_test
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -197,8 +197,8 @@ func TestBlockRemoveNull(t *testing.T) {
 
 			tfplanmodifier.BlockRemoveNull().PlanModifyObject(context.Background(), testCase.request, resp)
 
-			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
+			if !reflect.DeepEqual(testCase.expected, resp) {
+				t.Errorf("unexpected ObjectResponse: want %#v, got %#v", testCase.expected, resp)
 			}
 		})
 	}
@@ -507,8 +507,8 @@ func TestBlockSetUnsetRequireReplace(t *testing.T) {
 
 			tfplanmodifier.BlockSetUnsetRequireReplace().PlanModifyObject(context.Background(), testCase.request, resp)
 
-			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
+			if !reflect.DeepEqual(testCase.expected, resp) {
+				t.Errorf("unexpected ObjectResponse: want %#v, got %#v", testCase.expected, resp)
 			}
 		})
 	}

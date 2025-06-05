@@ -331,7 +331,7 @@ func (rscData *snmpViewData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0)
+	configSet := make([]string, 0, 100)
 	setPrefix := "set snmp view \"" + rscData.Name.ValueString() + "\" "
 
 	for _, v := range rscData.OIDInclude {
