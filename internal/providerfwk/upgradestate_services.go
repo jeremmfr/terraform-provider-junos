@@ -460,7 +460,7 @@ func upgradeServicesV0toV1(
 			URL                      types.String   `tfsdk:"url"`
 			URLParameter             types.String   `tfsdk:"url_parameter"`
 			DefaultPolicy            []struct {
-				CategoryName types.String `tfsdk:"category_name" tfdata:"identifier"`
+				CategoryName types.String `tfsdk:"category_name"`
 				ProfileName  types.String `tfsdk:"profile_name"`
 			} `tfsdk:"default_policy"`
 		} `tfsdk:"security_intelligence"`
