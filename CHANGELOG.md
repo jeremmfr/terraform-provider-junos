@@ -1,6 +1,53 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.13.0 (2025-06-05)
+
+ENHANCEMENTS:
+
+* release now with golang 1.24
+* **resource/junos_layer2_control**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_lldp_interface**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional boolean attributes doesn't accept value *false*  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_lldpmed_interface**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_services_security_intelligence_policy**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value
+* **resource/junos_services_security_intelligence_profile**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * `action` argument in `default_rule_then` block and `then_action` argument in `rule` block accept now `sinkhole` for `DNS` category
+* **resource/junos_services**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list  
+  computed attributes, in `advanced_anti_malware.connection` and `security_intelligence` block, are now unknown if block is specified without these attributes in Plan to update resources (except if attributes are null in Terraform state), instead of using values in Terraform state
+* **resource/junos_services_ssl_initiation_profile**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_services_user_identification_ad_access_domain**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_services_user_identification_device_identity_profile**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+* **resource/junos_vlan**: add `interface` argument (Fix [#794](https://github.com/jeremmfr/terraform-provider-junos/issues/794))
+
 ## v2.12.0 (2025-02-24)
 
 ENHANCEMENTS:
