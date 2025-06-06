@@ -316,7 +316,7 @@ func (rsc *systemLoginUser) ValidateConfig(
 				}
 				key := v.ValueString()
 				switch {
-				case strings.HasPrefix(key, ssh.KeyAlgoDSA):
+				case strings.HasPrefix(key, "ssh-dss"):
 					continue
 				case strings.HasPrefix(key, ssh.KeyAlgoRSA):
 					continue
@@ -581,7 +581,7 @@ func (rscData *systemLoginUserData) set(
 		for _, v := range rscData.Authentication.SSHPublicKeys {
 			key := v.ValueString()
 			switch {
-			case strings.HasPrefix(key, ssh.KeyAlgoDSA):
+			case strings.HasPrefix(key, "ssh-dss"):
 				configSet = append(configSet, setPrefix+"authentication ssh-dsa \""+key+"\"")
 			case strings.HasPrefix(key, ssh.KeyAlgoRSA):
 				configSet = append(configSet, setPrefix+"authentication ssh-rsa \""+key+"\"")
