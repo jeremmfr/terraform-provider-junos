@@ -90,6 +90,8 @@ github.com/hashicorp/terraform-plugin-log v0.9.0 h1:i7hOA+vdAItN1/7UrfBqBwvYPQ9T
 github.com/hashicorp/terraform-plugin-log v0.9.0/go.mod h1:rKL8egZQ/eXSyDqzLUuwUYLVdlYeamldAHSxjUFADow=
 github.com/hashicorp/terraform-plugin-mux v0.20.0 h1:3QpBnI9uCuL0Yy2Rq/kR9cOdmOFNhw88A2GoZtk5aXM=
 github.com/hashicorp/terraform-plugin-mux v0.20.0/go.mod h1:wSIZwJjSYk86NOTX3fKUlThMT4EAV1XpBHz9SAvjQr4=
+github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0 h1:NFPMacTrY/IdcIcnUB+7hsore1ZaRWU9cnB6jFoBnIM=
+github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0/go.mod h1:QYmYnLfsosrxjCnGY1p9c7Zj6n9thnEE+7RObeYs3fA=
 github.com/hashicorp/terraform-plugin-testing v1.13.2 h1:mSotG4Odl020vRjIenA3rggwo6Kg6XCKIwtRhYgp+/M=
 github.com/hashicorp/terraform-plugin-testing v1.13.2/go.mod h1:WHQ9FDdiLoneey2/QHpGM/6SAYf4A7AZazVg7230pLE=
 github.com/hashicorp/terraform-registry-address v0.2.5 h1:2GTftHqmUhVOeuu9CW3kwDkRe4pcBDq0uuK5VJngU1M=
@@ -106,8 +108,6 @@ github.com/jeremmfr/go-utils v0.12.0 h1:Zgdb+LLeyds9Tbsl+tjqRNBcAVQC5WZOm4Tx9c+d
 github.com/jeremmfr/go-utils v0.12.0/go.mod h1:UrdaUGOZaha7uxCFaJXNSOUKx9cnbbfMP+08acDxIzc=
 github.com/jeremmfr/junosdecode v1.1.1 h1:wOFfJIwLXP9s0eQzzAhuX7a7N1mc+AWgDLYAmR7VoWg=
 github.com/jeremmfr/junosdecode v1.1.1/go.mod h1:nTY0XbZC2ePbZdV0wuUboSMtGrJxtpwWVYfHjrS2Oqw=
-github.com/jeremmfr/terraform-plugin-sdk/v2 v2.37.1-0.20250520181038-9e085f10942e h1:ygEFikfns86tADtXNuHFEkBJ48vgpTrxqaeJ1ElKUX0=
-github.com/jeremmfr/terraform-plugin-sdk/v2 v2.37.1-0.20250520181038-9e085f10942e/go.mod h1:QYmYnLfsosrxjCnGY1p9c7Zj6n9thnEE+7RObeYs3fA=
 github.com/jhump/protoreflect v1.15.1 h1:HUMERORf3I3ZdX05WaQ6MIpd/NJ434hTp5YiKgfCL6c=
 github.com/jhump/protoreflect v1.15.1/go.mod h1:jD/2GMKKE6OqX8qTjhADU1e6DShO+gavG9e0Q693nKo=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=
