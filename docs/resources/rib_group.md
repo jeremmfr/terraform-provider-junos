@@ -26,9 +26,9 @@ The following arguments are supported:
 - **import_policy** (Optional, List of String)  
   List of policy for import route.
 - **import_rib** (Optional, List of String)  
-  List of import routing table
+  List of import routing table.
 - **export_rib** (Optional, String)  
-  Export routing table
+  Export routing table.
 
 ## Attribute Reference
 
