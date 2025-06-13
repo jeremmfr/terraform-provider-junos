@@ -17,8 +17,6 @@ require (
 	golang.org/x/crypto v0.39.0
 )
 
-replace github.com/hashicorp/terraform-plugin-sdk/v2 => github.com/jeremmfr/terraform-plugin-sdk/v2 v2.37.1-0.20250520181038-9e085f10942e
-
 require (
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect

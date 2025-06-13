@@ -380,13 +380,13 @@ func (rsc *servicesSecurityIntelligenceProfile) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			probeExists, err := checkServicesSecurityIntelligenceProfileExists(fnCtx, plan.Name.ValueString(), junSess)
+			profileExists, err := checkServicesSecurityIntelligenceProfileExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
 				return false
 			}
-			if probeExists {
+			if profileExists {
 				resp.Diagnostics.AddError(
 					tfdiag.DuplicateConfigErrSummary,
 					defaultResourceAlreadyExistsMessage(rsc, plan.Name),
@@ -398,13 +398,13 @@ func (rsc *servicesSecurityIntelligenceProfile) Create(
 			return true
 		},
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			probeExists, err := checkServicesSecurityIntelligenceProfileExists(fnCtx, plan.Name.ValueString(), junSess)
+			profileExists, err := checkServicesSecurityIntelligenceProfileExists(fnCtx, plan.Name.ValueString(), junSess)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
 				return false
 			}
-			if !probeExists {
+			if !profileExists {
 				resp.Diagnostics.AddError(
 					tfdiag.NotFoundErrSummary,
 					defaultResourceDoesNotExistsAfterCommitMessage(rsc, plan.Name),
