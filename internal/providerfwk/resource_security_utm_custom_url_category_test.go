@@ -1,10 +1,11 @@
-package providersdk_test
+package providerfwk_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccResourceSecurityUtmCustomURLCategory_basic(t *testing.T) {
@@ -14,7 +15,7 @@ func TestAccResourceSecurityUtmCustomURLCategory_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccResourceSecurityUtmCustomURLCategoryConfigCreate(),
+					ConfigDirectory: config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
 							"value.#", "1"),
@@ -23,7 +24,7 @@ func TestAccResourceSecurityUtmCustomURLCategory_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccResourceSecurityUtmCustomURLCategoryConfigUpdate(),
+					ConfigDirectory: config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
 							"value.#", "2"),
@@ -41,39 +42,4 @@ func TestAccResourceSecurityUtmCustomURLCategory_basic(t *testing.T) {
 			},
 		})
 	}
-}
-
-func testAccResourceSecurityUtmCustomURLCategoryConfigCreate() string {
-	return `
-resource "junos_security_utm_custom_url_pattern" "testacc_URLCategory1" {
-  name  = "testacc-custom-pattern1"
-  value = ["*.google.com"]
-}
-resource "junos_security_utm_custom_url_category" "testacc_URLCategory" {
-  name = "testacc_URLCategory"
-  value = [
-    junos_security_utm_custom_url_pattern.testacc_URLCategory1.name,
-  ]
-}
-`
-}
-
-func testAccResourceSecurityUtmCustomURLCategoryConfigUpdate() string {
-	return `
-resource "junos_security_utm_custom_url_pattern" "testacc_URLCategory1" {
-  name  = "testacc-custom-pattern1"
-  value = ["*.google.com"]
-}
-resource "junos_security_utm_custom_url_pattern" "testacc_URLCategory2" {
-  name  = "testacc-custom-pattern2"
-  value = ["*.google.fr"]
-}
-resource "junos_security_utm_custom_url_category" "testacc_URLCategory" {
-  name = "testacc_URLCategory"
-  value = [
-    junos_security_utm_custom_url_pattern.testacc_URLCategory1.name,
-    junos_security_utm_custom_url_pattern.testacc_URLCategory2.name,
-  ]
-}
-`
 }
