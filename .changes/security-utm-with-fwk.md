@@ -2,3 +2,4 @@
 ENHANCEMENTS:
 
 * **resource/junos_security_utm_custom_url_category**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+* **resource/junos_security_utm_custom_url_pattern**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
