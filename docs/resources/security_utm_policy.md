@@ -63,9 +63,10 @@ The following arguments are supported:
   - **limit** (Optional, Number)  
     Sessions limit.
   - **over_limit** (Optional, String)  
-    Over limit action
+    Over limit action.  
+    Need to be `block` or `log-and-permit`.
 - **web_filtering_profile** (Optional, String)  
-  Web-filtering HTTP profile (local, enhanced, websense)
+  Web-filtering HTTP profile (local, enhanced, websense).
 
 ## Attribute Reference
 
