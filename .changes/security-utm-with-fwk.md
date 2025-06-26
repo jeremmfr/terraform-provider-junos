@@ -8,3 +8,4 @@ ENHANCEMENTS:
   some of config errors are now sent during Plan instead of during Apply  
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `content_filtering_rule_set` block argument

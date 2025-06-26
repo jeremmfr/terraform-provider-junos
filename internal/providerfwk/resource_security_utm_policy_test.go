@@ -15,6 +15,7 @@ func TestAccResourceSecurityUtmPolicy_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
+					// 1
 					ConfigDirectory: config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_policy.testacc_Policy",
@@ -26,6 +27,7 @@ func TestAccResourceSecurityUtmPolicy_basic(t *testing.T) {
 					),
 				},
 				{
+					// 2
 					ConfigDirectory: config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_policy.testacc_Policy",
@@ -33,9 +35,18 @@ func TestAccResourceSecurityUtmPolicy_basic(t *testing.T) {
 					),
 				},
 				{
+					// 3
 					ResourceName:      "junos_security_utm_policy.testacc_Policy",
 					ImportState:       true,
 					ImportStateVerify: true,
+				},
+				{
+					// 4
+					ConfigDirectory: config.TestStepDirectory(),
+				},
+				{
+					// 5
+					ConfigDirectory: config.TestStepDirectory(),
 				},
 			},
 		})

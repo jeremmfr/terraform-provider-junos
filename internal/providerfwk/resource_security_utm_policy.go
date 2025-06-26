@@ -3,6 +3,7 @@ package providerfwk
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -13,6 +14,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -230,6 +232,113 @@ func (rsc *securityUtmPolicy) Schema(
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
+			"content_filtering_rule_set": schema.ListNestedBlock{
+				Description: "UTM CF Rule Set.",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Required:    true,
+							Description: "UTM CF Rule-set name.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 29),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"rule": schema.ListNestedBlock{
+							Description: "UTM CF Rule.",
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"name": schema.StringAttribute{
+										Required:    true,
+										Description: "UTM CF Rule name.",
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(1, 29),
+											tfvalidator.StringDoubleQuoteExclusion(),
+										},
+									},
+									"match_applications": schema.ListAttribute{
+										ElementType: types.StringType,
+										Required:    true,
+										Description: "List of applications to be inspected.",
+										Validators: []validator.List{
+											listvalidator.SizeAtLeast(1),
+											listvalidator.NoNullValues(),
+											listvalidator.ValueStringsAre(
+												stringvalidator.OneOf("any", "ftp", "http", "imap", "pop3", "smtp"),
+											),
+										},
+									},
+									"match_direction": schema.StringAttribute{
+										Required:    true,
+										Description: "Direction of the content to be inspected.",
+										Validators: []validator.String{
+											stringvalidator.OneOf("any", "download", "upload"),
+										},
+									},
+									"match_file_types": schema.ListAttribute{
+										ElementType: types.StringType,
+										Required:    true,
+										Description: "List of file-types in match criteria.",
+										Validators: []validator.List{
+											listvalidator.SizeAtLeast(1),
+											listvalidator.NoNullValues(),
+											listvalidator.ValueStringsAre(
+												stringvalidator.LengthBetween(1, 32),
+												tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+											),
+										},
+									},
+									"then_action": schema.StringAttribute{
+										Optional:    true,
+										Description: "Configure then action.",
+										Validators: []validator.String{
+											stringvalidator.OneOf("block", "close-client", "close-client-and-server", "close-server", "no-action"),
+										},
+									},
+									"then_notification_log": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Generate security event if content is blocked by rule.",
+										Validators: []validator.Bool{
+											tfvalidator.BoolTrue(),
+										},
+									},
+								},
+								Blocks: map[string]schema.Block{
+									"then_notification_endpoint": schema.SingleNestedBlock{
+										Description: "Endpoint notification options for the content filtering action taken.",
+										Attributes: map[string]schema.Attribute{
+											"custom_message": schema.StringAttribute{
+												Optional:    true,
+												Description: "Custom notification message.",
+												Validators: []validator.String{
+													stringvalidator.LengthBetween(1, 512),
+													tfvalidator.StringDoubleQuoteExclusion(),
+												},
+											},
+											"notify_mail_sender": schema.BoolAttribute{
+												Optional:    true,
+												Description: "Notify mail sender.",
+											},
+											"type": schema.StringAttribute{
+												Optional:    true,
+												Description: "Endpoint notification type.",
+												Validators: []validator.String{
+													stringvalidator.OneOf("message", "protocol-only"),
+												},
+											},
+										},
+										PlanModifiers: []planmodifier.Object{
+											tfplanmodifier.BlockRemoveNull(),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"traffic_sessions_per_client": schema.SingleNestedBlock{
 				Description: " Configure for traffic option session per client.",
 				Attributes: map[string]schema.Attribute{
@@ -263,11 +372,27 @@ type securityUtmPolicyData struct {
 	WebFilteringProfile      types.String                                    `tfsdk:"web_filtering_profile"`
 	AntiVirus                *securityUtmPolicyBlockProtocolProfile          `tfsdk:"anti_virus"`
 	ContentFiltering         *securityUtmPolicyBlockProtocolProfile          `tfsdk:"content_filtering"`
+	ContentFilteringRuleSet  []securityUtmPolicyBlockContentFilteringRuleSet `tfsdk:"content_filtering_rule_set"`
 	TrafficSessionsPerClient *securityUtmPolicyBlockTrafficSessionsPerClient `tfsdk:"traffic_sessions_per_client"`
 }
 
 func (rscData *securityUtmPolicyData) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(rscData)
+}
+
+type securityUtmPolicyConfig struct {
+	ID                       types.String                                    `tfsdk:"id"`
+	Name                     types.String                                    `tfsdk:"name"`
+	AntiSpamSMTPProfile      types.String                                    `tfsdk:"anti_spam_smtp_profile"`
+	WebFilteringProfile      types.String                                    `tfsdk:"web_filtering_profile"`
+	AntiVirus                *securityUtmPolicyBlockProtocolProfile          `tfsdk:"anti_virus"`
+	ContentFiltering         *securityUtmPolicyBlockProtocolProfile          `tfsdk:"content_filtering"`
+	ContentFilteringRuleSet  types.List                                      `tfsdk:"content_filtering_rule_set"`
+	TrafficSessionsPerClient *securityUtmPolicyBlockTrafficSessionsPerClient `tfsdk:"traffic_sessions_per_client"`
+}
+
+func (config *securityUtmPolicyConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 type securityUtmPolicyBlockProtocolProfile struct {
@@ -283,6 +408,52 @@ func (block *securityUtmPolicyBlockProtocolProfile) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(block)
 }
 
+func (block *securityUtmPolicyBlockProtocolProfile) hasKnownValue() bool {
+	return tfdata.CheckBlockHasKnownValue(block)
+}
+
+type securityUtmPolicyBlockContentFilteringRuleSet struct {
+	Name types.String                                             `tfsdk:"name" tfdata:"identifier"`
+	Rule []securityUtmPolicyBlockContentFilteringRuleSetBlockRule `tfsdk:"rule"`
+}
+
+type securityUtmPolicyBlockContentFilteringRuleSetConfig struct {
+	Name types.String `tfsdk:"name"`
+	Rule types.List   `tfsdk:"rule"`
+}
+
+//nolint:lll
+type securityUtmPolicyBlockContentFilteringRuleSetBlockRule struct {
+	Name                     types.String                                                                         `tfsdk:"name"                       tfdata:"identifier"`
+	MatchApplications        []types.String                                                                       `tfsdk:"match_applications"`
+	MatchDirection           types.String                                                                         `tfsdk:"match_direction"`
+	MatchFileTypes           []types.String                                                                       `tfsdk:"match_file_types"`
+	ThenAction               types.String                                                                         `tfsdk:"then_action"`
+	ThenNotificationLog      types.Bool                                                                           `tfsdk:"then_notification_log"`
+	ThenNotificationEndpoint *securityUtmPolicyBlockContentFilteringRuleSetBlockRuleBlockThenNotificationEndpoint `tfsdk:"then_notification_endpoint"`
+}
+
+//nolint:lll
+type securityUtmPolicyBlockContentFilteringRuleSetBlockRuleConfig struct {
+	Name                     types.String                                                                         `tfsdk:"name"`
+	MatchApplications        types.List                                                                           `tfsdk:"match_applications"`
+	MatchDirection           types.String                                                                         `tfsdk:"match_direction"`
+	MatchFileTypes           types.List                                                                           `tfsdk:"match_file_types"`
+	ThenAction               types.String                                                                         `tfsdk:"then_action"`
+	ThenNotificationLog      types.Bool                                                                           `tfsdk:"then_notification_log"`
+	ThenNotificationEndpoint *securityUtmPolicyBlockContentFilteringRuleSetBlockRuleBlockThenNotificationEndpoint `tfsdk:"then_notification_endpoint"`
+}
+
+type securityUtmPolicyBlockContentFilteringRuleSetBlockRuleBlockThenNotificationEndpoint struct {
+	CustomMessage    types.String `tfsdk:"custom_message"`
+	NotifyMailSender types.Bool   `tfsdk:"notify_mail_sender"`
+	Type             types.String `tfsdk:"type"`
+}
+
+func (block *securityUtmPolicyBlockContentFilteringRuleSetBlockRuleBlockThenNotificationEndpoint) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
 type securityUtmPolicyBlockTrafficSessionsPerClient struct {
 	Limit     types.Int64  `tfsdk:"limit"`
 	OverLimit types.String `tfsdk:"over_limit"`
@@ -295,7 +466,7 @@ func (block *securityUtmPolicyBlockTrafficSessionsPerClient) isEmpty() bool {
 func (rsc *securityUtmPolicy) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
-	var config securityUtmPolicyData
+	var config securityUtmPolicyConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -324,6 +495,130 @@ func (rsc *securityUtmPolicy) ValidateConfig(
 			tfdiag.MissingConfigErrSummary,
 			"content_filtering block is empty",
 		)
+	}
+	if config.ContentFiltering != nil &&
+		config.ContentFiltering.hasKnownValue() &&
+		!config.ContentFilteringRuleSet.IsNull() &&
+		!config.ContentFilteringRuleSet.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("content_filtering").AtName("*"),
+			tfdiag.ConflictConfigErrSummary,
+			"content_filtering and content_filtering_rule_set cannot be configured together",
+		)
+	}
+	if !config.ContentFilteringRuleSet.IsNull() &&
+		!config.ContentFilteringRuleSet.IsUnknown() {
+		var configContentFilteringRuleSet []securityUtmPolicyBlockContentFilteringRuleSetConfig
+		asDiags := config.ContentFilteringRuleSet.ElementsAs(ctx, &configContentFilteringRuleSet, false)
+		if asDiags.HasError() {
+			resp.Diagnostics.Append(asDiags...)
+
+			return
+		}
+
+		contentFilteringRuleSetName := make(map[string]struct{})
+		for i, block := range configContentFilteringRuleSet {
+			if !block.Name.IsUnknown() {
+				ruleSetName := block.Name.ValueString()
+				if _, ok := contentFilteringRuleSetName[ruleSetName]; ok {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("content_filtering_rule_set").AtListIndex(i).AtName("name"),
+						tfdiag.DuplicateConfigErrSummary,
+						fmt.Sprintf("multiple content_filtering_rule_set blocks with the same name %q", ruleSetName),
+					)
+				}
+				contentFilteringRuleSetName[ruleSetName] = struct{}{}
+			}
+			if block.Rule.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("content_filtering_rule_set").AtListIndex(i).AtName("name"),
+					tfdiag.MissingConfigErrSummary,
+					fmt.Sprintf("at least one rule block must be specified"+
+						" in content_filtering_rule_set block %q", block.Name.ValueString()),
+				)
+			} else if !block.Rule.IsUnknown() {
+				var configRule []securityUtmPolicyBlockContentFilteringRuleSetBlockRuleConfig
+				asDiags := block.Rule.ElementsAs(ctx, &configRule, false)
+				if asDiags.HasError() {
+					resp.Diagnostics.Append(asDiags...)
+
+					return
+				}
+
+				ruleName := make(map[string]struct{})
+				for ii, subBlock := range configRule {
+					if !subBlock.Name.IsUnknown() {
+						name := subBlock.Name.ValueString()
+						if _, ok := ruleName[name]; ok {
+							resp.Diagnostics.AddAttributeError(
+								path.Root("content_filtering_rule_set").AtListIndex(i).
+									AtName("rule").AtListIndex(ii).
+									AtName("name"),
+								tfdiag.DuplicateConfigErrSummary,
+								fmt.Sprintf("multiple rule blocks with the same name %q"+
+									" in content_filtering_rule_set block %q", name, block.Name.ValueString()),
+							)
+						}
+						ruleName[name] = struct{}{}
+					}
+
+					if !subBlock.MatchApplications.IsNull() &&
+						!subBlock.MatchApplications.IsUnknown() {
+						var matchApplications []types.String
+						asDiags := subBlock.MatchApplications.ElementsAs(ctx, &matchApplications, false)
+						if asDiags.HasError() {
+							resp.Diagnostics.Append(asDiags...)
+
+							return
+						}
+
+						for _, v := range matchApplications {
+							if v.ValueString() == "any" {
+								if len(matchApplications) != 1 {
+									resp.Diagnostics.AddAttributeError(
+										path.Root("content_filtering").AtListIndex(i).
+											AtName("rule").AtListIndex(ii).
+											AtName("match_applications"),
+										tfdiag.ConflictConfigErrSummary,
+										fmt.Sprintf("match_applications %q is configured, other applications are not supported"+
+											" in rule block %q in content_filtering_rule_set block %q",
+											v.ValueString(), subBlock.Name.ValueString(), block.Name.ValueString()),
+									)
+								}
+
+								break
+							}
+						}
+					}
+
+					if subBlock.ThenAction.IsNull() &&
+						subBlock.ThenNotificationLog.IsNull() &&
+						subBlock.ThenNotificationEndpoint == nil {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("content_filtering_rule_set").AtListIndex(i).
+								AtName("rule").AtListIndex(ii).
+								AtName("name"),
+							tfdiag.MissingConfigErrSummary,
+							fmt.Sprintf("at least one then_* attribute must be specified"+
+								" in rule block %q in content_filtering_rule_set block %q",
+								subBlock.Name.ValueString(), block.Name.ValueString()),
+						)
+					}
+					if subBlock.ThenNotificationEndpoint != nil &&
+						subBlock.ThenNotificationEndpoint.isEmpty() {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("content_filtering_rule_set").AtListIndex(i).
+								AtName("rule").AtListIndex(ii).
+								AtName("then_notification_endpoint"),
+							tfdiag.MissingConfigErrSummary,
+							fmt.Sprintf("then_notification_endpoint block is empty"+
+								" in rule block %q in content_filtering_rule_set block %q",
+								subBlock.Name.ValueString(), block.Name.ValueString()),
+						)
+					}
+				}
+			}
+		}
 	}
 	if config.TrafficSessionsPerClient != nil &&
 		config.TrafficSessionsPerClient.isEmpty() {
@@ -540,6 +835,24 @@ func (rscData *securityUtmPolicyData) set(
 
 		configSet = append(configSet, rscData.ContentFiltering.configSet(setPrefix+"content-filtering ")...)
 	}
+	contentFilteringRuleSetName := make(map[string]struct{})
+	for i, block := range rscData.ContentFilteringRuleSet {
+		name := block.Name.ValueString()
+		if _, ok := contentFilteringRuleSetName[name]; ok {
+			return path.Root("content_filtering_rule_set").AtListIndex(i).AtName("name"),
+				fmt.Errorf("multiple content_filtering_rule_set blocks with the same name %q", name)
+		}
+		contentFilteringRuleSetName[name] = struct{}{}
+
+		blockSet, pathErr, err := block.configSet(
+			setPrefix,
+			path.Root("content_filtering_rule_set").AtListIndex(i),
+		)
+		if err != nil {
+			return pathErr, err
+		}
+		configSet = append(configSet, blockSet...)
+	}
 	if rscData.TrafficSessionsPerClient != nil {
 		if rscData.TrafficSessionsPerClient.isEmpty() {
 			return path.Root("traffic_sessions_per_client").AtName("*"),
@@ -572,6 +885,112 @@ func (block *securityUtmPolicyBlockProtocolProfile) configSet(setPrefix string) 
 	}
 	if v := block.SMTPProfile.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"smtp-profile \""+v+"\"")
+	}
+
+	return configSet
+}
+
+func (block *securityUtmPolicyBlockContentFilteringRuleSet) configSet(
+	setPrefix string,
+	pathRoot path.Path,
+) (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
+	configSet := make([]string, 0, 100)
+	setPrefix += "content-filtering rule-set \"" + block.Name.ValueString() + "\" "
+
+	ruleName := make(map[string]struct{})
+	for i, v := range block.Rule {
+		name := v.Name.ValueString()
+		if _, ok := ruleName[name]; ok {
+			return configSet,
+				pathRoot.AtName("rule").AtListIndex(i).AtName("name"),
+				fmt.Errorf("multiple rule blocks with the same name %q"+
+					" in content_filtering_rule_set block %q", name, block.Name.ValueString())
+		}
+		ruleName[name] = struct{}{}
+
+		blockSet, pathErr, err := v.configSet(
+			setPrefix,
+			pathRoot.AtName("rule").AtListIndex(i),
+			fmt.Sprintf(" in content_filtering_rule_set block %q", block.Name.ValueString()),
+		)
+		if err != nil {
+			return configSet, pathErr, err
+		}
+		configSet = append(configSet, blockSet...)
+	}
+
+	return configSet, path.Empty(), nil
+}
+
+func (block *securityUtmPolicyBlockContentFilteringRuleSetBlockRule) configSet(
+	setPrefix string,
+	pathRoot path.Path,
+	blockErrorSuffix string,
+) (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
+	configSet := make([]string, 0, 100)
+	setPrefix += "rule \"" + block.Name.ValueString() + "\" "
+
+	for _, v := range block.MatchApplications {
+		configSet = append(configSet, setPrefix+"match applications "+v.ValueString())
+	}
+	configSet = append(configSet, setPrefix+"match direction "+block.MatchDirection.ValueString())
+	for _, v := range block.MatchFileTypes {
+		configSet = append(configSet, setPrefix+"match file-types "+v.ValueString())
+	}
+	if block.ThenAction.IsNull() &&
+		block.ThenNotificationLog.IsNull() &&
+		(block.ThenNotificationEndpoint == nil || block.ThenNotificationEndpoint.isEmpty()) {
+		return configSet,
+			pathRoot.AtName("name"),
+			fmt.Errorf("at least one then_* attribute must be specified"+
+				" in rule block %q"+blockErrorSuffix, block.Name.ValueString())
+	}
+	if v := block.ThenAction.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"then action "+v)
+	}
+	if block.ThenNotificationLog.ValueBool() {
+		configSet = append(configSet, setPrefix+"then notification log")
+	}
+	if block.ThenNotificationEndpoint != nil {
+		if block.ThenNotificationEndpoint.isEmpty() {
+			return configSet,
+				pathRoot.AtName("then_notification_endpoint").AtName("*"),
+				fmt.Errorf("then_notification_endpoint block is empty"+
+					" in rule block %q"+blockErrorSuffix, block.Name.ValueString())
+		}
+
+		configSet = append(configSet, block.ThenNotificationEndpoint.configSet(setPrefix)...)
+	}
+
+	return configSet, path.Empty(), nil
+}
+
+func (block *securityUtmPolicyBlockContentFilteringRuleSetBlockRuleBlockThenNotificationEndpoint) configSet(
+	setPrefix string,
+) []string {
+	configSet := make([]string, 0, 100)
+	setPrefix += "then notification endpoint "
+
+	if v := block.CustomMessage.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"custom-message \""+v+"\"")
+	}
+	if !block.NotifyMailSender.IsNull() {
+		if block.NotifyMailSender.ValueBool() {
+			configSet = append(configSet, setPrefix+"notify-mail-sender")
+		} else {
+			configSet = append(configSet, setPrefix+"no-notify-mail-sender")
+		}
+	}
+	if v := block.Type.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"type "+v)
 	}
 
 	return configSet
@@ -620,6 +1039,15 @@ func (rscData *securityUtmPolicyData) read(
 				}
 
 				rscData.AntiVirus.read(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "content-filtering rule-set "):
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.ContentFilteringRuleSet = tfdata.AppendPotentialNewBlock(
+					rscData.ContentFilteringRuleSet, types.StringValue(strings.Trim(name, "\"")),
+				)
+				contentFilteringRuleSet := &rscData.ContentFilteringRuleSet[len(rscData.ContentFilteringRuleSet)-1]
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
+				contentFilteringRuleSet.read(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "content-filtering "):
 				if rscData.ContentFiltering == nil {
 					rscData.ContentFiltering = &securityUtmPolicyBlockProtocolProfile{}
@@ -657,6 +1085,51 @@ func (block *securityUtmPolicyBlockProtocolProfile) read(itemTrim string) {
 		block.POP3Profile = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "smtp-profile "):
 		block.SMTPProfile = types.StringValue(strings.Trim(itemTrim, "\""))
+	}
+}
+
+func (block *securityUtmPolicyBlockContentFilteringRuleSet) read(itemTrim string) {
+	if balt.CutPrefixInString(&itemTrim, "rule ") {
+		name := tfdata.FirstElementOfJunosLine(itemTrim)
+		block.Rule = tfdata.AppendPotentialNewBlock(block.Rule, types.StringValue(strings.Trim(name, "\"")))
+		rule := &block.Rule[len(block.Rule)-1]
+		balt.CutPrefixInString(&itemTrim, name+" ")
+
+		rule.read(itemTrim)
+	}
+}
+
+func (block *securityUtmPolicyBlockContentFilteringRuleSetBlockRule) read(itemTrim string) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "match applications "):
+		block.MatchApplications = append(block.MatchApplications, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "match direction "):
+		block.MatchDirection = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "match file-types "):
+		block.MatchFileTypes = append(block.MatchFileTypes, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "then action "):
+		block.ThenAction = types.StringValue(itemTrim)
+	case itemTrim == "then notification log":
+		block.ThenNotificationLog = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "then notification endpoint "):
+		if block.ThenNotificationEndpoint == nil {
+			block.ThenNotificationEndpoint = &securityUtmPolicyBlockContentFilteringRuleSetBlockRuleBlockThenNotificationEndpoint{} //nolint:lll
+		}
+
+		block.ThenNotificationEndpoint.read(itemTrim)
+	}
+}
+
+func (block *securityUtmPolicyBlockContentFilteringRuleSetBlockRuleBlockThenNotificationEndpoint) read(itemTrim string) { //nolint:lll
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "custom-message "):
+		block.CustomMessage = types.StringValue(strings.Trim(itemTrim, "\""))
+	case itemTrim == "notify-mail-sender":
+		block.NotifyMailSender = types.BoolValue(true)
+	case itemTrim == "no-notify-mail-sender":
+		block.NotifyMailSender = types.BoolValue(false)
+	case balt.CutPrefixInString(&itemTrim, "type "):
+		block.Type = types.StringValue(itemTrim)
 	}
 }
 
