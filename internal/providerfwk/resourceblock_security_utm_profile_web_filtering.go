@@ -11,14 +11,14 @@ import (
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
-type securityUtmProfileWebFilteringJuniperBlockFallbackSettings struct {
+type securityUtmProfileWebFilteringBlockFallbackSettings struct {
 	Default            types.String `tfsdk:"default"`
 	ServerConnectivity types.String `tfsdk:"server_connectivity"`
 	Timeout            types.String `tfsdk:"timeout"`
 	TooManyRequests    types.String `tfsdk:"too_many_requests"`
 }
 
-func (securityUtmProfileWebFilteringJuniperBlockFallbackSettings) schema() schema.SingleNestedBlock {
+func (securityUtmProfileWebFilteringBlockFallbackSettings) schema() schema.SingleNestedBlock {
 	return schema.SingleNestedBlock{
 		Description: "Configure fallback settings.",
 		Attributes: map[string]schema.Attribute{
@@ -57,7 +57,7 @@ func (securityUtmProfileWebFilteringJuniperBlockFallbackSettings) schema() schem
 	}
 }
 
-func (block *securityUtmProfileWebFilteringJuniperBlockFallbackSettings) configSet(setPrefix string) []string {
+func (block *securityUtmProfileWebFilteringBlockFallbackSettings) configSet(setPrefix string) []string {
 	setPrefix += "fallback-settings "
 
 	configSet := make([]string, 1, 100)
@@ -79,7 +79,7 @@ func (block *securityUtmProfileWebFilteringJuniperBlockFallbackSettings) configS
 	return configSet
 }
 
-func (block *securityUtmProfileWebFilteringJuniperBlockFallbackSettings) read(itemTrim string) {
+func (block *securityUtmProfileWebFilteringBlockFallbackSettings) read(itemTrim string) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "default "):
 		block.Default = types.StringValue(itemTrim)

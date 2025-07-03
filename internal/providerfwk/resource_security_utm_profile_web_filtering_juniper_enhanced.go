@@ -208,7 +208,7 @@ func (rsc *securityUtmProfileWebFilteringJuniperEnhanced) Schema(
 					},
 				},
 			},
-			"fallback_settings": securityUtmProfileWebFilteringJuniperBlockFallbackSettings{}.schema(),
+			"fallback_settings": securityUtmProfileWebFilteringBlockFallbackSettings{}.schema(),
 			"quarantine_message": schema.SingleNestedBlock{
 				Description: "Configure quarantine message.",
 				Attributes: map[string]schema.Attribute{
@@ -268,7 +268,7 @@ type securityUtmProfileWebFilteringJuniperEnhancedData struct {
 	Timeout                 types.Int64                                                          `tfsdk:"timeout"`
 	BlockMessage            *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage           `tfsdk:"block_message"`
 	Category                []securityUtmProfileWebFilteringJuniperEnhancedBlockCategory         `tfsdk:"category"`
-	FallbackSettings        *securityUtmProfileWebFilteringJuniperBlockFallbackSettings          `tfsdk:"fallback_settings"`
+	FallbackSettings        *securityUtmProfileWebFilteringBlockFallbackSettings                 `tfsdk:"fallback_settings"`
 	QuarantineMessage       *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage           `tfsdk:"quarantine_message"`
 	SiteReputationAction    []securityUtmProfileWebFilteringJuniperEnhancedBlockReputationAction `tfsdk:"site_reputation_action"`
 }
@@ -278,18 +278,18 @@ func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) isEmpty() bool
 }
 
 type securityUtmProfileWebFilteringJuniperEnhancedConfig struct {
-	ID                      types.String                                                `tfsdk:"id"`
-	Name                    types.String                                                `tfsdk:"name"`
-	CustomBlockMessage      types.String                                                `tfsdk:"custom_block_message"`
-	DefaultAction           types.String                                                `tfsdk:"default_action"`
-	NoSafeSearch            types.Bool                                                  `tfsdk:"no_safe_search"`
-	QuarantineCustomMessage types.String                                                `tfsdk:"quarantine_custom_message"`
-	Timeout                 types.Int64                                                 `tfsdk:"timeout"`
-	BlockMessage            *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage  `tfsdk:"block_message"`
-	Category                types.List                                                  `tfsdk:"category"`
-	FallbackSettings        *securityUtmProfileWebFilteringJuniperBlockFallbackSettings `tfsdk:"fallback_settings"`
-	QuarantineMessage       *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage  `tfsdk:"quarantine_message"`
-	SiteReputationAction    types.List                                                  `tfsdk:"site_reputation_action"`
+	ID                      types.String                                               `tfsdk:"id"`
+	Name                    types.String                                               `tfsdk:"name"`
+	CustomBlockMessage      types.String                                               `tfsdk:"custom_block_message"`
+	DefaultAction           types.String                                               `tfsdk:"default_action"`
+	NoSafeSearch            types.Bool                                                 `tfsdk:"no_safe_search"`
+	QuarantineCustomMessage types.String                                               `tfsdk:"quarantine_custom_message"`
+	Timeout                 types.Int64                                                `tfsdk:"timeout"`
+	BlockMessage            *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage `tfsdk:"block_message"`
+	Category                types.List                                                 `tfsdk:"category"`
+	FallbackSettings        *securityUtmProfileWebFilteringBlockFallbackSettings       `tfsdk:"fallback_settings"`
+	QuarantineMessage       *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage `tfsdk:"quarantine_message"`
+	SiteReputationAction    types.List                                                 `tfsdk:"site_reputation_action"`
 }
 
 func (config *securityUtmProfileWebFilteringJuniperEnhancedConfig) isEmpty() bool {
@@ -739,7 +739,7 @@ func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) read(
 				rscData.DefaultAction = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "fallback-settings"):
 				if rscData.FallbackSettings == nil {
-					rscData.FallbackSettings = &securityUtmProfileWebFilteringJuniperBlockFallbackSettings{}
+					rscData.FallbackSettings = &securityUtmProfileWebFilteringBlockFallbackSettings{}
 				}
 
 				if balt.CutPrefixInString(&itemTrim, " ") {

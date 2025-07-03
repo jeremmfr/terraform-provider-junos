@@ -323,6 +323,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newSecurityUtmPolicyResource,
 		newSecurityUtmProfileWebFilteringJuniperEnhancedResource,
 		newSecurityUtmProfileWebFilteringJuniperLocalResource,
+		newSecurityUtmProfileWebFilteringWebsenseRedirectResource,
 		newSecurityZoneResource,
 		newSecurityZoneOrderedResource,
 		newSecurityZoneBookAddressResource,

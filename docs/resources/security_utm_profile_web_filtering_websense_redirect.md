@@ -50,14 +50,11 @@ The following arguments are supported:
   - **host** (Optional, String)  
     Server host IP address or string host name.
   - **port** (Optional, Number)  
-    Server port.  
-    Need to be between 1024 and 65535.
+    Server port (1024..65535).
 - **socket** (Optional, Number)  
-  Set sockets number.  
-  Need to be between 1 and 32.
+  Set sockets number (1..32).
 - **timeout** (Optional, Number)  
-  Set timeout.  
-  Need to be between 1 and 1800.
+  Set timeout (1..1800).
 
 ## Attribute Reference
 

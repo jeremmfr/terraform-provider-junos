@@ -8,6 +8,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -25,40 +26,40 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                   = &securityUtmProfileWebFilteringJuniperLocal{}
-	_ resource.ResourceWithConfigure      = &securityUtmProfileWebFilteringJuniperLocal{}
-	_ resource.ResourceWithValidateConfig = &securityUtmProfileWebFilteringJuniperLocal{}
-	_ resource.ResourceWithImportState    = &securityUtmProfileWebFilteringJuniperLocal{}
-	_ resource.ResourceWithUpgradeState   = &securityUtmProfileWebFilteringJuniperLocal{}
+	_ resource.Resource                   = &securityUtmProfileWebFilteringWebsenseRedirect{}
+	_ resource.ResourceWithConfigure      = &securityUtmProfileWebFilteringWebsenseRedirect{}
+	_ resource.ResourceWithValidateConfig = &securityUtmProfileWebFilteringWebsenseRedirect{}
+	_ resource.ResourceWithImportState    = &securityUtmProfileWebFilteringWebsenseRedirect{}
+	_ resource.ResourceWithUpgradeState   = &securityUtmProfileWebFilteringWebsenseRedirect{}
 )
 
-type securityUtmProfileWebFilteringJuniperLocal struct {
+type securityUtmProfileWebFilteringWebsenseRedirect struct {
 	client *junos.Client
 }
 
-func newSecurityUtmProfileWebFilteringJuniperLocalResource() resource.Resource {
-	return &securityUtmProfileWebFilteringJuniperLocal{}
+func newSecurityUtmProfileWebFilteringWebsenseRedirectResource() resource.Resource {
+	return &securityUtmProfileWebFilteringWebsenseRedirect{}
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) typeName() string {
-	return providerName + "_security_utm_profile_web_filtering_juniper_local"
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) typeName() string {
+	return providerName + "_security_utm_profile_web_filtering_websense_redirect"
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) junosName() string {
-	return "security utm feature-profile web-filtering juniper-local profile"
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) junosName() string {
+	return "security utm feature-profile web-filtering websense-redirect profile"
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) junosClient() *junos.Client {
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) junosClient() *junos.Client {
 	return rsc.client
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) Metadata(
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Metadata(
 	_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse,
 ) {
 	resp.TypeName = rsc.typeName()
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) Configure(
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Configure(
 	ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
 ) {
 	// Prevent panic if the provider has not been configured.
@@ -74,7 +75,7 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Configure(
 	rsc.client = client
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) Schema(
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Schema(
 	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
@@ -90,12 +91,20 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Schema(
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
-				Description: "The name of security utm feature-profile web-filtering juniper-local profile.",
+				Description: "The name of security utm feature-profile web-filtering websense-redirect profile.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 29),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"account": schema.StringAttribute{
+				Optional:    true,
+				Description: "Set websense redirect account.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 28),
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
@@ -107,18 +116,11 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
-			"default_action": schema.StringAttribute{
+			"sockets": schema.Int64Attribute{
 				Optional:    true,
-				Description: "Default action.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("block", "log-and-permit", "permit"),
-				},
-			},
-			"no_safe_search": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Do not perform safe-search for Juniper local protocol.",
-				Validators: []validator.Bool{
-					tfvalidator.BoolTrue(),
+				Description: "Set sockets number.",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 32),
 				},
 			},
 			"timeout": schema.Int64Attribute{
@@ -131,28 +133,57 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Schema(
 		},
 		Blocks: map[string]schema.Block{
 			"fallback_settings": securityUtmProfileWebFilteringBlockFallbackSettings{}.schema(),
+			"server": schema.SingleNestedBlock{
+				Description: "Configure server settings.",
+				Attributes: map[string]schema.Attribute{
+					"host": schema.StringAttribute{
+						Optional:    true,
+						Description: "Server host IP address or string host name.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"port": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Server port.",
+						Validators: []validator.Int64{
+							int64validator.Between(1024, 65535),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+			},
 		},
 	}
 }
 
-type securityUtmProfileWebFilteringJuniperLocalData struct {
-	ID                 types.String                                         `tfsdk:"id"`
-	Name               types.String                                         `tfsdk:"name"`
-	CustomBlockMessage types.String                                         `tfsdk:"custom_block_message"`
-	DefaultAction      types.String                                         `tfsdk:"default_action"`
-	NoSafeSearch       types.Bool                                           `tfsdk:"no_safe_search"`
-	Timeout            types.Int64                                          `tfsdk:"timeout"`
-	FallbackSettings   *securityUtmProfileWebFilteringBlockFallbackSettings `tfsdk:"fallback_settings"`
+type securityUtmProfileWebFilteringWebsenseRedirectData struct {
+	ID                 types.String                                               `tfsdk:"id"`
+	Name               types.String                                               `tfsdk:"name"`
+	Account            types.String                                               `tfsdk:"account"`
+	CustomBlockMessage types.String                                               `tfsdk:"custom_block_message"`
+	Sockets            types.Int64                                                `tfsdk:"sockets"`
+	Timeout            types.Int64                                                `tfsdk:"timeout"`
+	FallbackSettings   *securityUtmProfileWebFilteringBlockFallbackSettings       `tfsdk:"fallback_settings"`
+	Server             *securityUtmProfileWebFilteringWebsenseRedirectBlockServer `tfsdk:"server"`
 }
 
-func (rscData *securityUtmProfileWebFilteringJuniperLocalData) isEmpty() bool {
+func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) ValidateConfig(
+type securityUtmProfileWebFilteringWebsenseRedirectBlockServer struct {
+	Host types.String `tfsdk:"host"`
+	Port types.Int64  `tfsdk:"port"`
+}
+
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
-	var config securityUtmProfileWebFilteringJuniperLocalData
+	var config securityUtmProfileWebFilteringWebsenseRedirectData
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -167,10 +198,10 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) ValidateConfig(
 	}
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) Create(
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Create(
 	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse,
 ) {
-	var plan securityUtmProfileWebFilteringJuniperLocalData
+	var plan securityUtmProfileWebFilteringWebsenseRedirectData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -197,7 +228,9 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Create(
 
 				return false
 			}
-			profileExists, err := checkSecurityUtmProfileWebFilteringJuniperLocalExists(fnCtx, plan.Name.ValueString(), junSess)
+			profileExists, err := checkSecurityUtmProfileWebFilteringWebsenseRedirectExists(
+				fnCtx, plan.Name.ValueString(), junSess,
+			)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
@@ -215,7 +248,9 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Create(
 			return true
 		},
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			profileExists, err := checkSecurityUtmProfileWebFilteringJuniperLocalExists(fnCtx, plan.Name.ValueString(), junSess)
+			profileExists, err := checkSecurityUtmProfileWebFilteringWebsenseRedirectExists(
+				fnCtx, plan.Name.ValueString(), junSess,
+			)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
@@ -237,10 +272,10 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Create(
 	)
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) Read(
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Read(
 	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse,
 ) {
-	var state, data securityUtmProfileWebFilteringJuniperLocalData
+	var state, data securityUtmProfileWebFilteringWebsenseRedirectData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -259,10 +294,10 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Read(
 	)
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) Update(
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Update(
 	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse,
 ) {
-	var plan, state securityUtmProfileWebFilteringJuniperLocalData
+	var plan, state securityUtmProfileWebFilteringWebsenseRedirectData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -278,10 +313,10 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Update(
 	)
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) Delete(
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Delete(
 	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse,
 ) {
-	var state securityUtmProfileWebFilteringJuniperLocalData
+	var state securityUtmProfileWebFilteringWebsenseRedirectData
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -295,10 +330,10 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Delete(
 	)
 }
 
-func (rsc *securityUtmProfileWebFilteringJuniperLocal) ImportState(
+func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) ImportState(
 	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse,
 ) {
-	var data securityUtmProfileWebFilteringJuniperLocalData
+	var data securityUtmProfileWebFilteringWebsenseRedirectData
 
 	var _ resourceDataReadFrom1String = &data
 	defaultResourceImportState(
@@ -311,13 +346,13 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) ImportState(
 	)
 }
 
-func checkSecurityUtmProfileWebFilteringJuniperLocalExists(
+func checkSecurityUtmProfileWebFilteringWebsenseRedirectExists(
 	_ context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security utm feature-profile web-filtering juniper-local profile \"" + name + "\"" + junos.PipeDisplaySet)
+		"security utm feature-profile web-filtering websense-redirect profile \"" + name + "\"" + junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -328,15 +363,15 @@ func checkSecurityUtmProfileWebFilteringJuniperLocalExists(
 	return true, nil
 }
 
-func (rscData *securityUtmProfileWebFilteringJuniperLocalData) fillID() {
+func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
 
-func (rscData *securityUtmProfileWebFilteringJuniperLocalData) nullID() bool {
+func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
-func (rscData *securityUtmProfileWebFilteringJuniperLocalData) set(
+func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) set(
 	_ context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
@@ -347,17 +382,18 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) set(
 	}
 
 	configSet := make([]string, 0, 100)
-	setPrefix := "set security utm feature-profile web-filtering juniper-local " +
+	setPrefix := "set security utm feature-profile web-filtering websense-redirect " +
 		"profile \"" + rscData.Name.ValueString() + "\" "
 
+	if v := rscData.Account.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"account \""+v+"\"")
+	}
 	if v := rscData.CustomBlockMessage.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"custom-block-message \""+v+"\"")
 	}
-	if v := rscData.DefaultAction.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"default "+v)
-	}
-	if rscData.NoSafeSearch.ValueBool() {
-		configSet = append(configSet, setPrefix+"no-safe-search")
+	if !rscData.Sockets.IsNull() {
+		configSet = append(configSet, setPrefix+"sockets "+
+			utils.ConvI64toa(rscData.Sockets.ValueInt64()))
 	}
 	if !rscData.Timeout.IsNull() {
 		configSet = append(configSet, setPrefix+"timeout "+
@@ -367,15 +403,37 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) set(
 	if rscData.FallbackSettings != nil {
 		configSet = append(configSet, rscData.FallbackSettings.configSet(setPrefix)...)
 	}
+	if rscData.Server != nil {
+		configSet = append(configSet, rscData.Server.configSet(setPrefix)...)
+	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)
 }
 
-func (rscData *securityUtmProfileWebFilteringJuniperLocalData) read(
+func (block *securityUtmProfileWebFilteringWebsenseRedirectBlockServer) configSet(setPrefix string) []string {
+	setPrefix += "server "
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
+
+	if v := block.Host.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"host \""+v+"\"")
+	}
+	if !block.Port.IsNull() {
+		configSet = append(configSet, setPrefix+"port "+
+			utils.ConvI64toa(block.Port.ValueInt64()))
+	}
+
+	return configSet
+}
+
+func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) read(
 	_ context.Context, name string, junSess *junos.Session,
 ) error {
 	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security utm feature-profile web-filtering juniper-local profile \"" + name + "\"" + junos.PipeDisplaySetRelative)
+		"security utm feature-profile web-filtering websense-redirect profile \"" + name + "\"" +
+		junos.PipeDisplaySetRelative,
+	)
 	if err != nil {
 		return err
 	}
@@ -391,10 +449,10 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
+			case balt.CutPrefixInString(&itemTrim, "account "):
+				rscData.Account = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "custom-block-message "):
 				rscData.CustomBlockMessage = types.StringValue(strings.Trim(itemTrim, "\""))
-			case balt.CutPrefixInString(&itemTrim, "default "):
-				rscData.DefaultAction = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "fallback-settings"):
 				if rscData.FallbackSettings == nil {
 					rscData.FallbackSettings = &securityUtmProfileWebFilteringBlockFallbackSettings{}
@@ -403,8 +461,21 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) read(
 				if balt.CutPrefixInString(&itemTrim, " ") {
 					rscData.FallbackSettings.read(itemTrim)
 				}
-			case itemTrim == "no-safe-search":
-				rscData.NoSafeSearch = types.BoolValue(true)
+			case balt.CutPrefixInString(&itemTrim, "server"):
+				if rscData.Server == nil {
+					rscData.Server = &securityUtmProfileWebFilteringWebsenseRedirectBlockServer{}
+				}
+
+				if balt.CutPrefixInString(&itemTrim, " ") {
+					if err := rscData.Server.read(itemTrim); err != nil {
+						return err
+					}
+				}
+			case balt.CutPrefixInString(&itemTrim, "sockets "):
+				rscData.Sockets, err = tfdata.ConvAtoi64Value(itemTrim)
+				if err != nil {
+					return err
+				}
 			case balt.CutPrefixInString(&itemTrim, "timeout "):
 				rscData.Timeout, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {
@@ -417,11 +488,22 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) read(
 	return nil
 }
 
-func (rscData *securityUtmProfileWebFilteringJuniperLocalData) del(
+func (block *securityUtmProfileWebFilteringWebsenseRedirectBlockServer) read(itemTrim string) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "host "):
+		block.Host = types.StringValue(strings.Trim(itemTrim, "\""))
+	case balt.CutPrefixInString(&itemTrim, "port "):
+		block.Port, err = tfdata.ConvAtoi64Value(itemTrim)
+	}
+
+	return err
+}
+
+func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) del(
 	_ context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
-		"delete security utm feature-profile web-filtering juniper-local profile \"" + rscData.Name.ValueString() + "\"",
+		"delete security utm feature-profile web-filtering websense-redirect profile \"" + rscData.Name.ValueString() + "\"",
 	}
 
 	return junSess.ConfigSet(configSet)
