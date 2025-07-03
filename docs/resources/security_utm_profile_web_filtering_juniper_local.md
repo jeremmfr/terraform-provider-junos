@@ -44,8 +44,7 @@ The following arguments are supported:
     Action when requests exceed the limit of engine.  
     Need to be `block` or `log-and-permit`.
 - **timeout** (Optional, Number)  
-  Set timeout.  
-  Need to be between 1 and 1800.
+  Set timeout (1..1800).
 
 ## Attribute Reference
 

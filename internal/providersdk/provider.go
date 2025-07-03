@@ -179,7 +179,6 @@ func Provider() *schema.Provider {
 
 			"junos_null_commit_file": resourceNullCommitFile(),
 
-			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
 			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
 
 			"junos_services_advanced_anti_malware_policy": resourceServicesAdvancedAntiMalwarePolicy(),

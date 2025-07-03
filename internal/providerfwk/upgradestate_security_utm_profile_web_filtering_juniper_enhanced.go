@@ -200,7 +200,7 @@ func upgradeSecurityUtmProfileWebFilteringJuniperEnhancedV0toV1(
 		dataV1.Category = append(dataV1.Category, blockV1)
 	}
 	if len(dataV0.FallbackSettings) > 0 {
-		dataV1.FallbackSettings = &securityUtmProfileWebFilteringJuniperEnhancedBlockFallbackSettings{
+		dataV1.FallbackSettings = &securityUtmProfileWebFilteringJuniperBlockFallbackSettings{
 			Default:            dataV0.FallbackSettings[0].Default,
 			ServerConnectivity: dataV0.FallbackSettings[0].ServerConnectivity,
 			Timeout:            dataV0.FallbackSettings[0].Timeout,

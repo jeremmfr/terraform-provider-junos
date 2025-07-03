@@ -208,42 +208,7 @@ func (rsc *securityUtmProfileWebFilteringJuniperEnhanced) Schema(
 					},
 				},
 			},
-			"fallback_settings": schema.SingleNestedBlock{
-				Description: "Configure fallback settings.",
-				Attributes: map[string]schema.Attribute{
-					"default": schema.StringAttribute{
-						Optional:    true,
-						Description: "Default action.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("block", "log-and-permit"),
-						},
-					},
-					"server_connectivity": schema.StringAttribute{
-						Optional:    true,
-						Description: "Action when device cannot connect to server.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("block", "log-and-permit"),
-						},
-					},
-					"timeout": schema.StringAttribute{
-						Optional:    true,
-						Description: "Action when connection to server timeout.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("block", "log-and-permit"),
-						},
-					},
-					"too_many_requests": schema.StringAttribute{
-						Optional:    true,
-						Description: "Action when requests exceed the limit of engine.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("block", "log-and-permit"),
-						},
-					},
-				},
-				PlanModifiers: []planmodifier.Object{
-					tfplanmodifier.BlockRemoveNull(),
-				},
-			},
+			"fallback_settings": securityUtmProfileWebFilteringJuniperBlockFallbackSettings{}.schema(),
 			"quarantine_message": schema.SingleNestedBlock{
 				Description: "Configure quarantine message.",
 				Attributes: map[string]schema.Attribute{
@@ -303,7 +268,7 @@ type securityUtmProfileWebFilteringJuniperEnhancedData struct {
 	Timeout                 types.Int64                                                          `tfsdk:"timeout"`
 	BlockMessage            *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage           `tfsdk:"block_message"`
 	Category                []securityUtmProfileWebFilteringJuniperEnhancedBlockCategory         `tfsdk:"category"`
-	FallbackSettings        *securityUtmProfileWebFilteringJuniperEnhancedBlockFallbackSettings  `tfsdk:"fallback_settings"`
+	FallbackSettings        *securityUtmProfileWebFilteringJuniperBlockFallbackSettings          `tfsdk:"fallback_settings"`
 	QuarantineMessage       *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage           `tfsdk:"quarantine_message"`
 	SiteReputationAction    []securityUtmProfileWebFilteringJuniperEnhancedBlockReputationAction `tfsdk:"site_reputation_action"`
 }
@@ -312,20 +277,19 @@ func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) isEmpty() bool
 	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
-//nolint:lll
 type securityUtmProfileWebFilteringJuniperEnhancedConfig struct {
-	ID                      types.String                                                        `tfsdk:"id"`
-	Name                    types.String                                                        `tfsdk:"name"`
-	CustomBlockMessage      types.String                                                        `tfsdk:"custom_block_message"`
-	DefaultAction           types.String                                                        `tfsdk:"default_action"`
-	NoSafeSearch            types.Bool                                                          `tfsdk:"no_safe_search"`
-	QuarantineCustomMessage types.String                                                        `tfsdk:"quarantine_custom_message"`
-	Timeout                 types.Int64                                                         `tfsdk:"timeout"`
-	BlockMessage            *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage          `tfsdk:"block_message"`
-	Category                types.List                                                          `tfsdk:"category"`
-	FallbackSettings        *securityUtmProfileWebFilteringJuniperEnhancedBlockFallbackSettings `tfsdk:"fallback_settings"`
-	QuarantineMessage       *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage          `tfsdk:"quarantine_message"`
-	SiteReputationAction    types.List                                                          `tfsdk:"site_reputation_action"`
+	ID                      types.String                                                `tfsdk:"id"`
+	Name                    types.String                                                `tfsdk:"name"`
+	CustomBlockMessage      types.String                                                `tfsdk:"custom_block_message"`
+	DefaultAction           types.String                                                `tfsdk:"default_action"`
+	NoSafeSearch            types.Bool                                                  `tfsdk:"no_safe_search"`
+	QuarantineCustomMessage types.String                                                `tfsdk:"quarantine_custom_message"`
+	Timeout                 types.Int64                                                 `tfsdk:"timeout"`
+	BlockMessage            *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage  `tfsdk:"block_message"`
+	Category                types.List                                                  `tfsdk:"category"`
+	FallbackSettings        *securityUtmProfileWebFilteringJuniperBlockFallbackSettings `tfsdk:"fallback_settings"`
+	QuarantineMessage       *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage  `tfsdk:"quarantine_message"`
+	SiteReputationAction    types.List                                                  `tfsdk:"site_reputation_action"`
 }
 
 func (config *securityUtmProfileWebFilteringJuniperEnhancedConfig) isEmpty() bool {
@@ -348,13 +312,6 @@ type securityUtmProfileWebFilteringJuniperEnhancedBlockCategoryConfig struct {
 	Name             types.String `tfsdk:"name"`
 	Action           types.String `tfsdk:"action"`
 	ReputationAction types.List   `tfsdk:"reputation_action"`
-}
-
-type securityUtmProfileWebFilteringJuniperEnhancedBlockFallbackSettings struct {
-	Default            types.String `tfsdk:"default"`
-	ServerConnectivity types.String `tfsdk:"server_connectivity"`
-	Timeout            types.String `tfsdk:"timeout"`
-	TooManyRequests    types.String `tfsdk:"too_many_requests"`
 }
 
 type securityUtmProfileWebFilteringJuniperEnhancedBlockReputationAction struct {
@@ -727,28 +684,6 @@ func (block *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage) configSe
 	return configSet
 }
 
-func (block *securityUtmProfileWebFilteringJuniperEnhancedBlockFallbackSettings) configSet(setPrefix string) []string {
-	setPrefix += "fallback-settings "
-
-	configSet := make([]string, 1, 100)
-	configSet[0] = setPrefix
-
-	if v := block.Default.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"default "+v)
-	}
-	if v := block.ServerConnectivity.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"server-connectivity "+v)
-	}
-	if v := block.Timeout.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"timeout "+v)
-	}
-	if v := block.TooManyRequests.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"too-many-requests "+v)
-	}
-
-	return configSet
-}
-
 func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) read(
 	_ context.Context, name string, junSess *junos.Session,
 ) error {
@@ -804,7 +739,7 @@ func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) read(
 				rscData.DefaultAction = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "fallback-settings"):
 				if rscData.FallbackSettings == nil {
-					rscData.FallbackSettings = &securityUtmProfileWebFilteringJuniperEnhancedBlockFallbackSettings{}
+					rscData.FallbackSettings = &securityUtmProfileWebFilteringJuniperBlockFallbackSettings{}
 				}
 
 				if balt.CutPrefixInString(&itemTrim, " ") {
@@ -849,19 +784,6 @@ func (block *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage) read(ite
 		block.TypeCustomRedirectURL = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "url "):
 		block.URL = types.StringValue(strings.Trim(itemTrim, "\""))
-	}
-}
-
-func (block *securityUtmProfileWebFilteringJuniperEnhancedBlockFallbackSettings) read(itemTrim string) {
-	switch {
-	case balt.CutPrefixInString(&itemTrim, "default "):
-		block.Default = types.StringValue(itemTrim)
-	case balt.CutPrefixInString(&itemTrim, "server-connectivity "):
-		block.ServerConnectivity = types.StringValue(itemTrim)
-	case balt.CutPrefixInString(&itemTrim, "timeout "):
-		block.Timeout = types.StringValue(itemTrim)
-	case balt.CutPrefixInString(&itemTrim, "too-many-requests "):
-		block.TooManyRequests = types.StringValue(itemTrim)
 	}
 }
 
