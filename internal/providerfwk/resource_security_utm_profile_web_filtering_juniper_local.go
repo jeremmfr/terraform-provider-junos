@@ -114,6 +114,13 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Schema(
 					stringvalidator.OneOf("block", "log-and-permit", "permit"),
 				},
 			},
+			"no_safe_search": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Do not perform safe-search for Juniper local protocol.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"timeout": schema.Int64Attribute{
 				Optional:    true,
 				Description: "Set timeout.",
@@ -133,6 +140,7 @@ type securityUtmProfileWebFilteringJuniperLocalData struct {
 	Name               types.String                                                `tfsdk:"name"`
 	CustomBlockMessage types.String                                                `tfsdk:"custom_block_message"`
 	DefaultAction      types.String                                                `tfsdk:"default_action"`
+	NoSafeSearch       types.Bool                                                  `tfsdk:"no_safe_search"`
 	Timeout            types.Int64                                                 `tfsdk:"timeout"`
 	FallbackSettings   *securityUtmProfileWebFilteringJuniperBlockFallbackSettings `tfsdk:"fallback_settings"`
 }
@@ -348,6 +356,9 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) set(
 	if v := rscData.DefaultAction.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"default "+v)
 	}
+	if rscData.NoSafeSearch.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-safe-search")
+	}
 	if !rscData.Timeout.IsNull() {
 		configSet = append(configSet, setPrefix+"timeout "+
 			utils.ConvI64toa(rscData.Timeout.ValueInt64()))
@@ -392,6 +403,8 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) read(
 				if balt.CutPrefixInString(&itemTrim, " ") {
 					rscData.FallbackSettings.read(itemTrim)
 				}
+			case itemTrim == "no-safe-search":
+				rscData.NoSafeSearch = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "timeout "):
 				rscData.Timeout, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {

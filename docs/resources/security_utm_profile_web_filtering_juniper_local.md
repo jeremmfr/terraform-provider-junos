@@ -43,6 +43,8 @@ The following arguments are supported:
   - **too_many_requests** (Optional, String)  
     Action when requests exceed the limit of engine.  
     Need to be `block` or `log-and-permit`.
+- **no_safe_search** (Optional, Boolean)  
+  Do not perform safe-search for Juniper local protocol.
 - **timeout** (Optional, Number)  
   Set timeout (1..1800).
 
