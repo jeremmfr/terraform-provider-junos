@@ -53,6 +53,10 @@ The following arguments are supported:
     Server host IP address or string host name.
   - **port** (Optional, Number)  
     Server port (1024..65535).
+  - **routing_instance** (Optional, String)  
+    Routing instance used to connect server.
+  - **source_address** (Optional, String)  
+    Source ip address used to connect server.
 - **socket** (Optional, Number)  
   Set sockets number (1..32).
 - **timeout** (Optional, Number)  

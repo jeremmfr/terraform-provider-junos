@@ -158,6 +158,21 @@ func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Schema(
 							int64validator.Between(1024, 65535),
 						},
 					},
+					"routing_instance": schema.StringAttribute{
+						Optional:    true,
+						Description: "Routing instance used to connect server.",
+						Validators: []validator.String{
+							stringvalidator.LengthBetween(1, 63),
+							tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+						},
+					},
+					"source_address": schema.StringAttribute{
+						Optional:    true,
+						Description: "Source ip address used to connect server.",
+						Validators: []validator.String{
+							tfvalidator.StringIPAddress(),
+						},
+					},
 				},
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
@@ -184,8 +199,10 @@ func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) isEmpty() boo
 }
 
 type securityUtmProfileWebFilteringWebsenseRedirectBlockServer struct {
-	Host types.String `tfsdk:"host"`
-	Port types.Int64  `tfsdk:"port"`
+	Host            types.String `tfsdk:"host"`
+	Port            types.Int64  `tfsdk:"port"`
+	RoutingInstance types.String `tfsdk:"routing_instance"`
+	SourceAddress   types.String `tfsdk:"source_address"`
 }
 
 func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) ValidateConfig(
@@ -434,6 +451,12 @@ func (block *securityUtmProfileWebFilteringWebsenseRedirectBlockServer) configSe
 		configSet = append(configSet, setPrefix+"port "+
 			utils.ConvI64toa(block.Port.ValueInt64()))
 	}
+	if v := block.RoutingInstance.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"routing-instance "+v)
+	}
+	if v := block.SourceAddress.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"source-address "+v)
+	}
 
 	return configSet
 }
@@ -507,6 +530,10 @@ func (block *securityUtmProfileWebFilteringWebsenseRedirectBlockServer) read(ite
 		block.Host = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "port "):
 		block.Port, err = tfdata.ConvAtoi64Value(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+		block.RoutingInstance = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "source-address "):
+		block.SourceAddress = types.StringValue(itemTrim)
 	}
 
 	return err

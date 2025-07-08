@@ -26,3 +26,4 @@ ENHANCEMENTS:
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
   * add `no_safe_search` argument
+  * add `routing_instance` and `source_address` arguments in `server` block
