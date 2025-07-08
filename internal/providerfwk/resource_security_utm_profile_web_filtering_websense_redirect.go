@@ -116,6 +116,14 @@ func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"custom_message": schema.StringAttribute{
+				Optional:    true,
+				Description: "Custom message.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
 			"no_safe_search": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Do not perform safe-search for Juniper local protocol.",
@@ -187,6 +195,7 @@ type securityUtmProfileWebFilteringWebsenseRedirectData struct {
 	Name               types.String                                               `tfsdk:"name"`
 	Account            types.String                                               `tfsdk:"account"`
 	CustomBlockMessage types.String                                               `tfsdk:"custom_block_message"`
+	CustomMessage      types.String                                               `tfsdk:"custom_message"`
 	NoSafeSearch       types.Bool                                                 `tfsdk:"no_safe_search"`
 	Sockets            types.Int64                                                `tfsdk:"sockets"`
 	Timeout            types.Int64                                                `tfsdk:"timeout"`
@@ -416,6 +425,9 @@ func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) set(
 	if v := rscData.CustomBlockMessage.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"custom-block-message \""+v+"\"")
 	}
+	if v := rscData.CustomMessage.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"custom-message \""+v+"\"")
+	}
 	if rscData.NoSafeSearch.ValueBool() {
 		configSet = append(configSet, setPrefix+"no-safe-search")
 	}
@@ -487,6 +499,8 @@ func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) read(
 				rscData.Account = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "custom-block-message "):
 				rscData.CustomBlockMessage = types.StringValue(strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "custom-message "):
+				rscData.CustomMessage = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "fallback-settings"):
 				if rscData.FallbackSettings == nil {
 					rscData.FallbackSettings = &securityUtmProfileWebFilteringBlockFallbackSettings{}

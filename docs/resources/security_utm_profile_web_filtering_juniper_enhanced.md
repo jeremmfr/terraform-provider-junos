@@ -48,6 +48,8 @@ The following arguments are supported:
   See [below for nested schema](#category-arguments).
 - **custom_block_message** (Optional, String)  
   Custom block message sent to HTTP client.
+- **custom_message** (Optional, String)  
+  Custom message.
 - **default_action** (Optional, String)  
   Default action.  
   Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
@@ -95,6 +97,8 @@ The following arguments are supported:
 - **action** (Required, String)  
   Action when web traffic matches category.  
   Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
+- **custom_message** (Optional, String)  
+  Custom message.
 - **reputation_action** (Optional, Block List)  
   For each site_reputation, configure action.
   - **site_reputation** (Required, String)  

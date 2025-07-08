@@ -31,6 +31,8 @@ The following arguments are supported:
   Set websense redirect account.
 - **custom_block_message** (Optional, String)  
   Custom block message sent to HTTP client.
+- **custom_message** (Optional, String)  
+  Custom message.
 - **fallback_settings** (Optional, Block)  
   Configure fallback settings.
   - **default** (Optional, String)  

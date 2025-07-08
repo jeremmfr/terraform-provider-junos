@@ -107,6 +107,14 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"custom_message": schema.StringAttribute{
+				Optional:    true,
+				Description: "Custom message.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
 			"default_action": schema.StringAttribute{
 				Optional:    true,
 				Description: "Default action.",
@@ -139,6 +147,7 @@ type securityUtmProfileWebFilteringJuniperLocalData struct {
 	ID                 types.String                                         `tfsdk:"id"`
 	Name               types.String                                         `tfsdk:"name"`
 	CustomBlockMessage types.String                                         `tfsdk:"custom_block_message"`
+	CustomMessage      types.String                                         `tfsdk:"custom_message"`
 	DefaultAction      types.String                                         `tfsdk:"default_action"`
 	NoSafeSearch       types.Bool                                           `tfsdk:"no_safe_search"`
 	Timeout            types.Int64                                          `tfsdk:"timeout"`
@@ -353,6 +362,9 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) set(
 	if v := rscData.CustomBlockMessage.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"custom-block-message \""+v+"\"")
 	}
+	if v := rscData.CustomMessage.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"custom-message \""+v+"\"")
+	}
 	if v := rscData.DefaultAction.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"default "+v)
 	}
@@ -393,6 +405,8 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) read(
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "custom-block-message "):
 				rscData.CustomBlockMessage = types.StringValue(strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "custom-message "):
+				rscData.CustomMessage = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "default "):
 				rscData.DefaultAction = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "fallback-settings"):

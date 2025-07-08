@@ -26,6 +26,8 @@ The following arguments are supported:
   The name of security utm feature-profile web-filtering juniper-local profile.
 - **custom_block_message** (Optional, String)  
   Custom block message sent to HTTP client.
+- **custom_message** (Optional, String)  
+  Custom message.
 - **default_action** (Optional, String)  
   Default action.  
   Need to be `block`, `log-and-permit` or `permit`.

@@ -1,4 +1,8 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
+FEATURES:
+
+* add `junos_security_utm_custom_message` resource
+
 ENHANCEMENTS:
 
 * **resource/junos_security_utm_custom_url_category**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
@@ -9,17 +13,20 @@ ENHANCEMENTS:
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
   * add `content_filtering_rule_set` block argument
-* **resource/junos_security_utm_profile_web_filtering_juniper_enhanced**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+* **resource/junos_security_utm_profile_web_filtering_juniper_enhanced**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
   optional boolean attributes doesn't accept value *false*  
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `custom_message` argument in root level and `category` block
 * **resource/junos_security_utm_profile_web_filtering_juniper_local**:
   * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
   optional string attributes doesn't accept *empty* value  
   the resource schema has been upgraded to have one-blocks in single mode instead of list
   * add `no_safe_search` argument
+  * add `custom_message` argument
 * **resource/junos_security_utm_profile_web_filtering_websense_redirect**:
   * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
@@ -27,3 +34,4 @@ ENHANCEMENTS:
   the resource schema has been upgraded to have one-blocks in single mode instead of list
   * add `no_safe_search` argument
   * add `routing_instance` and `source_address` arguments in `server` block
+  * add `custom_message` argument

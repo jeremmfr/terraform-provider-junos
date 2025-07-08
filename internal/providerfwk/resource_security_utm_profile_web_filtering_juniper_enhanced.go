@@ -109,6 +109,14 @@ func (rsc *securityUtmProfileWebFilteringJuniperEnhanced) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"custom_message": schema.StringAttribute{
+				Optional:    true,
+				Description: "Custom message.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
 			"default_action": schema.StringAttribute{
 				Optional:    true,
 				Description: "Default action.",
@@ -180,6 +188,14 @@ func (rsc *securityUtmProfileWebFilteringJuniperEnhanced) Schema(
 							Description: "Action when web traffic matches category.",
 							Validators: []validator.String{
 								stringvalidator.OneOf("block", "log-and-permit", "permit", "quarantine"),
+							},
+						},
+						"custom_message": schema.StringAttribute{
+							Optional:    true,
+							Description: "Custom message.",
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
 					},
@@ -262,6 +278,7 @@ type securityUtmProfileWebFilteringJuniperEnhancedData struct {
 	ID                      types.String                                                         `tfsdk:"id"`
 	Name                    types.String                                                         `tfsdk:"name"`
 	CustomBlockMessage      types.String                                                         `tfsdk:"custom_block_message"`
+	CustomMessage           types.String                                                         `tfsdk:"custom_message"`
 	DefaultAction           types.String                                                         `tfsdk:"default_action"`
 	NoSafeSearch            types.Bool                                                           `tfsdk:"no_safe_search"`
 	QuarantineCustomMessage types.String                                                         `tfsdk:"quarantine_custom_message"`
@@ -281,6 +298,7 @@ type securityUtmProfileWebFilteringJuniperEnhancedConfig struct {
 	ID                      types.String                                               `tfsdk:"id"`
 	Name                    types.String                                               `tfsdk:"name"`
 	CustomBlockMessage      types.String                                               `tfsdk:"custom_block_message"`
+	CustomMessage           types.String                                               `tfsdk:"custom_message"`
 	DefaultAction           types.String                                               `tfsdk:"default_action"`
 	NoSafeSearch            types.Bool                                                 `tfsdk:"no_safe_search"`
 	QuarantineCustomMessage types.String                                               `tfsdk:"quarantine_custom_message"`
@@ -305,12 +323,14 @@ type securityUtmProfileWebFilteringJuniperEnhancedBlockMessage struct {
 type securityUtmProfileWebFilteringJuniperEnhancedBlockCategory struct {
 	Name             types.String                                                         `tfsdk:"name"              tfdata:"identifier"`
 	Action           types.String                                                         `tfsdk:"action"`
+	CustomMessage    types.String                                                         `tfsdk:"custom_message"`
 	ReputationAction []securityUtmProfileWebFilteringJuniperEnhancedBlockReputationAction `tfsdk:"reputation_action"`
 }
 
 type securityUtmProfileWebFilteringJuniperEnhancedBlockCategoryConfig struct {
 	Name             types.String `tfsdk:"name"`
 	Action           types.String `tfsdk:"action"`
+	CustomMessage    types.String `tfsdk:"custom_message"`
 	ReputationAction types.List   `tfsdk:"reputation_action"`
 }
 
@@ -607,6 +627,9 @@ func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) set(
 	if v := rscData.CustomBlockMessage.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"custom-block-message \""+v+"\"")
 	}
+	if v := rscData.CustomMessage.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"custom-message \""+v+"\"")
+	}
 	if v := rscData.DefaultAction.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"default "+v)
 	}
@@ -633,21 +656,11 @@ func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) set(
 		}
 		categoryName[name] = struct{}{}
 
-		configSet = append(configSet, setPrefix+"category \""+name+"\" action "+block.Action.ValueString())
-
-		reputationActionSiteReputation := make(map[string]struct{})
-		for ii, subBlock := range block.ReputationAction {
-			siteReputation := subBlock.SiteReputation.ValueString()
-			if _, ok := reputationActionSiteReputation[siteReputation]; ok {
-				return path.Root("category").AtListIndex(i).AtName("reputation_action").AtListIndex(ii).AtName("site_reputation"),
-					fmt.Errorf("multiple reputation_action blocks with the same site_reputation %q"+
-						" in category block %q", siteReputation, name)
-			}
-			reputationActionSiteReputation[siteReputation] = struct{}{}
-
-			configSet = append(configSet, setPrefix+"category \""+name+"\""+
-				" reputation-action "+siteReputation+" "+subBlock.Action.ValueString())
+		blockSet, pathErr, err := block.configSet(setPrefix, path.Root("category").AtListIndex(i))
+		if err != nil {
+			return pathErr, err
 		}
+		configSet = append(configSet, blockSet...)
 	}
 	if rscData.FallbackSettings != nil {
 		configSet = append(configSet, rscData.FallbackSettings.configSet(setPrefix)...)
@@ -682,6 +695,39 @@ func (block *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage) configSe
 	}
 
 	return configSet
+}
+
+func (block *securityUtmProfileWebFilteringJuniperEnhancedBlockCategory) configSet(
+	setPrefix string, pathRoot path.Path,
+) (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
+	setPrefix += "category \"" + block.Name.ValueString() + "\" "
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix + "action " + block.Action.ValueString()
+
+	if v := block.CustomMessage.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"custom-message \""+v+"\"")
+	}
+
+	reputationActionSiteReputation := make(map[string]struct{})
+	for ii, subBlock := range block.ReputationAction {
+		siteReputation := subBlock.SiteReputation.ValueString()
+		if _, ok := reputationActionSiteReputation[siteReputation]; ok {
+			return configSet,
+				pathRoot.AtName("reputation_action").AtListIndex(ii).AtName("site_reputation"),
+				fmt.Errorf("multiple reputation_action blocks with the same site_reputation %q"+
+					" in category block %q", siteReputation, block.Name.ValueString())
+		}
+		reputationActionSiteReputation[siteReputation] = struct{}{}
+
+		configSet = append(configSet, setPrefix+"reputation-action "+siteReputation+" "+subBlock.Action.ValueString())
+	}
+
+	return configSet, path.Empty(), nil
 }
 
 func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) read(
@@ -720,21 +766,11 @@ func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) read(
 				category := &rscData.Category[len(rscData.Category)-1]
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
-				switch {
-				case balt.CutPrefixInString(&itemTrim, "action "):
-					category.Action = types.StringValue(itemTrim)
-				case balt.CutPrefixInString(&itemTrim, "reputation-action "):
-					siteReputation := tfdata.FirstElementOfJunosLine(itemTrim)
-					category.ReputationAction = tfdata.AppendPotentialNewBlock(
-						category.ReputationAction, types.StringValue(siteReputation),
-					)
-
-					if balt.CutPrefixInString(&itemTrim, siteReputation+" ") {
-						category.ReputationAction[len(category.ReputationAction)-1].Action = types.StringValue(itemTrim)
-					}
-				}
+				category.read(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "custom-block-message "):
 				rscData.CustomBlockMessage = types.StringValue(strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "custom-message "):
+				rscData.CustomMessage = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "default "):
 				rscData.DefaultAction = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "fallback-settings"):
@@ -784,6 +820,24 @@ func (block *securityUtmProfileWebFilteringJuniperEnhancedBlockMessage) read(ite
 		block.TypeCustomRedirectURL = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "url "):
 		block.URL = types.StringValue(strings.Trim(itemTrim, "\""))
+	}
+}
+
+func (block *securityUtmProfileWebFilteringJuniperEnhancedBlockCategory) read(itemTrim string) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "action "):
+		block.Action = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "custom-message "):
+		block.CustomMessage = types.StringValue(strings.Trim(itemTrim, "\""))
+	case balt.CutPrefixInString(&itemTrim, "reputation-action "):
+		siteReputation := tfdata.FirstElementOfJunosLine(itemTrim)
+		block.ReputationAction = tfdata.AppendPotentialNewBlock(
+			block.ReputationAction, types.StringValue(siteReputation),
+		)
+
+		if balt.CutPrefixInString(&itemTrim, siteReputation+" ") {
+			block.ReputationAction[len(block.ReputationAction)-1].Action = types.StringValue(itemTrim)
+		}
 	}
 }
 
