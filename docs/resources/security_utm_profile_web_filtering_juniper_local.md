@@ -24,6 +24,15 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   The name of security utm feature-profile web-filtering juniper-local profile.
+- **category** (Optional, Block List)  
+  For each name of category, configure custom category actions.  
+  - **name** (Required, String)  
+    Name of category.
+  - **action** (Required, String)  
+    Action when web traffic matches category.  
+    Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
+  - **custom_message** (Optional, String)  
+    Custom message.
 - **custom_block_message** (Optional, String)  
   Custom block message sent to HTTP client.
 - **custom_message** (Optional, String)  

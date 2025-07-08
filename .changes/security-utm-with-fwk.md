@@ -27,6 +27,7 @@ ENHANCEMENTS:
   the resource schema has been upgraded to have one-blocks in single mode instead of list
   * add `no_safe_search` argument
   * add `custom_message` argument
+  * add `category` block argument
 * **resource/junos_security_utm_profile_web_filtering_websense_redirect**:
   * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
   some of config errors are now sent during Plan instead of during Apply  
@@ -35,3 +36,4 @@ ENHANCEMENTS:
   * add `no_safe_search` argument
   * add `routing_instance` and `source_address` arguments in `server` block
   * add `custom_message` argument
+  * add `category` block argument

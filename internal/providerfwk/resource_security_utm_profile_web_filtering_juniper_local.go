@@ -3,6 +3,7 @@ package providerfwk
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -138,6 +139,7 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
+			"category":          securityUtmProfileWebFilteringBlockCategoryCustom{}.schema(),
 			"fallback_settings": securityUtmProfileWebFilteringBlockFallbackSettings{}.schema(),
 		},
 	}
@@ -151,6 +153,7 @@ type securityUtmProfileWebFilteringJuniperLocalData struct {
 	DefaultAction      types.String                                         `tfsdk:"default_action"`
 	NoSafeSearch       types.Bool                                           `tfsdk:"no_safe_search"`
 	Timeout            types.Int64                                          `tfsdk:"timeout"`
+	Category           []securityUtmProfileWebFilteringBlockCategoryCustom  `tfsdk:"category"`
 	FallbackSettings   *securityUtmProfileWebFilteringBlockFallbackSettings `tfsdk:"fallback_settings"`
 }
 
@@ -158,10 +161,26 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
+type securityUtmProfileWebFilteringJuniperLocalConfig struct {
+	ID                 types.String                                         `tfsdk:"id"`
+	Name               types.String                                         `tfsdk:"name"`
+	CustomBlockMessage types.String                                         `tfsdk:"custom_block_message"`
+	CustomMessage      types.String                                         `tfsdk:"custom_message"`
+	DefaultAction      types.String                                         `tfsdk:"default_action"`
+	NoSafeSearch       types.Bool                                           `tfsdk:"no_safe_search"`
+	Timeout            types.Int64                                          `tfsdk:"timeout"`
+	Category           types.List                                           `tfsdk:"category"`
+	FallbackSettings   *securityUtmProfileWebFilteringBlockFallbackSettings `tfsdk:"fallback_settings"`
+}
+
+func (config *securityUtmProfileWebFilteringJuniperLocalConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(config)
+}
+
 func (rsc *securityUtmProfileWebFilteringJuniperLocal) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
-	var config securityUtmProfileWebFilteringJuniperLocalData
+	var config securityUtmProfileWebFilteringJuniperLocalConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -173,6 +192,32 @@ func (rsc *securityUtmProfileWebFilteringJuniperLocal) ValidateConfig(
 			tfdiag.MissingConfigErrSummary,
 			"at least one of arguments need to be set (in addition to `name`)",
 		)
+	}
+
+	if !config.Category.IsNull() &&
+		!config.Category.IsUnknown() {
+		var configCategory []securityUtmProfileWebFilteringBlockCategoryCustom
+		asDiags := config.Category.ElementsAs(ctx, &configCategory, false)
+		if asDiags.HasError() {
+			resp.Diagnostics.Append(asDiags...)
+
+			return
+		}
+
+		categoryName := make(map[string]struct{})
+		for i, block := range configCategory {
+			if !block.Name.IsUnknown() {
+				name := block.Name.ValueString()
+				if _, ok := categoryName[name]; ok {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("category").AtListIndex(i).AtName("name"),
+						tfdiag.DuplicateConfigErrSummary,
+						fmt.Sprintf("multiple category blocks with the same name %q", name),
+					)
+				}
+				categoryName[name] = struct{}{}
+			}
+		}
 	}
 }
 
@@ -376,6 +421,17 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) set(
 			utils.ConvI64toa(rscData.Timeout.ValueInt64()))
 	}
 
+	categoryName := make(map[string]struct{})
+	for i, block := range rscData.Category {
+		name := block.Name.ValueString()
+		if _, ok := categoryName[name]; ok {
+			return path.Root("category").AtListIndex(i).AtName("name"),
+				fmt.Errorf("multiple category blocks with the same name %q", name)
+		}
+		categoryName[name] = struct{}{}
+
+		configSet = append(configSet, block.configSet(setPrefix)...)
+	}
 	if rscData.FallbackSettings != nil {
 		configSet = append(configSet, rscData.FallbackSettings.configSet(setPrefix)...)
 	}
@@ -403,6 +459,13 @@ func (rscData *securityUtmProfileWebFilteringJuniperLocalData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
+			case balt.CutPrefixInString(&itemTrim, "category "):
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.Category = tfdata.AppendPotentialNewBlock(rscData.Category, types.StringValue(strings.Trim(name, "\"")))
+				category := &rscData.Category[len(rscData.Category)-1]
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
+				category.read(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "custom-block-message "):
 				rscData.CustomBlockMessage = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "custom-message "):

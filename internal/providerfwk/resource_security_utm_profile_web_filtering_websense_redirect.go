@@ -3,6 +3,7 @@ package providerfwk
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -147,6 +148,7 @@ func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
+			"category":          securityUtmProfileWebFilteringBlockCategoryCustom{}.schema(),
 			"fallback_settings": securityUtmProfileWebFilteringBlockFallbackSettings{}.schema(),
 			"server": schema.SingleNestedBlock{
 				Description: "Configure server settings.",
@@ -199,12 +201,31 @@ type securityUtmProfileWebFilteringWebsenseRedirectData struct {
 	NoSafeSearch       types.Bool                                                 `tfsdk:"no_safe_search"`
 	Sockets            types.Int64                                                `tfsdk:"sockets"`
 	Timeout            types.Int64                                                `tfsdk:"timeout"`
+	Category           []securityUtmProfileWebFilteringBlockCategoryCustom        `tfsdk:"category"`
 	FallbackSettings   *securityUtmProfileWebFilteringBlockFallbackSettings       `tfsdk:"fallback_settings"`
 	Server             *securityUtmProfileWebFilteringWebsenseRedirectBlockServer `tfsdk:"server"`
 }
 
 func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(rscData)
+}
+
+type securityUtmProfileWebFilteringWebsenseRedirectConfig struct {
+	ID                 types.String                                               `tfsdk:"id"`
+	Name               types.String                                               `tfsdk:"name"`
+	Account            types.String                                               `tfsdk:"account"`
+	CustomBlockMessage types.String                                               `tfsdk:"custom_block_message"`
+	CustomMessage      types.String                                               `tfsdk:"custom_message"`
+	NoSafeSearch       types.Bool                                                 `tfsdk:"no_safe_search"`
+	Sockets            types.Int64                                                `tfsdk:"sockets"`
+	Timeout            types.Int64                                                `tfsdk:"timeout"`
+	Category           types.List                                                 `tfsdk:"category"`
+	FallbackSettings   *securityUtmProfileWebFilteringBlockFallbackSettings       `tfsdk:"fallback_settings"`
+	Server             *securityUtmProfileWebFilteringWebsenseRedirectBlockServer `tfsdk:"server"`
+}
+
+func (config *securityUtmProfileWebFilteringWebsenseRedirectConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(config)
 }
 
 type securityUtmProfileWebFilteringWebsenseRedirectBlockServer struct {
@@ -217,7 +238,7 @@ type securityUtmProfileWebFilteringWebsenseRedirectBlockServer struct {
 func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
-	var config securityUtmProfileWebFilteringWebsenseRedirectData
+	var config securityUtmProfileWebFilteringWebsenseRedirectConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -229,6 +250,32 @@ func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) ValidateConfig(
 			tfdiag.MissingConfigErrSummary,
 			"at least one of arguments need to be set (in addition to `name`)",
 		)
+	}
+
+	if !config.Category.IsNull() &&
+		!config.Category.IsUnknown() {
+		var configCategory []securityUtmProfileWebFilteringBlockCategoryCustom
+		asDiags := config.Category.ElementsAs(ctx, &configCategory, false)
+		if asDiags.HasError() {
+			resp.Diagnostics.Append(asDiags...)
+
+			return
+		}
+
+		categoryName := make(map[string]struct{})
+		for i, block := range configCategory {
+			if !block.Name.IsUnknown() {
+				name := block.Name.ValueString()
+				if _, ok := categoryName[name]; ok {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("category").AtListIndex(i).AtName("name"),
+						tfdiag.DuplicateConfigErrSummary,
+						fmt.Sprintf("multiple category blocks with the same name %q", name),
+					)
+				}
+				categoryName[name] = struct{}{}
+			}
+		}
 	}
 }
 
@@ -440,6 +487,17 @@ func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) set(
 			utils.ConvI64toa(rscData.Timeout.ValueInt64()))
 	}
 
+	categoryName := make(map[string]struct{})
+	for i, block := range rscData.Category {
+		name := block.Name.ValueString()
+		if _, ok := categoryName[name]; ok {
+			return path.Root("category").AtListIndex(i).AtName("name"),
+				fmt.Errorf("multiple category blocks with the same name %q", name)
+		}
+		categoryName[name] = struct{}{}
+
+		configSet = append(configSet, block.configSet(setPrefix)...)
+	}
 	if rscData.FallbackSettings != nil {
 		configSet = append(configSet, rscData.FallbackSettings.configSet(setPrefix)...)
 	}
@@ -497,6 +555,13 @@ func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) read(
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "account "):
 				rscData.Account = types.StringValue(strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "category "):
+				name := tfdata.FirstElementOfJunosLine(itemTrim)
+				rscData.Category = tfdata.AppendPotentialNewBlock(rscData.Category, types.StringValue(strings.Trim(name, "\"")))
+				category := &rscData.Category[len(rscData.Category)-1]
+				balt.CutPrefixInString(&itemTrim, name+" ")
+
+				category.read(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "custom-block-message "):
 				rscData.CustomBlockMessage = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "custom-message "):
