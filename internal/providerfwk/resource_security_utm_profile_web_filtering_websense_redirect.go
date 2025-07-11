@@ -192,9 +192,10 @@ func (rsc *securityUtmProfileWebFilteringWebsenseRedirect) Schema(
 	}
 }
 
+//nolint:lll
 type securityUtmProfileWebFilteringWebsenseRedirectData struct {
-	ID                 types.String                                               `tfsdk:"id"`
-	Name               types.String                                               `tfsdk:"name"`
+	ID                 types.String                                               `tfsdk:"id"                   tfdata:"skip_isempty"`
+	Name               types.String                                               `tfsdk:"name"                 tfdata:"skip_isempty"`
 	Account            types.String                                               `tfsdk:"account"`
 	CustomBlockMessage types.String                                               `tfsdk:"custom_block_message"`
 	CustomMessage      types.String                                               `tfsdk:"custom_message"`
@@ -210,9 +211,10 @@ func (rscData *securityUtmProfileWebFilteringWebsenseRedirectData) isEmpty() boo
 	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
+//nolint:lll
 type securityUtmProfileWebFilteringWebsenseRedirectConfig struct {
-	ID                 types.String                                               `tfsdk:"id"`
-	Name               types.String                                               `tfsdk:"name"`
+	ID                 types.String                                               `tfsdk:"id"                   tfdata:"skip_isempty"`
+	Name               types.String                                               `tfsdk:"name"                 tfdata:"skip_isempty"`
 	Account            types.String                                               `tfsdk:"account"`
 	CustomBlockMessage types.String                                               `tfsdk:"custom_block_message"`
 	CustomMessage      types.String                                               `tfsdk:"custom_message"`

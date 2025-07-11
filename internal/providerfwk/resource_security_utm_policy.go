@@ -365,9 +365,10 @@ func (rsc *securityUtmPolicy) Schema(
 	}
 }
 
+//nolint:lll
 type securityUtmPolicyData struct {
-	ID                       types.String                                    `tfsdk:"id"`
-	Name                     types.String                                    `tfsdk:"name"`
+	ID                       types.String                                    `tfsdk:"id"                          tfdata:"skip_isempty"`
+	Name                     types.String                                    `tfsdk:"name"                        tfdata:"skip_isempty"`
 	AntiSpamSMTPProfile      types.String                                    `tfsdk:"anti_spam_smtp_profile"`
 	WebFilteringProfile      types.String                                    `tfsdk:"web_filtering_profile"`
 	AntiVirus                *securityUtmPolicyBlockProtocolProfile          `tfsdk:"anti_virus"`
@@ -380,9 +381,10 @@ func (rscData *securityUtmPolicyData) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
+//nolint:lll
 type securityUtmPolicyConfig struct {
-	ID                       types.String                                    `tfsdk:"id"`
-	Name                     types.String                                    `tfsdk:"name"`
+	ID                       types.String                                    `tfsdk:"id"                          tfdata:"skip_isempty"`
+	Name                     types.String                                    `tfsdk:"name"                        tfdata:"skip_isempty"`
 	AntiSpamSMTPProfile      types.String                                    `tfsdk:"anti_spam_smtp_profile"`
 	WebFilteringProfile      types.String                                    `tfsdk:"web_filtering_profile"`
 	AntiVirus                *securityUtmPolicyBlockProtocolProfile          `tfsdk:"anti_virus"`

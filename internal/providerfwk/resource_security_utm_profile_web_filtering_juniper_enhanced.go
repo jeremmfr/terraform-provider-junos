@@ -275,8 +275,8 @@ func (rsc *securityUtmProfileWebFilteringJuniperEnhanced) Schema(
 
 //nolint:lll
 type securityUtmProfileWebFilteringJuniperEnhancedData struct {
-	ID                      types.String                                                         `tfsdk:"id"`
-	Name                    types.String                                                         `tfsdk:"name"`
+	ID                      types.String                                                         `tfsdk:"id"                        tfdata:"skip_isempty"`
+	Name                    types.String                                                         `tfsdk:"name"                      tfdata:"skip_isempty"`
 	CustomBlockMessage      types.String                                                         `tfsdk:"custom_block_message"`
 	CustomMessage           types.String                                                         `tfsdk:"custom_message"`
 	DefaultAction           types.String                                                         `tfsdk:"default_action"`
@@ -294,9 +294,10 @@ func (rscData *securityUtmProfileWebFilteringJuniperEnhancedData) isEmpty() bool
 	return tfdata.CheckBlockIsEmpty(rscData)
 }
 
+//nolint:lll
 type securityUtmProfileWebFilteringJuniperEnhancedConfig struct {
-	ID                      types.String                                               `tfsdk:"id"`
-	Name                    types.String                                               `tfsdk:"name"`
+	ID                      types.String                                               `tfsdk:"id"                        tfdata:"skip_isempty"`
+	Name                    types.String                                               `tfsdk:"name"                      tfdata:"skip_isempty"`
 	CustomBlockMessage      types.String                                               `tfsdk:"custom_block_message"`
 	CustomMessage           types.String                                               `tfsdk:"custom_message"`
 	DefaultAction           types.String                                               `tfsdk:"default_action"`
