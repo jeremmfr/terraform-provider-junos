@@ -31,11 +31,6 @@ func TestAccResourceServices_basic(t *testing.T) {
 					),
 				},
 				{
-					ResourceName:      "junos_services_proxy_profile.testacc_services",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
-				{
 					ResourceName:      "junos_services.testacc",
 					ImportState:       true,
 					ImportStateVerify: true,

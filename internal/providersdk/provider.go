@@ -180,7 +180,6 @@ func Provider() *schema.Provider {
 			"junos_null_commit_file": resourceNullCommitFile(),
 
 			"junos_services_advanced_anti_malware_policy": resourceServicesAdvancedAntiMalwarePolicy(),
-			"junos_services_proxy_profile":                resourceServicesProxyProfile(),
 		},
 		ConfigureContextFunc: configureProvider,
 	}

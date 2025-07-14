@@ -25,7 +25,7 @@ The following arguments are supported:
 - **protocol_http_host** (Required, String)  
   Proxy server name or IP address.
 - **protocol_http_port** (Optional, Number)  
-  Proxy server port (1..65535).
+  Proxy server port (0..65535).
 
 ## Attribute Reference
 
