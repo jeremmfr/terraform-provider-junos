@@ -39,15 +39,17 @@ The following arguments are supported:
   The name of security utm feature-profile web-filtering juniper-enhanced profile.
 - **block_message** (Optional, Block)  
   Configure block message.
-  - **url** (Optional, String)  
-    URL of block message.
   - **type_custom_redirect_url** (Optional, Boolean)  
     Enable Custom redirect URL server type.
+  - **url** (Optional, String)  
+    URL of block message.
 - **category** (Optional, Block List)  
   For each name of category, configure enhanced category actions.  
   See [below for nested schema](#category-arguments).
 - **custom_block_message** (Optional, String)  
   Custom block message sent to HTTP client.
+- **custom_message** (Optional, String)  
+  Custom message.
 - **default_action** (Optional, String)  
   Default action.  
   Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
@@ -71,10 +73,10 @@ The following arguments are supported:
   Quarantine custom message.
 - **quarantine_message** (Optional, Block)  
   Configure quarantine message.
-  - **url** (Optional, String)  
-    URL of quarantine message.
   - **type_custom_redirect_url** (Optional, Boolean)  
     Enable Custom redirect URL server type.
+  - **url** (Optional, String)  
+    URL of quarantine message.
 - **site_reputation_action** (Optional, Block List)  
   For each site_reputation, configure action.
   - **site_reputation** (Required, String)  
@@ -84,7 +86,7 @@ The following arguments are supported:
     Action for site-reputation.  
     Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
 - **timeout** (Optional, Number)  
-  Set timeout. Need to be between 1 and 1800.
+  Set timeout (1..1800).
 
 ---
 
@@ -95,6 +97,8 @@ The following arguments are supported:
 - **action** (Required, String)  
   Action when web traffic matches category.  
   Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
+- **custom_message** (Optional, String)  
+  Custom message.
 - **reputation_action** (Optional, Block List)  
   For each site_reputation, configure action.
   - **site_reputation** (Required, String)  

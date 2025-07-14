@@ -179,13 +179,6 @@ func Provider() *schema.Provider {
 
 			"junos_null_commit_file": resourceNullCommitFile(),
 
-			"junos_security_utm_custom_url_category":                     resourceSecurityUtmCustomURLCategory(),
-			"junos_security_utm_custom_url_pattern":                      resourceSecurityUtmCustomURLPattern(),
-			"junos_security_utm_policy":                                  resourceSecurityUtmPolicy(),
-			"junos_security_utm_profile_web_filtering_juniper_enhanced":  resourceSecurityUtmProfileWebFilteringEnhanced(),
-			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
-			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
-
 			"junos_services_advanced_anti_malware_policy": resourceServicesAdvancedAntiMalwarePolicy(),
 			"junos_services_proxy_profile":                resourceServicesProxyProfile(),
 		},

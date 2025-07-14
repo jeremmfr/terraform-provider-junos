@@ -29,8 +29,19 @@ The following arguments are supported:
   The name of security utm feature-profile web-filtering websense-redirect profile.
 - **account** (Optional, String)  
   Set websense redirect account.
+- **category** (Optional, Block List)  
+  For each name of category, configure custom category actions.  
+  - **name** (Required, String)  
+    Name of category.
+  - **action** (Required, String)  
+    Action when web traffic matches category.  
+    Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
+  - **custom_message** (Optional, String)  
+    Custom message.
 - **custom_block_message** (Optional, String)  
   Custom block message sent to HTTP client.
+- **custom_message** (Optional, String)  
+  Custom message.
 - **fallback_settings** (Optional, Block)  
   Configure fallback settings.
   - **default** (Optional, String)  
@@ -45,19 +56,22 @@ The following arguments are supported:
   - **too_many_requests** (Optional, String)  
     Action when requests exceed the limit of engine.  
     Need to be `block` or `log-and-permit`.
+- **no_safe_search** (Optional, Boolean)  
+  Do not perform safe-search for websense redirect protocol.
 - **server** (Optional, Block)  
   Configure server settings.
   - **host** (Optional, String)  
     Server host IP address or string host name.
   - **port** (Optional, Number)  
-    Server port.  
-    Need to be between 1024 and 65535.
+    Server port (1024..65535).
+  - **routing_instance** (Optional, String)  
+    Routing instance used to connect server.
+  - **source_address** (Optional, String)  
+    Source ip address used to connect server.
 - **socket** (Optional, Number)  
-  Set sockets number.  
-  Need to be between 1 and 32.
+  Set sockets number (1..32).
 - **timeout** (Optional, Number)  
-  Set timeout.  
-  Need to be between 1 and 1800.
+  Set timeout (1..1800).
 
 ## Attribute Reference
 
