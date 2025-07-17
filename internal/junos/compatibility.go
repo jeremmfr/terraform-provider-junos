@@ -2,7 +2,7 @@ package junos
 
 import "strings"
 
-func (sess *Session) CheckCompatibilitySecurity() bool {
+func (sess *Session) CheckCompatibilityChassisCluster() bool {
 	if strings.HasPrefix(strings.ToLower(sess.SystemInformation.HardwareModel), "srx") {
 		return true
 	}
@@ -21,6 +21,20 @@ func (sess *Session) CheckCompatibilityRouter() bool {
 		return true
 	}
 	if strings.HasPrefix(strings.ToLower(sess.SystemInformation.HardwareModel), "vmx") {
+		return true
+	}
+
+	return false
+}
+
+func (sess *Session) CheckCompatibilitySecurity() bool {
+	if strings.HasPrefix(strings.ToLower(sess.SystemInformation.HardwareModel), "srx") {
+		return true
+	}
+	if strings.HasPrefix(strings.ToLower(sess.SystemInformation.HardwareModel), "vsrx") {
+		return true
+	}
+	if strings.HasPrefix(strings.ToLower(sess.SystemInformation.HardwareModel), "j") {
 		return true
 	}
 
