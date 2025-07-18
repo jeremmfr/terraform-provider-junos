@@ -57,13 +57,13 @@ The following arguments are supported:
 - **redundancy_group** (Required, Block List)  
   For each redundancy-group to declare. First in list have id=0, second id=1, etc.
   - **node0_priority** (Required, Number)  
-    Priority of the node in the redundancy-group (1..254).
+    Priority of the node0 in the redundancy-group (1..254).
   - **node1_priority** (Required, Number)  
-    Priority of the node in the redundancy-group (1..254).
+    Priority of the node1 in the redundancy-group (1..254).
   - **gratuitous_arp_count** (Optional, Number)  
     Number of gratuitous ARPs to send on an active interface after failover (1..16).
   - **hold_down_interval** (Optional, Number)  
-    RG failover interval. RG0(300-1800) RG1+(0-1800) (0..1800 seconds)
+    RG failover interval. RG0(300-1800) RG1+(0-1800) (0..1800 seconds).
   - **interface_monitor** (Optional, Block List)  
     For each monitoring interface to declare.  
     See [below for nested schema](#interface_monitor-arguments-for-redundancy_group).
@@ -79,7 +79,7 @@ The following arguments are supported:
     Time period during which the limit is applied (1..1400 seconds).  
     `preempt` need to be true.
 - **reth_count** (Required, Number)  
-  Number of redundant ethernet interfaces (1..128)
+  Number of redundant ethernet interfaces (1..128).
 - **config_sync_no_secondary_bootup_auto** (Optional, Boolean)  
   Disable auto configuration synchronize on secondary bootup.
 - **control_ports** (Optional, Block Set)  
