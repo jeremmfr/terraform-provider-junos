@@ -2,9 +2,10 @@ resource "junos_services_proxy_profile" "testacc_services" {
   lifecycle {
     create_before_destroy = true
   }
+
   name               = "testacc_services"
-  protocol_http_host = "192.0.2.2"
-  protocol_http_port = 3129
+  protocol_http_host = "192.0.2.1"
+  protocol_http_port = 3128
 }
 resource "junos_services_security_intelligence_profile" "testacc_services" {
   lifecycle {
