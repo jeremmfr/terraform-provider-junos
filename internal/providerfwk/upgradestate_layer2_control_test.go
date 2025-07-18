@@ -25,6 +25,10 @@ func TestAccUpgradeStateResourceLayer2Control_V0toV1_basic(t *testing.T) {
 			testaccInterface2 = iface
 		}
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),

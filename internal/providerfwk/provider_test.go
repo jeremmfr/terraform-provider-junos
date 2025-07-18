@@ -35,6 +35,7 @@ func testAccNewProtoV5MuxProviderServer() func() (tfprotov5.ProviderServer, erro
 
 func testAccPreCheck(t *testing.T) {
 	t.Helper()
+
 	if os.Getenv(junos.EnvHost) == "" {
 		t.Fatal(junos.EnvHost + " must be set for acceptance tests")
 	}
@@ -45,5 +46,13 @@ func testAccPreCheck(t *testing.T) {
 	}
 	if os.Getenv(junos.EnvFakecreateSetfile) != "" {
 		t.Fatal("can't run testacc with " + junos.EnvFakecreateSetfile)
+	}
+}
+
+func testAccUpgradeStatePrecheck(t *testing.T) {
+	t.Helper()
+
+	if os.Getenv("TF_CLI_CONFIG_FILE") != "" {
+		t.Fatal("can't test state upgrade with TF_CLI_CONFIG_FILE env variable")
 	}
 }

@@ -29,6 +29,10 @@ func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_basic(t *testing.T) {
 	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -71,6 +75,10 @@ func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_router(t *testing.T) {
 	}
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -111,6 +119,10 @@ func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_srx(t *testing.T) {
 	}
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -147,6 +159,10 @@ func TestAccUpgradeStateResourceInterfacePhysical_V0toV1_switch(t *testing.T) {
 	}
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),

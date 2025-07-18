@@ -21,6 +21,10 @@ func TestAccUpgradeStateResourceLldpMedInterface_V0toV1_basic(t *testing.T) {
 	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -55,6 +59,10 @@ func TestAccUpgradeStateResourceLldpMedInterface_V0toV1_switch(t *testing.T) {
 	}
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
