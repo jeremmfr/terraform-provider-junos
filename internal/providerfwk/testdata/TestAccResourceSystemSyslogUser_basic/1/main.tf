@@ -21,7 +21,7 @@ resource "junos_system_syslog_user" "testacc_syslogUser" {
 
 resource "local_file" "clear_user_all" {
   content  = "delete system syslog user *"
-  filename = "/tmp/testacc/terraform-provider-junos/ResourceSystemSyslogUser_basic_clear_user_all.txt"
+  filename = "/tmp/testacc_terraform-provider-junos_ResourceSystemSyslogUser_basic_clear_user_all.txt"
 }
 
 resource "junos_null_commit_file" "clear_user_all" {

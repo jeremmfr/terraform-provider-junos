@@ -173,9 +173,6 @@ func Provider() *schema.Provider {
 					" May also be enabled via " + junos.EnvFakedeleteAlso + " environment variable.",
 			},
 		},
-		ResourcesMap: map[string]*schema.Resource{
-			"junos_null_commit_file": resourceNullCommitFile(),
-		},
 		ConfigureContextFunc: configureProvider,
 	}
 }

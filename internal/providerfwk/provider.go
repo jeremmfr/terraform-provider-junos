@@ -276,6 +276,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newMstpMstiResource,
 		newMultichassisResource,
 		newMultichassisProtectionPeerResource,
+		newNullCommitFileResource,
 		newOamGretunnelInterfaceResource,
 		newOspfResource,
 		newOspfAreaResource,
