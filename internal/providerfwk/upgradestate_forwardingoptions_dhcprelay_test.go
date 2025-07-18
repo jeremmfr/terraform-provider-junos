@@ -15,6 +15,10 @@ func TestAccUpgradeStateResourceForwardingoptionsDhcprelay_V0toV1_basic(t *testi
 	}
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),

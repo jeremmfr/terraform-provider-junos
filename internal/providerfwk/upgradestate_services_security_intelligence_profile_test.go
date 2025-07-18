@@ -15,6 +15,10 @@ func TestAccUpgradeStateResourceServicesSecurityIntelligenceProfile_V0toV1_basic
 	}
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
+			PreCheck: func() {
+				testAccPreCheck(t)
+				testAccUpgradeStatePrecheck(t)
+			},
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
