@@ -2,15 +2,12 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/providerfwk"
-	"github.com/jeremmfr/terraform-provider-junos/internal/providersdk"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server"
-	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
 
 func main() {
@@ -19,21 +16,16 @@ func main() {
 	// Remove any date and time prefix in log package
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
-	providers := []func() tfprotov5.ProviderServer{
-		providerserver.NewProtocol5(providerfwk.New()),
-		providersdk.Provider().GRPCProvider,
-	}
+	var debug bool
+	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	flag.Parse()
 
-	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
+	err := providerserver.Serve(ctx, providerfwk.New, providerserver.ServeOpts{
+		Address:         "registry.terraform.io/jeremmfr/junos",
+		Debug:           debug,
+		ProtocolVersion: 5,
+	})
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = tf5server.Serve(
-		"registry.terraform.io/jeremmfr/junos",
-		muxServer.ProviderServer,
-	)
-	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 }
