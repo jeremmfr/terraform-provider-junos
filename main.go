@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/jeremmfr/terraform-provider-junos/internal/providerfwk"
+	"github.com/jeremmfr/terraform-provider-junos/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
@@ -20,7 +20,7 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	err := providerserver.Serve(ctx, providerfwk.New, providerserver.ServeOpts{
+	err := providerserver.Serve(ctx, provider.New, providerserver.ServeOpts{
 		Address:         "registry.terraform.io/jeremmfr/junos",
 		Debug:           debug,
 		ProtocolVersion: 5,

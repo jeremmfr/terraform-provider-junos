@@ -78,7 +78,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform format check testdata directory
-        run: terraform fmt -check -diff -recursive internal/providerfwk/testdata
+        run: terraform fmt -check -diff -recursive internal/provider/testdata
 
   custom:
     name: custom
@@ -87,5 +87,5 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: diff SingleNestedBlock and BlockRemoveNull
-        working-directory: ./internal/providerfwk
+        working-directory: ./internal/provider
         run: diff <( grep -rc 'schema.SingleNestedBlock{' * ) <( grep -rc 'BlockRemoveNull()' *)
