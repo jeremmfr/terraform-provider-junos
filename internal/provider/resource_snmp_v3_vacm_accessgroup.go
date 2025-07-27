@@ -10,6 +10,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -162,6 +163,10 @@ func (rsc *snmpV3VacmAccessgroup) Schema(
 									},
 								},
 							},
+							Validators: []validator.Set{
+								setvalidator.IsRequired(),
+								setvalidator.SizeAtLeast(1),
+							},
 						},
 					},
 				},
@@ -299,14 +304,8 @@ func (rsc *snmpV3VacmAccessgroup) ValidateConfig(
 				contextPrefixPrefix[prefix] = struct{}{}
 			}
 
-			if block.AccessConfig.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("context_prefix").AtListIndex(i).AtName("prefix"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("access_config block must be specified"+
-						" in context_prefix block %q", block.Prefix.ValueString()),
-				)
-			} else if !block.AccessConfig.IsUnknown() {
+			if !block.AccessConfig.IsNull() &&
+				!block.AccessConfig.IsUnknown() {
 				var accessConfig []snmpV3VacmAccessgroupBlockContextPrefixBlockAccessConfig
 				asDiags := block.AccessConfig.ElementsAs(ctx, &accessConfig, false)
 				if asDiags.HasError() {

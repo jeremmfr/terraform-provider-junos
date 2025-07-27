@@ -12,6 +12,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -89,6 +90,10 @@ func (rsc *securityPolicy) Schema(
 				NestedObject: schema.NestedBlockObject{
 					Attributes: securityPolicyBlockPolicy{}.attributesSchema(),
 					Blocks:     securityPolicyBlockPolicy{}.blocksSchema(),
+				},
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
 				},
 			},
 		},
@@ -473,13 +478,8 @@ func (rsc *securityPolicy) ValidateConfig(
 		return
 	}
 
-	if config.Policy.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("policy").AtName("name"),
-			tfdiag.MissingConfigErrSummary,
-			"at least one policy block must be specified",
-		)
-	} else if !config.Policy.IsUnknown() {
+	if !config.Policy.IsNull() &&
+		!config.Policy.IsUnknown() {
 		var configPolicy []securityPolicyBlockPolicyConfig
 		asDiags := config.Policy.ElementsAs(ctx, &configPolicy, false)
 		if asDiags.HasError() {

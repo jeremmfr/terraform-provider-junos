@@ -335,6 +335,10 @@ func (rsc *securityUtmPolicy) Schema(
 									},
 								},
 							},
+							Validators: []validator.List{
+								listvalidator.IsRequired(),
+								listvalidator.SizeAtLeast(1),
+							},
 						},
 					},
 				},
@@ -531,14 +535,8 @@ func (rsc *securityUtmPolicy) ValidateConfig(
 				}
 				contentFilteringRuleSetName[ruleSetName] = struct{}{}
 			}
-			if block.Rule.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("content_filtering_rule_set").AtListIndex(i).AtName("name"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("at least one rule block must be specified"+
-						" in content_filtering_rule_set block %q", block.Name.ValueString()),
-				)
-			} else if !block.Rule.IsUnknown() {
+			if !block.Rule.IsNull() &&
+				!block.Rule.IsUnknown() {
 				var configRule []securityUtmPolicyBlockContentFilteringRuleSetBlockRuleConfig
 				asDiags := block.Rule.ElementsAs(ctx, &configRule, false)
 				if asDiags.HasError() {

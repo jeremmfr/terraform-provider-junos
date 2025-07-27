@@ -12,6 +12,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -130,6 +131,10 @@ func (rsc *eventoptionsDestination) Schema(
 						},
 					},
 				},
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
+				},
 			},
 		},
 	}
@@ -163,13 +168,8 @@ func (rsc *eventoptionsDestination) ValidateConfig(
 		return
 	}
 
-	if config.ArchiveSite.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("archive_site"),
-			tfdiag.MissingConfigErrSummary,
-			"archive_site block must be specified",
-		)
-	} else if !config.ArchiveSite.IsUnknown() {
+	if !config.ArchiveSite.IsNull() &&
+		!config.ArchiveSite.IsUnknown() {
 		var configArchiveSite []eventoptionsDestinationBlockArchiveSite
 		asDiags := config.ArchiveSite.ElementsAs(ctx, &configArchiveSite, false)
 		if asDiags.HasError() {

@@ -27,14 +27,14 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   End-user-profile profile-name.
-- **domain** (Required, String)  
-  Domain name.
 - **attribute** (Required, Block List)  
   For each name of attribute, configure list of values.
   - **name** (Required, String)  
     Attribute name.
   - **value** (Required, Set of String)  
     A list of values.
+- **domain** (Required, String)  
+  Domain name.
 
 ## Attribute Reference
 

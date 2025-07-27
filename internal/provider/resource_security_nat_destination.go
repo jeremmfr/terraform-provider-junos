@@ -12,6 +12,8 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -140,6 +142,9 @@ func (rsc *securityNatDestination) Schema(
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
+				Validators: []validator.Object{
+					objectvalidator.IsRequired(),
+				},
 			},
 			"rule": schema.ListNestedBlock{
 				Description: "For each name of destination nat rule to declare.",
@@ -258,8 +263,15 @@ func (rsc *securityNatDestination) Schema(
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
 							},
+							Validators: []validator.Object{
+								objectvalidator.IsRequired(),
+							},
 						},
 					},
+				},
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
 				},
 			},
 		},
@@ -330,13 +342,8 @@ func (rsc *securityNatDestination) ValidateConfig(
 		return
 	}
 
-	if config.Rule.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("rule"),
-			tfdiag.MissingConfigErrSummary,
-			"at least one rule block must be specified",
-		)
-	} else if !config.Rule.IsUnknown() {
+	if !config.Rule.IsNull() &&
+		!config.Rule.IsUnknown() {
 		var rule []securityNatDestinationBlockRuleConfig
 		asDiags := config.Rule.ElementsAs(ctx, &rule, false)
 		if asDiags.HasError() {

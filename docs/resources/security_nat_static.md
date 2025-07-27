@@ -61,21 +61,6 @@ The following arguments are supported:
 
 - **name** (Required, String)  
   Rule name.
-- **destination_address** (Optional, String)  
-  CIDR destination address to match.
-- **destination_address_name** (Optional, String)  
-  Destination address from address book to match.
-- **destination_port** (Optional, Number)  
-  Destination port or lower limit of port range to match.
-- **destination_port_to** (Optional, Number)  
-  Port range upper limit to match.
-- **source_address** (Optional, Set of String)  
-  CIDR source address to match.
-- **source_address_name** (Optional, Set of String)  
-  Source address from address book to match.
-- **source_port** (Optional, Set of String)  
-  Source port to match.  
-  Format need to be `x` or `x to y`.
 - **then** (Required, Block)  
   Declare `then` configuration.
   - **type** (Required, String)  
@@ -93,6 +78,21 @@ The following arguments are supported:
     CIDR is required if `type` = `prefix`.
   - **routing_instance** (Optional, String)  
     Name of routing instance to switch instance with nat.
+- **destination_address** (Optional, String)  
+  CIDR destination address to match.
+- **destination_address_name** (Optional, String)  
+  Destination address from address book to match.
+- **destination_port** (Optional, Number)  
+  Destination port or lower limit of port range to match.
+- **destination_port_to** (Optional, Number)  
+  Port range upper limit to match.
+- **source_address** (Optional, Set of String)  
+  CIDR source address to match.
+- **source_address_name** (Optional, Set of String)  
+  Source address from address book to match.
+- **source_port** (Optional, Set of String)  
+  Source port to match.  
+  Format need to be `x` or `x to y`.
 
 ## Attribute Reference
 

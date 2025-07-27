@@ -10,6 +10,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -127,6 +128,10 @@ func (rsc *servicesSecurityIntelligencePolicy) Schema(
 						},
 					},
 				},
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
+				},
 			},
 		},
 	}
@@ -160,13 +165,8 @@ func (rsc *servicesSecurityIntelligencePolicy) ValidateConfig(
 		return
 	}
 
-	if config.Category.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("category"),
-			tfdiag.MissingConfigErrSummary,
-			"category block must be specified",
-		)
-	} else if !config.Category.IsUnknown() {
+	if !config.Category.IsNull() &&
+		!config.Category.IsUnknown() {
 		var configCategory []servicesSecurityIntelligencePolicyBlockCategory
 		asDiags := config.Category.ElementsAs(ctx, &configCategory, false)
 		if asDiags.HasError() {

@@ -792,6 +792,7 @@ func (rsc *firewallFilter) Schema(
 					},
 				},
 				Validators: []validator.List{
+					listvalidator.IsRequired(),
 					listvalidator.SizeAtLeast(1),
 				},
 			},
@@ -957,13 +958,8 @@ func (rsc *firewallFilter) ValidateConfig(
 		return
 	}
 
-	if config.Term.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("term"),
-			tfdiag.MissingConfigErrSummary,
-			"term block must be specified",
-		)
-	} else if !config.Term.IsUnknown() {
+	if !config.Term.IsNull() &&
+		!config.Term.IsUnknown() {
 		var configTerm []firewallFilterBlockTermConfig
 		asDiags := config.Term.ElementsAs(ctx, &configTerm, false)
 		if asDiags.HasError() {

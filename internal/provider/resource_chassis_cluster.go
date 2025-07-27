@@ -15,6 +15,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -159,6 +160,9 @@ func (rsc *chassisCluster) Schema(
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
+				Validators: []validator.Object{
+					objectvalidator.IsRequired(),
+				},
 			},
 			"fab1": schema.SingleNestedBlock{
 				Description: "Declare `interfaces fab1` configuration.",
@@ -279,7 +283,8 @@ func (rsc *chassisCluster) Schema(
 					},
 				},
 				Validators: []validator.List{
-					listvalidator.SizeAtMost(128),
+					listvalidator.IsRequired(),
+					listvalidator.SizeBetween(1, 128),
 				},
 			},
 			"control_ports": schema.SetNestedBlock{
@@ -387,13 +392,6 @@ func (rsc *chassisCluster) ValidateConfig(
 		return
 	}
 
-	if config.Fab0 == nil {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("fab0"),
-			tfdiag.MissingConfigErrSummary,
-			"fab0 block must be specified",
-		)
-	}
 	if config.Fab1 != nil &&
 		config.Fab1.MemberInterfaces.IsNull() {
 		resp.Diagnostics.AddAttributeError(
@@ -403,13 +401,8 @@ func (rsc *chassisCluster) ValidateConfig(
 				" in fab1 block",
 		)
 	}
-	if config.RedundancyGroup.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("redundancy_group"),
-			tfdiag.MissingConfigErrSummary,
-			"redundancy_group block must be specified",
-		)
-	} else if !config.RedundancyGroup.IsUnknown() {
+	if !config.RedundancyGroup.IsNull() &&
+		!config.RedundancyGroup.IsUnknown() {
 		var configRedundancyGroup []chassisClusterBlockRedundancyGroupConfig
 		asDiags := config.RedundancyGroup.ElementsAs(ctx, &configRedundancyGroup, false)
 		if asDiags.HasError() {

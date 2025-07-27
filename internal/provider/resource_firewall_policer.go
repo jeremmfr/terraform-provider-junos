@@ -13,6 +13,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -137,6 +138,45 @@ func (rsc *firewallPolicer) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
+			"then": schema.SingleNestedBlock{
+				Description: "Define action to take if the rate limits are exceeded.",
+				Attributes: map[string]schema.Attribute{
+					"discard": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Discard the packet.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
+					"forwarding_class": schema.StringAttribute{
+						Optional:    true,
+						Description: "Classify packet to forwarding class.",
+						Validators: []validator.String{
+							tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+						},
+					},
+					"loss_priority": schema.StringAttribute{
+						Optional:    true,
+						Description: "Packet's loss priority.",
+						Validators: []validator.String{
+							stringvalidator.OneOf("high", "low", "medium-high", "medium-low"),
+						},
+					},
+					"out_of_profile": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Discard packets only if both congested and over threshold.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					tfplanmodifier.BlockRemoveNull(),
+				},
+				Validators: []validator.Object{
+					objectvalidator.IsRequired(),
+				},
+			},
 			"if_exceeding": schema.SingleNestedBlock{
 				Description: "Define rate limits options.",
 				Attributes: map[string]schema.Attribute{
@@ -199,42 +239,6 @@ func (rsc *firewallPolicer) Schema(
 					tfplanmodifier.BlockRemoveNull(),
 				},
 			},
-			"then": schema.SingleNestedBlock{
-				Description: "Define action to take if the rate limits are exceeded.",
-				Attributes: map[string]schema.Attribute{
-					"discard": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Discard the packet.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-					"forwarding_class": schema.StringAttribute{
-						Optional:    true,
-						Description: "Classify packet to forwarding class.",
-						Validators: []validator.String{
-							tfvalidator.StringFormat(tfvalidator.DefaultFormat),
-						},
-					},
-					"loss_priority": schema.StringAttribute{
-						Optional:    true,
-						Description: "Packet's loss priority.",
-						Validators: []validator.String{
-							stringvalidator.OneOf("high", "low", "medium-high", "medium-low"),
-						},
-					},
-					"out_of_profile": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Discard packets only if both congested and over threshold.",
-						Validators: []validator.Bool{
-							tfvalidator.BoolTrue(),
-						},
-					},
-				},
-				PlanModifiers: []planmodifier.Object{
-					tfplanmodifier.BlockRemoveNull(),
-				},
-			},
 		},
 	}
 }
@@ -247,9 +251,20 @@ type firewallPolicerData struct {
 	LogicalInterfacePolicer  types.Bool                          `tfsdk:"logical_interface_policer"`
 	PhysicalInterfacePolicer types.Bool                          `tfsdk:"physical_interface_policer"`
 	SharedBandwidthPolicer   types.Bool                          `tfsdk:"shared_bandwidth_policer"`
+	Then                     *firewallPolicerBlockThen           `tfsdk:"then"`
 	IfExceeding              *firewallPolicerBlockIfExceeding    `tfsdk:"if_exceeding"`
 	IfExceedingPPS           *firewallPolicerBlockIfExceedingPPS `tfsdk:"if_exceeding_pps"`
-	Then                     *firewallPolicerBlockThen           `tfsdk:"then"`
+}
+
+type firewallPolicerBlockThen struct {
+	Discard         types.Bool   `tfsdk:"discard"`
+	ForwardingClass types.String `tfsdk:"forwarding_class"`
+	LossPriority    types.String `tfsdk:"loss_priority"`
+	OutOfProfile    types.Bool   `tfsdk:"out_of_profile"`
+}
+
+func (block *firewallPolicerBlockThen) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 type firewallPolicerBlockIfExceeding struct {
@@ -269,17 +284,6 @@ type firewallPolicerBlockIfExceedingPPS struct {
 
 func (block *firewallPolicerBlockIfExceedingPPS) hasKnownValue() bool {
 	return tfdata.CheckBlockHasKnownValue(block)
-}
-
-type firewallPolicerBlockThen struct {
-	Discard         types.Bool   `tfsdk:"discard"`
-	ForwardingClass types.String `tfsdk:"forwarding_class"`
-	LossPriority    types.String `tfsdk:"loss_priority"`
-	OutOfProfile    types.Bool   `tfsdk:"out_of_profile"`
-}
-
-func (block *firewallPolicerBlockThen) isEmpty() bool {
-	return tfdata.CheckBlockIsEmpty(block)
 }
 
 func (rsc *firewallPolicer) ValidateConfig(
@@ -315,6 +319,41 @@ func (rsc *firewallPolicer) ValidateConfig(
 		}
 	}
 
+	if config.Then != nil {
+		if config.Then.isEmpty() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("then").AtName("*"),
+				tfdiag.MissingConfigErrSummary,
+				"then block is empty",
+			)
+		}
+		if !config.Then.Discard.IsNull() && !config.Then.Discard.IsUnknown() {
+			if !config.Then.ForwardingClass.IsNull() && !config.Then.ForwardingClass.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("then").AtName("forwarding_class"),
+					tfdiag.ConflictConfigErrSummary,
+					"discard and forwarding_class cannot be configured together "+
+						"in then block",
+				)
+			}
+			if !config.Then.LossPriority.IsNull() && !config.Then.LossPriority.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("then").AtName("loss_priority"),
+					tfdiag.ConflictConfigErrSummary,
+					"discard and loss_priority cannot be configured together "+
+						"in then block",
+				)
+			}
+			if !config.Then.OutOfProfile.IsNull() && !config.Then.OutOfProfile.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("then").AtName("out_of_profile"),
+					tfdiag.ConflictConfigErrSummary,
+					"discard and out_of_profile cannot be configured together "+
+						"in then block",
+				)
+			}
+		}
+	}
 	if config.IfExceeding == nil &&
 		config.IfExceedingPPS == nil {
 		resp.Diagnostics.AddAttributeError(
@@ -364,47 +403,6 @@ func (rsc *firewallPolicer) ValidateConfig(
 				"pps_limit must be specified in if_exceeding_pps block",
 			)
 		}
-	}
-	if config.Then != nil {
-		if config.Then.isEmpty() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("then").AtName("*"),
-				tfdiag.MissingConfigErrSummary,
-				"then block is empty",
-			)
-		}
-		if !config.Then.Discard.IsNull() && !config.Then.Discard.IsUnknown() {
-			if !config.Then.ForwardingClass.IsNull() && !config.Then.ForwardingClass.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("then").AtName("forwarding_class"),
-					tfdiag.ConflictConfigErrSummary,
-					"discard and forwarding_class cannot be configured together "+
-						"in then block",
-				)
-			}
-			if !config.Then.LossPriority.IsNull() && !config.Then.LossPriority.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("then").AtName("loss_priority"),
-					tfdiag.ConflictConfigErrSummary,
-					"discard and loss_priority cannot be configured together "+
-						"in then block",
-				)
-			}
-			if !config.Then.OutOfProfile.IsNull() && !config.Then.OutOfProfile.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("then").AtName("out_of_profile"),
-					tfdiag.ConflictConfigErrSummary,
-					"discard and out_of_profile cannot be configured together "+
-						"in then block",
-				)
-			}
-		}
-	} else {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("then"),
-			tfdiag.MissingConfigErrSummary,
-			"then block must be specified",
-		)
 	}
 }
 
@@ -592,6 +590,21 @@ func (rscData *firewallPolicerData) set(
 	if rscData.SharedBandwidthPolicer.ValueBool() {
 		configSet = append(configSet, setPrefix+"shared-bandwidth-policer")
 	}
+
+	if rscData.Then != nil {
+		if rscData.Then.Discard.ValueBool() {
+			configSet = append(configSet, setPrefix+"then discard")
+		}
+		if v := rscData.Then.ForwardingClass.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"then forwarding-class "+v)
+		}
+		if v := rscData.Then.LossPriority.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"then loss-priority "+v)
+		}
+		if rscData.Then.OutOfProfile.ValueBool() {
+			configSet = append(configSet, setPrefix+"then out-of-profile")
+		}
+	}
 	if rscData.IfExceeding != nil {
 		configSet = append(configSet, setPrefix+"if-exceeding burst-size-limit "+
 			rscData.IfExceeding.BurstSizeLimit.ValueString())
@@ -608,20 +621,6 @@ func (rscData *firewallPolicerData) set(
 			rscData.IfExceedingPPS.PacketBurst.ValueString())
 		configSet = append(configSet, setPrefix+"if-exceeding-pps pps-limit "+
 			rscData.IfExceedingPPS.PPSLimit.ValueString())
-	}
-	if rscData.Then != nil {
-		if rscData.Then.Discard.ValueBool() {
-			configSet = append(configSet, setPrefix+"then discard")
-		}
-		if v := rscData.Then.ForwardingClass.ValueString(); v != "" {
-			configSet = append(configSet, setPrefix+"then forwarding-class "+v)
-		}
-		if v := rscData.Then.LossPriority.ValueString(); v != "" {
-			configSet = append(configSet, setPrefix+"then loss-priority "+v)
-		}
-		if rscData.Then.OutOfProfile.ValueBool() {
-			configSet = append(configSet, setPrefix+"then out-of-profile")
-		}
 	}
 
 	return path.Empty(), junSess.ConfigSet(configSet)

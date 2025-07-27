@@ -649,6 +649,10 @@ func (rsc *ospfArea) Schema(
 						},
 					},
 				},
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
+				},
 			},
 			"area_range": schema.SetNestedBlock{
 				Description: "For each `range`, configure area range.",
@@ -1160,13 +1164,8 @@ func (rsc *ospfArea) ValidateConfig( //nolint:gocognit
 			"context_identifier and no_context_identifier_advertisement cannot be configured together",
 		)
 	}
-	if config.Interface.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("interface"),
-			tfdiag.MissingConfigErrSummary,
-			"interface block must be specified",
-		)
-	} else if !config.Interface.IsUnknown() {
+	if !config.Interface.IsNull() &&
+		!config.Interface.IsUnknown() {
 		var configInterface []ospfAreaBlockInterfaceConfig
 		asDiags := config.Interface.ElementsAs(ctx, &configInterface, false)
 		if asDiags.HasError() {

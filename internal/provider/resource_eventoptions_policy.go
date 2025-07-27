@@ -15,6 +15,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -504,6 +505,9 @@ func (rsc *eventoptionsPolicy) Schema(
 				},
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
+				},
+				Validators: []validator.Object{
+					objectvalidator.IsRequired(),
 				},
 			},
 			"attributes_match": schema.ListNestedBlock{
@@ -1018,12 +1022,6 @@ func (rsc *eventoptionsPolicy) ValidateConfig(
 				}
 			}
 		}
-	} else {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("then"),
-			tfdiag.MissingConfigErrSummary,
-			"then block must be specified",
-		)
 	}
 	if !config.AttributesMatch.IsNull() && !config.AttributesMatch.IsUnknown() {
 		var configAttributesMatch []eventoptionsPolicyBlockAttributesMatch

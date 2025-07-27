@@ -12,6 +12,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -212,6 +213,9 @@ func (rsc *iccpPeer) Schema(
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
+				Validators: []validator.Object{
+					objectvalidator.IsRequired(),
+				},
 			},
 		},
 	}
@@ -263,13 +267,8 @@ func (rsc *iccpPeer) ValidateConfig(
 		return
 	}
 
-	if config.LivenessDetection == nil {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("liveness_detection").AtName("*"),
-			tfdiag.MissingConfigErrSummary,
-			"liveness_detection block must be specified",
-		)
-	} else if config.LivenessDetection.MinimumInterval.IsNull() {
+	if config.LivenessDetection != nil &&
+		config.LivenessDetection.MinimumInterval.IsNull() {
 		if config.LivenessDetection.MinimumReceiveInterval.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("liveness_detection").AtName("minimum_receive_interval"),
