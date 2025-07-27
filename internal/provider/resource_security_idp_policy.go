@@ -543,6 +543,7 @@ type securityIdpPolicyBlockIpsRuleConfig struct {
 
 type securityIdpPolicyBlockIpsRuleBlockMatch struct {
 	securityIdpPolicyBlockExemptRuleBlockMatch
+
 	Application types.String `tfsdk:"application"`
 }
 
@@ -566,6 +567,7 @@ func (block *securityIdpPolicyBlockIpsRuleBlockMatch) isEmpty() bool {
 
 type securityIdpPolicyBlockIpsRuleBlockMatchConfig struct {
 	securityIdpPolicyBlockExemptRuleBlockMatchConfig
+
 	Application types.String `tfsdk:"application"`
 }
 

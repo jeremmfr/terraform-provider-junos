@@ -101,8 +101,9 @@ func (rsc *applicationSet) Schema(
 }
 
 type applicationSetData struct {
-	ID types.String `tfsdk:"id"`
 	applicationSetAttrData
+
+	ID types.String `tfsdk:"id"`
 }
 
 type applicationSetAttrData struct {
@@ -164,8 +165,9 @@ func (applicationSetAttrData) attributesSchema() map[string]schema.Attribute {
 }
 
 type applicationSetConfig struct {
-	ID types.String `tfsdk:"id"`
 	applicationSetAttrConfig
+
+	ID types.String `tfsdk:"id"`
 }
 
 type applicationSetAttrConfig struct {

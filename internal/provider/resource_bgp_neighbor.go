@@ -131,19 +131,21 @@ func (rsc *bgpNeighbor) Schema(
 }
 
 type bgpNeighborData struct {
+	bgpAttrData
+
 	ID              types.String `tfsdk:"id"`
 	IP              types.String `tfsdk:"ip"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 	Group           types.String `tfsdk:"group"`
-	bgpAttrData
 }
 
 type bgpNeighborConfig struct {
+	bgpAttrConfig
+
 	ID              types.String `tfsdk:"id"`
 	IP              types.String `tfsdk:"ip"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 	Group           types.String `tfsdk:"group"`
-	bgpAttrConfig
 }
 
 func (rsc *bgpNeighbor) ValidateConfig(

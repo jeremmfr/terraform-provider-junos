@@ -271,6 +271,7 @@ type securityIdpCustomAttackConfig struct {
 
 type securityIdpCustomAttackBlockAttackTypeAnomaly struct {
 	securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeAnomaly
+
 	Service types.String `tfsdk:"service"`
 }
 
@@ -1056,6 +1057,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTy
 
 type securityIdpCustomAttackBlockAttackTypeSignature struct {
 	securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeSignature
+
 	ProtocolBinding types.String `tfsdk:"protocol_binding"`
 }
 
@@ -1081,6 +1083,7 @@ func (securityIdpCustomAttackBlockAttackTypeSignature) blocksSchema() map[string
 
 type securityIdpCustomAttackBlockAttackTypeSignatureConfig struct {
 	securityIdpCustomAttackBlockAttackTypeChainBlockMemberBlockAttackTypeSignatureConfig
+
 	ProtocolBinding types.String `tfsdk:"protocol_binding"`
 }
 

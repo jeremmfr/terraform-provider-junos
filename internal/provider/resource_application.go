@@ -105,8 +105,9 @@ func (rsc *application) Schema(
 }
 
 type applicationData struct {
-	ID types.String `tfsdk:"id"`
 	applicationAttrData
+
+	ID types.String `tfsdk:"id"`
 }
 
 //nolint:lll
@@ -395,8 +396,9 @@ func (applicationAttrData) blocksSchema() map[string]schema.Block {
 }
 
 type applicationConfig struct {
-	ID types.String `tfsdk:"id"`
 	applicationAttrConfig
+
+	ID types.String `tfsdk:"id"`
 }
 
 type applicationAttrConfig struct {

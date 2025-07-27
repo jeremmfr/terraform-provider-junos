@@ -119,10 +119,11 @@ func (rsc *vstpVlan) Schema(
 }
 
 type vstpVlanData struct {
+	vstpVlanAttrData
+
 	ID              types.String `tfsdk:"id"`
 	VlanID          types.String `tfsdk:"vlan_id"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
-	vstpVlanAttrData
 }
 
 func (rsc *vstpVlan) ValidateConfig(

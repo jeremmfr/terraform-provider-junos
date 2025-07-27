@@ -135,19 +135,21 @@ func (rsc *vstpVlanGroup) Schema(
 }
 
 type vstpVlanGroupData struct {
+	vstpVlanAttrData
+
 	ID              types.String   `tfsdk:"id"`
 	Name            types.String   `tfsdk:"name"`
 	RoutingInstance types.String   `tfsdk:"routing_instance"`
 	Vlan            []types.String `tfsdk:"vlan"`
-	vstpVlanAttrData
 }
 
 type vstpVlanGroupConfig struct {
+	vstpVlanAttrData
+
 	ID              types.String `tfsdk:"id"`
 	Name            types.String `tfsdk:"name"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 	Vlan            types.Set    `tfsdk:"vlan"`
-	vstpVlanAttrData
 }
 
 func (rsc *vstpVlanGroup) ValidateConfig(

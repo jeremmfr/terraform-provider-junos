@@ -133,19 +133,21 @@ func (rsc *bgpGroup) Schema(
 }
 
 type bgpGroupData struct {
+	bgpAttrData
+
 	ID              types.String `tfsdk:"id"`
 	Name            types.String `tfsdk:"name"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 	Type            types.String `tfsdk:"type"`
-	bgpAttrData
 }
 
 type bgpGroupConfig struct {
+	bgpAttrConfig
+
 	ID              types.String `tfsdk:"id"`
 	Name            types.String `tfsdk:"name"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 	Type            types.String `tfsdk:"type"`
-	bgpAttrConfig
 }
 
 func (rsc *bgpGroup) ValidateConfig(

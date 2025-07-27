@@ -770,6 +770,7 @@ func (block *forwardingoptionsDhcprelayBlockRelayAgentID) read(itemTrim string) 
 
 type forwardingoptionsDhcprelayBlockRelayAgentInterfaceID struct {
 	forwardingoptionsDhcprelayBlockRelayAgentID
+
 	KeepIncomingID       types.Bool `tfsdk:"keep_incoming_id"`
 	KeepIncomingIDStrict types.Bool `tfsdk:"keep_incoming_id_strict"`
 }
@@ -846,6 +847,7 @@ func (block *forwardingoptionsDhcprelayBlockRelayAgentInterfaceID) read(itemTrim
 
 type forwardingoptionsDhcprelayBlockRelayAgentRemoteID struct {
 	forwardingoptionsDhcprelayBlockRelayAgentID
+
 	KeepIncomingID types.Bool `tfsdk:"keep_incoming_id"`
 }
 
