@@ -1,3 +1,8 @@
+data "junos_system_information" "srx" {}
+locals {
+  ipsec_vpn_manual_available = tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) < 22 ? 1 : 0
+}
+
 resource "junos_interface_logical" "testacc_ikegateway" {
   name = "${var.interface}.0"
   family_inet {
@@ -28,6 +33,8 @@ resource "junos_security_ike_gateway" "testacc_ikegateway" {
   external_interface = junos_interface_logical.testacc_ikegateway.name
 }
 resource "junos_security_ipsec_vpn" "testacc_ipsecvpn" {
+  count = local.ipsec_vpn_manual_available
+
   name = "testacc_ipsecvpn"
   manual {
     external_interface       = junos_interface_logical.testacc_ikegateway.name

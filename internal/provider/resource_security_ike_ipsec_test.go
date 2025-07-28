@@ -25,6 +25,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
+					// 1
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
@@ -117,6 +118,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
+					// 2
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
@@ -155,6 +157,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
+					// 3
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
@@ -163,6 +166,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
+					// 4
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
@@ -171,6 +175,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
+					// 5
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
@@ -179,6 +184,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
+					// 6
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
@@ -187,6 +193,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
+					// 7
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
@@ -195,6 +202,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
+					// 8
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
@@ -203,6 +211,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
+					// 9
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
@@ -227,6 +236,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
+					// 10
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
@@ -245,17 +255,10 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
+					// 11
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
-					},
-					ConfigPlanChecks: resource.ConfigPlanChecks{
-						PreApply: []plancheck.PlanCheck{
-							plancheck.ExpectSensitiveValue("junos_security_ipsec_vpn.testacc_ipsecvpn",
-								tfjsonpath.New("manual").AtMapKey("authentication_key_text")),
-							plancheck.ExpectSensitiveValue("junos_security_ipsec_vpn.testacc_ipsecvpn",
-								tfjsonpath.New("manual").AtMapKey("encryption_key_text")),
-						},
 					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
@@ -263,17 +266,10 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
+					// 12
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
-					},
-					ConfigPlanChecks: resource.ConfigPlanChecks{
-						PreApply: []plancheck.PlanCheck{
-							plancheck.ExpectSensitiveValue("junos_security_ipsec_vpn.testacc_ipsecvpn2",
-								tfjsonpath.New("manual").AtMapKey("authentication_key_hexa")),
-							plancheck.ExpectSensitiveValue("junos_security_ipsec_vpn.testacc_ipsecvpn2",
-								tfjsonpath.New("manual").AtMapKey("encryption_key_hexa")),
-						},
 					},
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
@@ -281,6 +277,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
+					// 13
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
@@ -295,6 +292,7 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
+					// 14
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
@@ -305,12 +303,14 @@ func TestAccResourceSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
+					// 15
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
 				},
 				{
+					// 16
 					ConfigDirectory: config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
