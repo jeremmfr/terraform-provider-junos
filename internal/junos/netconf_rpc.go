@@ -121,10 +121,13 @@ type RPCGetChassisInventoryReply struct {
 	XMLName xml.Name `xml:"chassis-inventory"`
 	Chassis struct {
 		RPCGetChassisInventoryReplyComponent
+
 		Module []struct {
 			RPCGetChassisInventoryReplyComponent
+
 			SubModule []struct {
 				RPCGetChassisInventoryReplyComponent
+
 				SubSubModule []RPCGetChassisInventoryReplyComponent `xml:"chassis-sub-sub-module"`
 			} `xml:"chassis-sub-module"`
 		} `xml:"chassis-module"`

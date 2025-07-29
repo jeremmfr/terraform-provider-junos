@@ -51,6 +51,7 @@ type openSSHOptions struct {
 
 type sshOptions struct {
 	*openSSHOptions
+
 	ClientConfig *ssh.ClientConfig
 }
 

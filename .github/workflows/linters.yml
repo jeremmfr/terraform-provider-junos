@@ -19,7 +19,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.1.6
+          version: v2.3.0
           args: -c .golangci.yml -v
 
   markdown-lint:
@@ -58,20 +58,17 @@ jobs:
         run: cd terrafmt && go install ./... && cd ${GITHUB_WORKSPACE}
       - name: Detect resource/data-source blocks without double quote on type and name (blocks not detected by terrafmt)
         run: |
-          ! egrep -i '((resource|data)\s+[-a-z0-9_"]+)\s+[-a-z0-9_"]+\s+\{' internal/providersdk/*_test.go docs/*.md docs/*/*.md | egrep -i -v '((resource|data)\s+"[-a-z0-9_]+")\s+"[-a-z0-9_]+"\s+\{'
+          ! egrep -i '((resource|data)\s+[-a-z0-9_"]+)\s+[-a-z0-9_"]+\s+\{' docs/*.md docs/*/*.md | egrep -i -v '((resource|data)\s+"[-a-z0-9_]+")\s+"[-a-z0-9_]+"\s+\{'
       - name: Terrafmt diff on docs markdown
         run: find docs | egrep "md$" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.md
-      - name: Terrafmt diff on _test.go
-        run: find internal/providersdk | egrep "_test.go" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.test.go
       - name: Generate error if results not empty
         run: |
-          if [[ -s /tmp/results.md || -s /tmp/results.test.go ]] ; then 
+          if [[ -s /tmp/results.md ]] ; then 
             cat /tmp/results.md
-            cat /tmp/results.test.go
-            echo "terraform blocks in docs/providersdk-test-go files not being properly formatted"
+            echo "terraform blocks in docs files not being properly formatted"
             exit 1
           fi
-  
+
   terraform-fmt:
     name: terraform-fmt
     runs-on: ubuntu-latest
@@ -81,7 +78,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform format check testdata directory
-        run: terraform fmt -check -diff -recursive internal/providerfwk/testdata
+        run: terraform fmt -check -diff -recursive internal/provider/testdata
 
   custom:
     name: custom
@@ -90,5 +87,5 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: diff SingleNestedBlock and BlockRemoveNull
-        working-directory: ./internal/providerfwk
+        working-directory: ./internal/provider
         run: diff <( grep -rc 'schema.SingleNestedBlock{' * ) <( grep -rc 'BlockRemoveNull()' *)

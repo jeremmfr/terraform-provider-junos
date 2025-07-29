@@ -32,6 +32,7 @@ func TestExtractBlock(t *testing.T) {
 
 	type blockEmbed1string struct {
 		block1string
+
 		Value3 types.String
 	}
 
@@ -360,6 +361,7 @@ func TestAppendPotentialNewBlock(t *testing.T) {
 
 	type blockEmbed1string struct {
 		block1string
+
 		Value3 types.String
 	}
 
