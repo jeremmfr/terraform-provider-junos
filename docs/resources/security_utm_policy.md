@@ -58,14 +58,49 @@ The following arguments are supported:
     POP3 content-filtering profile.
   - **smtp_profile** (Optional, String)  
     SMTP content-filtering profile.
+- **content_filtering_rule_set** (Optional, Block List)  
+  UTM CF Rule Set.
+  - **name** (Required, String)  
+    UTM CF Rule-set name.
+  - **rule** (Required, Block List)  
+    UTM CF Rule.  
+    See [below for nested schema](#rule-arguments-for-content_filtering_rule_set).
 - **traffic_sessions_per_client** (Optional, Block)  
   Configure for traffic option session per client.
   - **limit** (Optional, Number)  
     Sessions limit.
   - **over_limit** (Optional, String)  
-    Over limit action
+    Over limit action.  
+    Need to be `block` or `log-and-permit`.
 - **web_filtering_profile** (Optional, String)  
-  Web-filtering HTTP profile (local, enhanced, websense)
+  Web-filtering HTTP profile (local, enhanced, websense).
+
+### rule arguments for content_filtering_rule_set
+
+- **name** (Required, String)  
+  UTM CF Rule name.
+- **match_applications** (Required, List of String)  
+  List of applications to be inspected.  
+  Element need to be `any`, `ftp`, `http`, `imap`, `pop3` or `smtp`.
+- **match_direction** (Required, String)  
+  Direction of the content to be inspected.  
+  Need to be `any`, `download` or `upload`.
+- **match_file_types** (Required, List of String)  
+  List of file-types in match criteria.
+- **then_action** (Optional, String)  
+  Configure then action.  
+  Need to be `block`, `close-client`, `close-client-and-server`, `close-server` or `no-action`.
+- **then_notification_log** (Optional, Boolean)  
+  Generate security event if content is blocked by rule.
+- **then_notification_endpoint** (Optional, Block)  
+  Endpoint notification options for the content filtering action taken.
+  - **custom_message** (Optional, String)  
+    Custom notification message.
+  - **notify_mail_sender** (Optional, Boolean)  
+    Notify mail sender.  
+    `false` to don't notify mail sender.
+  - **type** (Optional, String)  
+    Endpoint notification type.
 
 ## Attribute Reference
 

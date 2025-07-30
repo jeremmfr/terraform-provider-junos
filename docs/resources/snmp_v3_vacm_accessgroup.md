@@ -33,7 +33,7 @@ The following arguments are supported:
   For each prefix of context-prefix access configuration.
   - **prefix** (Required, String)  
     SNMPv3 VACM context prefix.
-  - **access_config** (Optional, Block Set)  
+  - **access_config** (Required, Block Set)  
     For each combination of `model` and `level`, define context-prefix access configuration.  
     See [below for nested schema](#access_config-or-default_context_prefix-arguments).
 - **default_context_prefix** (Optional, Block Set)  

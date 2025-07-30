@@ -24,8 +24,19 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   The name of security utm feature-profile web-filtering juniper-local profile.
+- **category** (Optional, Block List)  
+  For each name of category, configure custom category actions.  
+  - **name** (Required, String)  
+    Name of category.
+  - **action** (Required, String)  
+    Action when web traffic matches category.  
+    Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
+  - **custom_message** (Optional, String)  
+    Custom message.
 - **custom_block_message** (Optional, String)  
   Custom block message sent to HTTP client.
+- **custom_message** (Optional, String)  
+  Custom message.
 - **default_action** (Optional, String)  
   Default action.  
   Need to be `block`, `log-and-permit` or `permit`.
@@ -43,9 +54,10 @@ The following arguments are supported:
   - **too_many_requests** (Optional, String)  
     Action when requests exceed the limit of engine.  
     Need to be `block` or `log-and-permit`.
+- **no_safe_search** (Optional, Boolean)  
+  Do not perform safe-search for Juniper local protocol.
 - **timeout** (Optional, Number)  
-  Set timeout.  
-  Need to be between 1 and 1800.
+  Set timeout (1..1800).
 
 ## Attribute Reference
 

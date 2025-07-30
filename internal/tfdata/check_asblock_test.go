@@ -30,6 +30,7 @@ func TestCheckBlockIsEmpty(t *testing.T) {
 
 	type blockWithEmbed struct {
 		block
+
 		String2Attr types.String `tfsdk:"string2_attr"`
 	}
 
@@ -245,6 +246,7 @@ func TestCheckBlockHasKnownValue(t *testing.T) {
 
 	type blockWithEmbed struct {
 		block
+
 		String2Attr types.String `tfsdk:"string2_attr"`
 	}
 

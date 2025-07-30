@@ -15,11 +15,10 @@ Load a file with set/delete lines on device and commit
 ```hcl
 # Load file and commit
 variable "setfile" { default = "~/junos/setfile" }
+
 resource "junos_null_commit_file" "setfile" {
   filename = var.setfile
-  triggers = {
-    md5 = filemd5(var.setfile)
-  }
+  triggers = filemd5(var.setfile)
   # clear_file_after_commit = true
 }
 ```
@@ -34,8 +33,8 @@ The following arguments are supported:
   List of lines append to lines in the loaded file.
 - **clear_file_after_commit** (Optional, Boolean, Forces new resource)  
   Truncate file after successful commit.
-- **triggers** (Optional, Map, Forces new resource)  
-  A map of arbitrary strings that, when changed, will force the resource to be replaced.
+- **triggers** (Optional, Any, Forces new resource)  
+  Any value that, when changed, will force the resource to be replaced.
 
 ## Attribute Reference
 

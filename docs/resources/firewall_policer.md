@@ -32,16 +32,17 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   Policer name.
-- **filter_specific** (Optional, Boolean)  
-  Policer is filter-specific.
-- **logical_bandwidth_policer** (Optional, Boolean)  
-  Policer uses logical interface bandwidth.
-- **logical_interface_policer** (Optional, Boolean)  
-  Policer is logical interface policer.
-- **physical_interface_policer** (Optional, Boolean)  
-  Policer is physical interface policer.
-- **shared_bandwidth_policer** (Optional, Boolean)  
-  Share policer bandwidth among bundle links.
+- **then** (Required, Block)  
+  Define action to take if the rate limits are exceeded.
+  - **discard** (Optional, Boolean)  
+    Discard the packet.
+  - **forwarding_class** (Optional, String)  
+    Classify packet to forwarding class.
+  - **loss_priority** (Optional, String)  
+    Packet's loss priority.  
+    Need to be `high`, `low`, `medium-high` or `medium-low`.
+  - **out_of_profile** (Optional, Boolean)  
+    Discard packets only if both congested and over threshold.
 - **if_exceeding** (Optional, Block)  
   Define rate limits options.
   - **burst_size_limit** (Required, String)  
@@ -58,17 +59,16 @@ The following arguments are supported:
     PPS burst size limit.
   - **pps_limit** (Required, String)  
     PPS limit.
-- **then** (Required, Block)  
-  Define action to take if the rate limits are exceeded.
-  - **discard** (Optional, Boolean)  
-    Discard the packet.
-  - **forwarding_class** (Optional, String)  
-    Classify packet to forwarding class.
-  - **loss_priority** (Optional, String)  
-    Packet's loss priority.  
-    Need to be `high`, `low`, `medium-high` or `medium-low`.
-  - **out_of_profile** (Optional, Boolean)  
-     Discard packets only if both congested and over threshold.
+- **filter_specific** (Optional, Boolean)  
+  Policer is filter-specific.
+- **logical_bandwidth_policer** (Optional, Boolean)  
+  Policer uses logical interface bandwidth.
+- **logical_interface_policer** (Optional, Boolean)  
+  Policer is logical interface policer.
+- **physical_interface_policer** (Optional, Boolean)  
+  Policer is physical interface policer.
+- **shared_bandwidth_policer** (Optional, Boolean)  
+  Share policer bandwidth among bundle links.
 
 ## Attribute Reference
 

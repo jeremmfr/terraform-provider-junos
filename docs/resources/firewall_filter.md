@@ -36,20 +36,20 @@ The following arguments are supported:
 - **family** (Required, String, Forces new resource)  
   Family where create this filter.  
   Need to be `inet`, `inet6`, `any`, `ccc`, `mpls`, `vpls` or `ethernet-switching`.
-- **interface_specific** (Optional, Boolean)  
-  Defined counters are interface specific.
 - **term** (Required, Block List)  
   For each name of term.
   - **name** (Required, String)  
     Term name.
-  - **filter** (Optional, String)  
-    Filter to include.
   - **from** (Required, Block)  
     Define match criteria.  
     See [below for nested schema](#from-arguments-for-term).
   - **then** (Required, Block)  
     Define action to take if the `from` condition is matched.  
     See [below for nested schema](#then-arguments-for-term).
+  - **filter** (Optional, String)  
+    Filter to include.
+- **interface_specific** (Optional, Boolean)  
+  Defined counters are interface specific.
 
 ---
 

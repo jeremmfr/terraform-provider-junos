@@ -1,0 +1,3 @@
+variable "file" {
+  type = string
+}

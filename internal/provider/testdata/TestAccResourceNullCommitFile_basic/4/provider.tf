@@ -1,0 +1,3 @@
+provider "junos" {
+  alias = "fake"
+}

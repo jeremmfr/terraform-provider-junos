@@ -20,11 +20,13 @@ linters:
     - mnd
     - musttag
     - nestif
+    - noinlineerr
     - nonamedreturns
     - paralleltest
     - recvcheck
     - varnamelen
     - wsl
+    - wsl_v5
   settings:
     gocognit:
       min-complexity: 180
@@ -69,8 +71,14 @@ linters:
         - name: unused-parameter
         - name: var-declaration
         - name: var-naming
+          arguments:
+            - []
+            - []
+            - - skip-package-name-checks: true
         # additionals
         - name: confusing-naming
+        - name: enforce-switch-style
+          arguments: [ "allowNoDefault" ]
         - name: import-alias-naming
         - name: import-shadowing
         - name: unhandled-error
