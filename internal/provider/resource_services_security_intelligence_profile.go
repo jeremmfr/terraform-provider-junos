@@ -15,6 +15,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -182,8 +183,15 @@ func (rsc *servicesSecurityIntelligenceProfile) Schema(
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
 							},
+							Validators: []validator.Object{
+								objectvalidator.IsRequired(),
+							},
 						},
 					},
+				},
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
 				},
 			},
 			"default_rule_then": schema.SingleNestedBlock{
@@ -267,13 +275,8 @@ func (rsc *servicesSecurityIntelligenceProfile) ValidateConfig(
 		return
 	}
 
-	if config.Rule.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("rule"),
-			tfdiag.MissingConfigErrSummary,
-			"rule block must be specified",
-		)
-	} else if !config.Rule.IsUnknown() {
+	if !config.Rule.IsNull() &&
+		!config.Rule.IsUnknown() {
 		var configRule []servicesSecurityIntelligenceProfileBlockRule
 		asDiags := config.Rule.ElementsAs(ctx, &configRule, false)
 		if asDiags.HasError() {
@@ -309,14 +312,6 @@ func (rsc *servicesSecurityIntelligenceProfile) ValidateConfig(
 							" in rules block %q", block.Name.ValueString()),
 					)
 				}
-			}
-			if block.Match == nil {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("rule").AtListIndex(i).AtName("match"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("match block must be specified"+
-						" in rule block %q", block.Name.ValueString()),
-				)
 			}
 		}
 	}

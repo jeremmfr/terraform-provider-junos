@@ -13,6 +13,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -200,6 +201,10 @@ func (rsc *securityAuthenticationKeyChain) Schema(
 						},
 					},
 				},
+				Validators: []validator.Set{
+					setvalidator.IsRequired(),
+					setvalidator.SizeAtLeast(1),
+				},
 			},
 		},
 	}
@@ -243,13 +248,8 @@ func (rsc *securityAuthenticationKeyChain) ValidateConfig(
 		return
 	}
 
-	if config.Key.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("key"),
-			tfdiag.MissingConfigErrSummary,
-			"key block must be specified",
-		)
-	} else if !config.Key.IsUnknown() {
+	if !config.Key.IsNull() &&
+		!config.Key.IsUnknown() {
 		var configKey []securityAuthenticationKeyChainBlockKey
 		asDiags := config.Key.ElementsAs(ctx, &configKey, false)
 		if asDiags.HasError() {

@@ -12,6 +12,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -169,6 +170,9 @@ func (rsc *forwardingoptionsStormControlProfile) Schema(
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
+				Validators: []validator.Object{
+					objectvalidator.IsRequired(),
+				},
 			},
 		},
 	}
@@ -201,13 +205,7 @@ func (rsc *forwardingoptionsStormControlProfile) ValidateConfig(
 		return
 	}
 
-	if config.All == nil {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("all"),
-			tfdiag.MissingConfigErrSummary,
-			"all block must be specified",
-		)
-	} else {
+	if config.All != nil {
 		if !config.All.BandwidthLevel.IsNull() && !config.All.BandwidthLevel.IsUnknown() &&
 			!config.All.BandwidthPercentage.IsNull() && !config.All.BandwidthPercentage.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(

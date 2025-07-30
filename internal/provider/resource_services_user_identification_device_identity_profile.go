@@ -10,6 +10,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -133,6 +134,10 @@ func (rsc *servicesUserIdentificationDeviceIdentityProfile) Schema(
 						},
 					},
 				},
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
+				},
 			},
 		},
 	}
@@ -171,13 +176,8 @@ func (rsc *servicesUserIdentificationDeviceIdentityProfile) ValidateConfig(
 		return
 	}
 
-	if config.Attribute.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("attribute"),
-			tfdiag.MissingConfigErrSummary,
-			"attribute block must be specified",
-		)
-	} else if !config.Attribute.IsUnknown() {
+	if !config.Attribute.IsNull() &&
+		!config.Attribute.IsUnknown() {
 		var configAttribute []servicesUserIdentificationDeviceIdentityProfileBlockAttributeConfig
 		asDiags := config.Attribute.ElementsAs(ctx, &configAttribute, false)
 		if asDiags.HasError() {

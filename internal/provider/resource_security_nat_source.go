@@ -12,6 +12,8 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -140,6 +142,9 @@ func (rsc *securityNatSource) Schema(
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
 				},
+				Validators: []validator.Object{
+					objectvalidator.IsRequired(),
+				},
 			},
 			"to": schema.SingleNestedBlock{
 				Description: "Declare where is the traffic to.",
@@ -170,6 +175,9 @@ func (rsc *securityNatSource) Schema(
 				},
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
+				},
+				Validators: []validator.Object{
+					objectvalidator.IsRequired(),
 				},
 			},
 			"rule": schema.ListNestedBlock{
@@ -299,6 +307,9 @@ func (rsc *securityNatSource) Schema(
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
 							},
+							Validators: []validator.Object{
+								objectvalidator.IsRequired(),
+							},
 						},
 						"then": schema.SingleNestedBlock{
 							Description: "Declare `then` action.",
@@ -322,8 +333,15 @@ func (rsc *securityNatSource) Schema(
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
 							},
+							Validators: []validator.Object{
+								objectvalidator.IsRequired(),
+							},
 						},
 					},
+				},
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
 				},
 			},
 		},
@@ -414,13 +432,8 @@ func (rsc *securityNatSource) ValidateConfig(
 		return
 	}
 
-	if config.Rule.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("rule"),
-			tfdiag.MissingConfigErrSummary,
-			"at least one rule block must be specified",
-		)
-	} else if !config.Rule.IsUnknown() {
+	if !config.Rule.IsNull() &&
+		!config.Rule.IsUnknown() {
 		var rule []securityNatSourceBlockRuleConfig
 		asDiags := config.Rule.ElementsAs(ctx, &rule, false)
 		if asDiags.HasError() {
@@ -443,14 +456,7 @@ func (rsc *securityNatSource) ValidateConfig(
 				ruleName[name] = struct{}{}
 			}
 
-			if block.Match == nil {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("rule").AtListIndex(i).AtName("match"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("match block must be specified"+
-						" in rule block %q", block.Name.ValueString()),
-				)
-			} else {
+			if block.Match != nil {
 				if block.Match.isEmpty() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("rule").AtListIndex(i).AtName("match"),

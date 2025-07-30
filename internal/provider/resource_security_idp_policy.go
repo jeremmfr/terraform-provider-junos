@@ -14,6 +14,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -132,6 +133,9 @@ func (rsc *securityIdpPolicy) Schema(
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
 							},
+							Validators: []validator.Object{
+								objectvalidator.IsRequired(),
+							},
 						},
 					},
 				},
@@ -170,6 +174,9 @@ func (rsc *securityIdpPolicy) Schema(
 							Attributes:  securityIdpPolicyBlockIpsRuleBlockMatch{}.attributesSchema(),
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
+							},
+							Validators: []validator.Object{
+								objectvalidator.IsRequired(),
 							},
 						},
 						"then": schema.SingleNestedBlock{
@@ -316,6 +323,9 @@ func (rsc *securityIdpPolicy) Schema(
 							},
 							PlanModifiers: []planmodifier.Object{
 								tfplanmodifier.BlockRemoveNull(),
+							},
+							Validators: []validator.Object{
+								objectvalidator.IsRequired(),
 							},
 						},
 					},
@@ -628,14 +638,7 @@ func (rsc *securityIdpPolicy) ValidateConfig(
 				exemptRuleName[name] = struct{}{}
 			}
 
-			if block.Match == nil {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("exempt_rule").AtListIndex(i).AtName("match"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("match block must be specified"+
-						" in exempt_rule block %q", block.Name.ValueString()),
-				)
-			} else {
+			if block.Match != nil {
 				if block.Match.isEmpty() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("exempt_rule").AtListIndex(i).AtName("match").AtName("*"),
@@ -693,14 +696,7 @@ func (rsc *securityIdpPolicy) ValidateConfig(
 				ipsRuleName[name] = struct{}{}
 			}
 
-			if block.Match == nil {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("ips_rule").AtListIndex(i).AtName("match"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("match block must be specified"+
-						" in ips_rule block %q", block.Name.ValueString()),
-				)
-			} else {
+			if block.Match != nil {
 				if block.Match.isEmpty() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("ips_rule").AtListIndex(i).AtName("match").AtName("*"),
@@ -732,14 +728,7 @@ func (rsc *securityIdpPolicy) ValidateConfig(
 					)
 				}
 			}
-			if block.Then == nil {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("ips_rule").AtListIndex(i).AtName("then"),
-					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("then block must be specified"+
-						" in ips_rule block %q", block.Name.ValueString()),
-				)
-			} else {
+			if block.Then != nil {
 				if !block.Then.Action.IsNull() &&
 					!block.Then.Action.IsUnknown() {
 					action := block.Then.Action.ValueString()

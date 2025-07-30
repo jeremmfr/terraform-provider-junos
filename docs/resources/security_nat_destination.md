@@ -55,6 +55,13 @@ The following arguments are supported:
 
 - **name** (Required, String)  
   Rule name.
+- **then** (Required, Block)  
+  Declare `then` action.
+  - **type** (Required, String)  
+    Type of destination nat.  
+    Need to be `pool` or `off`
+  - **pool** (Optional, String)  
+    Name of destination nat pool when type is pool.
 - **destination_address** (Optional, String)  
   CIDR destination address to match.
 - **destination_address_name** (Optional, String)  
@@ -70,13 +77,6 @@ The following arguments are supported:
   CIDR source address to match.
 - **source_address_name** (Optional, Set of String)  
   Source address from address book to match.
-- **then** (Required, Block)  
-  Declare `then` action.
-  - **type** (Required, String)  
-    Type of destination nat.  
-    Need to be `pool` or `off`
-  - **pool** (Optional, String)  
-    Name of destination nat pool when type is pool.
 
 ## Attribute Reference
 
