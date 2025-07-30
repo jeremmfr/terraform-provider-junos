@@ -1,6 +1,65 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.14.0 (2025-07-30)
+
+FEATURES:
+
+* add `junos_security_utm_custom_message` resource
+
+ENHANCEMENTS:
+
+* **resource/junos_chassis_cluster**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+* **resource/junos_chassis_redundancy**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*
+* **resource/junos_null_commit_file**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  `triggers` argument now accept any attribute type (and so still a Map)  
+  the permissions of file targeted by `filename` argument are now preserved when using `clear_file_after_commit` argument
+* **resource/junos_rib_group**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value
+* **resource/junos_security_utm_custom_url_category**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+* **resource/junos_security_utm_custom_url_pattern**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+* **resource/junos_security_utm_policy**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `content_filtering_rule_set` block argument
+* **resource/junos_security_utm_profile_web_filtering_juniper_enhanced**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional boolean attributes doesn't accept value *false*  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `custom_message` argument in root level and `category` block
+* **resource/junos_security_utm_profile_web_filtering_juniper_local**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `no_safe_search` argument
+  * add `custom_message` argument
+  * add `category` block argument
+* **resource/junos_security_utm_profile_web_filtering_websense_redirect**:
+  * resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  some of config errors are now sent during Plan instead of during Apply  
+  optional string attributes doesn't accept *empty* value  
+  the resource schema has been upgraded to have one-blocks in single mode instead of list
+  * add `no_safe_search` argument
+  * add `routing_instance` and `source_address` arguments in `server` block
+  * add `custom_message` argument
+  * add `category` block argument
+* **resource/junos_services_advanced_anti_malware_policy**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)  
+  optional string attributes doesn't accept *empty* value  
+* **resource/junos_services_proxy_profile**: resource now use new [terraform-plugin-framework](https://github.com/hashicorp/terraform-plugin-framework)
+* the provider don't use anymore the legacy SDKv2 plugin and the mux plugin used during migration to plugin framework
+
 ## v2.13.0 (2025-06-05)
 
 ENHANCEMENTS:
