@@ -3,6 +3,9 @@ on:
   push:
     tags:
       - "v*"
+permissions:
+  contents: write
+  packages: write
 jobs:
   release:
     name: Create Release
