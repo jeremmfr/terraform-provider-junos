@@ -1,5 +1,7 @@
 name: Go Tests
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   build-1_23:
     name: Build 1.23

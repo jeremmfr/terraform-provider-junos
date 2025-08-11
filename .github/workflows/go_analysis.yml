@@ -4,13 +4,13 @@ on:
   pull_request:
   schedule:
     - cron: '11 12 * * 3'
+permissions:
+  actions: read
+  contents: read
+  security-events: write
 jobs:
   Vulncheck:
     runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Running govulncheck
@@ -22,10 +22,6 @@ jobs:
 
   CodeQL-Analyse:
     runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
