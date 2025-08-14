@@ -31,7 +31,7 @@ for provider and resources documentation.
 
 ### In addition to develop
 
-- [Go](https://go.dev/doc/install) `v1.23` or `v1.24`
+- [Go](https://go.dev/doc/install) `v1.24` or `v1.25`
 
 ## Automatic install
 

@@ -41,10 +41,10 @@ jobs:
           - goos: windows
             goarch: arm64
     steps:
-      - name: Set up Go 1.24
+      - name: Set up Go 1.25
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.25'
           check-latest: true
         id: go
       - name: Show version
