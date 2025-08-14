@@ -3,34 +3,19 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
-  build-1_23:
-    name: Build 1.23
+  build:
+    name: Build
+    strategy:
+      matrix:
+        golang:
+          - '1.24'
+          - '1.25'
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.23
+      - name: Set up Go ${{ matrix.golang }}
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
-          check-latest: true
-        id: go
-      - name: Disable cgo
-        run: |
-          echo "CGO_ENABLED=0" >> $GITHUB_ENV
-      - name: Show version
-        run: go version
-      - name: Check out code
-        uses: actions/checkout@v5
-      - name: Build
-        run: go build -v .
-
-  build-1_24:
-    name: Build 1.24
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Go 1.24
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24'
+          go-version: ${{ matrix.golang }}
           check-latest: true
         id: go
       - name: Disable cgo
@@ -45,12 +30,17 @@ jobs:
 
   test:
     name: Test
+    strategy:
+      matrix:
+        golang:
+          - '1.24'
+          - '1.25'
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.24
+      - name: Set up Go ${{ matrix.golang }}
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: ${{ matrix.golang }}
           check-latest: true
         id: go
       - name: Disable cgo
