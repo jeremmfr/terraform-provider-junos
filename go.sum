@@ -102,8 +102,8 @@ github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOl
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jeremmfr/go-netconf v0.6.0 h1:PjUooJB0uEIqeMiZRcNQFBu0n8iak4izgg4wS3B/vWs=
 github.com/jeremmfr/go-netconf v0.6.0/go.mod h1:Jn3orGg/xvw8SdYRUpZf2rPcCfFAUnfnhqBRYIRzPxo=
-github.com/jeremmfr/go-utils v0.12.0 h1:Zgdb+LLeyds9Tbsl+tjqRNBcAVQC5WZOm4Tx9c+dVdg=
-github.com/jeremmfr/go-utils v0.12.0/go.mod h1:UrdaUGOZaha7uxCFaJXNSOUKx9cnbbfMP+08acDxIzc=
+github.com/jeremmfr/go-utils v0.13.0 h1:xSMB8p16TVgDHBiZQ1PdYESHLubN2Vbsu8P2QMzOKHo=
+github.com/jeremmfr/go-utils v0.13.0/go.mod h1:vX9sVSGyOUYw6T816PgT97zw2WOubHTtOuJ6vBXttCc=
 github.com/jeremmfr/junosdecode v1.1.1 h1:wOFfJIwLXP9s0eQzzAhuX7a7N1mc+AWgDLYAmR7VoWg=
 github.com/jeremmfr/junosdecode v1.1.1/go.mod h1:nTY0XbZC2ePbZdV0wuUboSMtGrJxtpwWVYfHjrS2Oqw=
 github.com/jhump/protoreflect v1.15.1 h1:HUMERORf3I3ZdX05WaQ6MIpd/NJ434hTp5YiKgfCL6c=
