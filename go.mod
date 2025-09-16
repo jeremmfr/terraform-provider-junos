@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.28.0
 	github.com/hashicorp/terraform-plugin-testing v1.13.3
 	github.com/jeremmfr/go-netconf v0.6.0
-	github.com/jeremmfr/go-utils v0.12.0
+	github.com/jeremmfr/go-utils v0.13.0
 	github.com/jeremmfr/junosdecode v1.1.1
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22
 	golang.org/x/crypto v0.42.0
