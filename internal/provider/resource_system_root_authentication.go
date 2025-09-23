@@ -159,7 +159,7 @@ func (ste *systemRootAuthenticationPrivateState) get(
 	data, getDiags := private.GetKey(ctx, ste.key())
 	diags.Append(getDiags...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if data != nil {
@@ -168,7 +168,7 @@ func (ste *systemRootAuthenticationPrivateState) get(
 		}
 	}
 
-	return
+	return diags
 }
 
 func (rsc *systemRootAuthentication) ValidateConfig(

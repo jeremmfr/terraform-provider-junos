@@ -221,7 +221,7 @@ func (ste *snmpV3UsmUserPrivateState) get(
 	data, getDiags := private.GetKey(ctx, ste.key())
 	diags.Append(getDiags...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if data != nil {
@@ -230,7 +230,7 @@ func (ste *snmpV3UsmUserPrivateState) get(
 		}
 	}
 
-	return
+	return diags
 }
 
 func (rsc *snmpV3UsmUser) ValidateConfig(
