@@ -10,7 +10,7 @@ var _ validator.Bool = BoolTrue()
 
 type BoolTrueValidator struct{}
 
-// Must be true or null, false is not supported.
+// BoolTrue: must be true or null, false is not supported.
 func BoolTrue() BoolTrueValidator {
 	return BoolTrueValidator{}
 }

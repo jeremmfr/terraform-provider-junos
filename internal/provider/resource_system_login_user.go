@@ -250,7 +250,7 @@ func (ste *systemLoginUserPrivateState) get(
 	data, getDiags := private.GetKey(ctx, ste.key())
 	diags.Append(getDiags...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if data != nil {
@@ -259,7 +259,7 @@ func (ste *systemLoginUserPrivateState) get(
 		}
 	}
 
-	return
+	return diags
 }
 
 func (rsc *systemLoginUser) ValidateConfig(
