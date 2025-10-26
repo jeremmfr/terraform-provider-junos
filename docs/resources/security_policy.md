@@ -43,6 +43,8 @@ The following arguments are supported:
     Defaults to `permit`.
   - **count** (Optional, Boolean)  
     Enable count.
+  - **description** (Optional, String)  
+    Text description of policy.
   - **log_init** (Optional, Boolean)  
     Log at session init time.
   - **log_close** (Optional, Boolean)  
