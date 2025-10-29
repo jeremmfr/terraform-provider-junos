@@ -126,6 +126,7 @@ type securityGlobalPolicyBlockPolicy struct {
 	MatchToZone                     []types.String                                           `tfsdk:"match_to_zone"`
 	Then                            types.String                                             `tfsdk:"then"`
 	Count                           types.Bool                                               `tfsdk:"count"`
+	Description                     types.String                                             `tfsdk:"description"`
 	LogInit                         types.Bool                                               `tfsdk:"log_init"`
 	LogClose                        types.Bool                                               `tfsdk:"log_close"`
 	MatchApplication                []types.String                                           `tfsdk:"match_application"`
@@ -212,6 +213,14 @@ func (securityGlobalPolicyBlockPolicy) attributesSchema() map[string]schema.Attr
 			Description: "Enable count.",
 			Validators: []validator.Bool{
 				tfvalidator.BoolTrue(),
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:    true,
+			Description: "Text description of policy.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 900),
+				tfvalidator.StringDoubleQuoteExclusion(),
 			},
 		},
 		"log_init": schema.BoolAttribute{
@@ -420,6 +429,7 @@ type securityGlobalPolicyBlockPolicyConfig struct {
 	MatchToZone                     types.Set                                                `tfsdk:"match_to_zone"`
 	Then                            types.String                                             `tfsdk:"then"`
 	Count                           types.Bool                                               `tfsdk:"count"`
+	Description                     types.String                                             `tfsdk:"description"`
 	LogInit                         types.Bool                                               `tfsdk:"log_init"`
 	LogClose                        types.Bool                                               `tfsdk:"log_close"`
 	MatchApplication                types.Set                                                `tfsdk:"match_application"`
@@ -646,6 +656,9 @@ func (rscData *securityGlobalPolicyData) set(
 		if block.Count.ValueBool() {
 			configSet = append(configSet, setPrefixPolicy+"then count")
 		}
+		if v := block.Description.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixPolicy+"description \""+v+"\"")
+		}
 		if block.LogInit.ValueBool() {
 			configSet = append(configSet, setPrefixPolicy+"then log session-init")
 		}
@@ -728,6 +741,8 @@ func (rscData *securityGlobalPolicyData) read(
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					policy.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "match source-address "):
 					policy.MatchSourceAddress = append(policy.MatchSourceAddress,
 						types.StringValue(strings.Trim(itemTrim, "\"")))
