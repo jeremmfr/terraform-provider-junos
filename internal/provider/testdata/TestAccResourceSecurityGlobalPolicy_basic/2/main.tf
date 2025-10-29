@@ -49,6 +49,7 @@ resource "junos_security_global_policy" "testacc_secglobpolicy" {
   }
   policy {
     name                          = "drop"
+    description                   = "Drop blue address"
     match_source_address          = ["blue"]
     match_destination_address     = ["any"]
     match_application             = ["any"]

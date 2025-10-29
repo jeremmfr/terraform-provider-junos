@@ -1,25 +1,27 @@
 name: Linters
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   golangci-lint:
     name: golangci-lint
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.24
-        uses: actions/setup-go@v5
+      - name: Set up Go 1.25
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: '1.25'
           check-latest: true
         id: go
       - name: Disable cgo
         run: |
           echo "CGO_ENABLED=0" >> $GITHUB_ENV
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.3.0
+          version: v2.5.0
           args: -c .golangci.yml -v
 
   markdown-lint:
@@ -27,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Markdown files linting
       uses: avto-dev/markdown-lint@v1
@@ -38,18 +40,18 @@ jobs:
     name: terrafmt
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.24
-        uses: actions/setup-go@v5
+      - name: Set up Go 1.25
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: '1.25'
           check-latest: true
         id: go
       - name: Show version
         run: go version
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Check out terrafmt code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: katbyte/terrafmt
           ref: v0.5.2
@@ -74,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform format check testdata directory
@@ -85,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: diff SingleNestedBlock and BlockRemoveNull
         working-directory: ./internal/provider
         run: diff <( grep -rc 'schema.SingleNestedBlock{' * ) <( grep -rc 'BlockRemoveNull()' *)

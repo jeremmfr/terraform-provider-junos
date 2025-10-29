@@ -1,6 +1,14 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.15.0 (2025-10-29)
+
+ENHANCEMENTS:
+
+* release now with Go 1.25
+* **resource/junos_security_global_policy**: add `description` argument in `policy` block
+* **resource/junos_security_policy**: add `description` argument in `policy` block (Fix [#834](https://github.com/jeremmfr/terraform-provider-junos/issues/834))
+
 ## v2.14.0 (2025-07-30)
 
 FEATURES:

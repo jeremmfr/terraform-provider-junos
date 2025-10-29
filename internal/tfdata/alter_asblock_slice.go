@@ -15,7 +15,7 @@ const (
 	identifier2 = "identifier_2"
 )
 
-// for each struct in blocks (list of struct)
+// ExtractBlock: for each struct in blocks (list of struct)
 //
 //   - if the values of fields with identifier tag are equal to the elements of identifierValues
 //     (first element of identifierValues equal to field with tag value identifier or identifier_1,
@@ -78,7 +78,7 @@ loopBlocks:
 	return blocks, *newBlock
 }
 
-// with latest block of slice
+// AppendPotentialNewBlock: with latest block of slice
 //
 //   - if the values of fields with identifier tag are equal to the elements of identifierValues
 //     (first element of identifierValues equal to field with tag value identifier or identifier_1,

@@ -28,6 +28,7 @@ resource "junos_security_policy_unordered" "testacc_securityPolicy" {
   }
   policy {
     name                               = "testacc_Policy_2"
+    description                        = "testacc - Policy - 2"
     match_source_address               = ["testacc_address1"]
     match_destination_address          = ["testacc_address1"]
     match_destination_address_excluded = true

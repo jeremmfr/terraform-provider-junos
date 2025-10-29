@@ -11,7 +11,7 @@ import (
 
 const skipIsEmpty = "skip_isempty"
 
-// check if block struct doesn't have either:
+// CheckBlockIsEmpty: check if block struct doesn't have either:
 //   - an framework attribute with not null value
 //   - a slice with at least an element
 //   - a not nil pointer
@@ -77,7 +77,7 @@ func checkBlockValueIsEmpty(blockValue reflect.Value) bool {
 	return true
 }
 
-// check if struct has either :
+// CheckBlockHasKnownValue: check if struct has either :
 //   - an framework attribute with known value (not null and not unknown)
 //   - an pointer to an other struct with a known framework attribute value.
 func CheckBlockHasKnownValue[B any](block B, excludeFields ...string) bool {
