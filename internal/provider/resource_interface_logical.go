@@ -2380,7 +2380,7 @@ func checkInterfaceLogicalNCEmpty(
 	}
 	showConfigLines := make([]string, 0, 100)
 	// remove unused lines
-	for _, item := range strings.Split(showConfig, "\n") {
+	for item := range strings.SplitSeq(showConfig, "\n") {
 		// exclude ethernet-switching (parameters in junos_interface_physical)
 		if strings.Contains(item, "ethernet-switching") {
 			continue
@@ -2998,7 +2998,7 @@ func (rscData *interfaceLogicalData) read(
 	rscData.Name = types.StringValue(name)
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			// exclude ethernet-switching (parameters in junos_interface_physical)
 			if strings.Contains(item, "ethernet-switching") {
 				continue
@@ -3175,7 +3175,7 @@ func (rscData *interfaceLogicalData) read(
 		return err
 	}
 	regexpInt := regexp.MustCompile(`set \S+ interface ` + name + `$`)
-	for _, item := range strings.Split(showConfigRoutingInstances, "\n") {
+	for item := range strings.SplitSeq(showConfigRoutingInstances, "\n") {
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
 			rscData.RoutingInstance = types.StringValue(
@@ -3197,7 +3197,7 @@ func (rscData *interfaceLogicalData) read(
 			return err
 		}
 		regexpInts := regexp.MustCompile(`set security-zone \S+ interfaces ` + name + `( host-inbound-traffic .*)?$`)
-		for _, item := range strings.Split(showConfigSecurityZones, "\n") {
+		for item := range strings.SplitSeq(showConfigSecurityZones, "\n") {
 			intMatch := regexpInts.MatchString(item)
 			if intMatch {
 				itemTrimFields := strings.Split(strings.TrimPrefix(item, "set security-zone "), " ")
@@ -3513,7 +3513,7 @@ func (rscData *interfaceLogicalData) readSecurityZoneInboundTraffic(
 		return err
 	}
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}

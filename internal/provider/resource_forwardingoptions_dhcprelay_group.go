@@ -2086,7 +2086,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) read(
 			rscData.Version = types.StringValue("v4")
 		}
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue

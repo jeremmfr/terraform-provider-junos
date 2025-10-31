@@ -856,7 +856,7 @@ func (rscData *groupDualSystemData) read(
 	if showConfig != junos.EmptyW {
 		rscData.Name = types.StringValue(name)
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -912,7 +912,7 @@ func (rscData *groupDualSystemData) read(
 	if showConfigApplyGroups != junos.EmptyW {
 		rscData.Name = types.StringValue(name)
 		rscData.fillID()
-		for _, item := range strings.Split(showConfigApplyGroups, "\n") {
+		for item := range strings.SplitSeq(showConfigApplyGroups, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}

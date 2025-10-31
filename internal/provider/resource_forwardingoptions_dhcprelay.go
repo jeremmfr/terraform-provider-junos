@@ -2001,7 +2001,7 @@ func (rscData *forwardingoptionsDhcprelayData) read( //nolint:gocognit
 	}
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue

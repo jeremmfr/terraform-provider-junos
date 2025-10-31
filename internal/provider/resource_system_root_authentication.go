@@ -482,7 +482,7 @@ func (rscData *systemRootAuthenticationData) read(
 	}
 	if showConfig != junos.EmptyW {
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -518,7 +518,7 @@ func (rscData *systemRootAuthenticationData) readPrivateToState(
 	}
 	var privateState systemRootAuthenticationPrivateState
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}

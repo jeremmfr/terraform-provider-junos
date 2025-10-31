@@ -344,7 +344,7 @@ func (rscData *snmpV3VacmSecuritytogroupData) read(
 		rscData.Model = types.StringValue(model)
 		rscData.Name = types.StringValue(name)
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}

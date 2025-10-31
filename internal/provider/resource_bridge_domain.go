@@ -724,7 +724,7 @@ func (rscData *bridgeDomainData) read(
 			rscData.RoutingInstance = types.StringValue(routingInstance)
 		}
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -780,7 +780,7 @@ func (rscData *bridgeDomainData) read(
 						return err
 					}
 					if showConfigEvpn != junos.EmptyW {
-						for _, itemEvpn := range strings.Split(showConfigEvpn, "\n") {
+						for itemEvpn := range strings.SplitSeq(showConfigEvpn, "\n") {
 							if strings.Contains(itemEvpn, junos.XMLStartTagConfigOut) {
 								continue
 							}

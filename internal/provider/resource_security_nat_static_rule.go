@@ -701,7 +701,7 @@ func (rscData *securityNatStaticRuleData) read(
 		rscData.Name = types.StringValue(name)
 		rscData.RuleSet = types.StringValue(ruleSet)
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
