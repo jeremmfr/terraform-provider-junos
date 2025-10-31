@@ -1668,7 +1668,7 @@ func checkInterfacePhysicalNCEmpty(
 	}
 	showConfigLines := make([]string, 0, 100)
 	// remove unused lines
-	for _, item := range strings.Split(showConfig, "\n") {
+	for item := range strings.SplitSeq(showConfig, "\n") {
 		// show parameters root on interface exclude unit parameters (except ethernet-switching)
 		if strings.HasPrefix(item, "set unit") && !strings.Contains(item, "ethernet-switching") {
 			continue
@@ -1714,7 +1714,7 @@ func checkInterfacePhysicalContainsUnit(
 	if err != nil {
 		return false, err
 	}
-	for _, item := range strings.Split(showConfig, "\n") {
+	for item := range strings.SplitSeq(showConfig, "\n") {
 		if strings.Contains(item, junos.XMLStartTagConfigOut) {
 			continue
 		}
@@ -2170,7 +2170,7 @@ func (rscData *interfacePhysicalData) read(
 	rscData.Name = types.StringValue(name)
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, " unit ") && !strings.Contains(item, "ethernet-switching") {
 				continue
 			}
@@ -2582,7 +2582,7 @@ func findInterfaceAggregatedLastChild(
 		return false, err
 	}
 	lastAE := true
-	for _, item := range strings.Split(showConfig, "\n") {
+	for item := range strings.SplitSeq(showConfig, "\n") {
 		if strings.HasSuffix(item, "ether-options 802.3ad "+ae) &&
 			!strings.HasPrefix(item, junos.SetLS+interFace+" ") {
 			lastAE = false
@@ -2618,7 +2618,7 @@ func findInterfaceAggregatedCountMax(
 	regexpAEchild := regexp.MustCompile(`ether-options 802\.3ad ae\d+$`)
 	regexpAEparent := regexp.MustCompile(`^set ae\d+ `)
 
-	for _, line := range strings.Split(showConfig, "\n") {
+	for line := range strings.SplitSeq(showConfig, "\n") {
 		aeMatchChild := regexpAEchild.MatchString(line)
 		aeMatchParent := regexpAEparent.MatchString(line)
 

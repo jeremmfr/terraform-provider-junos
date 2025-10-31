@@ -4020,7 +4020,7 @@ func (rscData *systemData) read(
 	}
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -4158,9 +4158,7 @@ func (rscData *systemData) read(
 				if rscData.Ports == nil {
 					rscData.Ports = &systemBlockPorts{}
 				}
-				if err := rscData.Ports.read(itemTrim); err != nil {
-					return err
-				}
+				rscData.Ports.read(itemTrim)
 			case bchk.StringHasOneOfPrefixes(itemTrim, systemBlockServices{}.junosLines()):
 				if rscData.Services == nil {
 					rscData.Services = &systemBlockServices{}
@@ -4697,7 +4695,7 @@ func (block *systemBlockNtp) read(itemTrim string) (err error) {
 	return nil
 }
 
-func (block *systemBlockPorts) read(itemTrim string) (err error) {
+func (block *systemBlockPorts) read(itemTrim string) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "auxiliary authentication-order "):
 		block.AuxiliaryAuthenticationOrder = append(block.AuxiliaryAuthenticationOrder, types.StringValue(itemTrim))
@@ -4720,8 +4718,6 @@ func (block *systemBlockPorts) read(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "console type "):
 		block.ConsoleType = types.StringValue(itemTrim)
 	}
-
-	return nil
 }
 
 func (systemBlockServices) junosLines() []string {

@@ -88,12 +88,8 @@ func netconfNewSessionWithConfig(
 		Timeout: time.Duration(sshOpts.Timeout) * time.Second,
 	}
 	retry := sshOpts.Retry
-	if retry < 1 {
-		retry = 1
-	}
-	if retry > 10 {
-		retry = 10
-	}
+	retry = max(retry, 1)
+	retry = min(retry, 10)
 	sleepTime := 0
 toretry:
 	for retry > 0 {
