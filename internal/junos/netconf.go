@@ -96,13 +96,13 @@ func (sess *Session) netconfConfigSet(cmd []string) (string, error) {
 		return "", fmt.Errorf("executing netconf apply of set/delete command: %w", err)
 	}
 	// logFile("netconfConfigSet.Reply:" + reply.RawReply)
-	message := ""
+	var message strings.Builder
 
 	for _, m := range reply.Errors {
-		message += m.Message
+		_, _ = message.WriteString(m.Message)
 	}
 
-	return message, nil
+	return message.String(), nil
 }
 
 // netConfConfigLock locks the candidate configuration.

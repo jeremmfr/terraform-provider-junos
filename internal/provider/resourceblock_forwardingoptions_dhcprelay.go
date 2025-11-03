@@ -1421,12 +1421,13 @@ func (block *forwardingoptionsDhcprelayBlockRelayOptionBlockOptionN) read(itemTr
 	if len(itemTrimFields) < 4 { // <compare> <value_type> <value> <action> <group>?
 		return fmt.Errorf(junos.CantReadValuesNotEnoughFields, option, itemTrim)
 	}
-	value := itemTrimFields[2]
+	var value strings.Builder
+	_, _ = value.WriteString(itemTrimFields[2])
 	actionIndex := 3
 	if (strings.HasPrefix(itemTrimFields[2], "\"") && !strings.HasSuffix(itemTrimFields[2], "\"")) ||
 		itemTrimFields[2] == "\"" {
 		for k, v := range itemTrimFields[3:] {
-			value += " " + v
+			_, _ = value.WriteString(" " + v)
 			if strings.Contains(v, "\"") {
 				actionIndex = 3 + k + 1
 
@@ -1437,7 +1438,7 @@ func (block *forwardingoptionsDhcprelayBlockRelayOptionBlockOptionN) read(itemTr
 
 	block.Compare = types.StringValue(itemTrimFields[0])
 	block.ValueType = types.StringValue(itemTrimFields[1])
-	block.Value = types.StringValue(html.UnescapeString(strings.Trim(value, "\"")))
+	block.Value = types.StringValue(html.UnescapeString(strings.Trim(value.String(), "\"")))
 	block.Action = types.StringValue(itemTrimFields[actionIndex])
 	if len(itemTrimFields) > actionIndex+1 {
 		block.Group = types.StringValue(strings.Trim(strings.Join(itemTrimFields[actionIndex+1:], " "), "\""))

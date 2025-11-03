@@ -340,7 +340,7 @@ func (rscData *snmpV3CommunityData) read(
 	if showConfig != junos.EmptyW {
 		rscData.CommunityIndex = types.StringValue(communityIndex)
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
