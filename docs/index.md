@@ -233,7 +233,8 @@ The following arguments are supported in the `provider` block:
     line when it should be necessary.
   - **junos_interface_st0_unit** cannot take into account the option and run still
     normal process.
-  - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
+  - **junos_null_commit_file**, the skip doesn’t, of course, concern this resource.
+  - **junos_null_load_config**, the skip doesn’t concern this resource either.
 
   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment
   variable.  
@@ -255,7 +256,7 @@ The following arguments are supported in the `provider` block:
   There are exceptions for resources :
   - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
-  - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
+  - **junos_null_commit_file**, the skip doesn’t, of course, concern this resource.
 
   It can also be enabled from the `JUNOS_FAKEUPDATE_ALSO` environment variable and
   its value is `1`, `t` or `true`.
@@ -270,7 +271,7 @@ The following arguments are supported in the `provider` block:
   There are exceptions for resources :
   - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
-  - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
+  - **junos_null_commit_file**, the skip doesn’t, of course, concern this resource.
 
   It can also be enabled from the `JUNOS_FAKEDELETE_ALSO` environment variable and
   its value is `1`, `t` or `true`.

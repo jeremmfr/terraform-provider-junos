@@ -258,6 +258,44 @@ func (sess *Session) ConfigSet(cmd []string) error {
 	return errors.New("internal error: call Session.ConfigSet without netconf session or fake set file")
 }
 
+func (sess *Session) ConfigLoad(action, format, config string) error {
+	if sess.netconf == nil {
+		return errors.New("internal error: call Session.ConfigLoad without netconf session")
+	}
+
+	switch action {
+	case LoadConfigActionMerge:
+	case LoadConfigActionOverride:
+	case LoadConfigActionReplace:
+	case LoadConfigActionSet:
+		if format != LoadConfigFormatText {
+			return fmt.Errorf("unacceptable format %q with action %q to load configuration", format, action)
+		}
+	case LoadConfigActionUpdate:
+	default:
+		return errors.New("unknown action %q to load configuration")
+	}
+
+	switch format {
+	case LoadConfigFormatJSON:
+	case LoadConfigFormatText:
+	case LoadConfigFormatXML:
+	default:
+		return errors.New("unknown format %q to load configuration")
+	}
+
+	message, err := sess.netconfConfigLoad(action, format, config)
+	utils.SleepShort(sess.sleepShort)
+	sess.logFile(fmt.Sprintf("[ConfigLoad] message: %q", message))
+	if err != nil {
+		sess.logFile(fmt.Sprintf("[ConfigLoad] err: %q", err))
+
+		return err
+	}
+
+	return nil
+}
+
 // ConfigLock lock candidate configuration and retry with sleep between when fail.
 func (sess *Session) ConfigLock(ctx context.Context) error {
 	for {

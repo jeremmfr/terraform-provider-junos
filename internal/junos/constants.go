@@ -13,6 +13,16 @@ const (
 	PipeDisplaySet         = " | display set"
 	PipeDisplaySetRelative = PipeDisplaySet + " relative"
 
+	LoadConfigFormatText = "text"
+	LoadConfigFormatXML  = "xml"
+	LoadConfigFormatJSON = "json"
+
+	LoadConfigActionMerge    = "merge"
+	LoadConfigActionOverride = "override"
+	LoadConfigActionReplace  = "replace"
+	LoadConfigActionSet      = "set"
+	LoadConfigActionUpdate   = "update"
+
 	RoutingInstancesWS = "routing-instances " // routing-instances word + space
 
 	RoutingOptionsWS = "routing-options "
