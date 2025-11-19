@@ -229,12 +229,14 @@ The following arguments are supported in the `provider` block:
   A `terraform refresh` will be able to detect parts of errors but **be careful with**
   **this option**.  
   There are exceptions for resources :
-  - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
+  - **junos_interface_physical** don't generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
-  - **junos_interface_st0_unit** cannot take into account the option and run still
-    normal process.
-  - **junos_null_commit_file**, the skip doesn’t, of course, concern this resource.
-  - **junos_null_load_config**, the skip doesn’t concern this resource either.
+  - **junos_interface_st0_unit** cannot take into account the option
+    and still run the normal process.
+  - **junos_null_commit_file**, the skip doesn't, of course, concern this resource.
+  - **junos_null_load_config**, the skip doesn't concern this resource either.
+  - **junos_group_raw** cannot take into account the option due to its different format
+    and still run the normal process.
 
   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment
   variable.  
@@ -254,9 +256,11 @@ The following arguments are supported in the `provider` block:
   in tfstate. A `terraform refresh` will be able to detect parts of errors but
   **be careful with this option**.  
   There are exceptions for resources :
-  - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
+  - **junos_interface_physical** don't generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
-  - **junos_null_commit_file**, the skip doesn’t, of course, concern this resource.
+  - **junos_null_commit_file**, the skip doesn't, of course, concern this resource.
+  - **junos_group_raw** cannot take into account the option due to its different format
+    and still run the normal process.
 
   It can also be enabled from the `JUNOS_FAKEUPDATE_ALSO` environment variable and
   its value is `1`, `t` or `true`.
@@ -269,9 +273,11 @@ The following arguments are supported in the `provider` block:
   As with `fake_create_with_setfile`, this option may leave extra config (not managed by Terraform)
   on Junos device. **Be careful with this option**.  
   There are exceptions for resources :
-  - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
+  - **junos_interface_physical** don't generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
-  - **junos_null_commit_file**, the skip doesn’t, of course, concern this resource.
+  - **junos_null_commit_file**, the skip doesn't, of course, concern this resource.
+  - **junos_group_raw** cannot take into account the option due to its different format
+    and still run the normal process.
 
   It can also be enabled from the `JUNOS_FAKEDELETE_ALSO` environment variable and
   its value is `1`, `t` or `true`.
