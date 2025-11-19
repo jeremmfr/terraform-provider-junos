@@ -217,11 +217,15 @@ The following arguments are supported in the `provider` block:
   connection, pre-check, generate/upload set lines in candidate configuration, commit, post-check)
   skipped to generate set lines, append them to the specified file, and respond with a `fake`
   successful creation of resources to Terraform.  
-  Then you can upload/commit the file with the `junos_null_commit_file` resource in the same config
-  or another terraform config or with another way.  
-  If you are using `junos_null_commit_file` in the same terraform config, you must create dependencies
-  between resources so that the creation of the `junos_null_commit_file` resource is alone and
-  last.  
+  Then you can load and commit the file with the `junos_null_commit_file` resource or the
+  `junos_commit_file` action (Terraform 1.14+) in the same config or another terraform config or with
+  another way.  
+  If you are using `junos_null_commit_file` resource in the same terraform config, you must create
+  dependencies between resources so that the creation of the `junos_null_commit_file` resource is
+  alone and last.  
+  If you are using `junos_commit_file` action (Terraform 1.14+), you need to use
+  `action_trigger` in lifecycle block to trigger the action or, alternatively, run
+  `terraform apply -invoke='action.junos_commit_file.<actionname>'` after the apply for resources.  
   This options is useful to create a workaround for a long terraform run if there are many resources
   to be created and Junos device is slow to commit.  
   As many tests are skipped, this option may generate extra config (not managed by Terraform) on

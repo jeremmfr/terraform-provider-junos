@@ -223,6 +223,7 @@ func (p *junosProvider) Schema(
 
 func (p *junosProvider) Actions(_ context.Context) []func() action.Action {
 	return []func() action.Action{
+		newCommitFileAction,
 		newLoadConfigAction,
 	}
 }

@@ -2,4 +2,5 @@
 FEATURES:
 
 * add `junos_null_load_config` resource
+* add `junos_commit_file` action (actions are a Terraform 1.14+ feature)
 * add `junos_load_config` action (actions are a Terraform 1.14+ feature)
