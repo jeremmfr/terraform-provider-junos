@@ -97,6 +97,12 @@ The following arguments are supported:
   Conflict with `icmp_type`.
 - **interface** (Optional, Set of String)  
   Match interface name.
+- **ip_protocol** (Optional, Set of String)  
+  Match IP protocol type.  
+  Conflict with `ip_protocol_except`.
+- **ip_protocol_except** (Optional, Set of String)  
+  Do not match IP protocol type.  
+  Conflict with `ip_protocol`.
 - **is_fragment** (Optional, Boolean)  
   Match if packet is a fragment.
 - **loss_priority** (Optional, Set of String)  

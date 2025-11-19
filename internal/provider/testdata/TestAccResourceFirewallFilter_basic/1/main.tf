@@ -49,6 +49,9 @@ resource "junos_firewall_filter" "testacc_fwFilter_vpls" {
       forwarding_class = [
         "best-effort",
       ]
+      ip_protocol = [
+        "vrrp",
+      ]
       source_mac_address_except = [
         "aa:bb:cc:dd:ee:01/48",
       ]

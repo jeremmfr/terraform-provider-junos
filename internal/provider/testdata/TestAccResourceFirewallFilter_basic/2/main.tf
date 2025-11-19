@@ -123,6 +123,9 @@ resource "junos_firewall_filter" "testacc_fwFilter_vpls" {
       forwarding_class_except = [
         "network-control",
       ]
+      ip_protocol_except = [
+        "vrrp",
+      ]
     }
     then {
       loss_priority = "high"
