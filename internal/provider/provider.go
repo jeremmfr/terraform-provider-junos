@@ -260,6 +260,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newForwardingoptionsSamplingInstanceResource,
 		newForwardingoptionsStormControlProfileResource,
 		newGenerateRouteResource,
+		newGroupRawResource,
 		newGroupDualSystemResource,
 		newIccpResource,
 		newIccpPeerResource,
