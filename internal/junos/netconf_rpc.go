@@ -14,6 +14,18 @@ const (
 		"<configuration-set>%s</configuration-set>" +
 		"</load-configuration>"
 
+	rpcLoadConfigXML = "<load-configuration action=\"%s\" format=\"xml\">" +
+		"<configuration>%s</configuration>" +
+		"</load-configuration>"
+
+	rpcLoadConfigText = "<load-configuration action=\"%s\" format=\"text\">" +
+		"<configuration-text>%s</configuration-text>" +
+		"</load-configuration>"
+
+	rpcLoadConfigJSON = "<load-configuration action=\"%s\" format=\"json\">" +
+		"<configuration-json>%s</configuration-json>" +
+		"</load-configuration>"
+
 	rpcCommitConfig = "<commit-configuration>" +
 		"<log>%s</log>" +
 		"</commit-configuration>"

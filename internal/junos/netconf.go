@@ -95,9 +95,34 @@ func (sess *Session) netconfConfigSet(cmd []string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("executing netconf apply of set/delete command: %w", err)
 	}
-	// logFile("netconfConfigSet.Reply:" + reply.RawReply)
 	var message strings.Builder
+	for _, m := range reply.Errors {
+		_, _ = message.WriteString(m.Message)
+	}
 
+	return message.String(), nil
+}
+
+func (sess *Session) netconfConfigLoad(action, format, config string) (string, error) {
+	var rawConfig string
+	switch {
+	case action == LoadConfigActionSet:
+		rawConfig = fmt.Sprintf(rpcLoadConfigSetText, config)
+	case format == LoadConfigFormatJSON:
+		rawConfig = fmt.Sprintf(rpcLoadConfigJSON, action, config)
+	case format == LoadConfigFormatText:
+		rawConfig = fmt.Sprintf(rpcLoadConfigText, action, config)
+	case format == LoadConfigFormatXML:
+		fallthrough
+	default:
+		rawConfig = fmt.Sprintf(rpcLoadConfigXML, action, config)
+	}
+
+	reply, err := sess.netconf.Exec(netconf.RawMethod(rawConfig))
+	if err != nil {
+		return "", fmt.Errorf("executing netconf load-configuration with action %q and format %q: %w", action, format, err)
+	}
+	var message strings.Builder
 	for _, m := range reply.Errors {
 		_, _ = message.WriteString(m.Message)
 	}
