@@ -6,24 +6,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-// StringUseStateNullForUnknown returns a plan modifier that copies a null prior state
+var _ planmodifier.String = StringUseNullStateForUnknownModifier{}
+
+type StringUseNullStateForUnknownModifier struct{}
+
+// StringUseNullStateForUnknown returns a plan modifier that copies a null prior state
 // value into the planned value.
-func StringUseStateNullForUnknown() planmodifier.String {
-	return stringUseStateNullForUnknownModifier{}
+func StringUseNullStateForUnknown() StringUseNullStateForUnknownModifier {
+	return StringUseNullStateForUnknownModifier{}
 }
 
-type stringUseStateNullForUnknownModifier struct{}
-
-func (m stringUseStateNullForUnknownModifier) Description(_ context.Context) string {
+func (m StringUseNullStateForUnknownModifier) Description(_ context.Context) string {
 	return "If there is a resource state and attribute is null in state, keep null in plan."
 }
 
-func (m stringUseStateNullForUnknownModifier) MarkdownDescription(_ context.Context) string {
+func (m StringUseNullStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "If there is a resource state and attribute is null in state, keep null in plan."
 }
 
 // PlanModifyString implements the plan modification logic.
-func (m stringUseStateNullForUnknownModifier) PlanModifyString(
+func (m StringUseNullStateForUnknownModifier) PlanModifyString(
 	_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse,
 ) {
 	// Do nothing if there is no resource state.
