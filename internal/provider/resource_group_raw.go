@@ -7,6 +7,7 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -97,6 +98,9 @@ func (rsc *groupRaw) Schema(
 			"config": schema.StringAttribute{
 				Required:    true,
 				Description: "The raw configuration to load.",
+				PlanModifiers: []planmodifier.String{
+					tfplanmodifier.StringRemoveBlankLines(),
+				},
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
