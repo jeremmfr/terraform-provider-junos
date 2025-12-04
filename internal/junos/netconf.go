@@ -108,11 +108,11 @@ func (sess *Session) netconfConfigLoad(action, format, config string) (string, e
 	switch {
 	case action == LoadConfigActionSet:
 		rawConfig = fmt.Sprintf(rpcLoadConfigSetText, config)
-	case format == LoadConfigFormatJSON:
+	case format == ConfigFormatJSON:
 		rawConfig = fmt.Sprintf(rpcLoadConfigJSON, action, config)
-	case format == LoadConfigFormatText:
+	case format == ConfigFormatText:
 		rawConfig = fmt.Sprintf(rpcLoadConfigText, action, config)
-	case format == LoadConfigFormatXML:
+	case format == ConfigFormatXML:
 		fallthrough
 	default:
 		rawConfig = fmt.Sprintf(rpcLoadConfigXML, action, config)
@@ -155,6 +155,50 @@ func (sess *Session) netconfConfigUnlock() (errs []error) {
 	}
 
 	return errs
+}
+
+func (sess *Session) netconfConfigGet(format string) (string, error) {
+	command := fmt.Sprintf(rpcGetConfigurationCommitted, format)
+	reply, err := sess.netconf.Exec(netconf.RawMethod(command))
+	if err != nil {
+		return "", fmt.Errorf("executing netconf get-configuration: %w", err)
+	}
+
+	errs := make([]string, len(reply.Errors))
+	for i, m := range reply.Errors {
+		errs[i] = m.Error()
+	}
+	if len(errs) > 0 {
+		return "", errors.New(strings.Join(errs, "\n"))
+	}
+
+	if format == ConfigFormatJSONMinified &&
+		strings.HasPrefix(strings.TrimPrefix(reply.Data, "\n"), "<configuration") {
+		return "", fmt.Errorf("format %s appears unsupported, device responds in xml", format)
+	}
+	if format == ConfigFormatXMLMinified &&
+		strings.HasPrefix(strings.TrimPrefix(reply.Data, "\n"), "<configuration") &&
+		strings.Contains(reply.Data, ">\n") {
+		return "", fmt.Errorf("format %s appears unsupported, device responds in xml but not minified", format)
+	}
+
+	switch format {
+	case ConfigFormatJSON, ConfigFormatJSONMinified:
+		return strings.TrimPrefix(reply.Data, "\n"), nil
+	case ConfigFormatXML, ConfigFormatXMLMinified:
+		return strings.TrimPrefix(reply.Data, "\n"), nil
+	case ConfigFormatSet, ConfigFormatText:
+		fallthrough
+	default:
+		var output commandXMLConfig
+		if err := xml.Unmarshal([]byte(reply.Data), &output); err != nil {
+			return "", fmt.Errorf("unmarshaling xml reply of get-configuration: %w", err)
+		}
+
+		output.Config = strings.TrimPrefix(output.Config, "\n")
+
+		return output.Config, nil
+	}
 }
 
 // netconfCommit commits the configuration.
