@@ -4,15 +4,7 @@ resource "junos_interface_physical" "testacc_actioncommitfile" {
   name         = var.interface
   description  = "testacc_fakeupdate"
   vlan_tagging = true
-}
 
-// a empty resource between junos resource(s) and action(s) due to
-// a bug with lifecycle.action_trigger.events (see https://github.com/hashicorp/terraform/issues/37930)
-resource "terraform_data" "setfile" {
-  depends_on = [
-    junos_interface_physical.testacc_actioncommitfile,
-  ]
-  triggers_replace = junos_interface_physical.testacc_actioncommitfile.description
   lifecycle {
     action_trigger {
       events  = [after_create, after_update]
