@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
@@ -15,8 +14,7 @@ func TestAccActionLoadConfig_basic(t *testing.T) {
 		resource.Test(t, resource.TestCase{
 			PreCheck: func() { testAccPreCheck(t) },
 			TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-				// tfversion.SkipBelow(tfversion.Version1_14_0),
-				tfversion.SkipBelow(version.Must(version.NewVersion("1.14.0"))),
+				tfversion.SkipBelow(tfversion.Version1_14_0),
 			},
 			Steps: []resource.TestStep{
 				{

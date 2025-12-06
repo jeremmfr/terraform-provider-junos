@@ -23,8 +23,8 @@ func TestAccActionCommitFile_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testAccPreCheck(t) },
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			// tfversion.SkipBelow(tfversion.Version1_14_0),
-			tfversion.SkipBelow(version.Must(version.NewVersion("1.14.0"))),
+			// .1 due to a bug with lifecycle.action_trigger.events (see https://github.com/hashicorp/terraform/issues/37930)
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.14.1"))),
 		},
 		Steps: []resource.TestStep{
 			{
