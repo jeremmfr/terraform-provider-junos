@@ -28,13 +28,13 @@ func (sess *Session) gatherFacts() error {
 		return fmt.Errorf("executing netconf get-system-information: %w", err)
 	}
 
-	if val.Errors != nil {
-		var errorsMsg []string
-		for _, m := range val.Errors {
-			errorsMsg = append(errorsMsg, fmt.Sprintf("%v", m))
+	if len(val.Errors) > 0 {
+		errs := make([]string, len(val.Errors))
+		for i, m := range val.Errors {
+			errs[i] = m.Error()
 		}
 
-		return errors.New(strings.Join(errorsMsg, "\n"))
+		return errors.New(strings.Join(errs, "\n"))
 	}
 	var reply rpcGetSystemInformationReply
 	if err := xml.Unmarshal([]byte(val.RawReply), &reply); err != nil {
@@ -53,11 +53,12 @@ func (sess *Session) netconfCommand(cmd string) (string, error) {
 		return "", fmt.Errorf("executing netconf command: %w", err)
 	}
 
-	errs := make([]string, len(reply.Errors))
-	for i, m := range reply.Errors {
-		errs[i] = m.Error()
-	}
-	if len(errs) > 0 {
+	if len(reply.Errors) > 0 {
+		errs := make([]string, len(reply.Errors))
+		for i, m := range reply.Errors {
+			errs[i] = m.Error()
+		}
+
 		return "", errors.New(strings.Join(errs, "\n"))
 	}
 
@@ -78,11 +79,12 @@ func (sess *Session) netconfCommandXML(cmd string) (string, error) {
 		return "", fmt.Errorf("executing netconf xml command: %w", err)
 	}
 
-	errs := make([]string, len(reply.Errors))
-	for i, m := range reply.Errors {
-		errs[i] = m.Error()
-	}
-	if len(errs) > 0 {
+	if len(reply.Errors) > 0 {
+		errs := make([]string, len(reply.Errors))
+		for i, m := range reply.Errors {
+			errs[i] = m.Error()
+		}
+
 		return "", errors.New(strings.Join(errs, "\n"))
 	}
 
@@ -95,12 +97,16 @@ func (sess *Session) netconfConfigSet(cmd []string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("executing netconf apply of set/delete command: %w", err)
 	}
-	var message strings.Builder
-	for _, m := range reply.Errors {
-		_, _ = message.WriteString(m.Message)
+	if len(reply.Errors) > 0 {
+		var message strings.Builder
+		for _, m := range reply.Errors {
+			_, _ = message.WriteString(m.Message)
+		}
+
+		return message.String(), nil
 	}
 
-	return message.String(), nil
+	return "", nil
 }
 
 func (sess *Session) netconfConfigLoad(action, format, config string) (string, error) {
@@ -122,12 +128,16 @@ func (sess *Session) netconfConfigLoad(action, format, config string) (string, e
 	if err != nil {
 		return "", fmt.Errorf("executing netconf load-configuration with action %q and format %q: %w", action, format, err)
 	}
-	var message strings.Builder
-	for _, m := range reply.Errors {
-		_, _ = message.WriteString(m.Message)
+	if len(reply.Errors) > 0 {
+		var message strings.Builder
+		for _, m := range reply.Errors {
+			_, _ = message.WriteString(m.Message + "\n")
+		}
+
+		return message.String(), nil
 	}
 
-	return message.String(), nil
+	return "", nil
 }
 
 // netConfConfigLock locks the candidate configuration.
@@ -144,17 +154,22 @@ func (sess *Session) netconfConfigLock() bool {
 }
 
 // Unlock unlocks the candidate configuration.
-func (sess *Session) netconfConfigUnlock() (errs []error) {
+func (sess *Session) netconfConfigUnlock() []error {
 	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcUnlockCandidate))
 	if err != nil {
 		return []error{fmt.Errorf("executing netconf config unlock: %w", err)}
 	}
 
-	for _, m := range reply.Errors {
-		errs = append(errs, errors.New("config unlock: "+m.Message))
+	if len(reply.Errors) > 0 {
+		errs := make([]error, len(reply.Errors))
+		for i, m := range reply.Errors {
+			errs[i] = errors.New("config unlock: " + m.Message)
+		}
+
+		return errs
 	}
 
-	return errs
+	return nil
 }
 
 func (sess *Session) netconfConfigGet(format string) (string, error) {
@@ -164,11 +179,12 @@ func (sess *Session) netconfConfigGet(format string) (string, error) {
 		return "", fmt.Errorf("executing netconf get-configuration: %w", err)
 	}
 
-	errs := make([]string, len(reply.Errors))
-	for i, m := range reply.Errors {
-		errs[i] = m.Error()
-	}
-	if len(errs) > 0 {
+	if len(reply.Errors) > 0 {
+		errs := make([]string, len(reply.Errors))
+		for i, m := range reply.Errors {
+			errs[i] = m.Error()
+		}
+
 		return "", errors.New(strings.Join(errs, "\n"))
 	}
 
