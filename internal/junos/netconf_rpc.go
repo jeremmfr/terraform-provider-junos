@@ -7,6 +7,7 @@ import (
 	"github.com/jeremmfr/go-netconf/netconf"
 )
 
+//nolint:lll
 const (
 	rpcCommandText = "<command format=\"text\">%s</command>"
 
@@ -42,9 +43,10 @@ const (
 
 	rpcCloseSession = "<close-session/>"
 
+	rpcGetConfigurationCommitted            = "<get-configuration database=\"committed\" format=\"%s\"></get-configuration>"
 	rpcGetSystemInformation                 = "<get-system-information/>"
 	RPCGetChassisInventory                  = `<get-chassis-inventory></get-chassis-inventory>`
-	RPCGetInterfaceInformationInterfaceName = "<get-interface-information><interface-name>%s</interface-name></get-interface-information>" //nolint:lll
+	RPCGetInterfaceInformationInterfaceName = "<get-interface-information><interface-name>%s</interface-name></get-interface-information>"
 	RPCGetInterfacesInformationTerse        = `<get-interface-information><terse/></get-interface-information>`
 	RPCGetInterfaceInformationTerse         = `<get-interface-information>%s<terse/></get-interface-information>`
 	RPCGetRouteAllInformation               = `<get-route-information><all/></get-route-information>`

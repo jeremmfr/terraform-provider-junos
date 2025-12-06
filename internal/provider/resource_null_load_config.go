@@ -109,16 +109,16 @@ func (rsc *nullLoadConfig) Schema(
 			"format": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Default:     stringdefault.StaticString(junos.LoadConfigFormatText),
+				Default:     stringdefault.StaticString(junos.ConfigFormatText),
 				Description: "The format used for the configuration data.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						junos.LoadConfigFormatText,
-						junos.LoadConfigFormatJSON,
-						junos.LoadConfigFormatXML,
+						junos.ConfigFormatText,
+						junos.ConfigFormatJSON,
+						junos.ConfigFormatXML,
 					),
 				},
 			},
@@ -153,7 +153,7 @@ func (rsc *nullLoadConfig) ValidateConfig(
 	if !config.Format.IsNull() && !config.Format.IsUnknown() {
 		format := config.Format.ValueString()
 		if action := config.Action.ValueString(); action == junos.LoadConfigActionSet &&
-			format != junos.LoadConfigFormatText {
+			format != junos.ConfigFormatText {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("format"),
 				tfdiag.ConflictConfigErrSummary,
@@ -243,16 +243,16 @@ func (rscData *nullLoadConfigData) set(
 ) {
 	format := rscData.Format.ValueString()
 	if format == "" {
-		format = junos.LoadConfigFormatText
+		format = junos.ConfigFormatText
 	}
 	action := rscData.Action.ValueString()
 	if action == "" {
 		action = junos.LoadConfigActionMerge
 	}
 
-	if format != junos.LoadConfigFormatText && action == junos.LoadConfigActionSet {
+	if format != junos.ConfigFormatText && action == junos.LoadConfigActionSet {
 		return path.Root("format"),
-			fmt.Errorf("format cannot be %q when action = %q, must be %q", format, action, junos.LoadConfigFormatText)
+			fmt.Errorf("format cannot be %q when action = %q, must be %q", format, action, junos.ConfigFormatText)
 	}
 
 	return path.Empty(), junSess.ConfigLoad(action, format, rscData.Config.ValueString())
