@@ -13,9 +13,12 @@ const (
 	PipeDisplaySet         = " | display set"
 	PipeDisplaySetRelative = PipeDisplaySet + " relative"
 
-	LoadConfigFormatText = "text"
-	LoadConfigFormatXML  = "xml"
-	LoadConfigFormatJSON = "json"
+	ConfigFormatJSON         = "json"
+	ConfigFormatJSONMinified = "json-minified"
+	ConfigFormatSet          = "set"
+	ConfigFormatText         = "text"
+	ConfigFormatXML          = "xml"
+	ConfigFormatXMLMinified  = "xml-minified"
 
 	LoadConfigActionMerge    = "merge"
 	LoadConfigActionOverride = "override"

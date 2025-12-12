@@ -91,9 +91,9 @@ func (act *loadConfigAction) Schema(
 				Description: "The format used for the configuration data. Defaults to 'text'.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						junos.LoadConfigFormatText,
-						junos.LoadConfigFormatJSON,
-						junos.LoadConfigFormatXML,
+						junos.ConfigFormatText,
+						junos.ConfigFormatJSON,
+						junos.ConfigFormatXML,
 					),
 				},
 			},
@@ -122,7 +122,7 @@ func (act *loadConfigAction) ValidateConfig(
 		if actionValue == "" {
 			actionValue = junos.LoadConfigActionMerge
 		}
-		if actionValue == junos.LoadConfigActionSet && format != junos.LoadConfigFormatText {
+		if actionValue == junos.LoadConfigActionSet && format != junos.ConfigFormatText {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("format"),
 				tfdiag.ConflictConfigErrSummary,
@@ -143,18 +143,18 @@ func (act *loadConfigAction) Invoke(
 
 	format := config.Format.ValueString()
 	if format == "" {
-		format = junos.LoadConfigFormatText
+		format = junos.ConfigFormatText
 	}
 	actionValue := config.Action.ValueString()
 	if actionValue == "" {
 		actionValue = junos.LoadConfigActionMerge
 	}
 
-	if format != junos.LoadConfigFormatText && actionValue == junos.LoadConfigActionSet {
+	if format != junos.ConfigFormatText && actionValue == junos.LoadConfigActionSet {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("format"),
 			tfdiag.ConflictConfigErrSummary,
-			fmt.Sprintf("format cannot be %q when action = %q, must be %q", format, actionValue, junos.LoadConfigFormatText),
+			fmt.Sprintf("format cannot be %q when action = %q, must be %q", format, actionValue, junos.ConfigFormatText),
 		)
 
 		return
