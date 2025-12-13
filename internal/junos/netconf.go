@@ -188,10 +188,14 @@ func (sess *Session) netconfConfigGet(format string) (string, error) {
 		return "", errors.New(strings.Join(errs, "\n"))
 	}
 
+	// Check that we are not receiving XML when JSON minified format should not be wrapped in an XML element
+	// This detects devices that don't support JSON minified format and return XML instead
 	if format == ConfigFormatJSONMinified &&
 		strings.HasPrefix(strings.TrimPrefix(reply.Data, "\n"), "<configuration") {
 		return "", fmt.Errorf("format %s appears unsupported, device responds in xml", format)
 	}
+	// Check that XML minified format is supported
+	// This detects devices that don't support XML minified format and return normal XML instead
 	if format == ConfigFormatXMLMinified &&
 		strings.HasPrefix(strings.TrimPrefix(reply.Data, "\n"), "<configuration") &&
 		strings.Contains(reply.Data, ">\n") {
@@ -199,8 +203,11 @@ func (sess *Session) netconfConfigGet(format string) (string, error) {
 	}
 
 	switch format {
+	// Return data directly for JSON (not wrapped in XML element)
+	// unlike set or text formats which are encapsulated in <configuration-set> or <configuration-text>
 	case ConfigFormatJSON, ConfigFormatJSONMinified:
 		return strings.TrimPrefix(reply.Data, "\n"), nil
+	// Return data directly for XML to have "configuration" as root element like JSON
 	case ConfigFormatXML, ConfigFormatXMLMinified:
 		return strings.TrimPrefix(reply.Data, "\n"), nil
 	case ConfigFormatSet, ConfigFormatText:
