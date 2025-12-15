@@ -1,6 +1,22 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.16.0 (2025-12-15)
+
+FEATURES:
+
+* add `junos_apply_group` resource (Partial fix [#841](https://github.com/jeremmfr/terraform-provider-junos/issues/841))
+* add `junos_apply_group_except` resource
+* add `junos_group_raw` resource (Partial fix [#841](https://github.com/jeremmfr/terraform-provider-junos/issues/841))
+* add `junos_null_load_config` resource
+* add `junos_config_raw` data-source
+* add `junos_commit_file` action (actions are a Terraform 1.14+ feature)
+* add `junos_load_config` action (actions are a Terraform 1.14+ feature)
+
+ENHANCEMENTS:
+
+* **resource/junos_firewall_filter**: add `ip_protocol` and `ip_protocol_except` arguments in `from` block in `term` block (Fix [#840](https://github.com/jeremmfr/terraform-provider-junos/issues/840))
+
 ## v2.15.0 (2025-10-29)
 
 ENHANCEMENTS:

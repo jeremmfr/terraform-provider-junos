@@ -369,6 +369,32 @@ func (rsc *firewallFilter) Schema(
 										),
 									},
 								},
+								"ip_protocol": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Match IP protocol type.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
+										setvalidator.ValueStringsAre(
+											stringvalidator.LengthAtLeast(1),
+											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+										),
+									},
+								},
+								"ip_protocol_except": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Do not match IP protocol type.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
+										setvalidator.ValueStringsAre(
+											stringvalidator.LengthAtLeast(1),
+											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+										),
+									},
+								},
 								"is_fragment": schema.BoolAttribute{
 									Optional:    true,
 									Description: "Match if packet is a fragment.",
@@ -852,6 +878,8 @@ type firewallFilterBlockTermBlockFrom struct {
 	IcmpType                    []types.String `tfsdk:"icmp_type"`
 	IcmpTypeExcept              []types.String `tfsdk:"icmp_type_except"`
 	Interface                   []types.String `tfsdk:"interface"`
+	IPProtocol                  []types.String `tfsdk:"ip_protocol"`
+	IPProtocolExcept            []types.String `tfsdk:"ip_protocol_except"`
 	IsFragment                  types.Bool     `tfsdk:"is_fragment"`
 	LossPriority                []types.String `tfsdk:"loss_priority"`
 	LossPriorityExcept          []types.String `tfsdk:"loss_priority_except"`
@@ -898,6 +926,8 @@ type firewallFilterBlockTermBlockFromConfig struct {
 	IcmpType                    types.Set    `tfsdk:"icmp_type"`
 	IcmpTypeExcept              types.Set    `tfsdk:"icmp_type_except"`
 	Interface                   types.Set    `tfsdk:"interface"`
+	IPProtocol                  types.Set    `tfsdk:"ip_protocol"`
+	IPProtocolExcept            types.Set    `tfsdk:"ip_protocol_except"`
 	IsFragment                  types.Bool   `tfsdk:"is_fragment"`
 	LossPriority                types.Set    `tfsdk:"loss_priority"`
 	LossPriorityExcept          types.Set    `tfsdk:"loss_priority_except"`
@@ -1028,6 +1058,15 @@ func (rsc *firewallFilter) ValidateConfig(
 						path.Root("term").AtListIndex(i).AtName("from").AtName("icmp_type"),
 						tfdiag.ConflictConfigErrSummary,
 						fmt.Sprintf("icmp_type and icmp_type_except cannot be configured together"+
+							" in from block in term block %q", block.Name.ValueString()),
+					)
+				}
+				if !block.From.IPProtocol.IsNull() && !block.From.IPProtocol.IsUnknown() &&
+					!block.From.IPProtocolExcept.IsNull() && !block.From.IPProtocolExcept.IsUnknown() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("term").AtListIndex(i).AtName("from").AtName("ip_protocol"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("ip_protocol and ip_protocol_except cannot be configured together"+
 							" in from block in term block %q", block.Name.ValueString()),
 					)
 				}
@@ -1290,6 +1329,26 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 			pathRoot.AtName("interface"),
 			tfdiag.ConflictConfigErrSummary,
 			"interface"+errorMessageWithFamilySuffix,
+		)
+	}
+	if !block.IPProtocol.IsNull() && !block.IPProtocol.IsUnknown() &&
+		!slices.Contains([]string{
+			"ccc", "vpls", "ethernet-switching",
+		}, family) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("ip_protocol"),
+			tfdiag.ConflictConfigErrSummary,
+			"ip_protocol"+errorMessageWithFamilySuffix,
+		)
+	}
+	if !block.IPProtocolExcept.IsNull() && !block.IPProtocolExcept.IsUnknown() &&
+		!slices.Contains([]string{
+			"ccc", "vpls", "ethernet-switching",
+		}, family) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("ip_protocol_except"),
+			tfdiag.ConflictConfigErrSummary,
+			"ip_protocol_except"+errorMessageWithFamilySuffix,
 		)
 	}
 	if !block.IsFragment.IsNull() && !block.IsFragment.IsUnknown() &&
@@ -1842,6 +1901,18 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	for _, v := range block.Interface {
 		configSet = append(configSet, setPrefix+"interface "+v.ValueString())
 	}
+	if len(block.IPProtocol) > 0 && len(block.IPProtocolExcept) > 0 {
+		return configSet,
+			pathRoot.AtName("ip_protocol"),
+			errors.New("ip_protocol and ip_protocol_except cannot be configured together" +
+				" in from block")
+	}
+	for _, v := range block.IPProtocol {
+		configSet = append(configSet, setPrefix+"ip-protocol "+v.ValueString())
+	}
+	for _, v := range block.IPProtocolExcept {
+		configSet = append(configSet, setPrefix+"ip-protocol-except "+v.ValueString())
+	}
 	if block.IsFragment.ValueBool() {
 		configSet = append(configSet, setPrefix+"is-fragment")
 	}
@@ -2034,7 +2105,7 @@ func (rscData *firewallFilterData) read(
 		rscData.Name = types.StringValue(name)
 		rscData.Family = types.StringValue(family)
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -2117,6 +2188,10 @@ func (block *firewallFilterBlockTermBlockFrom) read(itemTrim string) {
 		block.IcmpTypeExcept = append(block.IcmpTypeExcept, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "interface "):
 		block.Interface = append(block.Interface, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "ip-protocol "):
+		block.IPProtocol = append(block.IPProtocol, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "ip-protocol-except "):
+		block.IPProtocolExcept = append(block.IPProtocolExcept, types.StringValue(itemTrim))
 	case itemTrim == "is-fragment":
 		block.IsFragment = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "loss-priority "):

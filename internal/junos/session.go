@@ -88,12 +88,8 @@ func netconfNewSessionWithConfig(
 		Timeout: time.Duration(sshOpts.Timeout) * time.Second,
 	}
 	retry := sshOpts.Retry
-	if retry < 1 {
-		retry = 1
-	}
-	if retry > 10 {
-		retry = 10
-	}
+	retry = max(retry, 1)
+	retry = min(retry, 10)
 	sleepTime := 0
 toretry:
 	for retry > 0 {
@@ -260,6 +256,72 @@ func (sess *Session) ConfigSet(cmd []string) error {
 	}
 
 	return errors.New("internal error: call Session.ConfigSet without netconf session or fake set file")
+}
+
+func (sess *Session) ConfigLoad(action, format, config string) error {
+	if sess.netconf == nil {
+		return errors.New("internal error: call Session.ConfigLoad without netconf session")
+	}
+
+	switch action {
+	case LoadConfigActionMerge:
+	case LoadConfigActionOverride:
+	case LoadConfigActionReplace:
+	case LoadConfigActionSet:
+		if format != ConfigFormatText {
+			return fmt.Errorf("unacceptable format %q with action %q to load configuration", format, action)
+		}
+	case LoadConfigActionUpdate:
+	default:
+		return errors.New("unknown action %q to load configuration")
+	}
+
+	switch format {
+	case ConfigFormatJSON:
+	case ConfigFormatText:
+	case ConfigFormatXML:
+	default:
+		return errors.New("unknown format %q to load configuration")
+	}
+
+	message, err := sess.netconfConfigLoad(action, format, config)
+	utils.SleepShort(sess.sleepShort)
+	sess.logFile(fmt.Sprintf("[ConfigLoad] message: %q", message))
+	if err != nil {
+		sess.logFile(fmt.Sprintf("[ConfigLoad] err: %q", err))
+
+		return err
+	}
+
+	return nil
+}
+
+// ConfigGet: get committed configuration in desired format.
+func (sess *Session) ConfigGet(format string) (string, error) {
+	if sess.netconf == nil {
+		return "", errors.New("internal error: call Session.ConfigGet without netconf session")
+	}
+
+	switch format {
+	case ConfigFormatJSON:
+	case ConfigFormatJSONMinified:
+	case ConfigFormatSet:
+	case ConfigFormatText:
+	case ConfigFormatXML:
+	case ConfigFormatXMLMinified:
+	default:
+		return "", errors.New("unknown format %q to get configuration")
+	}
+
+	output, err := sess.netconfConfigGet(format)
+	utils.SleepShort(sess.sleepShort)
+	if err != nil {
+		sess.logFile(fmt.Sprintf("[ConfigGet] err: %q", err))
+
+		return "", err
+	}
+
+	return output, nil
 }
 
 // ConfigLock lock candidate configuration and retry with sleep between when fail.

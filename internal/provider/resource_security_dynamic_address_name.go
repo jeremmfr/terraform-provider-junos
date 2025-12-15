@@ -533,7 +533,7 @@ func (rscData *securityDynamicAddressNameData) read(
 	if showConfig != junos.EmptyW {
 		rscData.Name = types.StringValue(name)
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -554,9 +554,7 @@ func (rscData *securityDynamicAddressNameData) read(
 				profileCategoryName := tfdata.FirstElementOfJunosLine(itemTrim)
 				rscData.ProfileCategory.Name = types.StringValue(profileCategoryName)
 				if balt.CutPrefixInString(&itemTrim, profileCategoryName+" ") {
-					if err := rscData.ProfileCategory.read(itemTrim); err != nil {
-						return err
-					}
+					rscData.ProfileCategory.read(itemTrim)
 				}
 			case itemTrim == "session-scan":
 				rscData.SessionScan = types.BoolValue(true)
@@ -567,7 +565,7 @@ func (rscData *securityDynamicAddressNameData) read(
 	return nil
 }
 
-func (block *securityDynamicAddressNameBlockProfileCategory) read(itemTrim string) (err error) {
+func (block *securityDynamicAddressNameBlockProfileCategory) read(itemTrim string) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "feed "):
 		block.Feed = types.StringValue(itemTrim)
@@ -581,8 +579,6 @@ func (block *securityDynamicAddressNameBlockProfileCategory) read(itemTrim strin
 			property.String = append(property.String, types.StringValue(strings.Trim(itemTrim, "\"")))
 		}
 	}
-
-	return nil
 }
 
 func (rscData *securityDynamicAddressNameData) del(

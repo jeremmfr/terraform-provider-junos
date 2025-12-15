@@ -984,7 +984,7 @@ func (rscData *securityPolicyData) read(
 		rscData.FromZone = types.StringValue(fromZone)
 		rscData.ToZone = types.StringValue(toZone)
 		rscData.fillID()
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -1114,7 +1114,7 @@ func readSecurityPolicyTunnelPairPolicyLines(
 		return listLines, err
 	}
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}

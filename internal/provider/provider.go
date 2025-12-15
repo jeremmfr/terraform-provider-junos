@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -27,7 +28,10 @@ func New() provider.Provider {
 }
 
 // Ensure the implementation satisfies the expected interfaces.
-var _ provider.Provider = &junosProvider{}
+var (
+	_ provider.Provider            = &junosProvider{}
+	_ provider.ProviderWithActions = &junosProvider{}
+)
 
 type junosProvider struct{}
 
@@ -217,11 +221,19 @@ func (p *junosProvider) Schema(
 	}
 }
 
+func (p *junosProvider) Actions(_ context.Context) []func() action.Action {
+	return []func() action.Action{
+		newCommitFileAction,
+		newLoadConfigAction,
+	}
+}
+
 func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		newApplicationSetsDataSource,
 		newApplicationsDataSource,
 		newChassisInventoryDataSource,
+		newConfigRawDataSource,
 		newInterfaceLogicalDataSource,
 		newInterfaceLogicalInfoDataSource,
 		newInterfacePhysicalDataSource,
@@ -241,6 +253,8 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newApplicationsResource,
 		newApplicationsOrderedResource,
 		newApplicationSetResource,
+		newApplyGroupResource,
+		newApplyGroupExceptResource,
 		newBgpGroupResource,
 		newBgpNeighborResource,
 		newBridgeDomainResource,
@@ -260,6 +274,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newForwardingoptionsSamplingInstanceResource,
 		newForwardingoptionsStormControlProfileResource,
 		newGenerateRouteResource,
+		newGroupRawResource,
 		newGroupDualSystemResource,
 		newIccpResource,
 		newIccpPeerResource,
@@ -277,6 +292,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newMultichassisResource,
 		newMultichassisProtectionPeerResource,
 		newNullCommitFileResource,
+		newNullLoadConfigResource,
 		newOamGretunnelInterfaceResource,
 		newOspfResource,
 		newOspfAreaResource,
@@ -960,15 +976,16 @@ func (p *junosProvider) Configure( //nolint:gocyclo
 		return
 	}
 
+	resp.ActionData = client
 	resp.DataSourceData = client
 	resp.ResourceData = client
 }
 
-func unexpectedResourceConfigureType(
-	_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
+func unexpectedActionConfigureType(
+	_ context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse,
 ) {
 	resp.Diagnostics.AddError(
-		"Unexpected Resource Configure Type",
+		"Unexpected Action Configure Type",
 		fmt.Sprintf(
 			"Expected *junos.Client, got: %T. Please report this issue to the provider developers.",
 			req.ProviderData,
@@ -981,6 +998,18 @@ func unexpectedDataSourceConfigureType(
 ) {
 	resp.Diagnostics.AddError(
 		"Unexpected Data Source Configure Type",
+		fmt.Sprintf(
+			"Expected *junos.Client, got: %T. Please report this issue to the provider developers.",
+			req.ProviderData,
+		),
+	)
+}
+
+func unexpectedResourceConfigureType(
+	_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse,
+) {
+	resp.Diagnostics.AddError(
+		"Unexpected Resource Configure Type",
 		fmt.Sprintf(
 			"Expected *junos.Client, got: %T. Please report this issue to the provider developers.",
 			req.ProviderData,

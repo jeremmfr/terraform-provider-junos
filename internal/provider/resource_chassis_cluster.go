@@ -769,7 +769,7 @@ func (rscData *chassisClusterData) read(
 	}
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -846,7 +846,7 @@ func (rscData *chassisClusterData) read(
 			rscData.Fab0 = &chassisClusterBlockFab{}
 		}
 
-		for _, item := range strings.Split(showConfigFab0, "\n") {
+		for item := range strings.SplitSeq(showConfigFab0, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -867,7 +867,7 @@ func (rscData *chassisClusterData) read(
 			rscData.Fab1 = &chassisClusterBlockFab{}
 		}
 
-		for _, item := range strings.Split(showConfigFab1, "\n") {
+		for item := range strings.SplitSeq(showConfigFab1, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}

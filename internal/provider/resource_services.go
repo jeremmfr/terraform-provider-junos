@@ -110,7 +110,7 @@ func (rsc *services) Schema(
 								Computed:    true,
 								Description: "Authentication TLS profile.",
 								PlanModifiers: []planmodifier.String{
-									tfplanmodifier.StringUseStateNullForUnknown(),
+									tfplanmodifier.StringUseNullStateForUnknown(),
 								},
 								Validators: []validator.String{
 									stringvalidator.LengthAtLeast(1),
@@ -146,7 +146,7 @@ func (rsc *services) Schema(
 								Computed:    true,
 								Description: "The url of the cloud server.",
 								PlanModifiers: []planmodifier.String{
-									tfplanmodifier.StringUseStateNullForUnknown(),
+									tfplanmodifier.StringUseNullStateForUnknown(),
 								},
 								Validators: []validator.String{
 									stringvalidator.LengthAtLeast(1),
@@ -513,7 +513,7 @@ func (rsc *services) Schema(
 						Computed:    true,
 						Description: "TLS profile for authentication to use feed update services.",
 						PlanModifiers: []planmodifier.String{
-							tfplanmodifier.StringUseStateNullForUnknown(),
+							tfplanmodifier.StringUseNullStateForUnknown(),
 						},
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
@@ -525,7 +525,7 @@ func (rsc *services) Schema(
 						Computed:    true,
 						Description: "Token string for authentication to use feed update services.",
 						PlanModifiers: []planmodifier.String{
-							tfplanmodifier.StringUseStateNullForUnknown(),
+							tfplanmodifier.StringUseNullStateForUnknown(),
 						},
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(regexp.MustCompile(
@@ -560,7 +560,7 @@ func (rsc *services) Schema(
 						Computed:    true,
 						Description: "Configure the url of feed server.",
 						PlanModifiers: []planmodifier.String{
-							tfplanmodifier.StringUseStateNullForUnknown(),
+							tfplanmodifier.StringUseNullStateForUnknown(),
 						},
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
@@ -2102,7 +2102,7 @@ func (rscData *servicesData) read(
 	}
 	rscData.fillID()
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}
@@ -2581,7 +2581,7 @@ func (rscData *servicesData) readComputed(
 		return err
 	}
 	if showConfig != junos.EmptyW {
-		for _, item := range strings.Split(showConfig, "\n") {
+		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue
 			}

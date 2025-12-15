@@ -12,7 +12,6 @@ linters:
     - forcetypeassert
     - funcorder
     - funlen
-    - gomoddirectives
     - gosec
     - inamedparam
     - ireturn
