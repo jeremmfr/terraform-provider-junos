@@ -158,6 +158,14 @@ func (rsc *securityNatDestination) Schema(
 								tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 							},
 						},
+						"description": schema.StringAttribute{
+							Optional:    true,
+							Description: "Text description of rule.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 900),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
 						"destination_address": schema.StringAttribute{
 							Optional:    true,
 							Description: "CIDR destination address to match.",
@@ -306,6 +314,7 @@ type securityNatDestinationBlockFromConfig struct {
 
 type securityNatDestinationBlockRule struct {
 	Name                   types.String                              `tfsdk:"name"                     tfdata:"identifier"`
+	Description            types.String                              `tfsdk:"description"`
 	DestinationAddress     types.String                              `tfsdk:"destination_address"`
 	DestinationAddressName types.String                              `tfsdk:"destination_address_name"`
 	Application            []types.String                            `tfsdk:"application"`
@@ -318,6 +327,7 @@ type securityNatDestinationBlockRule struct {
 
 type securityNatDestinationBlockRuleConfig struct {
 	Name                   types.String                              `tfsdk:"name"`
+	Description            types.String                              `tfsdk:"description"`
 	DestinationAddress     types.String                              `tfsdk:"destination_address"`
 	DestinationAddressName types.String                              `tfsdk:"destination_address_name"`
 	Application            types.Set                                 `tfsdk:"application"`
@@ -608,6 +618,9 @@ func (rscData *securityNatDestinationData) set(
 					" in rule block %q", name)
 		}
 		setPrefixRule := setPrefix + "rule " + name + " "
+		if v := block.Description.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixRule+"description \""+v+"\"")
+		}
 		if v := block.DestinationAddress.ValueString(); v != "" {
 			configSet = append(configSet, setPrefixRule+"match destination-address "+v)
 		}
@@ -693,6 +706,8 @@ func (rscData *securityNatDestinationData) read(
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					rule.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "match destination-address "):
 					rule.DestinationAddress = types.StringValue(itemTrim)
 				case balt.CutPrefixInString(&itemTrim, "match destination-address-name "):
