@@ -9,6 +9,7 @@ resource "junos_security_nat_static" "testacc_securityNATSttRule" {
 resource "junos_security_nat_static_rule" "testacc_securityNATSttRule" {
   name                = "testacc_securityNATSttRule"
   rule_set            = junos_security_nat_static.testacc_securityNATSttRule.name
+  description         = "testacc securityNATSttRule"
   destination_address = "192.0.2.0/27"
   then {
     type             = "prefix"
