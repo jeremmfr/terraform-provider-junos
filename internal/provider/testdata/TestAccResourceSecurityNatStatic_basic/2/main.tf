@@ -9,6 +9,7 @@ resource "junos_security_nat_static" "testacc_securityNATStt" {
   }
   rule {
     name                = "testacc_securityNATSttRule"
+    description         = "testacc securityNATSttRule"
     destination_address = "192.0.2.0/26"
     then {
       type             = "prefix"
