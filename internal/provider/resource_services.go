@@ -2406,10 +2406,11 @@ func (block *servicesBlockSecurityIntelligence) read(
 }
 
 func (servicesBlockUserIdentification) junosLines() []string {
-	r := []string{
+	r := make([]string, 0, 2+len(servicesBlockUserIdentificationBlockADAccess{}.junosLines()))
+	copy(r, []string{
 		"user-identification device-information authentication-source",
 		"user-identification identity-management",
-	}
+	})
 	r = append(r, servicesBlockUserIdentificationBlockADAccess{}.junosLines()...)
 
 	return r
