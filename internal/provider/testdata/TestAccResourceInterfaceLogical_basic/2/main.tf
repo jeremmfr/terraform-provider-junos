@@ -8,8 +8,28 @@ resource "junos_firewall_filter" "testacc_intlogicalInet" {
     }
   }
 }
+resource "junos_firewall_filter" "testacc_intlogicalInet-bis" {
+  name   = "testacc_intlogicalInet-bis"
+  family = "inet"
+  term {
+    name = "testacc_intlogicalInetTerm"
+    then {
+      action = "accept"
+    }
+  }
+}
 resource "junos_firewall_filter" "testacc_intlogicalInet6" {
   name   = "testacc_intlogicalInet6"
+  family = "inet6"
+  term {
+    name = "testacc_intlogicalInet6Term"
+    then {
+      action = "accept"
+    }
+  }
+}
+resource "junos_firewall_filter" "testacc_intlogicalInet6-bis" {
+  name   = "testacc_intlogicalInet6-bis"
   family = "inet6"
   term {
     name = "testacc_intlogicalInet6Term"
@@ -40,9 +60,14 @@ resource "junos_interface_logical" "testacc_interface_logical" {
   security_inbound_services  = ["telnet"]
   routing_instance           = junos_routing_instance.testacc_interface_logical.name
   family_inet {
-    mtu           = 1500
-    filter_input  = junos_firewall_filter.testacc_intlogicalInet.name
-    filter_output = junos_firewall_filter.testacc_intlogicalInet.name
+    mtu = 1500
+    filter_input_list = [
+      junos_firewall_filter.testacc_intlogicalInet.name,
+      junos_firewall_filter.testacc_intlogicalInet-bis.name,
+    ]
+    filter_output_list = [
+      junos_firewall_filter.testacc_intlogicalInet.name,
+    ]
     rpf_check {
       mode_loose = true
     }
@@ -64,9 +89,14 @@ resource "junos_interface_logical" "testacc_interface_logical" {
     }
   }
   family_inet6 {
-    mtu           = 1500
-    filter_input  = junos_firewall_filter.testacc_intlogicalInet6.name
-    filter_output = junos_firewall_filter.testacc_intlogicalInet6.name
+    mtu = 1500
+    filter_input_list = [
+      junos_firewall_filter.testacc_intlogicalInet6.name,
+    ]
+    filter_output_list = [
+      junos_firewall_filter.testacc_intlogicalInet6-bis.name,
+      junos_firewall_filter.testacc_intlogicalInet6.name,
+    ]
     address {
       cidr_ip   = "2001:db8::1/64"
       primary   = true
