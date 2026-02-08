@@ -681,8 +681,7 @@ func (rscData *mstpData) del(
 	}
 	delPrefix += "protocols mstp "
 
-	configSet := make([]string, 0, 14+len(rscData.SystemID))
-	copy(configSet, []string{
+	baseConfigSet := []string{
 		delPrefix + "backup-bridge-priority",
 		delPrefix + "bpdu-block-on-edge",
 		delPrefix + "bpdu-destination-mac-address",
@@ -697,7 +696,9 @@ func (rscData *mstpData) del(
 		delPrefix + "revision-level",
 		delPrefix + "system-identifier",
 		delPrefix + "vpls-flush-on-topology-change",
-	})
+	}
+	configSet := make([]string, 0, len(baseConfigSet)+len(rscData.SystemID))
+	configSet = append(configSet, baseConfigSet...)
 	for _, block := range rscData.SystemID {
 		configSet = append(configSet, delPrefix+"system-id "+block.ID.ValueString())
 	}
