@@ -8,8 +8,8 @@ jobs:
     strategy:
       matrix:
         golang:
-          - '1.24'
           - '1.25'
+          - '1.26'
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go ${{ matrix.golang }}
@@ -33,8 +33,8 @@ jobs:
     strategy:
       matrix:
         golang:
-          - '1.24'
           - '1.25'
+          - '1.26'
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go ${{ matrix.golang }}
