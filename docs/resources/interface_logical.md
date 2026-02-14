@@ -48,9 +48,17 @@ The following arguments are supported:
     Conflict with `address`.  
     See [below for nested schema](#dhcp-arguments-for-family_inet).
   - **filter_input** (Optional, String)  
-    Filter to be applied to received packets.
+    Filter to be applied to received packets.  
+    Conflict with `filter_input_list`.
+  - **filter_input_list** (Optional, List of String)  
+    List of filter modules applied to received packets.  
+    Conflict with `filter_input`.
   - **filter_output** (Optional, String)  
-    Filter to be applied to transmitted packets.
+    Filter to be applied to transmitted packets.  
+    Conflict with `filter_output_list`.
+  - **filter_output_list** (Optional, List of String)  
+    List of filter modules applied to transmitted packets.  
+    Conflict with `filter_output`.
   - **mtu** (Optional, Number)  
     Maximum transmission unit.
   - **rpf_check** (Optional, Block)  
@@ -73,9 +81,17 @@ The following arguments are supported:
     Conflict with `address`.  
     See [below for nested schema](#dhcpv6_client-arguments-for-family_inet6).
   - **filter_input** (Optional, String)  
-    Filter to be applied to received packets.
+    Filter to be applied to received packets.  
+    Conflict with `filter_input_list`.
+  - **filter_input_list** (Optional, List of String)  
+    List of filter modules applied to received packets.  
+    Conflict with `filter_input`.
   - **filter_output** (Optional, String)  
-    Filter to be applied to transmitted packets.
+    Filter to be applied to transmitted packets.  
+    Conflict with `filter_output_list`.
+  - **filter_output_list** (Optional, List of String)  
+    List of filter modules applied to transmitted packets.  
+    Conflict with `filter_output`.
   - **mtu** (Optional, Number)  
     Maximum transmission unit.
   - **rpf_check** (Optional, Block)  

@@ -230,12 +230,38 @@ func (rsc *interfaceLogical) Schema(
 							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
+					"filter_input_list": schema.ListAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+						Description: "List of filter modules applied to received packets.",
+						Validators: []validator.List{
+							listvalidator.SizeBetween(1, 16),
+							listvalidator.NoNullValues(),
+							listvalidator.ValueStringsAre(
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							),
+						},
+					},
 					"filter_output": schema.StringAttribute{
 						Optional:    true,
 						Description: "Filter to be applied to transmitted packets.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"filter_output_list": schema.ListAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+						Description: "List of filter modules applied to transmitted packets.",
+						Validators: []validator.List{
+							listvalidator.SizeBetween(1, 16),
+							listvalidator.NoNullValues(),
+							listvalidator.ValueStringsAre(
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							),
 						},
 					},
 					"mtu": schema.Int64Attribute{
@@ -636,12 +662,38 @@ func (rsc *interfaceLogical) Schema(
 							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
+					"filter_input_list": schema.ListAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+						Description: "List of filter modules applied to received packets.",
+						Validators: []validator.List{
+							listvalidator.SizeBetween(1, 16),
+							listvalidator.NoNullValues(),
+							listvalidator.ValueStringsAre(
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							),
+						},
+					},
 					"filter_output": schema.StringAttribute{
 						Optional:    true,
 						Description: "Filter to be applied to transmitted packets.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"filter_output_list": schema.ListAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+						Description: "List of filter modules applied to transmitted packets.",
+						Validators: []validator.List{
+							listvalidator.SizeBetween(1, 16),
+							listvalidator.NoNullValues(),
+							listvalidator.ValueStringsAre(
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							),
 						},
 					},
 					"mtu": schema.Int64Attribute{
@@ -1103,25 +1155,29 @@ type interfaceLogicalConfig struct {
 }
 
 type interfaceLogicalBlockFamilyInet struct {
-	FilterInput    types.String                                  `tfsdk:"filter_input"`
-	FilterOutput   types.String                                  `tfsdk:"filter_output"`
-	Mtu            types.Int64                                   `tfsdk:"mtu"`
-	SamplingInput  types.Bool                                    `tfsdk:"sampling_input"`
-	SamplingOutput types.Bool                                    `tfsdk:"sampling_output"`
-	Address        []interfaceLogicalBlockFamilyInetBlockAddress `tfsdk:"address"`
-	DHCP           *interfaceLogicalBlockFamilyInetBlockDhcp     `tfsdk:"dhcp"`
-	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck     `tfsdk:"rpf_check"`
+	FilterInput      types.String                                  `tfsdk:"filter_input"`
+	FilterInputList  []types.String                                `tfsdk:"filter_input_list"`
+	FilterOutput     types.String                                  `tfsdk:"filter_output"`
+	FilterOutputList []types.String                                `tfsdk:"filter_output_list"`
+	Mtu              types.Int64                                   `tfsdk:"mtu"`
+	SamplingInput    types.Bool                                    `tfsdk:"sampling_input"`
+	SamplingOutput   types.Bool                                    `tfsdk:"sampling_output"`
+	Address          []interfaceLogicalBlockFamilyInetBlockAddress `tfsdk:"address"`
+	DHCP             *interfaceLogicalBlockFamilyInetBlockDhcp     `tfsdk:"dhcp"`
+	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck     `tfsdk:"rpf_check"`
 }
 
 type interfaceLogicalBlockFamilyInetConfig struct {
-	FilterInput    types.String                              `tfsdk:"filter_input"`
-	FilterOutput   types.String                              `tfsdk:"filter_output"`
-	Mtu            types.Int64                               `tfsdk:"mtu"`
-	SamplingInput  types.Bool                                `tfsdk:"sampling_input"`
-	SamplingOutput types.Bool                                `tfsdk:"sampling_output"`
-	Address        types.List                                `tfsdk:"address"`
-	DHCP           *interfaceLogicalBlockFamilyInetBlockDhcp `tfsdk:"dhcp"`
-	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck `tfsdk:"rpf_check"`
+	FilterInput      types.String                              `tfsdk:"filter_input"`
+	FilterInputList  types.List                                `tfsdk:"filter_input_list"`
+	FilterOutput     types.String                              `tfsdk:"filter_output"`
+	FilterOutputList types.List                                `tfsdk:"filter_output_list"`
+	Mtu              types.Int64                               `tfsdk:"mtu"`
+	SamplingInput    types.Bool                                `tfsdk:"sampling_input"`
+	SamplingOutput   types.Bool                                `tfsdk:"sampling_output"`
+	Address          types.List                                `tfsdk:"address"`
+	DHCP             *interfaceLogicalBlockFamilyInetBlockDhcp `tfsdk:"dhcp"`
+	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck `tfsdk:"rpf_check"`
 }
 
 type interfaceLogicalBlockFamilyBlockRPFCheck struct {
@@ -1217,27 +1273,31 @@ func (block *interfaceLogicalBlockFamilyInetBlockDhcp) hasKnownValue() bool {
 }
 
 type interfaceLogicalBlockFamilyInet6 struct {
-	DadDisable     types.Bool                                         `tfsdk:"dad_disable"`
-	FilterInput    types.String                                       `tfsdk:"filter_input"`
-	FilterOutput   types.String                                       `tfsdk:"filter_output"`
-	Mtu            types.Int64                                        `tfsdk:"mtu"`
-	SamplingInput  types.Bool                                         `tfsdk:"sampling_input"`
-	SamplingOutput types.Bool                                         `tfsdk:"sampling_output"`
-	Address        []interfaceLogicalBlockFamilyInet6BlockAddress     `tfsdk:"address"`
-	DHCPv6Client   *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client `tfsdk:"dhcpv6_client"`
-	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck          `tfsdk:"rpf_check"`
+	DadDisable       types.Bool                                         `tfsdk:"dad_disable"`
+	FilterInput      types.String                                       `tfsdk:"filter_input"`
+	FilterInputList  []types.String                                     `tfsdk:"filter_input_list"`
+	FilterOutput     types.String                                       `tfsdk:"filter_output"`
+	FilterOutputList []types.String                                     `tfsdk:"filter_output_list"`
+	Mtu              types.Int64                                        `tfsdk:"mtu"`
+	SamplingInput    types.Bool                                         `tfsdk:"sampling_input"`
+	SamplingOutput   types.Bool                                         `tfsdk:"sampling_output"`
+	Address          []interfaceLogicalBlockFamilyInet6BlockAddress     `tfsdk:"address"`
+	DHCPv6Client     *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client `tfsdk:"dhcpv6_client"`
+	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck          `tfsdk:"rpf_check"`
 }
 
 type interfaceLogicalBlockFamilyInet6Config struct {
-	DadDisable     types.Bool                                               `tfsdk:"dad_disable"`
-	FilterInput    types.String                                             `tfsdk:"filter_input"`
-	FilterOutput   types.String                                             `tfsdk:"filter_output"`
-	Mtu            types.Int64                                              `tfsdk:"mtu"`
-	SamplingInput  types.Bool                                               `tfsdk:"sampling_input"`
-	SamplingOutput types.Bool                                               `tfsdk:"sampling_output"`
-	Address        types.List                                               `tfsdk:"address"`
-	DHCPv6Client   *interfaceLogicalBlockFamilyInet6BlockDhcpV6ClientConfig `tfsdk:"dhcpv6_client"`
-	RPFCheck       *interfaceLogicalBlockFamilyBlockRPFCheck                `tfsdk:"rpf_check"`
+	DadDisable       types.Bool                                               `tfsdk:"dad_disable"`
+	FilterInput      types.String                                             `tfsdk:"filter_input"`
+	FilterInputList  types.List                                               `tfsdk:"filter_input_list"`
+	FilterOutput     types.String                                             `tfsdk:"filter_output"`
+	FilterOutputList types.List                                               `tfsdk:"filter_output_list"`
+	Mtu              types.Int64                                              `tfsdk:"mtu"`
+	SamplingInput    types.Bool                                               `tfsdk:"sampling_input"`
+	SamplingOutput   types.Bool                                               `tfsdk:"sampling_output"`
+	Address          types.List                                               `tfsdk:"address"`
+	DHCPv6Client     *interfaceLogicalBlockFamilyInet6BlockDhcpV6ClientConfig `tfsdk:"dhcpv6_client"`
+	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck                `tfsdk:"rpf_check"`
 }
 
 //nolint:lll
@@ -1390,6 +1450,28 @@ func (rsc *interfaceLogical) ValidateConfig(
 		}
 	}
 	if config.FamilyInet != nil {
+		if !config.FamilyInet.FilterInput.IsNull() &&
+			!config.FamilyInet.FilterInput.IsUnknown() &&
+			!config.FamilyInet.FilterInputList.IsNull() &&
+			!config.FamilyInet.FilterInputList.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("family_inet").AtName("filter_input"),
+				tfdiag.ConflictConfigErrSummary,
+				"filter_input and filter_input_list cannot be configured together "+
+					"in family_inet block",
+			)
+		}
+		if !config.FamilyInet.FilterOutput.IsNull() &&
+			!config.FamilyInet.FilterOutput.IsUnknown() &&
+			!config.FamilyInet.FilterOutputList.IsNull() &&
+			!config.FamilyInet.FilterOutputList.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("family_inet").AtName("filter_output"),
+				tfdiag.ConflictConfigErrSummary,
+				"filter_output and filter_output_list cannot be configured together "+
+					"in family_inet block",
+			)
+		}
 		if config.FamilyInet.DHCP != nil {
 			if config.FamilyInet.DHCP.hasKnownValue() &&
 				!config.FamilyInet.Address.IsNull() && !config.FamilyInet.Address.IsUnknown() {
@@ -1567,6 +1649,28 @@ func (rsc *interfaceLogical) ValidateConfig(
 		}
 	}
 	if config.FamilyInet6 != nil {
+		if !config.FamilyInet6.FilterInput.IsNull() &&
+			!config.FamilyInet6.FilterInput.IsUnknown() &&
+			!config.FamilyInet6.FilterInputList.IsNull() &&
+			!config.FamilyInet6.FilterInputList.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("family_inet6").AtName("filter_input"),
+				tfdiag.ConflictConfigErrSummary,
+				"filter_input and filter_input_list cannot be configured together "+
+					"in family_inet6 block",
+			)
+		}
+		if !config.FamilyInet6.FilterOutput.IsNull() &&
+			!config.FamilyInet6.FilterOutput.IsUnknown() &&
+			!config.FamilyInet6.FilterOutputList.IsNull() &&
+			!config.FamilyInet6.FilterOutputList.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("family_inet6").AtName("filter_output"),
+				tfdiag.ConflictConfigErrSummary,
+				"filter_output and filter_output_list cannot be configured together "+
+					"in family_inet6 block",
+			)
+		}
 		if config.FamilyInet6.DHCPv6Client != nil {
 			if config.FamilyInet6.DHCPv6Client.hasKnownValue() &&
 				!config.FamilyInet6.Address.IsNull() && !config.FamilyInet6.Address.IsUnknown() {
@@ -2504,8 +2608,14 @@ func (rscData *interfaceLogicalData) set(
 		if v := rscData.FamilyInet.FilterInput.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"family inet filter input \""+v+"\"")
 		}
+		for _, v := range rscData.FamilyInet.FilterInputList {
+			configSet = append(configSet, setPrefix+"family inet filter input-list \""+v.ValueString()+"\"")
+		}
 		if v := rscData.FamilyInet.FilterOutput.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"family inet filter output \""+v+"\"")
+		}
+		for _, v := range rscData.FamilyInet.FilterOutputList {
+			configSet = append(configSet, setPrefix+"family inet filter output-list \""+v.ValueString()+"\"")
 		}
 		if !rscData.FamilyInet.Mtu.IsNull() {
 			configSet = append(configSet, setPrefix+"family inet mtu "+
@@ -2556,8 +2666,14 @@ func (rscData *interfaceLogicalData) set(
 		if v := rscData.FamilyInet6.FilterInput.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"family inet6 filter input \""+v+"\"")
 		}
+		for _, v := range rscData.FamilyInet6.FilterInputList {
+			configSet = append(configSet, setPrefix+"family inet6 filter input-list \""+v.ValueString()+"\"")
+		}
 		if v := rscData.FamilyInet6.FilterOutput.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"family inet6 filter output \""+v+"\"")
+		}
+		for _, v := range rscData.FamilyInet6.FilterOutputList {
+			configSet = append(configSet, setPrefix+"family inet6 filter output-list \""+v.ValueString()+"\"")
 		}
 		if !rscData.FamilyInet6.Mtu.IsNull() {
 			configSet = append(configSet, setPrefix+"family inet6 mtu "+
@@ -3045,8 +3161,14 @@ func (rscData *interfaceLogicalData) read(
 					rscData.FamilyInet6.DadDisable = types.BoolValue(true)
 				case balt.CutPrefixInString(&itemTrim, " filter input "):
 					rscData.FamilyInet6.FilterInput = types.StringValue(strings.Trim(itemTrim, "\""))
+				case balt.CutPrefixInString(&itemTrim, " filter input-list "):
+					rscData.FamilyInet6.FilterInputList = append(rscData.FamilyInet6.FilterInputList,
+						types.StringValue(strings.Trim(itemTrim, "\"")))
 				case balt.CutPrefixInString(&itemTrim, " filter output "):
 					rscData.FamilyInet6.FilterOutput = types.StringValue(strings.Trim(itemTrim, "\""))
+				case balt.CutPrefixInString(&itemTrim, " filter output-list "):
+					rscData.FamilyInet6.FilterOutputList = append(rscData.FamilyInet6.FilterOutputList,
+						types.StringValue(strings.Trim(itemTrim, "\"")))
 				case balt.CutPrefixInString(&itemTrim, " mtu "):
 					rscData.FamilyInet6.Mtu, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {
@@ -3096,8 +3218,14 @@ func (rscData *interfaceLogicalData) read(
 					}
 				case balt.CutPrefixInString(&itemTrim, " filter input "):
 					rscData.FamilyInet.FilterInput = types.StringValue(strings.Trim(itemTrim, "\""))
+				case balt.CutPrefixInString(&itemTrim, " filter input-list "):
+					rscData.FamilyInet.FilterInputList = append(rscData.FamilyInet.FilterInputList,
+						types.StringValue(strings.Trim(itemTrim, "\"")))
 				case balt.CutPrefixInString(&itemTrim, " filter output "):
 					rscData.FamilyInet.FilterOutput = types.StringValue(strings.Trim(itemTrim, "\""))
+				case balt.CutPrefixInString(&itemTrim, " filter output-list "):
+					rscData.FamilyInet.FilterOutputList = append(rscData.FamilyInet.FilterOutputList,
+						types.StringValue(strings.Trim(itemTrim, "\"")))
 				case balt.CutPrefixInString(&itemTrim, " mtu "):
 					rscData.FamilyInet.Mtu, err = tfdata.ConvAtoi64Value(itemTrim)
 					if err != nil {

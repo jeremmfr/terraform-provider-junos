@@ -57,8 +57,12 @@ The following attributes are exported:
     See [below for nested schema](#dhcp-attributes-for-family_inet).
   - **filter_input** (String)  
     Filter applied to received packets.
+  - **filter_input_list** (List of String)  
+    List of filter modules applied to received packets.  
   - **filter_output** (String)  
     Filter applied to transmitted packets.
+  - **filter_output_list** (List of String)  
+    List of filter modules applied to transmitted packets.  
   - **mtu** (Number)  
     Maximum transmission unit.
   - **rpf_check** (Block)  
@@ -80,8 +84,12 @@ The following attributes are exported:
     See [below for nested schema](#dhcpv6_client-attributes-for-family_inet6).
   - **filter_input** (String)  
     Filter applied to received packets.
+  - **filter_input_list** (List of String)  
+    List of filter modules applied to received packets.  
   - **filter_output** (String)  
     Filter applied to transmitted packets.
+  - **filter_output_list** (List of String)  
+    List of filter modules applied to transmitted packets.  
   - **mtu** (Number)  
     Maximum transmission unit.
   - **rpf_check** (Block)  
