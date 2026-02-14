@@ -166,6 +166,14 @@ func (rsc *securityNatStatic) Schema(
 								tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 							},
 						},
+						"description": schema.StringAttribute{
+							Optional:    true,
+							Description: "Text description of rule.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 900),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
 						"destination_address": schema.StringAttribute{
 							Optional:    true,
 							Description: "CIDR destination address to match.",
@@ -327,6 +335,7 @@ type securityNatStaticBlockFromConfig struct {
 
 type securityNatStaticBlockRule struct {
 	Name                   types.String                    `tfsdk:"name"                     tfdata:"identifier"`
+	Description            types.String                    `tfsdk:"description"`
 	DestinationAddress     types.String                    `tfsdk:"destination_address"`
 	DestinationAddressName types.String                    `tfsdk:"destination_address_name"`
 	DestinationPort        types.Int64                     `tfsdk:"destination_port"`
@@ -339,6 +348,7 @@ type securityNatStaticBlockRule struct {
 
 type securityNatStaticBlockRuleConfig struct {
 	Name                   types.String                    `tfsdk:"name"`
+	Description            types.String                    `tfsdk:"description"`
 	DestinationAddress     types.String                    `tfsdk:"destination_address"`
 	DestinationAddressName types.String                    `tfsdk:"destination_address_name"`
 	DestinationPort        types.Int64                     `tfsdk:"destination_port"`
@@ -802,6 +812,9 @@ func (rscData *securityNatStaticData) set(
 			ruleName[name] = struct{}{}
 
 			setPrefixRule := setPrefix + "rule " + name + " "
+			if v := block.Description.ValueString(); v != "" {
+				configSet = append(configSet, setPrefixRule+"description \""+v+"\"")
+			}
 			if block.DestinationAddress.IsNull() && block.DestinationAddressName.IsNull() {
 				return path.Root("rule").AtListIndex(i).AtName("destination_address"),
 					fmt.Errorf("destination_address or destination_address_name must be specified"+
@@ -947,6 +960,8 @@ func (rscData *securityNatStaticData) read(
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					rule.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "match destination-address "):
 					rule.DestinationAddress = types.StringValue(itemTrim)
 				case balt.CutPrefixInString(&itemTrim, "match destination-address-name "):

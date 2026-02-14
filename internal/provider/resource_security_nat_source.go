@@ -192,6 +192,14 @@ func (rsc *securityNatSource) Schema(
 								tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 							},
 						},
+						"description": schema.StringAttribute{
+							Optional:    true,
+							Description: "Text description of rule.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 900),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
 					},
 					Blocks: map[string]schema.Block{
 						"match": schema.SingleNestedBlock{
@@ -377,15 +385,17 @@ type securityNatSourceBlockFromToConfig struct {
 }
 
 type securityNatSourceBlockRule struct {
-	Name  types.String                          `tfsdk:"name"  tfdata:"identifier"`
-	Match *securityNatSourceBlockRuleBlockMatch `tfsdk:"match"`
-	Then  *securityNatSourceBlockRuleBlockThen  `tfsdk:"then"`
+	Name        types.String                          `tfsdk:"name"        tfdata:"identifier"`
+	Description types.String                          `tfsdk:"description"`
+	Match       *securityNatSourceBlockRuleBlockMatch `tfsdk:"match"`
+	Then        *securityNatSourceBlockRuleBlockThen  `tfsdk:"then"`
 }
 
 type securityNatSourceBlockRuleConfig struct {
-	Name  types.String                                `tfsdk:"name"`
-	Match *securityNatSourceBlockRuleBlockMatchConfig `tfsdk:"match"`
-	Then  *securityNatSourceBlockRuleBlockThen        `tfsdk:"then"`
+	Name        types.String                                `tfsdk:"name"`
+	Description types.String                                `tfsdk:"description"`
+	Match       *securityNatSourceBlockRuleBlockMatchConfig `tfsdk:"match"`
+	Then        *securityNatSourceBlockRuleBlockThen        `tfsdk:"then"`
 }
 
 type securityNatSourceBlockRuleBlockMatch struct {
@@ -696,6 +706,11 @@ func (rscData *securityNatSourceData) set(
 		ruleName[name] = struct{}{}
 
 		setPrefixRule := setPrefix + " rule " + name + " "
+
+		if v := block.Description.ValueString(); v != "" {
+			configSet = append(configSet, setPrefixRule+"description \""+v+"\"")
+		}
+
 		if block.Match != nil {
 			if block.Match.isEmpty() {
 				return path.Root("rule").AtListIndex(i).AtName("match"),
@@ -818,6 +833,8 @@ func (rscData *securityNatSourceData) read(
 				balt.CutPrefixInString(&itemTrim, name+" ")
 
 				switch {
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					rule.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 				case balt.CutPrefixInString(&itemTrim, "match "):
 					if rule.Match == nil {
 						rule.Match = &securityNatSourceBlockRuleBlockMatch{}

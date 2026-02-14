@@ -45,6 +45,8 @@ func TestAccResourceSecurityNatStatic_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"rule.#", "3"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
+							"rule.0.description", "testacc securityNATSttRule"),
+						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"rule.0.destination_address", "192.0.2.0/26"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"rule.0.then.prefix", "192.0.2.64/26"),
