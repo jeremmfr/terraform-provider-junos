@@ -9,6 +9,7 @@ resource "junos_security_nat_destination" "testacc_securityDNAT" {
   }
   rule {
     name                = "testacc_securityDNATRule"
+    description         = "testacc securityDNATRule"
     destination_address = "192.0.2.1/32"
     source_address_name = [
       "testacc_securityDNAT-src",

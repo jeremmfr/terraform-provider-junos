@@ -47,6 +47,8 @@ func TestAccResourceSecurityNatDestination_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
 							"rule.#", "3"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
+							"rule.0.description", "testacc securityDNATRule"),
+						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
 							"rule.1.destination_address_name", "testacc_securityDNAT"),
 						resource.TestCheckResourceAttr("junos_security_nat_destination.testacc_securityDNAT",
 							"rule.1.then.type", "pool"),

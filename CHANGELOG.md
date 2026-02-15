@@ -1,6 +1,18 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.17.0 (2026-02-15)
+
+ENHANCEMENTS:
+
+* release now with Go 1.26
+* **resource/junos_interface_logical**: add `filter_input_list` and `filter_output_list` arguments in `family_inet` and `family_inet6` block (Fix [#865](https://github.com/jeremmfr/terraform-provider-junos/issues/865))
+* **data-source/junos_interface_logical**: add `filter_input_list` and `filter_output_list` attributes in `family_inet` and `family_inet6` block like resource
+* **resource/junos_security_nat_destination**: add `description` argument in `rule` block
+* **resource/junos_security_nat_source**: add `description` argument in `rule` block (Fix [#862](https://github.com/jeremmfr/terraform-provider-junos/issues/862))
+* **resource/junos_security_nat_static**: add `description` argument in `rule` block
+* **resource/junos_security_nat_static_rule**: add `description` argument
+
 ## v2.16.0 (2025-12-15)
 
 FEATURES:

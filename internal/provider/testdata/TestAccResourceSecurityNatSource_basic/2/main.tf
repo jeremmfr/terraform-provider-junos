@@ -13,7 +13,8 @@ resource "junos_security_nat_source" "testacc_securitySNAT" {
     value = [junos_security_zone.testacc_securitySNAT.name]
   }
   rule {
-    name = "testacc_securitySNATRule"
+    name        = "testacc_securitySNATRule"
+    description = "testacc securitySNATRule"
     match {
       source_address           = ["192.0.2.0/25"]
       source_address_name      = ["testacc_securitySNAT2"]

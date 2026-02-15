@@ -33,6 +33,8 @@ func TestAccResourceSecurityNatStaticRule_basic(t *testing.T) {
 					ConfigDirectory: config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
+							"description", "testacc securityNATSttRule"),
+						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
 							"destination_address", "192.0.2.0/27"),
 						resource.TestCheckResourceAttr("junos_security_nat_static_rule.testacc_securityNATSttRule",
 							"then.prefix", "192.0.2.64/27"),

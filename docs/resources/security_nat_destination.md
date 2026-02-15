@@ -62,6 +62,8 @@ The following arguments are supported:
     Need to be `pool` or `off`
   - **pool** (Optional, String)  
     Name of destination nat pool when type is pool.
+- **description** (Optional, String)  
+  Text description of rule.
 - **destination_address** (Optional, String)  
   CIDR destination address to match.
 - **destination_address_name** (Optional, String)  

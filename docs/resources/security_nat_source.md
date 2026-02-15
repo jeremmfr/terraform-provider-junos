@@ -92,6 +92,8 @@ The following arguments are supported:
     Need to be `interface`, `pool` or `off`.
   - **pool** (Optional, String)  
     Name of nat source pool when type pool.
+- **description** (Optional, String)  
+  Text description of rule.
 
 ## Attribute Reference
 

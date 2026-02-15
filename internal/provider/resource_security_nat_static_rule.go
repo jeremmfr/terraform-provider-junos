@@ -115,6 +115,14 @@ func (rsc *securityNatStaticRule) Schema(
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
+			"description": schema.StringAttribute{
+				Optional:    true,
+				Description: "Text description of rule.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 900),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
 			"destination_address": schema.StringAttribute{
 				Optional:    true,
 				Description: "CIDR destination address to match.",
@@ -247,6 +255,7 @@ type securityNatStaticRuleData struct {
 	ID                     types.String                    `tfsdk:"id"`
 	Name                   types.String                    `tfsdk:"name"`
 	RuleSet                types.String                    `tfsdk:"rule_set"`
+	Description            types.String                    `tfsdk:"description"`
 	DestinationAddress     types.String                    `tfsdk:"destination_address"`
 	DestinationAddressName types.String                    `tfsdk:"destination_address_name"`
 	DestinationPort        types.Int64                     `tfsdk:"destination_port"`
@@ -261,6 +270,7 @@ type securityNatStaticRuleConfig struct {
 	ID                     types.String                    `tfsdk:"id"`
 	Name                   types.String                    `tfsdk:"name"`
 	RuleSet                types.String                    `tfsdk:"rule_set"`
+	Description            types.String                    `tfsdk:"description"`
 	DestinationAddress     types.String                    `tfsdk:"destination_address"`
 	DestinationAddressName types.String                    `tfsdk:"destination_address_name"`
 	DestinationPort        types.Int64                     `tfsdk:"destination_port"`
@@ -602,6 +612,9 @@ func (rscData *securityNatStaticRuleData) set(
 
 	regexpSourcePort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
+	if v := rscData.Description.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"description \""+v+"\"")
+	}
 	if v := rscData.DestinationAddress.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"match destination-address "+v)
 	}
@@ -710,6 +723,8 @@ func (rscData *securityNatStaticRuleData) read(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				rscData.Description = types.StringValue(strings.Trim(itemTrim, "\""))
 			case balt.CutPrefixInString(&itemTrim, "match destination-address "):
 				rscData.DestinationAddress = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "match destination-address-name "):

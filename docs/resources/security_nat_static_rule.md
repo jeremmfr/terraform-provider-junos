@@ -54,6 +54,8 @@ The following arguments are supported:
     CIDR is required if `type` = `prefix`.
   - **routing_instance** (Optional, String)  
     Name of routing instance to switch instance with nat.
+- **description** (Optional, String)  
+  Text description of rule.
 - **destination_address** (Optional, String)  
   CIDR destination address to match.
 - **destination_address_name** (Optional, String)  

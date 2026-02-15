@@ -529,13 +529,15 @@ func (rscData *vstpData) del(
 	}
 	delPrefix += "protocols vstp "
 
-	configSet := []string{
+	baseConfigSet := []string{
 		delPrefix + "bpdu-block-on-edge",
 		delPrefix + "disable",
 		delPrefix + "force-version",
 		delPrefix + "priority-hold-time",
 		delPrefix + "vpls-flush-on-topology-change",
 	}
+	configSet := make([]string, 0, len(baseConfigSet)+len(rscData.SystemID))
+	configSet = append(configSet, baseConfigSet...)
 	for _, block := range rscData.SystemID {
 		configSet = append(configSet, delPrefix+"system-id "+block.ID.ValueString())
 	}

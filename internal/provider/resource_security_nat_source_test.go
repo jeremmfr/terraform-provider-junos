@@ -69,6 +69,8 @@ func TestAccResourceSecurityNatSource_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
 							"rule.#", "3"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
+							"rule.0.description", "testacc securitySNATRule"),
+						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
 							"rule.1.then.type", "off"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"address_pooling", "no-paired"),
