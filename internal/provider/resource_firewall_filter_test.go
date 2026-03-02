@@ -130,6 +130,8 @@ func TestAccResourceFirewallFilter_basic(t *testing.T) {
 							"term.0.from.next_header.#", "1"),
 						resource.TestCheckTypeSetElemAttr("junos_firewall_filter.testacc_fwFilter6",
 							"term.0.from.next_header.*", "icmp6"),
+						resource.TestCheckTypeSetElemAttr("junos_firewall_filter_testacc_fwFilter63",
+							"term.0.from.payload_protocol.*", "icmp6"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
 							"term.0.then.action", "discard"),
 					),

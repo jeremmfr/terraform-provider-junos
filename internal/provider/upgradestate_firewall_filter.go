@@ -100,6 +100,10 @@ func (rsc *firewallFilter) UpgradeState(_ context.Context) map[int64]resource.St
 												ElementType: types.StringType,
 												Optional:    true,
 											},
+											"payload_protocol": schema.SetAttribute{
+												ElementType: types.StringType,
+												Optional:    true,
+											},
 											"port": schema.SetAttribute{
 												ElementType: types.StringType,
 												Optional:    true,
@@ -233,6 +237,7 @@ func upgradeFirewallFilterStateV0toV1(
 				IsFragment                  types.Bool     `tfsdk:"is_fragment"`
 				NextHeader                  []types.String `tfsdk:"next_header"`
 				NextHeaderExcept            []types.String `tfsdk:"next_header_except"`
+				PayloadProtocol             []types.String `tfsdk:"payload_protocol"`
 				Port                        []types.String `tfsdk:"port"`
 				PortExcept                  []types.String `tfsdk:"port_except"`
 				PrefixList                  []types.String `tfsdk:"prefix_list"`
@@ -299,6 +304,7 @@ func upgradeFirewallFilterStateV0toV1(
 				IcmpTypeExcept:              blockV0.From[0].IcmpTypeExcept,
 				NextHeader:                  blockV0.From[0].NextHeader,
 				NextHeaderExcept:            blockV0.From[0].NextHeaderExcept,
+				PayloadProtocol:             blockV0.From[0].PayloadProtocol,
 				Port:                        blockV0.From[0].Port,
 				PortExcept:                  blockV0.From[0].PortExcept,
 				PrefixList:                  blockV0.From[0].PrefixList,

@@ -482,6 +482,19 @@ func (rsc *firewallFilter) Schema(
 										),
 									},
 								},
+								"payload_protocol": schema.SetAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Match payload protocol type.",
+									Validators: []validator.Set{
+										setvalidator.SizeAtLeast(1),
+										setvalidator.NoNullValues(),
+										setvalidator.ValueStringsAre(
+											stringvalidator.LengthAtLeast(1),
+											tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+										),
+									},
+								},
 								"policy_map": schema.SetAttribute{
 									ElementType: types.StringType,
 									Optional:    true,
@@ -887,6 +900,7 @@ type firewallFilterBlockTermBlockFrom struct {
 	NextHeaderExcept            []types.String `tfsdk:"next_header_except"`
 	PacketLength                []types.String `tfsdk:"packet_length"`
 	PacketLengthExcept          []types.String `tfsdk:"packet_length_except"`
+	PayloadProtocol             []types.String `tfsdk:"payload_protocol"`
 	PolicyMap                   []types.String `tfsdk:"policy_map"`
 	PolicyMapExcept             []types.String `tfsdk:"policy_map_except"`
 	Port                        []types.String `tfsdk:"port"`
@@ -935,6 +949,7 @@ type firewallFilterBlockTermBlockFromConfig struct {
 	NextHeaderExcept            types.Set    `tfsdk:"next_header_except"`
 	PacketLength                types.Set    `tfsdk:"packet_length"`
 	PacketLengthExcept          types.Set    `tfsdk:"packet_length_except"`
+	PayloadProtocol             types.Set    `tfsdk:"payload_protocol"`
 	PolicyMap                   types.Set    `tfsdk:"policy_map"`
 	PolicyMapExcept             types.Set    `tfsdk:"policy_map_except"`
 	Port                        types.Set    `tfsdk:"port"`
@@ -1421,6 +1436,16 @@ func (block *firewallFilterBlockTermBlockFromConfig) validateWithFamily(
 			"packet_length_except"+errorMessageWithFamilySuffix,
 		)
 	}
+	if !block.PayloadProtocol.IsNull() && !block.PayloadProtocol.IsUnknown() &&
+		!slices.Contains([]string{
+			junos.Inet6W,
+		}, family) {
+		resp.Diagnostics.AddAttributeError(
+			pathRoot.AtName("payload_protocol"),
+			tfdiag.ConflictConfigErrSummary,
+			"payload_protocol"+errorMessageWithFamilySuffix,
+		)
+	}
 	if !block.PolicyMap.IsNull() && !block.PolicyMap.IsUnknown() &&
 		!slices.Contains([]string{
 			junos.InetW, junos.Inet6W, "any", "ccc", "mpls", "vpls",
@@ -1819,9 +1844,9 @@ func (rscData *firewallFilterData) set(
 func (block *firewallFilterBlockTermBlockFrom) configSet(
 	setPrefix string, pathRoot path.Path,
 ) (
-	[]string, // configSet
+	[]string,  // configSet
 	path.Path, // pathErr
-	error, // error
+	error,     // error
 ) {
 	configSet := make([]string, 0, 100)
 	setPrefix += "from "
@@ -1951,6 +1976,9 @@ func (block *firewallFilterBlockTermBlockFrom) configSet(
 	}
 	for _, v := range block.PacketLengthExcept {
 		configSet = append(configSet, setPrefix+"packet-length-except "+v.ValueString())
+	}
+	for _, v := range block.PayloadProtocol {
+		configSet = append(configSet, setPrefix+"payload-protocol "+v.ValueString())
 	}
 	if len(block.PolicyMap) > 0 && len(block.PolicyMapExcept) > 0 {
 		return configSet,
@@ -2210,6 +2238,8 @@ func (block *firewallFilterBlockTermBlockFrom) read(itemTrim string) {
 		block.PacketLength = append(block.PacketLength, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "packet-length-except "):
 		block.PacketLengthExcept = append(block.PacketLengthExcept, types.StringValue(itemTrim))
+	case balt.CutPrefixInString(&itemTrim, "payload-protocol "):
+		block.PayloadProtocol = append(block.PayloadProtocol, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "policy-map "):
 		block.PolicyMap = append(block.PolicyMap, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "policy-map-except "):
