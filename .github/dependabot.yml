@@ -16,3 +16,7 @@ updates:
       interval: daily
     assignees:
       - "jeremmfr"
+    groups:
+      "github.com/hashicorp/terraform":
+        patterns:
+          - "github.com/hashicorp/terraform-*"
