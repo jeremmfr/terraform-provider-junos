@@ -239,6 +239,7 @@ func (p *junosProvider) DataSources(_ context.Context) []func() datasource.DataS
 		newInterfacePhysicalDataSource,
 		newInterfacesPhysicalPresentDataSource,
 		newPolicyoptionsASPathDataSource,
+		newPolicyoptionsASPathGroupDataSource,
 		newRoutesDataSource,
 		newRoutingInstanceDataSource,
 		newSecurityZoneDataSource,
