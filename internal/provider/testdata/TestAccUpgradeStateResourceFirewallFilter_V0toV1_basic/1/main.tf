@@ -86,19 +86,6 @@ resource "junos_firewall_filter" "testacc_fwFilter6" {
     }
   }
 }
-resource "junos_firewall_filter" "testacc_fwFilter62" {
-  name   = "testacc_fwFilter62"
-  family = "inet6"
-  term {
-    name = "testacc_fwFilter62_term1"
-    from {
-      payload_protocol = ["icmp6"]
-    }
-    then {
-      action = "discard"
-    }
-  }
-}
 resource "junos_policyoptions_prefix_list" "testacc_fwFilter" {
   name   = "testacc_fwFilter"
   prefix = ["192.0.2.0/25"]

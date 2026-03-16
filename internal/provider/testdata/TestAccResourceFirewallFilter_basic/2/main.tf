@@ -102,8 +102,8 @@ resource "junos_firewall_filter" "testacc_fwFilter63" {
   term {
     name = "testacc_fwFilter#6 term1"
     from {
-      interface          = ["fe-*"]
-      payload_protocol   = ["icmp6"]
+      interface        = ["fe-*"]
+      payload_protocol = ["icmp6"]
     }
     then {
       action = "discard"

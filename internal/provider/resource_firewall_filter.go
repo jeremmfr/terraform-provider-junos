@@ -1844,9 +1844,9 @@ func (rscData *firewallFilterData) set(
 func (block *firewallFilterBlockTermBlockFrom) configSet(
 	setPrefix string, pathRoot path.Path,
 ) (
-	[]string,  // configSet
+	[]string, // configSet
 	path.Path, // pathErr
-	error,     // error
+	error, // error
 ) {
 	configSet := make([]string, 0, 100)
 	setPrefix += "from "
