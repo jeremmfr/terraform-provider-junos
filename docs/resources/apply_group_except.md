@@ -56,7 +56,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-- **id** (String)
+- **id** (String)  
   An identifier for the resource with format `<name>_-_<prefix>`.
 
 ## Import

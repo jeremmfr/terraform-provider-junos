@@ -54,7 +54,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-- **id** (String)
+- **id** (String)  
   An identifier for the data source with format `<format>`.
-- **config** (String)
+- **config** (String)  
   The raw configuration output in the requested format.

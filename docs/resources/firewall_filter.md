@@ -123,7 +123,7 @@ The following arguments are supported:
 - **packet_length_except** (Optional, Set of String)  
   Do not match packet length.  
   Conflict with `packet_length`.
-- **payload_protocol** (Optional, Set of String)
+- **payload_protocol** (Optional, Set of String)  
   Match Payload Protocol type.
 - **policy_map** (Optional, Set of String)  
   Match policy map.  
