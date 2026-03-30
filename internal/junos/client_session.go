@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
+func (clt *Client) startNewSession(ctx context.Context) (*Session, error) {
 	var auth sshAuthMethod
 	auth.Username = clt.junosUserName
 	auth.Ciphers = clt.junosSSHCiphers
@@ -66,9 +66,30 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 
 		return nil, errors.New("can't read model of device with <get-system-information/> netconf command")
 	}
-	sess.logFile("[StartNewSession] session opened")
+	sess.client = clt
+	sess.logFile("[startNewSession] session opened")
 
 	return sess, nil
+}
+
+func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
+	if clt.useSingleSession {
+		clt.sessionMutex.Lock()
+		if clt.sharedSession != nil {
+			return clt.sharedSession, nil
+		}
+		
+		sess, err := clt.startNewSession(ctx)
+		if err != nil {
+			clt.sessionMutex.Unlock()
+			return nil, err
+		}
+		clt.sharedSession = sess
+		
+		return clt.sharedSession, nil
+	}
+
+	return clt.startNewSession(ctx)
 }
 
 func (clt *Client) NewSessionWithoutNetconf(_ context.Context) *Session {
