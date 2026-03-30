@@ -58,6 +58,7 @@ type junosProviderModel struct {
 	FakeCreateSetFile          types.String `tfsdk:"fake_create_with_setfile"`
 	FakeUpdateAlso             types.Bool   `tfsdk:"fake_update_also"`
 	FakeDeleteAlso             types.Bool   `tfsdk:"fake_delete_also"`
+	UseSingleSession           types.Bool   `tfsdk:"use_single_session"`
 }
 
 const (
@@ -216,6 +217,12 @@ func (p *junosProvider) Schema(
 					"append them to the same file as `fake_create_with_setfile`, " +
 					"and respond with a `fake` successful delete of resources to Terraform." +
 					" May also be enabled via " + junos.EnvFakedeleteAlso + " environment variable.",
+			},
+			"use_single_session": schema.BoolAttribute{
+				Optional: true,
+				Description: "Enable the single session connection strategy to reuse a single Netconf/SSH session " +
+					"for all provider operations. This reduces the connection overhead significantly." +
+					" May also be enabled via " + junos.EnvUseSingleSession + " environment variable.",
 			},
 		},
 	}
@@ -586,6 +593,14 @@ func (p *junosProvider) Configure( //nolint:gocyclo
 			tfdiag.UnknownJunosAttrErrSummary,
 			unknownValueErrorMessage+"for 'fake_delete_also' attribute."+
 				fmt.Sprintf(instructionUnknownMessage, junos.EnvFakedeleteAlso),
+		)
+	}
+	if config.UseSingleSession.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("use_single_session"),
+			tfdiag.UnknownJunosAttrErrSummary,
+			unknownValueErrorMessage+"for 'use_single_session' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvUseSingleSession),
 		)
 	}
 	if resp.Diagnostics.HasError() {
@@ -963,6 +978,14 @@ func (p *junosProvider) Configure( //nolint:gocyclo
 		}
 	} else if utils.ParseTrue(os.Getenv(junos.EnvFakedeleteAlso)) {
 		client.WithFakeDeleteAlso()
+	}
+
+	if !config.UseSingleSession.IsNull() {
+		if config.UseSingleSession.ValueBool() {
+			client.WithSingleSession()
+		}
+	} else if utils.ParseTrue(os.Getenv(junos.EnvUseSingleSession)) {
+		client.WithSingleSession()
 	}
 
 	if !client.FakeCreateSetFile() &&

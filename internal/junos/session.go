@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
@@ -20,6 +21,7 @@ import (
 
 // Session : store Junos device info and session.
 type Session struct {
+	client                 *Client
 	SystemInformation      rpcSystemInformation
 	netconf                *netconf.Session
 	localAddress           string
@@ -209,6 +211,9 @@ func (sess *Session) HasNetconf() bool {
 // Command (show, execute) on Junos device via netconf.
 func (sess *Session) Command(cmd string) (string, error) {
 	read, err := sess.netconfCommand(cmd)
+	if errRecover := sess.checkAndRecover(context.TODO(), err); errRecover == nil && err != nil {
+		read, err = sess.netconfCommand(cmd)
+	}
 	sess.logFile(fmt.Sprintf("[Command] cmd: %q", cmd))
 	sess.logFile(fmt.Sprintf("[Command] read: %q", read))
 	utils.SleepShort(sess.sleepShort)
@@ -224,6 +229,9 @@ func (sess *Session) Command(cmd string) (string, error) {
 // CommandXML send XML cmd on Junos device via netconf.
 func (sess *Session) CommandXML(cmd string) (string, error) {
 	read, err := sess.netconfCommandXML(cmd)
+	if errRecover := sess.checkAndRecover(context.TODO(), err); errRecover == nil && err != nil {
+		read, err = sess.netconfCommandXML(cmd)
+	}
 	sess.logFile(fmt.Sprintf("[CommandXML] cmd: %q", cmd))
 	sess.logFile(fmt.Sprintf("[CommandXML] read: %q", read))
 	utils.SleepShort(sess.sleepShort)
@@ -241,6 +249,9 @@ func (sess *Session) CommandXML(cmd string) (string, error) {
 func (sess *Session) ConfigSet(cmd []string) error {
 	if sess.netconf != nil {
 		message, err := sess.netconfConfigSet(cmd)
+		if errRecover := sess.checkAndRecover(context.TODO(), err); errRecover == nil && err != nil {
+			message, err = sess.netconfConfigSet(cmd)
+		}
 		utils.SleepShort(sess.sleepShort)
 		sess.logFile(fmt.Sprintf("[ConfigSet] cmd: %q", cmd))
 		sess.logFile(fmt.Sprintf("[ConfigSet] message: %q", message))
@@ -285,6 +296,9 @@ func (sess *Session) ConfigLoad(action, format, config string) error {
 	}
 
 	message, err := sess.netconfConfigLoad(action, format, config)
+	if errRecover := sess.checkAndRecover(context.TODO(), err); errRecover == nil && err != nil {
+		message, err = sess.netconfConfigLoad(action, format, config)
+	}
 	utils.SleepShort(sess.sleepShort)
 	sess.logFile(fmt.Sprintf("[ConfigLoad] message: %q", message))
 	if err != nil {
@@ -314,6 +328,9 @@ func (sess *Session) ConfigGet(format string) (string, error) {
 	}
 
 	output, err := sess.netconfConfigGet(format)
+	if errRecover := sess.checkAndRecover(context.TODO(), err); errRecover == nil && err != nil {
+		output, err = sess.netconfConfigGet(format)
+	}
 	utils.SleepShort(sess.sleepShort)
 	if err != nil {
 		sess.logFile(fmt.Sprintf("[ConfigGet] err: %q", err))
@@ -333,6 +350,10 @@ func (sess *Session) ConfigLock(ctx context.Context) error {
 
 			return errors.New("candidate configuration lock attempt aborted")
 		default:
+			// check active session if useSingleSession
+			if sess.client != nil && sess.client.useSingleSession {
+				_ = sess.checkAndRecover(ctx, errors.New("ping"))
+			}
 			if sess.netconfConfigLock() {
 				sess.logFile("[ConfigLock] config locked")
 				utils.SleepShort(sess.sleepShort)
@@ -363,9 +384,15 @@ func (sess *Session) CommitConf(ctx context.Context, logMessage string) (warning
 			sess.commitConfirmedTimeout, sess.commitConfirmedWait, logMessage,
 		))
 		warnings, err = sess.netconfCommitConfirmed(ctx, logMessage)
+		if errRecover := sess.checkAndRecover(ctx, err); errRecover == nil && err != nil {
+			warnings, err = sess.netconfCommitConfirmed(ctx, logMessage)
+		}
 	} else {
 		sess.logFile(fmt.Sprintf("[CommitConf] commit %q", logMessage))
 		warnings, err = sess.netconfCommit(logMessage)
+		if errRecover := sess.checkAndRecover(ctx, err); errRecover == nil && err != nil {
+			warnings, err = sess.netconfCommit(logMessage)
+		}
 	}
 	utils.SleepShort(sess.sleepShort)
 	if len(warnings) > 0 {
@@ -383,6 +410,11 @@ func (sess *Session) CommitConf(ctx context.Context, logMessage string) (warning
 }
 
 func (sess *Session) Close() {
+	if sess.client != nil && sess.client.useSingleSession {
+		sess.client.sessionMutex.Unlock()
+
+		return
+	}
 	if sess.HasNetconf() {
 		err := sess.closeNetconf(sess.sleepSSHClosed)
 		if err != nil {
@@ -391,6 +423,40 @@ func (sess *Session) Close() {
 			sess.logFile("[Close] session closed")
 		}
 	}
+}
+
+func (sess *Session) checkAndRecover(ctx context.Context, err error) error {
+	if err == nil || sess.client == nil || !sess.client.useSingleSession {
+		return err
+	}
+	errStr := err.Error()
+	if strings.Contains(errStr, "EOF") ||
+		strings.Contains(errStr, "connection closed") ||
+		strings.Contains(errStr, "broken pipe") ||
+		strings.Contains(errStr, "connection reset by peer") ||
+		strings.Contains(errStr, "use of closed network connection") || errStr == "ping" {
+		sess.logFile(fmt.Sprintf("[checkAndRecover] connection error detected: %v, attempting reconnect...", err))
+		if sess.HasNetconf() {
+			_ = sess.closeNetconf(0)
+		}
+		newSess, reconnErr := sess.client.internalStartNewSession(ctx)
+		if reconnErr != nil {
+			sess.logFile(fmt.Sprintf("[checkAndRecover] reconnect failed: %v", reconnErr))
+
+			return err
+		}
+
+		sess.netconf = newSess.netconf
+		sess.SystemInformation = newSess.SystemInformation
+		sess.localAddress = newSess.localAddress
+		sess.remoteAddress = newSess.remoteAddress
+
+		sess.logFile("[checkAndRecover] reconnect successful")
+
+		return nil
+	}
+
+	return err
 }
 
 func (sess *Session) JunosDecode(

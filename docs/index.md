@@ -120,6 +120,13 @@ The following arguments are supported in the `provider` block:
   It can also be enabled from the `JUNOS_NO_DECODE_SECRETS` environment variable and
   its value is `1`, `t` or `true`.
 
+- **use_single_session** (Optional, Boolean)  
+  Enable single session mode to reuse a single Netconf/SSH connection for all operations.  
+  This drastically reduces latency and authentication overhead, significantly improving deployment
+  speed (especially on SRX devices).  
+  It can also be enabled from the `JUNOS_USE_SINGLE_SESSION` environment variable.  
+  Defaults to `false`.
+
 -> **Note**
   Two SSH authentication methods (keys / password) are possible and tried with the `sshkey_pem`,
   `sshkeyfile` arguments or the keys provided by a SSH agent through the `SSH_AUTH_SOCK`
