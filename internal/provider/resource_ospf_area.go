@@ -1699,7 +1699,7 @@ func (rsc *ospfArea) ImportState(
 }
 
 func checkOspfAreaExists(
-	_ context.Context, areaID, version, realm, routingInstance string, junSess *junos.Session,
+	ctx context.Context, areaID, version, realm, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -1718,8 +1718,8 @@ func checkOspfAreaExists(
 	if realm != "" {
 		showPrefix += "realm " + realm + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"area " + areaID + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"area "+areaID+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1756,7 +1756,7 @@ func (rscData *ospfAreaData) nullID() bool {
 }
 
 func (rscData *ospfAreaData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1857,7 +1857,7 @@ func (rscData *ospfAreaData) set(
 		configSet = append(configSet, block.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *ospfAreaBlockInterface) configSet(
@@ -2241,7 +2241,7 @@ func (block *ospfAreaBlockVirtualLink) configSet(setPrefix string) []string {
 }
 
 func (rscData *ospfAreaData) read(
-	_ context.Context, areaID, version, realm, routingInstance string, junSess *junos.Session,
+	ctx context.Context, areaID, version, realm, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
@@ -2258,8 +2258,8 @@ func (rscData *ospfAreaData) read(
 	if realm != "" {
 		showPrefix += "realm " + realm + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"area " + areaID + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"area "+areaID+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2671,7 +2671,7 @@ func (block *ospfAreaBlockNssa) read(itemTrim string) (err error) {
 }
 
 func (rscData *ospfAreaData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -2693,5 +2693,5 @@ func (rscData *ospfAreaData) del(
 		delPrefix + "area " + rscData.AreaID.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

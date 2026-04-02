@@ -187,9 +187,9 @@ func (dscData *chassisInventoryDataSourceData) fillID() {
 }
 
 func (dscData *chassisInventoryDataSourceData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	replyData, err := junSess.CommandXML(junos.RPCGetChassisInventory)
+	replyData, err := junSess.CommandXML(ctx, junos.RPCGetChassisInventory)
 	if err != nil {
 		return err
 	}

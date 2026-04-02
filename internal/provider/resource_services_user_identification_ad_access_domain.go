@@ -460,12 +460,12 @@ func (rsc *servicesUserIdentificationADAccessDomain) ImportState(
 }
 
 func checkServicesUserIdentADAccessDomainExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services user-identification active-directory-access domain " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services user-identification active-directory-access domain "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -485,7 +485,7 @@ func (rscData *servicesUserIdentificationADAccessDomainData) nullID() bool {
 }
 
 func (rscData *servicesUserIdentificationADAccessDomainData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -514,7 +514,7 @@ func (rscData *servicesUserIdentificationADAccessDomainData) set(
 		configSet = append(configSet, rscData.UserGroupMappingLdap.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *servicesUserIdentificationADAccessDomainBlockIPUserMappingDiscoveryWmi) configSet(
@@ -563,10 +563,10 @@ func (block *servicesUserIdentificationADAccessDomainBlockUserGroupMappingLdap) 
 }
 
 func (rscData *servicesUserIdentificationADAccessDomainData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services user-identification active-directory-access domain " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services user-identification active-directory-access domain "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -656,11 +656,11 @@ func (block *servicesUserIdentificationADAccessDomainBlockUserGroupMappingLdap) 
 }
 
 func (rscData *servicesUserIdentificationADAccessDomainData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete services user-identification active-directory-access domain " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

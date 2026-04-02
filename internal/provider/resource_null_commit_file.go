@@ -149,7 +149,7 @@ func (rsc *nullCommitFile) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
@@ -206,7 +206,7 @@ func (rscData *nullCommitFileData) fillID() {
 }
 
 func (rscData *nullCommitFileData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -219,7 +219,7 @@ func (rscData *nullCommitFileData) set(
 		configSet = append(configSet, v.ValueString())
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *nullCommitFileData) readFile() ([]string, error) {

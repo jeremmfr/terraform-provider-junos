@@ -249,7 +249,7 @@ func (rscData *applyGroupData) nullID() bool {
 }
 
 func (rscData *applyGroupData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -262,17 +262,17 @@ func (rscData *applyGroupData) set(
 		junos.SetLS + prefix + "apply-groups \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *applyGroupData) read(
-	_ context.Context, name, prefix string, junSess *junos.Session,
+	ctx context.Context, name, prefix string, junSess *junos.Session,
 ) error {
 	if prefix != "" && !strings.HasSuffix(prefix, " ") {
 		prefix += " "
 	}
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		prefix + "apply-groups" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		prefix+"apply-groups"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -301,7 +301,7 @@ func (rscData *applyGroupData) read(
 }
 
 func (rscData *applyGroupData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	prefix := rscData.Prefix.ValueString()
 	if prefix != "" && !strings.HasSuffix(prefix, " ") {
@@ -312,5 +312,5 @@ func (rscData *applyGroupData) del(
 		junos.DeleteLS + prefix + "apply-groups \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

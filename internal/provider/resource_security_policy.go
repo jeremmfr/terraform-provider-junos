@@ -708,7 +708,7 @@ func (rsc *securityPolicy) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	listLinesToPairPolicy, err := readSecurityPolicyTunnelPairPolicyLines(
@@ -736,7 +736,7 @@ func (rsc *securityPolicy) Update(
 
 		return
 	}
-	if err := junSess.ConfigSet(listLinesToPairPolicy); err != nil {
+	if err := junSess.ConfigSet(ctx, listLinesToPairPolicy); err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 
 		return
@@ -787,12 +787,12 @@ func (rsc *securityPolicy) ImportState(
 }
 
 func checkSecurityPolicyExists(
-	_ context.Context, fromZone, toZone string, junSess *junos.Session,
+	ctx context.Context, fromZone, toZone string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security policies from-zone " + fromZone + " to-zone " + toZone + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security policies from-zone "+fromZone+" to-zone "+toZone+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -812,7 +812,7 @@ func (rscData *securityPolicyData) nullID() bool {
 }
 
 func (rscData *securityPolicyData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -909,7 +909,7 @@ func (rscData *securityPolicyData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) configSet(
@@ -973,10 +973,10 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) configSet(
 }
 
 func (rscData *securityPolicyData) read(
-	_ context.Context, fromZone, toZone string, junSess *junos.Session,
+	ctx context.Context, fromZone, toZone string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security policies from-zone " + fromZone + " to-zone " + toZone + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security policies from-zone "+fromZone+" to-zone "+toZone+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -1103,13 +1103,13 @@ func (block *securityPolicyBlockPolicyBlockPermitApplicationServices) read(
 }
 
 func readSecurityPolicyTunnelPairPolicyLines(
-	_ context.Context, fromZone, toZone string, junSess *junos.Session,
+	ctx context.Context, fromZone, toZone string, junSess *junos.Session,
 ) (
 	[]string, error,
 ) {
 	listLines := make([]string, 0, 100)
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security policies from-zone " + fromZone + " to-zone " + toZone + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security policies from-zone "+fromZone+" to-zone "+toZone+junos.PipeDisplaySet)
 	if err != nil {
 		return listLines, err
 	}
@@ -1131,11 +1131,11 @@ func readSecurityPolicyTunnelPairPolicyLines(
 }
 
 func (rscData *securityPolicyData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security policies from-zone " + rscData.FromZone.ValueString() + " to-zone " + rscData.ToZone.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

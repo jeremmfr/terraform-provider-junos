@@ -270,12 +270,12 @@ func (rsc *policyoptionsPrefixList) ImportState(
 }
 
 func checkPolicyoptionsPrefixListExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"policy-options prefix-list \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"policy-options prefix-list \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -295,7 +295,7 @@ func (rscData *policyoptionsPrefixListData) nullID() bool {
 }
 
 func (rscData *policyoptionsPrefixListData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -313,14 +313,14 @@ func (rscData *policyoptionsPrefixListData) set(
 		configSet = append(configSet, setPrefix+v.ValueString())
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *policyoptionsPrefixListData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"policy-options prefix-list \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"policy-options prefix-list \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -350,11 +350,11 @@ func (rscData *policyoptionsPrefixListData) read(
 }
 
 func (rscData *policyoptionsPrefixListData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete policy-options prefix-list \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

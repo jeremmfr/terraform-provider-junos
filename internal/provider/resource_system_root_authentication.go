@@ -303,7 +303,7 @@ func (rsc *systemRootAuthentication) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if plan.PlainTextPassword.ValueString() != "" {
@@ -435,7 +435,7 @@ func (rscData *systemRootAuthenticationData) nullID() bool {
 }
 
 func (rscData *systemRootAuthenticationData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -469,14 +469,14 @@ func (rscData *systemRootAuthenticationData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemRootAuthenticationData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system root-authentication" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system root-authentication"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -511,8 +511,8 @@ func (rscData *systemRootAuthenticationData) read(
 func (rscData *systemRootAuthenticationData) readPrivateToState(
 	ctx context.Context, junSess *junos.Session, private privateStateSetter,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system root-authentication" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system root-authentication"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -542,21 +542,21 @@ func (rscData *systemRootAuthenticationData) readPrivateToState(
 }
 
 func (rscData *systemRootAuthenticationData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system root-authentication",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemRootAuthenticationData) delPassword(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system root-authentication encrypted-password",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

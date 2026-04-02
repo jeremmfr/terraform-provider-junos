@@ -490,12 +490,12 @@ func (rsc *servicesSecurityIntelligenceProfile) ImportState(
 }
 
 func checkServicesSecurityIntelligenceProfileExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services security-intelligence profile \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services security-intelligence profile \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -515,7 +515,7 @@ func (rscData *servicesSecurityIntelligenceProfileData) nullID() bool {
 }
 
 func (rscData *servicesSecurityIntelligenceProfileData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -543,7 +543,7 @@ func (rscData *servicesSecurityIntelligenceProfileData) set(
 		configSet = append(configSet, rscData.DefaultRuleThen.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *servicesSecurityIntelligenceProfileBlockRule) configSet(setPrefix string) []string {
@@ -586,10 +586,10 @@ func (block *servicesSecurityIntelligenceProfileBlockDefaultRuleThen) configSet(
 }
 
 func (rscData *servicesSecurityIntelligenceProfileData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services security-intelligence profile \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services security-intelligence profile \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -669,11 +669,11 @@ func (block *servicesSecurityIntelligenceProfileBlockDefaultRuleThen) read(itemT
 }
 
 func (rscData *servicesSecurityIntelligenceProfileData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete services security-intelligence profile \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

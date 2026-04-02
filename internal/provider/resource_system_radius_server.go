@@ -349,12 +349,12 @@ func (rsc *systemRadiusServer) ImportState(
 }
 
 func checkSystemRadiusServerExists(
-	_ context.Context, address string, junSess *junos.Session,
+	ctx context.Context, address string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system radius-server " + address + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system radius-server "+address+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -374,7 +374,7 @@ func (rscData *systemRadiusServerData) nullID() bool {
 }
 
 func (rscData *systemRadiusServerData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -429,14 +429,14 @@ func (rscData *systemRadiusServerData) set(
 			utils.ConvI64toa(rscData.Timeout.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemRadiusServerData) read(
-	_ context.Context, address string, junSess *junos.Session,
+	ctx context.Context, address string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system radius-server " + address + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system radius-server "+address+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -519,11 +519,11 @@ func (rscData *systemRadiusServerData) read(
 }
 
 func (rscData *systemRadiusServerData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system radius-server " + rscData.Address.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

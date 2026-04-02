@@ -386,7 +386,7 @@ func (rscData *layer2ControlData) nullID() bool {
 }
 
 func (rscData *layer2ControlData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -442,14 +442,14 @@ func (rscData *layer2ControlData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *layer2ControlData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols layer2-control" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"protocols layer2-control"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -516,11 +516,11 @@ func (rscData *layer2ControlData) read(
 }
 
 func (rscData *layer2ControlData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete protocols layer2-control",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

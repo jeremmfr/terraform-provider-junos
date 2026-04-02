@@ -840,7 +840,7 @@ func (rsc *ripNeighbor) ImportState(
 }
 
 func checkRipNeighborExists(
-	_ context.Context, name, group string, ng bool, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name, group string, ng bool, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -853,8 +853,8 @@ func checkRipNeighborExists(
 	} else {
 		showPrefix += "protocols rip "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"group \"" + group + "\" neighbor " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"group \""+group+"\" neighbor "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -882,7 +882,7 @@ func (rscData *ripNeighborData) nullID() bool {
 }
 
 func (rscData *ripNeighborData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -981,11 +981,11 @@ func (rscData *ripNeighborData) set(
 		configSet = append(configSet, rscData.BfdLivenessDetection.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *ripNeighborData) read(
-	_ context.Context, name, group string, ng bool, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name, group string, ng bool, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
@@ -996,8 +996,8 @@ func (rscData *ripNeighborData) read(
 	} else {
 		showPrefix += "protocols rip "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"group \"" + group + "\" neighbor " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"group \""+group+"\" neighbor "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -1107,7 +1107,7 @@ func (rscData *ripNeighborData) read(
 }
 
 func (rscData *ripNeighborData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -1123,5 +1123,5 @@ func (rscData *ripNeighborData) del(
 		delPrefix + "group \"" + rscData.Group.ValueString() + "\" neighbor " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

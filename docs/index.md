@@ -193,6 +193,19 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_SSH_RETRY_TO_ESTABLISH` environment variable.  
   Defaults to `1` (1..10).
 
+- **single_session** (Optional, Boolean)  
+  Use a single shared SSH/NETCONF session for all provider operations instead of opening a new session
+  for each resource action.  
+  Access to the session is serialized to avoid concurrent use.  
+  The session is automatically reconnected if the connection is lost.  
+  It can also be enabled from the `JUNOS_SINGLE_SESSION` environment variable and
+  its value is `1`, `t` or `true`.
+
+  !> **Warning**
+    Because Terraform shuts down the provider without prior notice at the end of a run,
+    the session will not be properly closed (no NETCONF `close-session` sent to the device,
+    and the underlying SSH connection will not be terminated gracefully).
+
 ---
 
 ### Debug & workaround options
@@ -332,6 +345,8 @@ To reduce :
 - the rate of new ssh connections by second, increase the provider's `ssh_sleep_closed` argument.
 - the rate of netconf commands by second on ssh connections, increase the provider's
 `cmd_sleep_short` argument.
+- the total number of ssh connections to a single one, enable the provider's `single_session`
+argument. In this case, all resource actions are serialized through a single shared SSH/NETCONF session.
 
 To increase :
 

@@ -266,7 +266,7 @@ func (rscData *applyGroupExceptData) nullID() bool {
 }
 
 func (rscData *applyGroupExceptData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -279,17 +279,17 @@ func (rscData *applyGroupExceptData) set(
 		junos.SetLS + prefix + "apply-groups-except \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *applyGroupExceptData) read(
-	_ context.Context, name, prefix string, junSess *junos.Session,
+	ctx context.Context, name, prefix string, junSess *junos.Session,
 ) error {
 	if !strings.HasSuffix(prefix, " ") {
 		prefix += " "
 	}
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		prefix + "apply-groups-except" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		prefix+"apply-groups-except"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -316,7 +316,7 @@ func (rscData *applyGroupExceptData) read(
 }
 
 func (rscData *applyGroupExceptData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	prefix := rscData.Prefix.ValueString()
 	if !strings.HasSuffix(prefix, " ") {
@@ -327,5 +327,5 @@ func (rscData *applyGroupExceptData) del(
 		junos.DeleteLS + prefix + "apply-groups-except \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

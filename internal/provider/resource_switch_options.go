@@ -245,7 +245,7 @@ func (rscData *switchOptionsData) nullID() bool {
 }
 
 func (rscData *switchOptionsData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -266,14 +266,14 @@ func (rscData *switchOptionsData) set(
 		configSet = append(configSet, setPrefix+"vtep-source-interface "+v)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *switchOptionsData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"switch-options" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"switch-options"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -307,7 +307,7 @@ func (rscData *switchOptionsData) read(
 }
 
 func (rscData *switchOptionsData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete switch-options "
 
@@ -318,5 +318,5 @@ func (rscData *switchOptionsData) del(
 		delPrefix + "vtep-source-interface",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

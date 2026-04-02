@@ -511,7 +511,7 @@ func (rsc *generateRoute) ImportState(
 }
 
 func checkGenerateRouteExists(
-	_ context.Context, destination, routingInstance string, junSess *junos.Session,
+	ctx context.Context, destination, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -528,8 +528,8 @@ func checkGenerateRouteExists(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"generate route " + destination + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"generate route "+destination+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -553,7 +553,7 @@ func (rscData *generateRouteData) nullID() bool {
 }
 
 func (rscData *generateRouteData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -621,11 +621,11 @@ func (rscData *generateRouteData) set(
 			utils.ConvI64toa(rscData.Preference.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *generateRouteData) read(
-	_ context.Context, destination, routingInstance string, junSess *junos.Session,
+	ctx context.Context, destination, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	switch routingInstance {
@@ -640,8 +640,8 @@ func (rscData *generateRouteData) read(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"generate route " + destination + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"generate route "+destination+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -709,7 +709,7 @@ func (rscData *generateRouteData) read(
 }
 
 func (rscData *generateRouteData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	switch routingInstance := rscData.RoutingInstance.ValueString(); routingInstance {
@@ -729,5 +729,5 @@ func (rscData *generateRouteData) del(
 		delPrefix + "generate route " + rscData.Destination.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

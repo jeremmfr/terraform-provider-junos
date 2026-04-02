@@ -259,7 +259,7 @@ func (rscData *multichassisData) nullID() bool {
 }
 
 func (rscData *multichassisData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -276,14 +276,14 @@ func (rscData *multichassisData) set(
 			utils.ConvI64toa(rscData.MCLagConsistencyCheckComparaisonDelayTime.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *multichassisData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"multi-chassis" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"multi-chassis"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func (rscData *multichassisData) read(
 }
 
 func (rscData *multichassisData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete multi-chassis "
 
@@ -321,15 +321,15 @@ func (rscData *multichassisData) delOpts(
 		delPrefix + "mc-lag",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *multichassisData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete multi-chassis",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

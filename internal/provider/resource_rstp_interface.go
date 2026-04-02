@@ -387,7 +387,7 @@ func (rsc *rstpInterface) ImportState(
 }
 
 func checkRstpInterfaceExists(
-	_ context.Context, name, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -395,8 +395,8 @@ func checkRstpInterfaceExists(
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols rstp interface " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols rstp interface "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -420,7 +420,7 @@ func (rscData *rstpInterfaceData) nullID() bool {
 }
 
 func (rscData *rstpInterfaceData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -460,18 +460,18 @@ func (rscData *rstpInterfaceData) set(
 			utils.ConvI64toa(rscData.Priority.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *rstpInterfaceData) read(
-	_ context.Context, name, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols rstp interface " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols rstp interface "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -522,7 +522,7 @@ func (rscData *rstpInterfaceData) read(
 }
 
 func (rscData *rstpInterfaceData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -533,5 +533,5 @@ func (rscData *rstpInterfaceData) del(
 		delPrefix + "protocols rstp interface " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

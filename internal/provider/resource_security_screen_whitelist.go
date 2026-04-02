@@ -268,12 +268,12 @@ func (rsc *securityScreenWhitelist) ImportState(
 }
 
 func checkSecurityScreenWhitelistExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security screen white-list " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security screen white-list "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -293,7 +293,7 @@ func (rscData *securityScreenWhitelistData) nullID() bool {
 }
 
 func (rscData *securityScreenWhitelistData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -304,14 +304,14 @@ func (rscData *securityScreenWhitelistData) set(
 		configSet = append(configSet, setPrefix+"address "+v.ValueString())
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityScreenWhitelistData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security screen white-list " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security screen white-list "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -336,11 +336,11 @@ func (rscData *securityScreenWhitelistData) read(
 }
 
 func (rscData *securityScreenWhitelistData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security screen white-list " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

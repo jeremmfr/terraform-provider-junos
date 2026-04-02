@@ -393,12 +393,12 @@ func (rsc *systemSyslogUser) ImportState(
 }
 
 func checkSystemSyslogUserExists(
-	_ context.Context, username string, junSess *junos.Session,
+	ctx context.Context, username string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system syslog user " + username + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system syslog user "+username+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -418,7 +418,7 @@ func (rscData *systemSyslogUserData) nullID() bool {
 }
 
 func (rscData *systemSyslogUserData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -480,14 +480,14 @@ func (rscData *systemSyslogUserData) set(
 		configSet = append(configSet, setPrefix+"user "+v)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemSyslogUserData) read(
-	_ context.Context, username string, junSess *junos.Session,
+	ctx context.Context, username string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system syslog user " + username + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system syslog user "+username+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -548,11 +548,11 @@ func (rscData *systemSyslogUserData) read(
 }
 
 func (rscData *systemSyslogUserData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system syslog user " + rscData.Username.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

@@ -5,12 +5,16 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
+	"net"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/jeremmfr/go-netconf/netconf"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -19,6 +23,40 @@ const (
 	XMLStartTagConfigOut = "<configuration-output>"
 	XMLEndTagConfigOut   = "</configuration-output>"
 )
+
+func (sess *Session) netconfFuncReconnectWrapper(ctx context.Context, f func() error) {
+	err := f()
+	if sess.reconnectNetconf == nil {
+		return
+	}
+
+	var (
+		opErr       *net.OpError
+		exitMissing *ssh.ExitMissingError
+		exitErr     *ssh.ExitError
+	)
+	if errors.As(err, &opErr) ||
+		errors.As(err, &exitMissing) ||
+		errors.As(err, &exitErr) ||
+		errors.Is(err, io.EOF) ||
+		errors.Is(err, os.ErrDeadlineExceeded) {
+		sess.logFile(fmt.Sprintf("[netconf] reconnect session after error: %s", err))
+
+		newSess, recErr := sess.reconnectNetconf(ctx)
+		if recErr != nil {
+			sess.logFile(fmt.Sprintf("[netconf] can't reconnect session: %s", recErr))
+
+			return
+		}
+		sess.netconf = newSess.netconf
+		sess.localAddress = newSess.localAddress
+		sess.remoteAddress = newSess.remoteAddress
+		sess.SystemInformation = newSess.SystemInformation
+
+		// retry function with new netconf session
+		_ = f()
+	}
+}
 
 // gatherFacts gathers basic information about the device.
 func (sess *Session) gatherFacts() error {
@@ -141,23 +179,23 @@ func (sess *Session) netconfConfigLoad(action, format, config string) (string, e
 }
 
 // netConfConfigLock locks the candidate configuration.
-func (sess *Session) netconfConfigLock() bool {
+func (sess *Session) netconfConfigLock() (bool, error) {
 	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcLockCandidate))
 	if err != nil {
-		return false
+		return false, fmt.Errorf("executing netconf lock-candidate: %w", err)
 	}
 	if len(reply.Errors) > 0 {
-		return false
+		return false, nil
 	}
 
-	return true
+	return true, nil
 }
 
 // Unlock unlocks the candidate configuration.
 func (sess *Session) netconfConfigUnlock() []error {
 	reply, err := sess.netconf.Exec(netconf.RawMethod(rpcUnlockCandidate))
 	if err != nil {
-		return []error{fmt.Errorf("executing netconf config unlock: %w", err)}
+		return []error{fmt.Errorf("executing netconf unlock-candidate: %w", err)}
 	}
 
 	if len(reply.Errors) > 0 {

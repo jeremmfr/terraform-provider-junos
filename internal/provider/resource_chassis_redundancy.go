@@ -334,7 +334,7 @@ func (rscData *chassisRedundancyData) nullID() bool {
 }
 
 func (rscData *chassisRedundancyData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -379,14 +379,14 @@ func (rscData *chassisRedundancyData) set(
 			setPrefix+"routing-engine "+utils.ConvI64toa(slot)+" "+v.Role.ValueString())
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *chassisRedundancyData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"chassis redundancy" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"chassis redundancy"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -445,11 +445,11 @@ func (rscData *chassisRedundancyData) read(
 }
 
 func (rscData *chassisRedundancyData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete chassis redundancy",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

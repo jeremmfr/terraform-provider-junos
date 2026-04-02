@@ -598,7 +598,7 @@ func (rsc *routingOptions) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if err := state.delOpts(ctx, forwardingTableExportConfigureSingly, junSess); err != nil {
@@ -670,7 +670,7 @@ func (rscData *routingOptionsData) nullID() bool {
 }
 
 func (rscData *routingOptionsData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -726,7 +726,7 @@ func (rscData *routingOptionsData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *routingOptionsBlockForwardingTable) configSet() []string {
@@ -783,10 +783,10 @@ func (block *routingOptionsBlockForwardingTable) configSet() []string {
 }
 
 func (rscData *routingOptionsData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"routing-options" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"routing-options"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -896,7 +896,7 @@ func (block *routingOptionsBlockForwardingTable) read(itemTrim string) (err erro
 }
 
 func (rscData *routingOptionsData) delOpts(
-	_ context.Context, forwardingTableExportConfigureSingly bool, junSess *junos.Session,
+	ctx context.Context, forwardingTableExportConfigureSingly bool, junSess *junos.Session,
 ) error {
 	listLinesToDelete := []string{
 		"autonomous-system",
@@ -932,7 +932,7 @@ func (rscData *routingOptionsData) delOpts(
 		configSet[i] = delPrefix + line
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *routingOptionsData) del(

@@ -317,12 +317,12 @@ func (rsc *eventoptionsGenerateEvent) ImportState(
 }
 
 func checkEventoptionsGenerateEventExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"event-options generate-event \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"event-options generate-event \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -342,7 +342,7 @@ func (rscData *eventoptionsGenerateEventData) nullID() bool {
 }
 
 func (rscData *eventoptionsGenerateEventData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -363,14 +363,14 @@ func (rscData *eventoptionsGenerateEventData) set(
 		configSet = append(configSet, setPrefix+"time-of-day "+v)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *eventoptionsGenerateEventData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"event-options generate-event \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"event-options generate-event \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -405,11 +405,11 @@ func (rscData *eventoptionsGenerateEventData) read(
 }
 
 func (rscData *eventoptionsGenerateEventData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete event-options generate-event \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

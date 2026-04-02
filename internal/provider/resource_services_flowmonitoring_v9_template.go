@@ -506,12 +506,12 @@ func (rsc *servicesFlowMonitoringV9Template) ImportState(
 }
 
 func checkServicesFlowMonitoringV9TemplateExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services flow-monitoring version9 template \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services flow-monitoring version9 template \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -531,7 +531,7 @@ func (rscData *servicesFlowMonitoringV9TemplateData) nullID() bool {
 }
 
 func (rscData *servicesFlowMonitoringV9TemplateData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -621,14 +621,14 @@ func (rscData *servicesFlowMonitoringV9TemplateData) set(
 		configSet = append(configSet, setPrefix+"tunnel-observation ipv6")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *servicesFlowMonitoringV9TemplateData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services flow-monitoring version9 template \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services flow-monitoring version9 template \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -744,11 +744,11 @@ func (rscData *servicesFlowMonitoringV9TemplateData) read(
 }
 
 func (rscData *servicesFlowMonitoringV9TemplateData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete services flow-monitoring version9 template \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

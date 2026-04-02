@@ -365,7 +365,7 @@ func (rsc *forwardingoptionsDhcprelayServergroup) ImportState(
 }
 
 func checkForwardingoptionsDhcprelayServergroupExists(
-	_ context.Context, name, routingInstance, version string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance, version string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -377,8 +377,8 @@ func checkForwardingoptionsDhcprelayServergroupExists(
 	if version == "v6" {
 		showPrefix += "dhcpv6 "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"server-group " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"server-group "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -409,7 +409,7 @@ func (rscData *forwardingoptionsDhcprelayServergroupData) nullID() bool {
 }
 
 func (rscData *forwardingoptionsDhcprelayServergroupData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -429,11 +429,11 @@ func (rscData *forwardingoptionsDhcprelayServergroupData) set(
 		configSet = append(configSet, setPrefix+v.ValueString())
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *forwardingoptionsDhcprelayServergroupData) read(
-	_ context.Context, name, routingInstance, version string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance, version string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
@@ -443,8 +443,8 @@ func (rscData *forwardingoptionsDhcprelayServergroupData) read(
 	if version == "v6" {
 		showPrefix += "dhcpv6 "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"server-group " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"server-group "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -479,7 +479,7 @@ func (rscData *forwardingoptionsDhcprelayServergroupData) read(
 }
 
 func (rscData *forwardingoptionsDhcprelayServergroupData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != junos.DefaultW {
@@ -494,5 +494,5 @@ func (rscData *forwardingoptionsDhcprelayServergroupData) del(
 		delPrefix + "server-group " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

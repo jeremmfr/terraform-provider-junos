@@ -362,12 +362,12 @@ func (rsc *systemNtpServer) ImportState(
 }
 
 func checkSystemNtpServerExists(
-	_ context.Context, address string, junSess *junos.Session,
+	ctx context.Context, address string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system ntp server " + address + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system ntp server "+address+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -387,7 +387,7 @@ func (rscData *systemNtpServerData) nullID() bool {
 }
 
 func (rscData *systemNtpServerData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -425,14 +425,14 @@ func (rscData *systemNtpServerData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemNtpServerData) read(
-	_ context.Context, address string, junSess *junos.Session,
+	ctx context.Context, address string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system ntp server " + address + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system ntp server "+address+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -485,11 +485,11 @@ func (rscData *systemNtpServerData) read(
 }
 
 func (rscData *systemNtpServerData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system ntp server " + rscData.Address.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

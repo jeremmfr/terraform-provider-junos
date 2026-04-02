@@ -184,7 +184,7 @@ func (rsc *groupRaw) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	groupExists, err := checkGroupRawExists(ctx, plan.Name.ValueString(), junSess)
@@ -288,7 +288,7 @@ func (rsc *groupRaw) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if err := state.del(ctx, junSess); err != nil {
@@ -341,7 +341,7 @@ func (rsc *groupRaw) Delete(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if err := state.del(ctx, junSess); err != nil {
@@ -395,12 +395,12 @@ func (rsc *groupRaw) ImportState(
 }
 
 func checkGroupRawExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"groups \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"groups \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -420,7 +420,7 @@ func (rscData *groupRawData) nullID() bool {
 }
 
 func (rscData *groupRawData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -441,24 +441,24 @@ func (rscData *groupRawData) set(
 			)
 		}
 
-		return path.Empty(), junSess.ConfigLoad("set", "text", rawConfig.String())
+		return path.Empty(), junSess.ConfigLoad(ctx, "set", "text", rawConfig.String())
 	case "text":
 		fallthrough
 	default:
 		rawConfig := "groups {\n\"" + rscData.Name.ValueString() + "\" {\n" + rscData.Config.ValueString() + "}\n}\n"
 
 		// merge action as there is a delete of group before set when update
-		return path.Empty(), junSess.ConfigLoad("merge", "text", rawConfig)
+		return path.Empty(), junSess.ConfigLoad(ctx, "merge", "text", rawConfig)
 	}
 }
 
 func (rscData *groupRawData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
 	switch rscData.Format.ValueString() {
 	case "set":
-		showConfig, err := junSess.Command(junos.CmdShowConfig +
-			"groups \"" + name + "\"" + junos.PipeDisplaySetRelative)
+		showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+			"groups \""+name+"\""+junos.PipeDisplaySetRelative)
 		if err != nil {
 			return err
 		}
@@ -485,8 +485,8 @@ func (rscData *groupRawData) read(
 	case "text":
 		fallthrough
 	default:
-		showConfig, err := junSess.Command(junos.CmdShowConfig +
-			"groups \"" + name + "\"")
+		showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+			"groups \""+name+"\"")
 		if err != nil {
 			return err
 		}
@@ -516,11 +516,11 @@ func (rscData *groupRawData) read(
 }
 
 func (rscData *groupRawData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete groups \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

@@ -152,9 +152,9 @@ func (dscData *interfaceLogicalInfoDataSourceeData) fillID() {
 }
 
 func (dscData *interfaceLogicalInfoDataSourceeData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	replyData, err := junSess.CommandXML(fmt.Sprintf(junos.RPCGetInterfaceInformationTerse, name))
+	replyData, err := junSess.CommandXML(ctx, fmt.Sprintf(junos.RPCGetInterfaceInformationTerse, name))
 	if err != nil {
 		return err
 	}

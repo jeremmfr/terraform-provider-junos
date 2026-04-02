@@ -612,7 +612,7 @@ func (rscData *chassisClusterData) nullID() bool {
 }
 
 func (rscData *chassisClusterData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -663,7 +663,7 @@ func (rscData *chassisClusterData) set(
 			" port "+utils.ConvI64toa(v.Port.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *chassisClusterBlockFab) configSet(iface string) []string {
@@ -760,10 +760,10 @@ func (block *chassisClusterBlockRedundancyGroup) configSet(
 }
 
 func (rscData *chassisClusterData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"chassis cluster" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"chassis cluster"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -837,7 +837,7 @@ func (rscData *chassisClusterData) read(
 		}
 	}
 
-	showConfigFab0, err := junSess.Command(junos.CmdShowConfig + "interfaces fab0" + junos.PipeDisplaySetRelative)
+	showConfigFab0, err := junSess.Command(ctx, junos.CmdShowConfig+"interfaces fab0"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -858,7 +858,7 @@ func (rscData *chassisClusterData) read(
 		}
 	}
 
-	showConfigFab1, err := junSess.Command(junos.CmdShowConfig + "interfaces fab1" + junos.PipeDisplaySetRelative)
+	showConfigFab1, err := junSess.Command(ctx, junos.CmdShowConfig+"interfaces fab1"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -929,7 +929,7 @@ func (block *chassisClusterBlockRedundancyGroup) read(itemTrim string) (err erro
 }
 
 func (rscData *chassisClusterData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete chassis cluster",
@@ -937,5 +937,5 @@ func (rscData *chassisClusterData) del(
 		"delete interfaces fab1",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
