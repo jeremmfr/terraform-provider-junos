@@ -28,6 +28,11 @@ type resourceDataReadFrom1String interface {
 	read(context.Context, string, *junos.Session) error
 }
 
+type resourceDataReadFrom1Int64 interface {
+	resourceDataNullID
+	read(context.Context, int64, *junos.Session) error
+}
+
 type resourceDataReadFrom2String interface {
 	resourceDataNullID
 	read(context.Context, string, string, *junos.Session) error
@@ -218,6 +223,13 @@ func defaultResourceRead(
 		err = data1.read(
 			ctx,
 			mainAttrValues[0].(string),
+			junSess,
+		)
+	}
+	if data1, ok := data.(resourceDataReadFrom1Int64); ok {
+		err = data1.read(
+			ctx,
+			mainAttrValues[0].(int64),
 			junSess,
 		)
 	}
@@ -472,6 +484,18 @@ func defaultResourceImportState(
 	}
 	if data1, ok := data.(resourceDataReadFrom1String); ok {
 		err = data1.read(ctx, req.ID, junSess)
+	}
+	if data1, ok := data.(resourceDataReadFrom1Int64); ok {
+		idInt64, convErr := utils.ConvAtoi64(req.ID)
+		if convErr != nil {
+			resp.Diagnostics.AddError(
+				"Bad ID Format",
+				fmt.Sprintf("id must be a number: got %q", req.ID),
+			)
+
+			return
+		}
+		err = data1.read(ctx, idInt64, junSess)
 	}
 	if data2, ok := data.(resourceDataReadFrom2String); ok {
 		idList := strings.Split(req.ID, junos.IDSeparator)
