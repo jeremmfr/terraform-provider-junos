@@ -1560,7 +1560,7 @@ func (rsc *forwardingoptionsDhcprelayGroup) ImportState(
 }
 
 func checkForwardingoptionsDhcprelayGroupExists(
-	_ context.Context, name, routingInstance, version string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance, version string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -1572,8 +1572,8 @@ func checkForwardingoptionsDhcprelayGroupExists(
 	if version == "v6" {
 		showPrefix += "dhcpv6 "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"group " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"group "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1604,7 +1604,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) nullID() bool {
 }
 
 func (rscData *forwardingoptionsDhcprelayGroupData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1941,7 +1941,7 @@ func (rscData *forwardingoptionsDhcprelayGroupData) set(
 		configSet = append(configSet, block.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *forwardingoptionsDhcprelayGroupBlockInterface) configSet(
@@ -2058,7 +2058,7 @@ func (block *forwardingoptionsDhcprelayGroupBlockInterface) configSet(
 }
 
 func (rscData *forwardingoptionsDhcprelayGroupData) read(
-	_ context.Context, name, routingInstance, version string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance, version string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
@@ -2068,8 +2068,8 @@ func (rscData *forwardingoptionsDhcprelayGroupData) read(
 	if version == "v6" {
 		showPrefix += "dhcpv6 "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"group " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"group "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2333,7 +2333,7 @@ func (block *forwardingoptionsDhcprelayGroupBlockInterface) read(itemTrim, versi
 }
 
 func (rscData *forwardingoptionsDhcprelayGroupData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -2348,5 +2348,5 @@ func (rscData *forwardingoptionsDhcprelayGroupData) del(
 		delPrefix + "group " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

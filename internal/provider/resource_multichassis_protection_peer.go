@@ -257,12 +257,12 @@ func (rsc *multichassisProtectionPeer) ImportState(
 }
 
 func checkMultichassisProtectionPeerExists(
-	_ context.Context, ipAddress string, junSess *junos.Session,
+	ctx context.Context, ipAddress string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"multi-chassis multi-chassis-protection " + ipAddress + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"multi-chassis multi-chassis-protection "+ipAddress+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -282,7 +282,7 @@ func (rscData *multichassisProtectionPeerData) nullID() bool {
 }
 
 func (rscData *multichassisProtectionPeerData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -297,14 +297,14 @@ func (rscData *multichassisProtectionPeerData) set(
 			utils.ConvI64toa(rscData.IclDownDelay.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *multichassisProtectionPeerData) read(
-	_ context.Context, ipAddress string, junSess *junos.Session,
+	ctx context.Context, ipAddress string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"multi-chassis multi-chassis-protection " + ipAddress + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"multi-chassis multi-chassis-protection "+ipAddress+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -335,11 +335,11 @@ func (rscData *multichassisProtectionPeerData) read(
 }
 
 func (rscData *multichassisProtectionPeerData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete multi-chassis multi-chassis-protection " + rscData.IPAddress.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

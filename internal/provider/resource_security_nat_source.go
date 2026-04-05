@@ -648,12 +648,12 @@ func (rsc *securityNatSource) ImportState(
 }
 
 func checkSecurityNatSourceExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security nat source rule-set " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security nat source rule-set "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -673,7 +673,7 @@ func (rscData *securityNatSourceData) nullID() bool {
 }
 
 func (rscData *securityNatSourceData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -779,14 +779,14 @@ func (rscData *securityNatSourceData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityNatSourceData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security nat source rule-set " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security nat source rule-set "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -892,11 +892,11 @@ func (rscData *securityNatSourceData) read(
 }
 
 func (rscData *securityNatSourceData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security nat source rule-set " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

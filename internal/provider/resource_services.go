@@ -1533,7 +1533,7 @@ func (rsc *services) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if err := plan.delOpts(ctx, junSess); err != nil {
@@ -1612,7 +1612,7 @@ func (rscData *servicesData) nullID() bool {
 }
 
 func (rscData *servicesData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1654,7 +1654,7 @@ func (rscData *servicesData) set(
 		configSet = append(configSet, rscData.UserIdentification.configSet()...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *servicesBlockAdvancedAntiMalware) configSet() []string {
@@ -2093,10 +2093,10 @@ func (block *servicesBlockUserIdentificationBlockIdentityManagementBlockConnecti
 }
 
 func (rscData *servicesData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2547,7 +2547,7 @@ func (block *servicesBlockUserIdentificationBlockIdentityManagementBlockConnecti
 }
 
 func (rscData *servicesData) readComputed(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	defer func() {
 		// set unknown to null if still unknown after reading config
@@ -2577,8 +2577,8 @@ func (rscData *servicesData) readComputed(
 		return nil
 	}
 
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2631,7 +2631,7 @@ func (rscData *servicesData) readComputed(
 
 // Use plan instead of state to determine if need to delete extra config.
 func (rscData *servicesData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	listLinesToDelete := make([]string, 0, 100)
 	listLinesToDelete = append(listLinesToDelete, servicesBlockAdvancedAntiMalware{}.junosLines()...)
@@ -2657,11 +2657,11 @@ func (rscData *servicesData) delOpts(
 		configSet[i] = delPrefix + line
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *servicesData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	listLinesToDelete := make([]string, 0, 100)
 	listLinesToDelete = append(listLinesToDelete, servicesBlockAdvancedAntiMalware{}.junosLines()...)
@@ -2679,5 +2679,5 @@ func (rscData *servicesData) del(
 		configSet[i] = delPrefix + line
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

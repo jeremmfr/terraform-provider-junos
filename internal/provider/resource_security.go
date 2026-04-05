@@ -2100,7 +2100,7 @@ func (rscData *securityData) nullID() bool {
 }
 
 func (rscData *securityData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -2223,7 +2223,7 @@ func (rscData *securityData) set(
 		configSet = append(configSet, rscData.Utm.configSet()...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *securityBlockAlg) configSet() []string {
@@ -2819,10 +2819,10 @@ func (block *securityBlockUtm) configSet() []string {
 }
 
 func (rscData *securityData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -3616,7 +3616,7 @@ func (block *securityBlockUtm) read(itemTrim string) (err error) {
 }
 
 func (rscData *securityData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	listLinesToDelete := make([]string, 0, 100)
 
@@ -3639,5 +3639,5 @@ func (rscData *securityData) del(
 		configSet[i] = delPrefix + line
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

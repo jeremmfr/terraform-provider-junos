@@ -1822,12 +1822,12 @@ func (rsc *policyoptionsPolicyStatement) ImportState(
 }
 
 func checkPolicyoptionsPolicyStatementExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"policy-options policy-statement \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"policy-options policy-statement \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1847,7 +1847,7 @@ func (rscData *policyoptionsPolicyStatementData) nullID() bool {
 }
 
 func (rscData *policyoptionsPolicyStatementData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1936,7 +1936,7 @@ func (rscData *policyoptionsPolicyStatementData) set(
 		)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *policyoptionsPolicyStatementBlockFrom) configSet(
@@ -2255,10 +2255,10 @@ func (block *policyoptionsPolicyStatementBlockThen) configSet(
 }
 
 func (rscData *policyoptionsPolicyStatementData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"policy-options policy-statement \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"policy-options policy-statement \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2330,8 +2330,8 @@ func (rscData *policyoptionsPolicyStatementData) read(
 		}
 	}
 
-	showConfigForwardingTableExport, err := junSess.Command(junos.CmdShowConfig +
-		junos.RoutingOptionsWS + "forwarding-table export" + junos.PipeDisplaySetRelative)
+	showConfigForwardingTableExport, err := junSess.Command(ctx, junos.CmdShowConfig+
+		junos.RoutingOptionsWS+"forwarding-table export"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2644,7 +2644,7 @@ func (block *policyoptionsPolicyStatementBlockThen) read(itemTrim string) (err e
 }
 
 func (rscData *policyoptionsPolicyStatementData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete policy-options policy-statement \"" + rscData.Name.ValueString() + "\"",
@@ -2655,5 +2655,5 @@ func (rscData *policyoptionsPolicyStatementData) del(
 		)
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

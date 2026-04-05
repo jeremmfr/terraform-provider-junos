@@ -669,12 +669,12 @@ func (rsc *groupDualSystem) ImportState(
 }
 
 func checkGroupDualSystemExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"groups " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"groups "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -694,7 +694,7 @@ func (rscData *groupDualSystemData) nullID() bool {
 }
 
 func (rscData *groupDualSystemData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -756,7 +756,7 @@ func (rscData *groupDualSystemData) set(
 		configSet = append(configSet, rscData.System.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *groupDualSystemBlockInterfaceFXP0) configSet(
@@ -846,10 +846,10 @@ func (block *groupDualSystemBlockSystem) configSet(setPrefix string) []string {
 }
 
 func (rscData *groupDualSystemData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"groups " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"groups "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -904,8 +904,8 @@ func (rscData *groupDualSystemData) read(
 	}
 
 	rscData.ApplyGroups = types.BoolValue(false)
-	showConfigApplyGroups, err := junSess.Command(junos.CmdShowConfig +
-		"apply-groups" + junos.PipeDisplaySetRelative)
+	showConfigApplyGroups, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"apply-groups"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -984,7 +984,7 @@ func (block *groupDualSystemBlockSystem) read(itemTrim string) {
 }
 
 func (rscData *groupDualSystemData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	name := rscData.Name.ValueString()
 
@@ -999,5 +999,5 @@ func (rscData *groupDualSystemData) del(
 		}
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

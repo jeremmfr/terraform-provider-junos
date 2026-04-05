@@ -775,12 +775,12 @@ func (rsc *securityUtmPolicy) ImportState(
 }
 
 func checkSecurityUtmPolicyExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security utm utm-policy \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security utm utm-policy \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -800,7 +800,7 @@ func (rscData *securityUtmPolicyData) nullID() bool {
 }
 
 func (rscData *securityUtmPolicyData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -862,7 +862,7 @@ func (rscData *securityUtmPolicyData) set(
 		configSet = append(configSet, rscData.TrafficSessionsPerClient.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *securityUtmPolicyBlockProtocolProfile) configSet(setPrefix string) []string {
@@ -1012,10 +1012,10 @@ func (block *securityUtmPolicyBlockTrafficSessionsPerClient) configSet(setPrefix
 }
 
 func (rscData *securityUtmPolicyData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security utm utm-policy \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security utm utm-policy \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -1145,11 +1145,11 @@ func (block *securityUtmPolicyBlockTrafficSessionsPerClient) read(itemTrim strin
 }
 
 func (rscData *securityUtmPolicyData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security utm utm-policy \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

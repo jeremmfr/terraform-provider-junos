@@ -3019,7 +3019,7 @@ func (rscData *systemData) nullID() bool {
 }
 
 func (rscData *systemData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -3212,7 +3212,7 @@ func (rscData *systemData) set(
 		configSet = append(configSet, blockSet...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *systemBlockAccounting) configSet() (
@@ -4011,10 +4011,10 @@ func (block *systemBlockSyslog) configSet() (
 }
 
 func (rscData *systemData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -5043,7 +5043,7 @@ func (block *systemBlockSyslog) read(itemTrim string) (err error) {
 }
 
 func (rscData *systemData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	listLinesToDelete := make([]string, 0, 100)
 	listLinesToDelete = append(listLinesToDelete, "accounting")
@@ -5082,5 +5082,5 @@ func (rscData *systemData) del(
 		configSet[i] = delPrefix + line
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

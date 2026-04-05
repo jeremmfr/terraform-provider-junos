@@ -494,12 +494,12 @@ func (rsc *lldpMedInterface) ImportState(
 }
 
 func checkLldpMedInterfaceExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols lldp-med interface " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"protocols lldp-med interface "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -519,7 +519,7 @@ func (rscData *lldpMedInterfaceData) nullID() bool {
 }
 
 func (rscData *lldpMedInterfaceData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -542,7 +542,7 @@ func (rscData *lldpMedInterfaceData) set(
 		configSet = append(configSet, blockSet...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *lldpMedInterfaceBlockLocation) configSet(
@@ -614,10 +614,10 @@ func (block *lldpMedInterfaceBlockLocation) configSet(
 }
 
 func (rscData *lldpMedInterfaceData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols lldp-med interface " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"protocols lldp-med interface "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -686,11 +686,11 @@ func (block *lldpMedInterfaceBlockLocation) read(itemTrim string) (err error) {
 }
 
 func (rscData *lldpMedInterfaceData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete protocols lldp-med interface " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

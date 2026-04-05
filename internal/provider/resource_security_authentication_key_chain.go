@@ -414,12 +414,12 @@ func (rsc *securityAuthenticationKeyChain) ImportState(
 }
 
 func checkSecurityAuthenticationKeyChainExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security authentication-key-chains key-chain \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security authentication-key-chains key-chain \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -439,7 +439,7 @@ func (rscData *securityAuthenticationKeyChainData) nullID() bool {
 }
 
 func (rscData *securityAuthenticationKeyChainData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -465,7 +465,7 @@ func (rscData *securityAuthenticationKeyChainData) set(
 		configSet = append(configSet, block.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *securityAuthenticationKeyChainBlockKey) configSet(setPrefix string) []string {
@@ -503,10 +503,10 @@ func (block *securityAuthenticationKeyChainBlockKey) configSet(setPrefix string)
 }
 
 func (rscData *securityAuthenticationKeyChainData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security authentication-key-chains key-chain \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security authentication-key-chains key-chain \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -587,11 +587,11 @@ func (block *securityAuthenticationKeyChainBlockKey) read(
 }
 
 func (rscData *securityAuthenticationKeyChainData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security authentication-key-chains key-chain \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

@@ -186,7 +186,7 @@ func (rsc *nullLoadConfig) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if errPath, err := plan.set(ctx, junSess); err != nil {
@@ -237,7 +237,7 @@ func (rscData *nullLoadConfigData) fillID() {
 }
 
 func (rscData *nullLoadConfigData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -255,5 +255,5 @@ func (rscData *nullLoadConfigData) set(
 			fmt.Errorf("format cannot be %q when action = %q, must be %q", format, action, junos.ConfigFormatText)
 	}
 
-	return path.Empty(), junSess.ConfigLoad(action, format, rscData.Config.ValueString())
+	return path.Empty(), junSess.ConfigLoad(ctx, action, format, rscData.Config.ValueString())
 }

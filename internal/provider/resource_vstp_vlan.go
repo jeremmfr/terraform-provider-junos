@@ -319,7 +319,7 @@ func (rsc *vstpVlan) ImportState(
 }
 
 func checkVstpVlanExists(
-	_ context.Context, vlanID, routingInstance string, junSess *junos.Session,
+	ctx context.Context, vlanID, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -327,8 +327,8 @@ func checkVstpVlanExists(
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols vstp vlan " + vlanID + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols vstp vlan "+vlanID+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -352,7 +352,7 @@ func (rscData *vstpVlanData) nullID() bool {
 }
 
 func (rscData *vstpVlanData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -367,18 +367,18 @@ func (rscData *vstpVlanData) set(
 
 	configSet = append(configSet, rscData.vstpVlanAttrData.configSet(setPrefix)...)
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *vstpVlanData) read(
-	_ context.Context, vlanID, routingInstance string, junSess *junos.Session,
+	ctx context.Context, vlanID, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols vstp vlan " + vlanID + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols vstp vlan "+vlanID+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -408,7 +408,7 @@ func (rscData *vstpVlanData) read(
 }
 
 func (rscData *vstpVlanData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -416,11 +416,11 @@ func (rscData *vstpVlanData) delOpts(
 	}
 	delPrefix += "protocols vstp vlan " + rscData.VlanID.ValueString() + " "
 
-	return junSess.ConfigSet(rscData.vstpVlanAttrData.configOptsToDel(delPrefix))
+	return junSess.ConfigSet(ctx, rscData.vstpVlanAttrData.configOptsToDel(delPrefix))
 }
 
 func (rscData *vstpVlanData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -431,5 +431,5 @@ func (rscData *vstpVlanData) del(
 		delPrefix + "protocols vstp vlan " + rscData.VlanID.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

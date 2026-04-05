@@ -173,13 +173,13 @@ func (dscData *routesDataSourceData) fillID() {
 }
 
 func (dscData *routesDataSourceData) read(
-	_ context.Context, tableName string, junSess *junos.Session,
+	ctx context.Context, tableName string, junSess *junos.Session,
 ) error {
 	rpcReq := junos.RPCGetRouteAllInformation
 	if tableName != "" {
 		rpcReq = fmt.Sprintf(junos.RPCGetRouteAllTableInformation, tableName)
 	}
-	replyData, err := junSess.CommandXML(rpcReq)
+	replyData, err := junSess.CommandXML(ctx, rpcReq)
 	if err != nil {
 		return err
 	}

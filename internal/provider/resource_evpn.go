@@ -595,7 +595,7 @@ func (rscData *evpnData) nullID() bool {
 }
 
 func (rscData *evpnData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -686,11 +686,11 @@ func (rscData *evpnData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *evpnData) read(
-	_ context.Context, routingInstance string, junSess *junos.Session,
+	ctx context.Context, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	showSwitchRI := junos.CmdShowConfig
@@ -700,12 +700,12 @@ func (rscData *evpnData) read(
 	} else {
 		showSwitchRI += "switch-options"
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols evpn" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols evpn"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
-	showConfigSwitchRI, err := junSess.Command(showSwitchRI + junos.PipeDisplaySetRelative)
+	showConfigSwitchRI, err := junSess.Command(ctx, showSwitchRI+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -799,7 +799,7 @@ func (rscData *evpnData) read(
 }
 
 func (rscData *evpnData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	delSwitchRIPrefix := junos.DeleteLS
@@ -833,11 +833,11 @@ func (rscData *evpnData) delOpts(
 		)
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *evpnData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	delSwitchRIPrefix := junos.DeleteLS
@@ -866,5 +866,5 @@ func (rscData *evpnData) del(
 		)
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

@@ -601,7 +601,7 @@ func (rscData *virtualChassisData) nullID() bool {
 }
 
 func (rscData *virtualChassisData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -686,7 +686,7 @@ func (rscData *virtualChassisData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *virtualChassisBlockMember) configSet() []string {
@@ -744,10 +744,10 @@ func (block *virtualChassisBlockTraceoptionsBlockFile) configSet() []string {
 }
 
 func (rscData *virtualChassisData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"virtual-chassis" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"virtual-chassis"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -886,11 +886,11 @@ func (block *virtualChassisBlockTraceoptionsBlockFile) read(itemTrim string) (er
 }
 
 func (rscData *virtualChassisData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete virtual-chassis",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

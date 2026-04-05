@@ -171,7 +171,7 @@ The following arguments are supported:
   Preferred lifetime advertised to clients (seconds).  
   `type` need to be `inet6`.  
   Conflict with `preferred_lifetime_infinite`, `maximum_lease_time*`.
-- **preferred_lifetime_infinite** (Optional, Boolean)
+- **preferred_lifetime_infinite** (Optional, Boolean)  
   Lease time can be infinite.  
   `type` need to be `inet6`.  
   Conflict with `preferred_lifetime`, `maximum_lease_time*`.

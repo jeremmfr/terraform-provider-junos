@@ -46,7 +46,7 @@ The following arguments are supported:
 - **rule** (Optional, Block List)  
   For each name of static nat rule to declare.  
   See [below for nested schema](#rule-arguments).
-- **configure_rules_singly** (Optional, Boolean)
+- **configure_rules_singly** (Optional, Boolean)  
   Disable management of rules in this resource to be able to manage them with specific
   resources.
 - **description** (Optional, String)  

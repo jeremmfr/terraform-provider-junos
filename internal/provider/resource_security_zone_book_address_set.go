@@ -362,12 +362,12 @@ func (rsc *securityZoneBookAddressSet) ImportState(
 }
 
 func checkSecurityZoneBookAddressSetExists(
-	_ context.Context, zone, name string, junSess *junos.Session,
+	ctx context.Context, zone, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security zones security-zone " + zone + " address-book address-set " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security zones security-zone "+zone+" address-book address-set "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -387,7 +387,7 @@ func (rscData *securityZoneBookAddressSetData) nullID() bool {
 }
 
 func (rscData *securityZoneBookAddressSetData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -408,14 +408,14 @@ func (rscData *securityZoneBookAddressSetData) set(
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityZoneBookAddressSetData) read(
-	_ context.Context, zone, name string, junSess *junos.Session,
+	ctx context.Context, zone, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security zones security-zone " + zone + " address-book address-set " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security zones security-zone "+zone+" address-book address-set "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -446,12 +446,12 @@ func (rscData *securityZoneBookAddressSetData) read(
 }
 
 func (rscData *securityZoneBookAddressSetData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security zones security-zone " + rscData.Zone.ValueString() +
 			" address-book address-set " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

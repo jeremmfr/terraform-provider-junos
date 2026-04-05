@@ -467,12 +467,12 @@ func (rsc *systemSyslogHost) ImportState(
 }
 
 func checkSystemSyslogHostExists(
-	_ context.Context, host string, junSess *junos.Session,
+	ctx context.Context, host string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system syslog host " + host + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system syslog host "+host+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -492,7 +492,7 @@ func (rscData *systemSyslogHostData) nullID() bool {
 }
 
 func (rscData *systemSyslogHostData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -579,14 +579,14 @@ func (rscData *systemSyslogHostData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemSyslogHostData) read(
-	_ context.Context, host string, junSess *junos.Session,
+	ctx context.Context, host string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system syslog host " + host + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system syslog host "+host+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -669,11 +669,11 @@ func (rscData *systemSyslogHostData) read(
 }
 
 func (rscData *systemSyslogHostData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system syslog host " + rscData.Host.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
