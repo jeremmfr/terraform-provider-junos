@@ -283,12 +283,12 @@ func (rsc *oamGretunnelInterface) ImportState(
 }
 
 func checkOamGretunnelInterfaceExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"protocols oam gre-tunnel interface "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -308,7 +308,7 @@ func (rscData *oamGretunnelInterfaceData) nullID() bool {
 }
 
 func (rscData *oamGretunnelInterfaceData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -326,14 +326,14 @@ func (rscData *oamGretunnelInterfaceData) set(
 			utils.ConvI64toa(rscData.KeepaliveTime.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *oamGretunnelInterfaceData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols oam gre-tunnel interface " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"protocols oam gre-tunnel interface "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -367,11 +367,11 @@ func (rscData *oamGretunnelInterfaceData) read(
 }
 
 func (rscData *oamGretunnelInterfaceData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete protocols oam gre-tunnel interface " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

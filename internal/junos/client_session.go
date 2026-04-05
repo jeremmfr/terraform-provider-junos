@@ -9,6 +9,28 @@ import (
 )
 
 func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
+	if clt.singleSession {
+		clt.mutexSharedSession.Lock()
+		if clt.sharedSession != nil {
+			return clt.sharedSession, nil
+		}
+
+		sess, err := clt.newSession(ctx)
+		if err != nil {
+			clt.mutexSharedSession.Unlock()
+
+			return nil, err
+		}
+		sess.release = clt.mutexSharedSession.Unlock
+		clt.sharedSession = sess
+
+		return clt.sharedSession, nil
+	}
+
+	return clt.newSession(ctx)
+}
+
+func (clt *Client) newSession(ctx context.Context) (*Session, error) {
 	var auth sshAuthMethod
 	auth.Username = clt.junosUserName
 	auth.Ciphers = clt.junosSSHCiphers
@@ -43,6 +65,19 @@ func (clt *Client) StartNewSession(ctx context.Context) (*Session, error) {
 		}
 
 		return nil, err
+	}
+	if clt.singleSession {
+		sess.reconnectNetconf = func(fnCtx context.Context) (*Session, error) {
+			return netconfNewSession(
+				fnCtx,
+				net.JoinHostPort(clt.junosIP, strconv.Itoa(clt.junosPort)),
+				&auth,
+				&openSSHOptions{
+					Retry:   clt.junosSSHRetryToEstab,
+					Timeout: clt.junosSSHTimeoutToEstab,
+				},
+			)
+		}
 	}
 	sess.commitConfirmedTimeout = clt.junosCommitConfirmed
 	sess.commitConfirmedWait = time.Duration(

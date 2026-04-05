@@ -1030,12 +1030,12 @@ func (rsc *securityIdpPolicy) ImportState(
 }
 
 func checkSecurityIdpPolicyExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security idp idp-policy \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security idp idp-policy \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1055,7 +1055,7 @@ func (rscData *securityIdpPolicyData) nullID() bool {
 }
 
 func (rscData *securityIdpPolicyData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1095,7 +1095,7 @@ func (rscData *securityIdpPolicyData) set(
 		configSet = append(configSet, blockSet...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *securityIdpPolicyBlockExemptRule) configSet(
@@ -1358,10 +1358,10 @@ func (block *securityIdpPolicyBlockIpsRule) configSet(
 }
 
 func (rscData *securityIdpPolicyData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security idp idp-policy \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security idp idp-policy \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -1552,11 +1552,11 @@ func (block *securityIdpPolicyBlockIpsRule) read(itemTrim string) (err error) {
 }
 
 func (rscData *securityIdpPolicyData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security idp idp-policy \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

@@ -425,12 +425,12 @@ func (rsc *iccpPeer) ImportState(
 }
 
 func checkIccpPeerExists(
-	_ context.Context, ipAddress string, junSess *junos.Session,
+	ctx context.Context, ipAddress string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols iccp peer " + ipAddress + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"protocols iccp peer "+ipAddress+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -450,7 +450,7 @@ func (rscData *iccpPeerData) nullID() bool {
 }
 
 func (rscData *iccpPeerData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -513,14 +513,14 @@ func (rscData *iccpPeerData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *iccpPeerData) read(
-	_ context.Context, ipAddress string, junSess *junos.Session,
+	ctx context.Context, ipAddress string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols iccp peer " + ipAddress + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"protocols iccp peer "+ipAddress+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -594,11 +594,11 @@ func (rscData *iccpPeerData) read(
 }
 
 func (rscData *iccpPeerData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete protocols iccp peer " + rscData.IPAddress.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

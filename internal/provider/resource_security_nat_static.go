@@ -673,7 +673,7 @@ func (rsc *securityNatStatic) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	var delErr error
@@ -758,12 +758,12 @@ func (rsc *securityNatStatic) ImportState(
 }
 
 func checkSecurityNatStaticExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security nat static rule-set " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security nat static rule-set "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -917,14 +917,14 @@ func (rscData *securityNatStaticData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityNatStaticData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security nat static rule-set " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security nat static rule-set "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -1024,22 +1024,22 @@ func (rscData *securityNatStaticData) read(
 }
 
 func (rscData *securityNatStaticData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security nat static rule-set " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityNatStaticData) delOptsWithoutRules(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security nat static rule-set " + rscData.Name.ValueString() + " description",
 		"delete security nat static rule-set " + rscData.Name.ValueString() + " from",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

@@ -390,12 +390,12 @@ func (rsc *forwardingoptionsStormControlProfile) ImportState(
 }
 
 func checkForwardingoptionsStormControlProfileExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"forwarding-options storm-control-profiles \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"forwarding-options storm-control-profiles \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -415,7 +415,7 @@ func (rscData *forwardingoptionsStormControlProfileData) nullID() bool {
 }
 
 func (rscData *forwardingoptionsStormControlProfileData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -457,14 +457,14 @@ func (rscData *forwardingoptionsStormControlProfileData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *forwardingoptionsStormControlProfileData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"forwarding-options storm-control-profiles \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"forwarding-options storm-control-profiles \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -516,11 +516,11 @@ func (rscData *forwardingoptionsStormControlProfileData) read(
 }
 
 func (rscData *forwardingoptionsStormControlProfileData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete forwarding-options storm-control-profiles \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

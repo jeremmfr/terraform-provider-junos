@@ -32,6 +32,8 @@ type Session struct {
 	commitConfirmedTimeout int
 	commitConfirmedWait    time.Duration
 	sleepSSHClosed         int
+	release                func()
+	reconnectNetconf       func(context.Context) (*Session, error)
 }
 
 type sshAuthMethod struct {
@@ -207,8 +209,16 @@ func (sess *Session) HasNetconf() bool {
 }
 
 // Command (show, execute) on Junos device via netconf.
-func (sess *Session) Command(cmd string) (string, error) {
-	read, err := sess.netconfCommand(cmd)
+func (sess *Session) Command(ctx context.Context, cmd string) (string, error) {
+	var (
+		read string
+		err  error
+	)
+	sess.netconfFuncReconnectWrapper(ctx, func() error {
+		read, err = sess.netconfCommand(cmd)
+
+		return err
+	})
 	sess.logFile(fmt.Sprintf("[Command] cmd: %q", cmd))
 	sess.logFile(fmt.Sprintf("[Command] read: %q", read))
 	utils.SleepShort(sess.sleepShort)
@@ -222,8 +232,16 @@ func (sess *Session) Command(cmd string) (string, error) {
 }
 
 // CommandXML send XML cmd on Junos device via netconf.
-func (sess *Session) CommandXML(cmd string) (string, error) {
-	read, err := sess.netconfCommandXML(cmd)
+func (sess *Session) CommandXML(ctx context.Context, cmd string) (string, error) {
+	var (
+		read string
+		err  error
+	)
+	sess.netconfFuncReconnectWrapper(ctx, func() error {
+		read, err = sess.netconfCommandXML(cmd)
+
+		return err
+	})
 	sess.logFile(fmt.Sprintf("[CommandXML] cmd: %q", cmd))
 	sess.logFile(fmt.Sprintf("[CommandXML] read: %q", read))
 	utils.SleepShort(sess.sleepShort)
@@ -238,9 +256,17 @@ func (sess *Session) CommandXML(cmd string) (string, error) {
 
 // ConfigSet append candidate configuration with set/delete lines
 // on Junos device via netconf or in fake file if set.
-func (sess *Session) ConfigSet(cmd []string) error {
+func (sess *Session) ConfigSet(ctx context.Context, cmd []string) error {
 	if sess.netconf != nil {
-		message, err := sess.netconfConfigSet(cmd)
+		var (
+			message string
+			err     error
+		)
+		sess.netconfFuncReconnectWrapper(ctx, func() error {
+			message, err = sess.netconfConfigSet(cmd)
+
+			return err
+		})
 		utils.SleepShort(sess.sleepShort)
 		sess.logFile(fmt.Sprintf("[ConfigSet] cmd: %q", cmd))
 		sess.logFile(fmt.Sprintf("[ConfigSet] message: %q", message))
@@ -258,7 +284,7 @@ func (sess *Session) ConfigSet(cmd []string) error {
 	return errors.New("internal error: call Session.ConfigSet without netconf session or fake set file")
 }
 
-func (sess *Session) ConfigLoad(action, format, config string) error {
+func (sess *Session) ConfigLoad(ctx context.Context, action, format, config string) error {
 	if sess.netconf == nil {
 		return errors.New("internal error: call Session.ConfigLoad without netconf session")
 	}
@@ -284,7 +310,15 @@ func (sess *Session) ConfigLoad(action, format, config string) error {
 		return errors.New("unknown format %q to load configuration")
 	}
 
-	message, err := sess.netconfConfigLoad(action, format, config)
+	var (
+		message string
+		err     error
+	)
+	sess.netconfFuncReconnectWrapper(ctx, func() error {
+		message, err = sess.netconfConfigLoad(action, format, config)
+
+		return err
+	})
 	utils.SleepShort(sess.sleepShort)
 	sess.logFile(fmt.Sprintf("[ConfigLoad] message: %q", message))
 	if err != nil {
@@ -297,7 +331,7 @@ func (sess *Session) ConfigLoad(action, format, config string) error {
 }
 
 // ConfigGet: get committed configuration in desired format.
-func (sess *Session) ConfigGet(format string) (string, error) {
+func (sess *Session) ConfigGet(ctx context.Context, format string) (string, error) {
 	if sess.netconf == nil {
 		return "", errors.New("internal error: call Session.ConfigGet without netconf session")
 	}
@@ -313,7 +347,15 @@ func (sess *Session) ConfigGet(format string) (string, error) {
 		return "", errors.New("unknown format %q to get configuration")
 	}
 
-	output, err := sess.netconfConfigGet(format)
+	var (
+		output string
+		err    error
+	)
+	sess.netconfFuncReconnectWrapper(ctx, func() error {
+		output, err = sess.netconfConfigGet(format)
+
+		return err
+	})
 	utils.SleepShort(sess.sleepShort)
 	if err != nil {
 		sess.logFile(fmt.Sprintf("[ConfigGet] err: %q", err))
@@ -333,7 +375,15 @@ func (sess *Session) ConfigLock(ctx context.Context) error {
 
 			return errors.New("candidate configuration lock attempt aborted")
 		default:
-			if sess.netconfConfigLock() {
+			var locked bool
+			sess.netconfFuncReconnectWrapper(ctx, func() error {
+				var err error
+				locked, err = sess.netconfConfigLock()
+
+				return err
+			})
+
+			if locked {
 				sess.logFile("[ConfigLock] config locked")
 				utils.SleepShort(sess.sleepShort)
 
@@ -346,8 +396,16 @@ func (sess *Session) ConfigLock(ctx context.Context) error {
 }
 
 // ConfigUnlock unlock candidate configuration.
-func (sess *Session) ConfigUnlock() []error {
-	errs := sess.netconfConfigUnlock()
+func (sess *Session) ConfigUnlock(ctx context.Context) []error {
+	var errs []error
+	sess.netconfFuncReconnectWrapper(ctx, func() error {
+		errs = sess.netconfConfigUnlock()
+		if len(errs) > 0 {
+			return errs[0]
+		}
+
+		return nil
+	})
 
 	sess.logFile("[ConfigUnlock] config unlocked")
 	utils.SleepShort(sess.sleepShort)
@@ -362,10 +420,18 @@ func (sess *Session) CommitConf(ctx context.Context, logMessage string) (warning
 			"[CommitConf] commit confirmed %d (wait %s) %q",
 			sess.commitConfirmedTimeout, sess.commitConfirmedWait, logMessage,
 		))
-		warnings, err = sess.netconfCommitConfirmed(ctx, logMessage)
+		sess.netconfFuncReconnectWrapper(ctx, func() error {
+			warnings, err = sess.netconfCommitConfirmed(ctx, logMessage)
+
+			return err
+		})
 	} else {
 		sess.logFile(fmt.Sprintf("[CommitConf] commit %q", logMessage))
-		warnings, err = sess.netconfCommit(logMessage)
+		sess.netconfFuncReconnectWrapper(ctx, func() error {
+			warnings, err = sess.netconfCommit(logMessage)
+
+			return err
+		})
 	}
 	utils.SleepShort(sess.sleepShort)
 	if len(warnings) > 0 {
@@ -383,6 +449,11 @@ func (sess *Session) CommitConf(ctx context.Context, logMessage string) (warning
 }
 
 func (sess *Session) Close() {
+	if sess.release != nil {
+		sess.release()
+
+		return
+	}
 	if sess.HasNetconf() {
 		err := sess.closeNetconf(sess.sleepSSHClosed)
 		if err != nil {

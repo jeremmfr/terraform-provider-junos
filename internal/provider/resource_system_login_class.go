@@ -665,12 +665,12 @@ func (rsc *systemLoginClass) ImportState(
 }
 
 func checkSystemLoginClassExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system login class " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system login class "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -690,7 +690,7 @@ func (rscData *systemLoginClassData) nullID() bool {
 }
 
 func (rscData *systemLoginClassData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -776,14 +776,14 @@ func (rscData *systemLoginClassData) set(
 		configSet = append(configSet, setPrefix+"tenant \""+v+"\"")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemLoginClassData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system login class " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system login class "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -866,11 +866,11 @@ func (rscData *systemLoginClassData) read(
 }
 
 func (rscData *systemLoginClassData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system login class " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

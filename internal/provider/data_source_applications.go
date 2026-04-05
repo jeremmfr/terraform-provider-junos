@@ -284,7 +284,7 @@ func (dsc *applicationsDataSource) Read(
 	defer junSess.Close()
 
 	junos.MutexLock()
-	applicationMap, err := dsc.search(junSess)
+	applicationMap, err := dsc.search(ctx, junSess)
 	junos.MutexUnlock()
 	if err != nil {
 		resp.Diagnostics.AddError(tfdiag.ReadErrSummary, err.Error())
@@ -304,7 +304,7 @@ func (dsc *applicationsDataSource) Read(
 }
 
 func (dsc *applicationsDataSource) search(
-	junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	map[string]applicationsDataSourceBlockApplications, error,
 ) {
@@ -313,7 +313,7 @@ func (dsc *applicationsDataSource) search(
 		"groups junos-defaults applications",
 		"applications",
 	} {
-		showConfig, err := junSess.Command(junos.CmdShowConfig + config + junos.PipeDisplaySetRelative)
+		showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+config+junos.PipeDisplaySetRelative)
 		if err != nil {
 			return results, err
 		}

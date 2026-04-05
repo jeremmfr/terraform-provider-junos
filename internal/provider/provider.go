@@ -58,6 +58,7 @@ type junosProviderModel struct {
 	FakeCreateSetFile          types.String `tfsdk:"fake_create_with_setfile"`
 	FakeUpdateAlso             types.Bool   `tfsdk:"fake_update_also"`
 	FakeDeleteAlso             types.Bool   `tfsdk:"fake_delete_also"`
+	SingleSession              types.Bool   `tfsdk:"single_session"`
 }
 
 const (
@@ -216,6 +217,16 @@ func (p *junosProvider) Schema(
 					"append them to the same file as `fake_create_with_setfile`, " +
 					"and respond with a `fake` successful delete of resources to Terraform." +
 					" May also be enabled via " + junos.EnvFakedeleteAlso + " environment variable.",
+			},
+			"single_session": schema.BoolAttribute{
+				Optional: true,
+				Description: "Use a single shared SSH/NETCONF session for all provider operations instead of " +
+					"opening a new session for each resource action. " +
+					"Access to the session is serialized to avoid concurrent use. " +
+					"The session is automatically reconnected if the connection is lost. " +
+					"Warning: the session will not be properly closed at the end of a Terraform run, " +
+					"as Terraform shuts down the provider without prior notice." +
+					" May also be enabled via " + junos.EnvSingleSession + " environment variable.",
 			},
 		},
 	}
@@ -592,6 +603,14 @@ func (p *junosProvider) Configure( //nolint:gocyclo
 			tfdiag.UnknownJunosAttrErrSummary,
 			unknownValueErrorMessage+"for 'fake_delete_also' attribute."+
 				fmt.Sprintf(instructionUnknownMessage, junos.EnvFakedeleteAlso),
+		)
+	}
+	if config.SingleSession.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("single_session"),
+			tfdiag.UnknownJunosAttrErrSummary,
+			unknownValueErrorMessage+"for 'single_session' attribute."+
+				fmt.Sprintf(instructionUnknownMessage, junos.EnvSingleSession),
 		)
 	}
 	if resp.Diagnostics.HasError() {
@@ -980,6 +999,14 @@ func (p *junosProvider) Configure( //nolint:gocyclo
 		)
 
 		return
+	}
+
+	if !config.SingleSession.IsNull() {
+		if config.SingleSession.ValueBool() {
+			client.WithSingleSession()
+		}
+	} else if utils.ParseTrue(os.Getenv(junos.EnvSingleSession)) {
+		client.WithSingleSession()
 	}
 
 	resp.ActionData = client

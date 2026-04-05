@@ -1777,12 +1777,12 @@ func (rsc *firewallFilter) ImportState(
 }
 
 func checkFirewallFilterExists(
-	_ context.Context, name, family string, junSess *junos.Session,
+	ctx context.Context, name, family string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"firewall family " + family + " filter \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"firewall family "+family+" filter \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1802,7 +1802,7 @@ func (rscData *firewallFilterData) nullID() bool {
 }
 
 func (rscData *firewallFilterData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1838,7 +1838,7 @@ func (rscData *firewallFilterData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *firewallFilterBlockTermBlockFrom) configSet(
@@ -2122,10 +2122,10 @@ func (block *firewallFilterBlockTermBlockThen) configSet(setPrefix string) []str
 }
 
 func (rscData *firewallFilterData) read(
-	_ context.Context, name, family string, junSess *junos.Session,
+	ctx context.Context, name, family string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"firewall family " + family + " filter \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"firewall family "+family+" filter \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2318,11 +2318,11 @@ func (block *firewallFilterBlockTermBlockThen) read(itemTrim string) {
 }
 
 func (rscData *firewallFilterData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete firewall family " + rscData.Family.ValueString() + " filter \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

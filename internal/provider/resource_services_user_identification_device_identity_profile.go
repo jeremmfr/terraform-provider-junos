@@ -340,12 +340,12 @@ func (rsc *servicesUserIdentificationDeviceIdentityProfile) ImportState(
 }
 
 func checkServicesUserIdentDeviceIdentityProfileExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services user-identification device-information end-user-profile profile-name " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services user-identification device-information end-user-profile profile-name "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -365,7 +365,7 @@ func (rscData *servicesUserIdentificationDeviceIdentityProfileData) nullID() boo
 }
 
 func (rscData *servicesUserIdentificationDeviceIdentityProfileData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -390,14 +390,14 @@ func (rscData *servicesUserIdentificationDeviceIdentityProfileData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *servicesUserIdentificationDeviceIdentityProfileData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"services user-identification device-information end-user-profile profile-name " + name +
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"services user-identification device-information end-user-profile profile-name "+name+
 		junos.PipeDisplaySetRelative,
 	)
 	if err != nil {
@@ -434,11 +434,11 @@ func (rscData *servicesUserIdentificationDeviceIdentityProfileData) read(
 }
 
 func (rscData *servicesUserIdentificationDeviceIdentityProfileData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete services user-identification device-information end-user-profile profile-name " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

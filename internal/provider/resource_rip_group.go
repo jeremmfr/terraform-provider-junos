@@ -510,7 +510,7 @@ func (rsc *ripGroup) ImportState(
 }
 
 func checkRipGroupExists(
-	_ context.Context, name string, ng bool, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name string, ng bool, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -523,8 +523,8 @@ func checkRipGroupExists(
 	} else {
 		showPrefix += "protocols rip "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"group \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"group \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -552,7 +552,7 @@ func (rscData *ripGroupData) nullID() bool {
 }
 
 func (rscData *ripGroupData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -608,11 +608,11 @@ func (rscData *ripGroupData) set(
 		configSet = append(configSet, rscData.BfdLivenessDetection.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *ripGroupData) read(
-	_ context.Context, name string, ng bool, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name string, ng bool, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
@@ -623,8 +623,8 @@ func (rscData *ripGroupData) read(
 	} else {
 		showPrefix += "protocols rip "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"group \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"group \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -690,7 +690,7 @@ func (rscData *ripGroupData) read(
 }
 
 func (rscData *ripGroupData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -715,11 +715,11 @@ func (rscData *ripGroupData) delOpts(
 		delPrefix + "update-interval",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *ripGroupData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -735,5 +735,5 @@ func (rscData *ripGroupData) del(
 		delPrefix + "group \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

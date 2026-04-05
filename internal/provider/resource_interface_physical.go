@@ -1264,7 +1264,7 @@ func (rsc *interfacePhysical) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(
@@ -1337,7 +1337,7 @@ func (rsc *interfacePhysical) Create(
 		return
 	}
 	if emptyInt {
-		intExists, err := junSess.CheckInterfaceExists(plan.Name.ValueString())
+		intExists, err := junSess.CheckInterfaceExists(ctx, plan.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
@@ -1394,7 +1394,7 @@ func (rsc *interfacePhysical) Read(
 		return
 	}
 	if emptyInt {
-		intExists, err := junSess.CheckInterfaceExists(state.Name.ValueString())
+		intExists, err := junSess.CheckInterfaceExists(ctx, state.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
@@ -1474,7 +1474,7 @@ func (rsc *interfacePhysical) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if err := state.delOpts(ctx, junSess); err != nil {
@@ -1542,7 +1542,7 @@ func (rsc *interfacePhysical) Delete(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if err := state.del(ctx, junSess); err != nil {
@@ -1559,7 +1559,7 @@ func (rsc *interfacePhysical) Delete(
 	}
 
 	if !state.NoDisableOnDestroy.ValueBool() {
-		intExists, err := junSess.CheckInterfaceExists(state.Name.ValueString())
+		intExists, err := junSess.CheckInterfaceExists(ctx, state.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("Pre Disable Config Set Error", err.Error())
 		} else if intExists {
@@ -1624,7 +1624,7 @@ func (rsc *interfacePhysical) ImportState(
 		return
 	}
 	if emptyInt {
-		intExists, err := junSess.CheckInterfaceExists(req.ID)
+		intExists, err := junSess.CheckInterfaceExists(ctx, req.ID)
 		if err != nil {
 			resp.Diagnostics.AddError("Interface Read Error", err.Error())
 
@@ -1655,14 +1655,14 @@ func (rscData *interfacePhysicalData) fillID() {
 }
 
 func checkInterfacePhysicalNCEmpty(
-	_ context.Context, name, groupInterfaceDelete string, junSess *junos.Session,
+	ctx context.Context, name, groupInterfaceDelete string, junSess *junos.Session,
 ) (
 	ncInt, // interface is set with NC config
 	emtyInt bool, // interface is not set (empty)
 	_ error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"interfaces " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"interfaces "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return false, false, err
 	}
@@ -1705,12 +1705,12 @@ func checkInterfacePhysicalNCEmpty(
 }
 
 func checkInterfacePhysicalContainsUnit(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"interfaces " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"interfaces "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return false, err
 	}
@@ -1759,10 +1759,10 @@ func (rscData *interfacePhysicalData) unsetAE(
 			return err
 		}
 		if aggregatedCount == "0" {
-			return junSess.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"})
+			return junSess.ConfigSet(ctx, []string{"delete chassis aggregated-devices ethernet device-count"})
 		}
 
-		return junSess.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
+		return junSess.ConfigSet(ctx, []string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
 	}
 
 	return nil
@@ -1937,7 +1937,7 @@ func (rscData *interfacePhysicalData) set(
 		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *interfacePhysicalBlockESI) configSet(setPrefix string) []string {
@@ -2143,14 +2143,14 @@ func (block *interfacePhysicalBlockParentEtherOpts) configSet(
 }
 
 func addInterfaceNC(
-	_ context.Context, name, groupInterfaceDelete string, junSess *junos.Session,
+	ctx context.Context, name, groupInterfaceDelete string, junSess *junos.Session,
 ) (
 	err error,
 ) {
 	if groupInterfaceDelete == "" {
-		err = junSess.ConfigSet([]string{"set interfaces " + name + " disable description NC"})
+		err = junSess.ConfigSet(ctx, []string{"set interfaces " + name + " disable description NC"})
 	} else {
-		err = junSess.ConfigSet([]string{"set interfaces " + name + " apply-groups " + groupInterfaceDelete})
+		err = junSess.ConfigSet(ctx, []string{"set interfaces " + name + " apply-groups " + groupInterfaceDelete})
 	}
 	if err != nil {
 		return err
@@ -2160,10 +2160,10 @@ func addInterfaceNC(
 }
 
 func (rscData *interfacePhysicalData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"interfaces " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"interfaces "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2436,7 +2436,7 @@ func (block *interfacePhysicalBlockParentEtherOpts) read(itemTrim string) (err e
 }
 
 func (rscData *interfacePhysicalData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete interfaces " + rscData.Name.ValueString() + " "
 
@@ -2465,7 +2465,7 @@ func (rscData *interfacePhysicalData) delOpts(
 		delPrefix + "vlan-tagging",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *interfacePhysicalData) del(
@@ -2483,7 +2483,7 @@ func (rscData *interfacePhysicalData) del(
 		}
 	}
 
-	if err := junSess.ConfigSet([]string{
+	if err := junSess.ConfigSet(ctx, []string{
 		"delete interfaces " + rscData.Name.ValueString(),
 	}); err != nil {
 		return err
@@ -2498,12 +2498,12 @@ func (rscData *interfacePhysicalData) del(
 			return err
 		}
 		if aggregatedCount == "0" {
-			err = junSess.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"})
+			err = junSess.ConfigSet(ctx, []string{"delete chassis aggregated-devices ethernet device-count"})
 			if err != nil {
 				return err
 			}
 		} else {
-			err = junSess.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
+			err = junSess.ConfigSet(ctx, []string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
 			if err != nil {
 				return err
 			}
@@ -2538,12 +2538,12 @@ func (rscData *interfacePhysicalData) del(
 					return err
 				}
 				if aggregatedCount == "0" {
-					err = junSess.ConfigSet([]string{"delete chassis aggregated-devices ethernet device-count"})
+					err = junSess.ConfigSet(ctx, []string{"delete chassis aggregated-devices ethernet device-count"})
 					if err != nil {
 						return err
 					}
 				} else {
-					err = junSess.ConfigSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
+					err = junSess.ConfigSet(ctx, []string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount})
 					if err != nil {
 						return err
 					}
@@ -2556,7 +2556,7 @@ func (rscData *interfacePhysicalData) del(
 }
 
 func delInterfaceNC(
-	_ context.Context, name, groupInterfaceDelete string, junSess *junos.Session,
+	ctx context.Context, name, groupInterfaceDelete string, junSess *junos.Session,
 ) error {
 	delPrefix := "delete interfaces " + name + " "
 
@@ -2568,16 +2568,16 @@ func delInterfaceNC(
 		configSet = append(configSet, delPrefix+"apply-groups "+groupInterfaceDelete)
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func findInterfaceAggregatedLastChild(
-	_ context.Context, ae, interFace string, junSess *junos.Session,
+	ctx context.Context, ae, interFace string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"interfaces" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"interfaces"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return false, err
 	}
@@ -2608,8 +2608,8 @@ func findInterfaceAggregatedCountMax(
 	if err != nil {
 		return "", fmt.Errorf("converting ae interaface '%v' to integer: %w", newAE, err)
 	}
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"interfaces" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"interfaces"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return "", err
 	}

@@ -481,7 +481,7 @@ func (rscData *snmpData) nullID() bool {
 }
 
 func (rscData *snmpData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -559,14 +559,14 @@ func (rscData *snmpData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *snmpData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"snmp" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"snmp"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -660,7 +660,7 @@ func (rscData *snmpData) read(
 }
 
 func (rscData *snmpData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete snmp "
 
@@ -678,5 +678,5 @@ func (rscData *snmpData) del(
 		delPrefix + "routing-instance-access",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

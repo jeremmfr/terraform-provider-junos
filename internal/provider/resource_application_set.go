@@ -354,12 +354,12 @@ func (rsc *applicationSet) ImportState(
 }
 
 func checkApplicationSetExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"applications application-set " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"applications application-set "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -379,7 +379,7 @@ func (rscData *applicationSetData) nullID() bool {
 }
 
 func (rscData *applicationSetData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -388,7 +388,7 @@ func (rscData *applicationSetData) set(
 			errors.New("at least one of arguments need to be set (in addition to `name`)")
 	}
 
-	return path.Empty(), junSess.ConfigSet(rscData.applicationSetAttrData.configSet())
+	return path.Empty(), junSess.ConfigSet(ctx, rscData.applicationSetAttrData.configSet())
 }
 
 func (rscData *applicationSetAttrData) configSet() []string {
@@ -409,10 +409,10 @@ func (rscData *applicationSetAttrData) configSet() []string {
 }
 
 func (rscData *applicationSetData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"applications application-set " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"applications application-set "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -446,11 +446,11 @@ func (rscData *applicationSetAttrData) read(itemTrim string) {
 }
 
 func (rscData *applicationSetData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete applications application-set " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

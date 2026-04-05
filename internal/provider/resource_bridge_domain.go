@@ -585,7 +585,7 @@ func (rsc *bridgeDomain) ImportState(
 }
 
 func checkBridgeDomainExists(
-	_ context.Context, name, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -593,8 +593,8 @@ func checkBridgeDomainExists(
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"bridge-domains \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"bridge-domains \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -618,7 +618,7 @@ func (rscData *bridgeDomainData) nullID() bool {
 }
 
 func (rscData *bridgeDomainData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -701,18 +701,18 @@ func (rscData *bridgeDomainData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *bridgeDomainData) read(
-	_ context.Context, name, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"bridge-domains \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"bridge-domains \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -775,7 +775,7 @@ func (rscData *bridgeDomainData) read(
 					if err != nil {
 						return err
 					}
-					showConfigEvpn, err := junSess.Command(showPrefix + "protocols evpn" + junos.PipeDisplaySetRelative)
+					showConfigEvpn, err := junSess.Command(ctx, showPrefix+"protocols evpn"+junos.PipeDisplaySetRelative)
 					if err != nil {
 						return err
 					}
@@ -820,7 +820,7 @@ func (rscData *bridgeDomainData) read(
 }
 
 func (rscData *bridgeDomainData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -851,11 +851,11 @@ func (rscData *bridgeDomainData) delOpts(
 		}
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *bridgeDomainData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -872,5 +872,5 @@ func (rscData *bridgeDomainData) del(
 		}
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

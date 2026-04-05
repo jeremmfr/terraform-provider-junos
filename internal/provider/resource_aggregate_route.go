@@ -493,7 +493,7 @@ func (rsc *aggregateRoute) ImportState(
 }
 
 func checkAggregateRouteExists(
-	_ context.Context, destination, routingInstance string, junSess *junos.Session,
+	ctx context.Context, destination, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -510,8 +510,8 @@ func checkAggregateRouteExists(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"aggregate route " + destination + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"aggregate route "+destination+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -535,7 +535,7 @@ func (rscData *aggregateRouteData) nullID() bool {
 }
 
 func (rscData *aggregateRouteData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -600,11 +600,11 @@ func (rscData *aggregateRouteData) set(
 			utils.ConvI64toa(rscData.Preference.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *aggregateRouteData) read(
-	_ context.Context, destination, routingInstance string, junSess *junos.Session,
+	ctx context.Context, destination, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	switch routingInstance {
@@ -619,8 +619,8 @@ func (rscData *aggregateRouteData) read(
 			showPrefix += "rib " + routingInstance + ".inet6.0 "
 		}
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"aggregate route " + destination + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"aggregate route "+destination+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -686,7 +686,7 @@ func (rscData *aggregateRouteData) read(
 }
 
 func (rscData *aggregateRouteData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	switch routingInstance := rscData.RoutingInstance.ValueString(); routingInstance {
@@ -706,5 +706,5 @@ func (rscData *aggregateRouteData) del(
 		delPrefix + "aggregate route " + rscData.Destination.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

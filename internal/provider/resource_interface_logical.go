@@ -1974,7 +1974,7 @@ func (rsc *interfaceLogical) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(
@@ -2092,7 +2092,7 @@ func (rsc *interfaceLogical) Create(
 		return
 	}
 	if emptyInt && !setInt {
-		intExists, err := junSess.CheckInterfaceExists(plan.Name.ValueString())
+		intExists, err := junSess.CheckInterfaceExists(ctx, plan.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
@@ -2150,7 +2150,7 @@ func (rsc *interfaceLogical) Read(
 		return
 	}
 	if emptyInt && !setInt {
-		intExists, err := junSess.CheckInterfaceExists(state.Name.ValueString())
+		intExists, err := junSess.CheckInterfaceExists(ctx, state.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
 
@@ -2241,7 +2241,7 @@ func (rsc *interfaceLogical) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if err := state.delOpts(ctx, junSess); err != nil {
@@ -2390,7 +2390,7 @@ func (rsc *interfaceLogical) ImportState(
 		return
 	}
 	if emptyInt && !setInt {
-		intExists, err := junSess.CheckInterfaceExists(req.ID)
+		intExists, err := junSess.CheckInterfaceExists(ctx, req.ID)
 		if err != nil {
 			resp.Diagnostics.AddError("Interface Read Error", err.Error())
 
@@ -2470,15 +2470,15 @@ func (rscData *interfaceLogicalData) computeVlanID() {
 }
 
 func checkInterfaceLogicalNCEmpty(
-	_ context.Context, name, groupInterfaceDelete string, junSess *junos.Session,
+	ctx context.Context, name, groupInterfaceDelete string, junSess *junos.Session,
 ) (
 	ncInt, // interface is set with NC config
 	emtyInt, // interface is emty not set or just with set
 	justSet bool, // interface is empty with set
 	_ error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"interfaces " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"interfaces "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return false, false, false, err
 	}
@@ -2524,7 +2524,7 @@ func checkInterfaceLogicalNCEmpty(
 }
 
 func (rscData *interfaceLogicalData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -2728,7 +2728,7 @@ func (rscData *interfaceLogicalData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *interfaceLogicalBlockFamilyInetBlockAddress) configSet(
@@ -3104,10 +3104,10 @@ func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client) configSet(setPre
 }
 
 func (rscData *interfaceLogicalData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"interfaces " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"interfaces "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -3297,8 +3297,8 @@ func (rscData *interfaceLogicalData) read(
 			}
 		}
 	}
-	showConfigRoutingInstances, err := junSess.Command(junos.CmdShowConfig +
-		"routing-instances" + junos.PipeDisplaySetRelative)
+	showConfigRoutingInstances, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"routing-instances"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -3319,8 +3319,8 @@ func (rscData *interfaceLogicalData) read(
 		}
 	}
 	if junSess.CheckCompatibilitySecurity() {
-		showConfigSecurityZones, err := junSess.Command(junos.CmdShowConfig +
-			"security zones" + junos.PipeDisplaySetRelative)
+		showConfigSecurityZones, err := junSess.Command(ctx, junos.CmdShowConfig+
+			"security zones"+junos.PipeDisplaySetRelative)
 		if err != nil {
 			return err
 		}
@@ -3330,7 +3330,7 @@ func (rscData *interfaceLogicalData) read(
 			if intMatch {
 				itemTrimFields := strings.Split(strings.TrimPrefix(item, "set security-zone "), " ")
 				rscData.SecurityZone = types.StringValue(itemTrimFields[0])
-				if err := rscData.readSecurityZoneInboundTraffic(name, junSess); err != nil {
+				if err := rscData.readSecurityZoneInboundTraffic(ctx, name, junSess); err != nil {
 					return err
 				}
 
@@ -3632,11 +3632,11 @@ func (block *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client) read(itemTrim st
 }
 
 func (rscData *interfaceLogicalData) readSecurityZoneInboundTraffic(
-	name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security zones security-zone " + rscData.SecurityZone.ValueString() +
-		" interfaces " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security zones security-zone "+rscData.SecurityZone.ValueString()+
+		" interfaces "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -3675,7 +3675,7 @@ func (rscData *interfaceLogicalData) del(
 			"set interfaces "+rscData.Name.ValueString(),
 		)
 	}
-	if err := junSess.ConfigSet(configSet); err != nil {
+	if err := junSess.ConfigSet(ctx, configSet); err != nil {
 		return err
 	}
 	if v := rscData.RoutingInstance.ValueString(); v != "" {
@@ -3693,7 +3693,7 @@ func (rscData *interfaceLogicalData) del(
 }
 
 func (rscData *interfaceLogicalData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete interfaces " + rscData.Name.ValueString() + " "
 
@@ -3710,27 +3710,27 @@ func (rscData *interfaceLogicalData) delOpts(
 		delPrefix + "vlan-id",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *interfaceLogicalData) delSecurityZone(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security zones security-zone " + rscData.SecurityZone.ValueString() +
 			" interfaces " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *interfaceLogicalData) delRoutingInstance(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		junos.DeleteLS + junos.RoutingInstancesWS + rscData.RoutingInstance.ValueString() +
 			" interface " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

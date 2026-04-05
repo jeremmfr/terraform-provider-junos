@@ -323,7 +323,7 @@ func (rsc *securityPolicyUnordered) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	listLinesToPairPolicy, err := readSecurityPolicyTunnelPairPolicyLines(
@@ -351,7 +351,7 @@ func (rsc *securityPolicyUnordered) Update(
 
 		return
 	}
-	if err := junSess.ConfigSet(listLinesToPairPolicy); err != nil {
+	if err := junSess.ConfigSet(ctx, listLinesToPairPolicy); err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 
 		return

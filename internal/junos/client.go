@@ -2,6 +2,7 @@ package junos
 
 import (
 	"errors"
+	"sync"
 )
 
 const directoryPermission = 0o755
@@ -30,6 +31,10 @@ type Client struct {
 	fakeCreateSetFile               string
 	fakeUpdateAlso                  bool
 	fakeDeleteAlso                  bool
+	singleSession                   bool
+
+	sharedSession      *Session
+	mutexSharedSession sync.Mutex
 }
 
 func NewClient(ip string) *Client {
@@ -56,6 +61,7 @@ func NewClient(ip string) *Client {
 		fakeCreateSetFile:               "",
 		fakeUpdateAlso:                  false,
 		fakeDeleteAlso:                  false,
+		singleSession:                   false,
 	}
 }
 
@@ -193,6 +199,12 @@ func (clt *Client) WithFakeUpdateAlso() *Client {
 
 func (clt *Client) WithFakeDeleteAlso() *Client {
 	clt.fakeDeleteAlso = true
+
+	return clt
+}
+
+func (clt *Client) WithSingleSession() *Client {
+	clt.singleSession = true
 
 	return clt
 }

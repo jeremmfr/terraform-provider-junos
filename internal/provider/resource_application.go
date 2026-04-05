@@ -769,12 +769,12 @@ func (rsc *application) ImportState(
 }
 
 func checkApplicationExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"applications application " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"applications application "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -794,7 +794,7 @@ func (rscData *applicationData) nullID() bool {
 }
 
 func (rscData *applicationData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -808,7 +808,7 @@ func (rscData *applicationData) set(
 		return errPath, err
 	}
 
-	return path.Empty(), junSess.ConfigSet(dataConfigSet)
+	return path.Empty(), junSess.ConfigSet(ctx, dataConfigSet)
 }
 
 func (rscData applicationAttrData) configSet(blockErrorSuffix string) ([]string, path.Path, error) {
@@ -939,10 +939,10 @@ func (block *applicationBlockTerm) configSet(
 }
 
 func (rscData *applicationData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"applications application " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"applications application "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -1052,11 +1052,11 @@ func (block *applicationBlockTerm) read(itemTrim string) (err error) {
 }
 
 func (rscData *applicationData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete applications application " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

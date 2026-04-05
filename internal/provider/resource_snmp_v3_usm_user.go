@@ -634,7 +634,7 @@ func (rsc *snmpV3UsmUser) ImportState(
 }
 
 func checkSnmpV3UsmUserExists(
-	_ context.Context, name, engineType, engineID string, junSess *junos.Session,
+	ctx context.Context, name, engineType, engineID string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -647,8 +647,8 @@ func checkSnmpV3UsmUserExists(
 	default:
 		return false, fmt.Errorf("can't check config with engine_type %q", engineType)
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"user \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"user \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -677,7 +677,7 @@ func (rscData *snmpV3UsmUserData) nullID() bool {
 }
 
 func (rscData *snmpV3UsmUserData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -743,11 +743,11 @@ func (rscData *snmpV3UsmUserData) set(
 		configSet = append(configSet, setPrefix+"privacy-none")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *snmpV3UsmUserData) read(
-	_ context.Context, name, engineType, engineID string, junSess *junos.Session,
+	ctx context.Context, name, engineType, engineID string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig + "snmp v3 usm "
 	switch engineType {
@@ -759,8 +759,8 @@ func (rscData *snmpV3UsmUserData) read(
 		}
 		showPrefix += "local-engine "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"user \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"user \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -815,8 +815,8 @@ func (rscData *snmpV3UsmUserData) readPrivateToState(
 	default:
 		showPrefix += "local-engine "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"user \"" + rscData.Name.ValueString() + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"user \""+rscData.Name.ValueString()+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -863,7 +863,7 @@ func (rscData *snmpV3UsmUserData) readPrivateToState(
 }
 
 func (rscData *snmpV3UsmUserData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS + "snmp v3 usm "
 	switch v := rscData.EngineType.ValueString(); v {
@@ -879,5 +879,5 @@ func (rscData *snmpV3UsmUserData) del(
 		delPrefix + "user \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
