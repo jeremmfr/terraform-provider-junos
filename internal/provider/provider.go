@@ -275,6 +275,7 @@ func (p *junosProvider) Resources(_ context.Context) []func() resource.Resource 
 		newBgpNeighborResource,
 		newBridgeDomainResource,
 		newChassisClusterResource,
+		newChassisFpcResource,
 		newChassisRedundancyResource,
 		newEventoptionsDestinationResource,
 		newEventoptionsGenerateEventResource,
