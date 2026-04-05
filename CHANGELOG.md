@@ -1,6 +1,24 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.18.0 (2026-04-05)
+
+FEATURES:
+
+* provider: add `single_session` argument to use a single shared SSH/NETCONF session for all provider operations instead of opening a new session for each resource action. (Fix [#891](https://github.com/jeremmfr/terraform-provider-junos/issues/891))  
+  **Be careful with this option, because Terraform shuts down the provider without prior notice at the end of a run, the session will not be properly closed.**  
+  It can also be enabled from the `JUNOS_SINGLE_SESSION` environment variable.
+* add `junos_chassis_fpc` resource (Fix [#882](https://github.com/jeremmfr/terraform-provider-junos/issues/882))
+* add `junos_policyoptions_as_path` data-source (Partial fix [#878](https://github.com/jeremmfr/terraform-provider-junos/issues/878))
+* add `junos_policyoptions_as_path_group` data-source (Partial fix [#878](https://github.com/jeremmfr/terraform-provider-junos/issues/878))
+* add `junos_policyoptions_community` data-source (Partial fix [#878](https://github.com/jeremmfr/terraform-provider-junos/issues/878))
+* add `junos_policyoptions_policy_statement` data-source (Partial fix [#878](https://github.com/jeremmfr/terraform-provider-junos/issues/878))
+* add `junos_policyoptions_prefix_list` data-source (Partial fix [#878](https://github.com/jeremmfr/terraform-provider-junos/issues/878))
+
+ENHANCEMENTS:
+
+* **resource/junos_firewall_filter**: add `payload_protocol` argument in `from` block in `term` block (Fix [#872](https://github.com/jeremmfr/terraform-provider-junos/issues/872))
+
 ## v2.17.0 (2026-02-15)
 
 ENHANCEMENTS:
