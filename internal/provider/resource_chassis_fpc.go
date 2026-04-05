@@ -175,8 +175,8 @@ type chassisFpcData struct {
 	ID               types.String          `tfsdk:"id"                tfdata:"skip_isempty"`
 	SlotNumber       types.Int64           `tfsdk:"slot_number"       tfdata:"skip_isempty"`
 	CfpToEt          types.Bool            `tfsdk:"cfp_to_et"`
-	Error            *chassisFpcBlockError `tfsdk:"error"`
 	SamplingInstance types.String          `tfsdk:"sampling_instance"`
+	Error            *chassisFpcBlockError `tfsdk:"error"`
 }
 
 func (rscData *chassisFpcData) isEmpty() bool {
@@ -348,7 +348,7 @@ func (rsc *chassisFpc) ImportState(
 		&data,
 		req,
 		resp,
-		"",
+		defaultResourceImportDontFindIDStrMessage(rsc, req.ID, "slot_number"),
 	)
 }
 
