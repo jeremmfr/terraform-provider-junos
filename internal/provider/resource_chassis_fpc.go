@@ -353,12 +353,12 @@ func (rsc *chassisFpc) ImportState(
 }
 
 func checkChassisFpcExists(
-	_ context.Context, slotNumber int64, junSess *junos.Session,
+	ctx context.Context, slotNumber int64, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"chassis fpc " + utils.ConvI64toa(slotNumber) + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"chassis fpc "+utils.ConvI64toa(slotNumber)+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return false, err
 	}
@@ -397,7 +397,7 @@ func (rscData *chassisFpcData) nullID() bool {
 }
 
 func (rscData *chassisFpcData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -424,7 +424,7 @@ func (rscData *chassisFpcData) set(
 		configSet = append(configSet, blockSet...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *chassisFpcBlockError) configSet(
@@ -468,10 +468,10 @@ func (block *chassisFpcBlockError) configSet(
 }
 
 func (rscData *chassisFpcData) read(
-	_ context.Context, slotNumber int64, junSess *junos.Session,
+	ctx context.Context, slotNumber int64, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"chassis fpc " + utils.ConvI64toa(slotNumber) + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"chassis fpc "+utils.ConvI64toa(slotNumber)+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -531,7 +531,7 @@ func (block *chassisFpcBlockError) read(itemTrim string) (err error) {
 }
 
 func (rscData *chassisFpcData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS + "chassis fpc " + utils.ConvI64toa(rscData.SlotNumber.ValueInt64()) + " "
 
@@ -543,5 +543,5 @@ func (rscData *chassisFpcData) del(
 		delPrefix + "sampling-instance \"" + rscData.SamplingInstance.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
