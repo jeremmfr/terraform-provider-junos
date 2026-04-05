@@ -554,12 +554,12 @@ func (rsc *securityNatDestination) ImportState(
 }
 
 func checkSecurityNatDestinationExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security nat destination rule-set " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security nat destination rule-set "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -579,7 +579,7 @@ func (rscData *securityNatDestinationData) nullID() bool {
 }
 
 func (rscData *securityNatDestinationData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -663,14 +663,14 @@ func (rscData *securityNatDestinationData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityNatDestinationData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security nat destination rule-set " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security nat destination rule-set "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -751,11 +751,11 @@ func (rscData *securityNatDestinationData) read(
 }
 
 func (rscData *securityNatDestinationData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security nat destination rule-set " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

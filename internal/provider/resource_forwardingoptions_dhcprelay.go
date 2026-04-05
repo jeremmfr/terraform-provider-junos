@@ -1516,7 +1516,7 @@ func (rscData *forwardingoptionsDhcprelayData) nullID() bool {
 }
 
 func (rscData *forwardingoptionsDhcprelayData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1885,7 +1885,7 @@ func (rscData *forwardingoptionsDhcprelayData) set(
 		configSet = append(configSet, block.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *forwardingoptionsDhcprelayBlockActiveLeasequery) configSet(setPrefix string) []string {
@@ -1974,7 +1974,7 @@ func (block *forwardingoptionsDhcprelayBlockLeasequery) configSet(setPrefix stri
 }
 
 func (rscData *forwardingoptionsDhcprelayData) read( //nolint:gocognit
-	_ context.Context, routingInstance, version string, junSess *junos.Session,
+	ctx context.Context, routingInstance, version string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
@@ -1984,8 +1984,8 @@ func (rscData *forwardingoptionsDhcprelayData) read( //nolint:gocognit
 	if version == "v6" {
 		showSuffix = "dhcpv6"
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"forwarding-options dhcp-relay " + showSuffix + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"forwarding-options dhcp-relay "+showSuffix+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2274,7 +2274,7 @@ func (block *forwardingoptionsDhcprelayBlockLeasequery) read(itemTrim string) (e
 }
 
 func (rscData *forwardingoptionsDhcprelayData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -2323,5 +2323,5 @@ func (rscData *forwardingoptionsDhcprelayData) del(
 		delPrefix + "vendor-specific-information",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

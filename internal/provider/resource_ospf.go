@@ -802,7 +802,7 @@ func (rscData *ospfData) nullID() bool {
 }
 
 func (rscData *ospfData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -906,7 +906,7 @@ func (rscData *ospfData) set(
 		configSet = append(configSet, rscData.SpfOptions.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *ospfBlockDatabaseProtection) configSet(setPrefix string) []string {
@@ -1024,7 +1024,7 @@ func (block *ospfBlockSpfOptions) configSet(setPrefix string) []string {
 }
 
 func (rscData *ospfData) read(
-	_ context.Context, version, routingInstance string, junSess *junos.Session,
+	ctx context.Context, version, routingInstance string, junSess *junos.Session,
 ) error {
 	ospfVersion := junos.OspfV2
 	if version == "v3" {
@@ -1034,8 +1034,8 @@ func (rscData *ospfData) read(
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols " + ospfVersion + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols "+ospfVersion+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -1252,7 +1252,7 @@ func (block *ospfBlockSpfOptions) read(itemTrim string) (err error) {
 }
 
 func (rscData *ospfData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	ospfVersion := junos.OspfV2
 	if rscData.Version.ValueString() == "v3" {
@@ -1286,5 +1286,5 @@ func (rscData *ospfData) del(
 		delPrefix + "spf-options",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

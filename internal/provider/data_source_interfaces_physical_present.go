@@ -202,13 +202,13 @@ func (dscData *interfacesPhysicalPresentDataSourceData) fillID() {
 }
 
 func (dscData *interfacesPhysicalPresentDataSourceData) read(
-	_ context.Context,
+	ctx context.Context,
 	matchName string,
 	matchAdminUp bool,
 	matchOperUp bool,
 	junSess *junos.Session,
 ) error {
-	replyData, err := junSess.CommandXML(junos.RPCGetInterfacesInformationTerse)
+	replyData, err := junSess.CommandXML(ctx, junos.RPCGetInterfacesInformationTerse)
 	if err != nil {
 		return err
 	}

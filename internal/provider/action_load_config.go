@@ -181,13 +181,13 @@ func (act *loadConfigAction) Invoke(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	resp.SendProgress(action.InvokeProgressEvent{
 		Message: "Loading configuration",
 	})
-	if err := junSess.ConfigLoad(actionValue, format, config.Config.ValueString()); err != nil {
+	if err := junSess.ConfigLoad(ctx, actionValue, format, config.Config.ValueString()); err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
 
 		return

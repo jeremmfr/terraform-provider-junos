@@ -67,6 +67,7 @@ const (
 	EnvFakecreateSetfile          = "JUNOS_FAKECREATE_SETFILE"
 	EnvFakeupdateAlso             = "JUNOS_FAKEUPDATE_ALSO"
 	EnvFakedeleteAlso             = "JUNOS_FAKEDELETE_ALSO"
+	EnvSingleSession              = "JUNOS_SINGLE_SESSION"
 
 	DefaultInterfaceTestAcc        = "ge-0/0/3"
 	DefaultInterfaceTestAcc2       = "ge-0/0/4"

@@ -261,12 +261,12 @@ func (rsc *securityIdpCustomAttackGroup) ImportState(
 }
 
 func checkSecurityIdpCustomAttackGroupExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security idp custom-attack-group \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security idp custom-attack-group \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -286,7 +286,7 @@ func (rscData *securityIdpCustomAttackGroupData) nullID() bool {
 }
 
 func (rscData *securityIdpCustomAttackGroupData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -299,14 +299,14 @@ func (rscData *securityIdpCustomAttackGroupData) set(
 		configSet = append(configSet, setPrefix+"group-members \""+v.ValueString()+"\"")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityIdpCustomAttackGroupData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security idp custom-attack-group \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security idp custom-attack-group \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -331,11 +331,11 @@ func (rscData *securityIdpCustomAttackGroupData) read(
 }
 
 func (rscData *securityIdpCustomAttackGroupData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security idp custom-attack-group \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

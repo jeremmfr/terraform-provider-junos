@@ -2879,12 +2879,12 @@ func (rsc *securityIdpCustomAttack) ImportState(
 }
 
 func checkSecurityIdpCustomAttackExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security idp custom-attack \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security idp custom-attack \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -2904,7 +2904,7 @@ func (rscData *securityIdpCustomAttackData) nullID() bool {
 }
 
 func (rscData *securityIdpCustomAttackData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -2942,7 +2942,7 @@ func (rscData *securityIdpCustomAttackData) set(
 		configSet = append(configSet, blockSet...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *securityIdpCustomAttackBlockAttackTypeAnomaly) configSet(setPrefix string) []string {
@@ -3532,10 +3532,10 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolUDP) co
 }
 
 func (rscData *securityIdpCustomAttackData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security idp custom-attack \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security idp custom-attack \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -3938,11 +3938,11 @@ func (block *securityIdpCustomAttackBlockAttackTypeSignatureBlockProtocolUDP) re
 }
 
 func (rscData *securityIdpCustomAttackData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security idp custom-attack \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

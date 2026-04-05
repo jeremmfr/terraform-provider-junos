@@ -554,7 +554,7 @@ func (rsc *igmpSnoopingVlan) ImportState(
 }
 
 func checkIgmpSnoopingVlanExists(
-	_ context.Context, name, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -562,8 +562,8 @@ func checkIgmpSnoopingVlanExists(
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols igmp-snooping vlan " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols igmp-snooping vlan "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -587,7 +587,7 @@ func (rscData *igmpSnoopingVlanData) nullID() bool {
 }
 
 func (rscData *igmpSnoopingVlanData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -650,7 +650,7 @@ func (rscData *igmpSnoopingVlanData) set(
 		configSet = append(configSet, blockSet...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *igmpSnoopingVlanBlockInterface) configSet(
@@ -700,14 +700,14 @@ func (block *igmpSnoopingVlanBlockInterface) configSet(
 }
 
 func (rscData *igmpSnoopingVlanData) read(
-	_ context.Context, name, routingInstance string, junSess *junos.Session,
+	ctx context.Context, name, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols igmp-snooping vlan " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols igmp-snooping vlan "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -795,7 +795,7 @@ func (block *igmpSnoopingVlanBlockInterface) read(itemTrim string) (err error) {
 }
 
 func (rscData *igmpSnoopingVlanData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -806,5 +806,5 @@ func (rscData *igmpSnoopingVlanData) del(
 		delPrefix + "protocols igmp-snooping vlan " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

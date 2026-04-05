@@ -1261,7 +1261,7 @@ func (rscData *forwardingoptionsSamplingData) fillID() {
 }
 
 func (rscData *forwardingoptionsSamplingData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1340,7 +1340,7 @@ func (rscData *forwardingoptionsSamplingData) set(
 		configSet = append(configSet, blockSet...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *forwardingoptionsSamplingBlockInput) configSet(
@@ -1714,14 +1714,14 @@ func (block *forwardingoptionsSamplingBlockOutputBlockInterface) configSet(setPr
 }
 
 func (rscData *forwardingoptionsSamplingData) read(
-	_ context.Context, routingInstance string, junSess *junos.Session,
+	ctx context.Context, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"forwarding-options sampling" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"forwarding-options sampling"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2118,7 +2118,7 @@ func (block *forwardingoptionsSamplingBlockOutputBlockInterface) read(itemTrim s
 }
 
 func (rscData *forwardingoptionsSamplingData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -2139,5 +2139,5 @@ func (rscData *forwardingoptionsSamplingData) del(
 		delPrefix + "input",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

@@ -440,7 +440,7 @@ func (rsc *bgpNeighbor) ImportState(
 }
 
 func checkBgpNeighborExists(
-	_ context.Context, ip, routingInstance, group string, junSess *junos.Session,
+	ctx context.Context, ip, routingInstance, group string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -448,8 +448,8 @@ func checkBgpNeighborExists(
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols bgp group \"" + group + "\" neighbor " + ip + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols bgp group \""+group+"\" neighbor "+ip+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -481,7 +481,7 @@ func (rscData *bgpNeighborData) nullID() bool {
 }
 
 func (rscData *bgpNeighborData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -500,11 +500,11 @@ func (rscData *bgpNeighborData) set(
 	}
 	configSet = append(configSet, dataConfigSet...)
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *bgpNeighborData) read(
-	_ context.Context,
+	ctx context.Context,
 	ip,
 	routingInstance,
 	group string,
@@ -514,8 +514,8 @@ func (rscData *bgpNeighborData) read(
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols bgp group \"" + group + "\" neighbor " + ip + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols bgp group \""+group+"\" neighbor "+ip+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -546,7 +546,7 @@ func (rscData *bgpNeighborData) read(
 }
 
 func (rscData *bgpNeighborData) delOpts(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -554,11 +554,11 @@ func (rscData *bgpNeighborData) delOpts(
 	}
 	delPrefix += "protocols bgp group \"" + rscData.Group.ValueString() + "\" neighbor " + rscData.IP.ValueString() + " "
 
-	return junSess.ConfigSet(rscData.bgpAttrData.configOptsToDel(delPrefix))
+	return junSess.ConfigSet(ctx, rscData.bgpAttrData.configOptsToDel(delPrefix))
 }
 
 func (rscData *bgpNeighborData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -569,5 +569,5 @@ func (rscData *bgpNeighborData) del(
 		delPrefix + "protocols bgp group \"" + rscData.Group.ValueString() + "\" neighbor " + rscData.IP.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

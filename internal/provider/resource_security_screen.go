@@ -1550,12 +1550,12 @@ func (rsc *securityScreen) ImportState(
 }
 
 func checkSecurityScreenExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security screen ids-option \"" + name + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security screen ids-option \""+name+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -1575,7 +1575,7 @@ func (rscData *securityScreenData) nullID() bool {
 }
 
 func (rscData *securityScreenData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1653,7 +1653,7 @@ func (rscData *securityScreenData) set(
 		configSet = append(configSet, rscData.UDP.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *securityScreenBlockAggregation) configSet(setPrefix string) []string {
@@ -2156,10 +2156,10 @@ func (block *securityScreenBlockUDP) configSet(setPrefix string) []string {
 }
 
 func (rscData *securityScreenData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security screen ids-option \"" + name + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security screen ids-option \""+name+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -2626,11 +2626,11 @@ func (block *securityScreenBlockUDP) read(itemTrim string) (err error) {
 }
 
 func (rscData *securityScreenData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security screen ids-option \"" + rscData.Name.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

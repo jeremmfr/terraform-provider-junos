@@ -313,7 +313,7 @@ func (rscData *applicationsData) nullID() bool {
 }
 
 func (rscData *applicationsData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -371,14 +371,14 @@ func (rscData *applicationsData) set(
 		configSet = append(configSet, block.configSet()...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *applicationsData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"applications " + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"applications "+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -419,11 +419,11 @@ func (rscData *applicationsData) read(
 }
 
 func (rscData *applicationsData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete applications",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

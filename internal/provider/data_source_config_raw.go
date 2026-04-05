@@ -125,13 +125,13 @@ func (dscData *configRawDataSourceData) fillID() {
 }
 
 func (dscData *configRawDataSourceData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	if v := dscData.Format.ValueString(); v == "" {
 		dscData.Format = types.StringValue(junos.ConfigFormatText)
 	}
 
-	config, err := junSess.ConfigGet(dscData.Format.ValueString())
+	config, err := junSess.ConfigGet(ctx, dscData.Format.ValueString())
 	if err != nil {
 		return fmt.Errorf("getting configuration: %w", err)
 	}

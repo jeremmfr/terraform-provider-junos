@@ -446,12 +446,12 @@ func (rsc *securityDynamicAddressFeedServer) ImportState(
 }
 
 func checkSecurityDynamicAddressFeedServerExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security dynamic-address feed-server " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security dynamic-address feed-server "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -471,7 +471,7 @@ func (rscData *securityDynamicAddressFeedServerData) nullID() bool {
 }
 
 func (rscData *securityDynamicAddressFeedServerData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -514,7 +514,7 @@ func (rscData *securityDynamicAddressFeedServerData) set(
 		configSet = append(configSet, block.configSet(setPrefix)...)
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (block *securityDynamicAddressFeedServerBlockFeedName) configSet(setPrefix string) []string {
@@ -540,10 +540,10 @@ func (block *securityDynamicAddressFeedServerBlockFeedName) configSet(setPrefix 
 }
 
 func (rscData *securityDynamicAddressFeedServerData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security dynamic-address feed-server " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security dynamic-address feed-server "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -611,11 +611,11 @@ func (block *securityDynamicAddressFeedServerBlockFeedName) read(itemTrim string
 }
 
 func (rscData *securityDynamicAddressFeedServerData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security dynamic-address feed-server " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

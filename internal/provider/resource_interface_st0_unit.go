@@ -100,16 +100,16 @@ func (rsc *interfaceSt0Unit) Create(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
-	newSt0, err := rsc.searchNewAvailable(junSess)
+	newSt0, err := rsc.searchNewAvailable(ctx, junSess)
 	if err != nil {
 		resp.Diagnostics.AddError("Search Error", err.Error())
 
 		return
 	}
-	if err := junSess.ConfigSet([]string{
+	if err := junSess.ConfigSet(ctx, []string{
 		"set interfaces " + newSt0,
 	}); err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
@@ -215,7 +215,7 @@ func (rsc *interfaceSt0Unit) Delete(
 	if rsc.client.FakeDeleteAlso() {
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
 
-		if err := junSess.ConfigSet([]string{
+		if err := junSess.ConfigSet(ctx, []string{
 			"delete interfaces " + state.ID.ValueString(),
 		}); err != nil {
 			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
@@ -239,7 +239,7 @@ func (rsc *interfaceSt0Unit) Delete(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(
@@ -261,7 +261,7 @@ func (rsc *interfaceSt0Unit) Delete(
 
 		return
 	}
-	if err := junSess.ConfigSet([]string{
+	if err := junSess.ConfigSet(ctx, []string{
 		"delete interfaces " + state.ID.ValueString(),
 	}); err != nil {
 		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
@@ -331,8 +331,8 @@ func (rsc *interfaceSt0Unit) ImportState(
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
-func (rsc *interfaceSt0Unit) searchNewAvailable(junSess *junos.Session) (string, error) {
-	st0, err := junSess.Command("show interfaces st0 terse")
+func (rsc *interfaceSt0Unit) searchNewAvailable(ctx context.Context, junSess *junos.Session) (string, error) {
+	st0, err := junSess.Command(ctx, "show interfaces st0 terse")
 	if err != nil {
 		return "", err
 	}

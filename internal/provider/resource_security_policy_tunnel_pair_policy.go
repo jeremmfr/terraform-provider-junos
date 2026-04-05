@@ -340,19 +340,19 @@ func (rsc *securityPolicyTunnelPairPolicy) ImportState(
 }
 
 func checkSecurityPolicyTunnelPairPolicyExists(
-	_ context.Context, zoneA, policyAtoB, zoneB, policyBtoA string, junSess *junos.Session,
+	ctx context.Context, zoneA, policyAtoB, zoneB, policyBtoA string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfigPairAtoB, err := junSess.Command(junos.CmdShowConfig +
-		"security policies from-zone " + zoneA + " to-zone " + zoneB + " policy " + policyAtoB +
-		" then permit tunnel pair-policy" + junos.PipeDisplaySet)
+	showConfigPairAtoB, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
+		" then permit tunnel pair-policy"+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
-	showConfigPairBtoA, err := junSess.Command(junos.CmdShowConfig +
-		"security policies from-zone " + zoneB + " to-zone " + zoneA + " policy " + policyBtoA +
-		" then permit tunnel pair-policy" + junos.PipeDisplaySet)
+	showConfigPairBtoA, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
+		" then permit tunnel pair-policy"+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -377,7 +377,7 @@ func (rscData *securityPolicyTunnelPairPolicyData) nullID() bool {
 }
 
 func (rscData *securityPolicyTunnelPairPolicyData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -392,15 +392,15 @@ func (rscData *securityPolicyTunnelPairPolicyData) set(
 		" policy "+rscData.PolicyBtoA.ValueString()+
 		" then permit tunnel pair-policy "+rscData.PolicyAtoB.ValueString())
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityPolicyTunnelPairPolicyData) read(
-	_ context.Context, zoneA, policyAtoB, zoneB, policyBtoA string, junSess *junos.Session,
+	ctx context.Context, zoneA, policyAtoB, zoneB, policyBtoA string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security policies from-zone " + zoneA + " to-zone " + zoneB + " policy " + policyAtoB +
-		" then permit tunnel pair-policy" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
+		" then permit tunnel pair-policy"+junos.PipeDisplaySet)
 	if err != nil {
 		return err
 	}
@@ -422,9 +422,9 @@ func (rscData *securityPolicyTunnelPairPolicyData) read(
 			}
 		}
 	}
-	showConfig, err = junSess.Command(junos.CmdShowConfig +
-		"security policies from-zone " + zoneB + " to-zone " + zoneA + " policy " + policyBtoA +
-		" then permit tunnel pair-policy" + junos.PipeDisplaySet)
+	showConfig, err = junSess.Command(ctx, junos.CmdShowConfig+
+		"security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
+		" then permit tunnel pair-policy"+junos.PipeDisplaySet)
 	if err != nil {
 		return err
 	}
@@ -451,7 +451,7 @@ func (rscData *securityPolicyTunnelPairPolicyData) read(
 }
 
 func (rscData *securityPolicyTunnelPairPolicyData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security policies" +
@@ -464,5 +464,5 @@ func (rscData *securityPolicyTunnelPairPolicyData) del(
 			" then permit tunnel pair-policy " + rscData.PolicyAtoB.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

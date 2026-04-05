@@ -411,7 +411,7 @@ func (rscData *vstpData) nullID() bool {
 }
 
 func (rscData *vstpData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -454,18 +454,18 @@ func (rscData *vstpData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *vstpData) read(
-	_ context.Context, routingInstance string, junSess *junos.Session,
+	ctx context.Context, routingInstance string, junSess *junos.Session,
 ) error {
 	showPrefix := junos.CmdShowConfig
 	if routingInstance != "" && routingInstance != junos.DefaultW {
 		showPrefix += junos.RoutingInstancesWS + routingInstance + " "
 	}
-	showConfig, err := junSess.Command(showPrefix +
-		"protocols vstp" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, showPrefix+
+		"protocols vstp"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -521,7 +521,7 @@ func (rscData *vstpData) read(
 }
 
 func (rscData *vstpData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := junos.DeleteLS
 	if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
@@ -542,5 +542,5 @@ func (rscData *vstpData) del(
 		configSet = append(configSet, delPrefix+"system-id "+block.ID.ValueString())
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

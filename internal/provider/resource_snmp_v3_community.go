@@ -282,12 +282,12 @@ func (rsc *snmpV3Community) ImportState(
 }
 
 func checkSnmpV3CommunityExists(
-	_ context.Context, communityIndex string, junSess *junos.Session,
+	ctx context.Context, communityIndex string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"snmp v3 snmp-community \"" + communityIndex + "\"" + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"snmp v3 snmp-community \""+communityIndex+"\""+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -307,7 +307,7 @@ func (rscData *snmpV3CommunityData) nullID() bool {
 }
 
 func (rscData *snmpV3CommunityData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -326,14 +326,14 @@ func (rscData *snmpV3CommunityData) set(
 		configSet = append(configSet, setPrefix+"tag \""+v+"\"")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *snmpV3CommunityData) read(
-	_ context.Context, communityIndex string, junSess *junos.Session,
+	ctx context.Context, communityIndex string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"snmp v3 snmp-community \"" + communityIndex + "\"" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"snmp v3 snmp-community \""+communityIndex+"\""+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -368,11 +368,11 @@ func (rscData *snmpV3CommunityData) read(
 }
 
 func (rscData *snmpV3CommunityData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete snmp v3 snmp-community \"" + rscData.CommunityIndex.ValueString() + "\"",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

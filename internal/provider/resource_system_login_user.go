@@ -520,12 +520,12 @@ func (rsc *systemLoginUser) ImportState(
 }
 
 func checkSystemLoginUserExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system login user " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system login user "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -545,7 +545,7 @@ func (rscData *systemLoginUserData) nullID() bool {
 }
 
 func (rscData *systemLoginUserData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -599,14 +599,14 @@ func (rscData *systemLoginUserData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemLoginUserData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system login user " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system login user "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -659,7 +659,7 @@ func (rscData *systemLoginUserData) read(
 }
 
 func (rscData *systemLoginUserData) readComputed(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	defer func() {
 		// set unknown to null if still unknown after reading config
@@ -672,8 +672,8 @@ func (rscData *systemLoginUserData) readComputed(
 		return nil
 	}
 
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system login user " + rscData.Name.ValueString() + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system login user "+rscData.Name.ValueString()+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -701,8 +701,8 @@ func (rscData *systemLoginUserData) readComputed(
 func (rscData *systemLoginUserData) readPrivateToState(
 	ctx context.Context, junSess *junos.Session, private privateStateSetter,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system login user " + rscData.Name.ValueString() + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system login user "+rscData.Name.ValueString()+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -732,11 +732,11 @@ func (rscData *systemLoginUserData) readPrivateToState(
 }
 
 func (rscData *systemLoginUserData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system login user " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

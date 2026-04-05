@@ -623,7 +623,7 @@ func (rscData *securityGlobalPolicyData) nullID() bool {
 }
 
 func (rscData *securityGlobalPolicyData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -713,14 +713,14 @@ func (rscData *securityGlobalPolicyData) set(
 		}
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityGlobalPolicyData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security policies global" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security policies global"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -793,11 +793,11 @@ func (rscData *securityGlobalPolicyData) read(
 }
 
 func (rscData *securityGlobalPolicyData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security policies global",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

@@ -291,12 +291,12 @@ func (rsc *systemTacplusServer) ImportState(
 }
 
 func checkSystemTacplusServerExists(
-	_ context.Context, address string, junSess *junos.Session,
+	ctx context.Context, address string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system tacplus-server " + address + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system tacplus-server "+address+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -316,7 +316,7 @@ func (rscData *systemTacplusServerData) nullID() bool {
 }
 
 func (rscData *systemTacplusServerData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -346,14 +346,14 @@ func (rscData *systemTacplusServerData) set(
 			utils.ConvI64toa(rscData.Timeout.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *systemTacplusServerData) read(
-	_ context.Context, address string, junSess *junos.Session,
+	ctx context.Context, address string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"system tacplus-server " + address + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"system tacplus-server "+address+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -398,11 +398,11 @@ func (rscData *systemTacplusServerData) read(
 }
 
 func (rscData *systemTacplusServerData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete system tacplus-server " + rscData.Address.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

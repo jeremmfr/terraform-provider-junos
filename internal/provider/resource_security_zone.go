@@ -807,7 +807,7 @@ func (rsc *securityZone) Update(
 		return
 	}
 	defer func() {
-		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock())...)
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
 	if err := state.delOpts(ctx, addressBookConfiguredSingly, junSess); err != nil {
@@ -869,12 +869,12 @@ func (rsc *securityZone) ImportState(
 }
 
 func checkSecurityZonesExists(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security zones security-zone " + name + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security zones security-zone "+name+junos.PipeDisplaySet)
 	if err != nil {
 		return false, err
 	}
@@ -894,7 +894,7 @@ func (rscData *securityZoneData) nullID() bool {
 }
 
 func (rscData *securityZoneData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -1018,14 +1018,14 @@ func (rscData *securityZoneData) set(
 		configSet = append(configSet, setPrefix+"tcp-rst")
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityZoneData) read(
-	_ context.Context, name string, junSess *junos.Session,
+	ctx context.Context, name string, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"security zones security-zone " + name + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"security zones security-zone "+name+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -1165,7 +1165,7 @@ func (rscData *securityZoneData) read(
 }
 
 func (rscData *securityZoneData) delOpts(
-	_ context.Context, addressBookSingly bool, junSess *junos.Session,
+	ctx context.Context, addressBookSingly bool, junSess *junos.Session,
 ) error {
 	delPrefix := "delete security zones security-zone " + rscData.Name.ValueString() + " "
 
@@ -1183,15 +1183,15 @@ func (rscData *securityZoneData) delOpts(
 		configSet = append(configSet, delPrefix+"address-book")
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *securityZoneData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	configSet := []string{
 		"delete security zones security-zone " + rscData.Name.ValueString(),
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }

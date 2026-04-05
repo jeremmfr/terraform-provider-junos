@@ -388,11 +388,11 @@ func (dsc *interfaceLogicalDataSource) Read(
 }
 
 func (dsc *interfaceLogicalDataSource) searchName(
-	_ context.Context, configInterface, match string, junSess *junos.Session,
+	ctx context.Context, configInterface, match string, junSess *junos.Session,
 ) (string, error) {
 	intConfigList := make([]string, 0, 100)
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"interfaces " + configInterface + junos.PipeDisplaySet)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"interfaces "+configInterface+junos.PipeDisplaySet)
 	if err != nil {
 		return "", err
 	}

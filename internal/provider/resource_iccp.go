@@ -218,7 +218,7 @@ func (rscData *iccpData) nullID() bool {
 }
 
 func (rscData *iccpData) set(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) (
 	path.Path, error,
 ) {
@@ -235,14 +235,14 @@ func (rscData *iccpData) set(
 			utils.ConvI64toa(rscData.SessionEstablishmentHoldTime.ValueInt64()))
 	}
 
-	return path.Empty(), junSess.ConfigSet(configSet)
+	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
 func (rscData *iccpData) read(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
-	showConfig, err := junSess.Command(junos.CmdShowConfig +
-		"protocols iccp" + junos.PipeDisplaySetRelative)
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"protocols iccp"+junos.PipeDisplaySetRelative)
 	if err != nil {
 		return err
 	}
@@ -277,7 +277,7 @@ func (rscData *iccpData) read(
 }
 
 func (rscData *iccpData) del(
-	_ context.Context, junSess *junos.Session,
+	ctx context.Context, junSess *junos.Session,
 ) error {
 	delPrefix := "delete protocols iccp "
 
@@ -287,5 +287,5 @@ func (rscData *iccpData) del(
 		delPrefix + "session-establishment-hold-time",
 	}
 
-	return junSess.ConfigSet(configSet)
+	return junSess.ConfigSet(ctx, configSet)
 }
