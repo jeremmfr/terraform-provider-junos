@@ -147,6 +147,13 @@ func (rsc *interfaceLogical) Schema(
 					stringvalidator.NoneOfCaseInsensitive(junos.DefaultW),
 				},
 			},
+			"proxy_macip_advertisement": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Enable the proxy advertisement feature on a QFX Series switch that can function as a Layer 3 gateway.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"security_inbound_protocols": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
@@ -1119,6 +1126,7 @@ type interfaceLogicalData struct {
 	Description              types.String                      `tfsdk:"description"`
 	Disable                  types.Bool                        `tfsdk:"disable"`
 	Encapsulation            types.String                      `tfsdk:"encapsulation"`
+	ProxyMacIPAdvertisement  types.Bool                        `tfsdk:"proxy_macip_advertisement"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
@@ -1140,6 +1148,7 @@ type interfaceLogicalConfig struct {
 	Description              types.String                            `tfsdk:"description"`
 	Disable                  types.Bool                              `tfsdk:"disable"`
 	Encapsulation            types.String                            `tfsdk:"encapsulation"`
+	ProxyMacIPAdvertisment   types.Bool                              `tfsdk:"proxy_macip_advertisement"`
 	RoutingInstance          types.String                            `tfsdk:"routing_instance"`
 	SecurityInboundProtocols types.Set                               `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  types.Set                               `tfsdk:"security_inbound_services"`
@@ -2552,6 +2561,9 @@ func (rscData *interfaceLogicalData) set(
 	if v := rscData.Encapsulation.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"encapsulation "+v)
 	}
+	if rscData.ProxyMacIPAdvertisement.ValueBool() {
+		configSet = append(configSet, setPrefix+"proxy-macip-advertisement")
+	}
 	if rscData.VirtualGatewayAcceptData.ValueBool() {
 		configSet = append(configSet, setPrefix+"virtual-gateway-accept-data")
 	}
@@ -3246,6 +3258,8 @@ func (rscData *interfaceLogicalData) read(
 				case itemTrim == " sampling output":
 					rscData.FamilyInet.SamplingOutput = types.BoolValue(true)
 				}
+			case itemTrim == "proxy-macip-advertisement":
+				rscData.ProxyMacIPAdvertisement = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "tunnel "):
 				if rscData.Tunnel == nil {
 					rscData.Tunnel = &interfaceLogicalBlockTunnel{}
@@ -3704,6 +3718,7 @@ func (rscData *interfaceLogicalData) delOpts(
 		delPrefix + "family inet",
 		delPrefix + "family inet6",
 		delPrefix + "tunnel",
+		delPrefix + "proxy-macip-advertisement",
 		delPrefix + "virtual-gateway-accept-data",
 		delPrefix + "virtual-gateway-v4-mac",
 		delPrefix + "virtual-gateway-v6-mac",

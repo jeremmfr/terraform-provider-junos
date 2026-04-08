@@ -266,6 +266,10 @@ func (dsc *interfaceLogicalDataSource) Schema(
 					}),
 				},
 			},
+			"proxy_macip_advertisement": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Enable the proxy advertisement feature on a QFX Series switch that can function as a Layer 3 gateway.",
+			},
 			"tunnel": schema.ObjectAttribute{
 				Computed:    true,
 				Description: "Tunnel parameters.",
@@ -304,6 +308,7 @@ type interfaceLogicalDataSourceData struct {
 	VlanID                   types.Int64                       `tfsdk:"vlan_id"`
 	FamilyInet               *interfaceLogicalBlockFamilyInet  `tfsdk:"family_inet"`
 	FamilyInet6              *interfaceLogicalBlockFamilyInet6 `tfsdk:"family_inet6"`
+	ProxyMacIPAdvertisement  types.Bool                        `tfsdk:"proxy_macip_advertisement"`
 	Tunnel                   *interfaceLogicalBlockTunnel      `tfsdk:"tunnel"`
 }
 
@@ -443,6 +448,7 @@ func (dscData *interfaceLogicalDataSourceData) copyFromResourceData(rscData inte
 	dscData.Encapsulation = rscData.Encapsulation
 	dscData.FamilyInet = rscData.FamilyInet
 	dscData.FamilyInet6 = rscData.FamilyInet6
+	dscData.ProxyMacIPAdvertisement = rscData.ProxyMacIPAdvertisement
 	dscData.RoutingInstance = rscData.RoutingInstance
 	dscData.SecurityInboundProtocols = rscData.SecurityInboundProtocols
 	dscData.SecurityInboundServices = rscData.SecurityInboundServices
