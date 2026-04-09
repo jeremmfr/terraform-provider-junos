@@ -50,6 +50,8 @@ func TestAccResourceInterfaceLogical_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
 							"routing_instance", "testacc_interface_logical"),
 						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
+							"proxy_macip_advertisement", "true"),
+						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
 							"family_inet.mtu", "1400"),
 						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
 							"family_inet.filter_input", "testacc_intlogicalInet"),

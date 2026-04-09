@@ -10,6 +10,7 @@ resource "junos_interface_logical" "testacc_interface_logical" {
 resource "junos_interface_logical" "testacc_interface_logical3" {
   name                        = "irb.100"
   virtual_gateway_accept_data = true
+  proxy_macip_advertisement   = true
   virtual_gateway_v4_mac      = "00:aa:bb:cc:dd:ee"
   virtual_gateway_v6_mac      = "00:aa:bb:cc:dd:ff"
   family_inet {
