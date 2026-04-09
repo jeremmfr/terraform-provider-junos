@@ -121,6 +121,13 @@ func (rsc *bgpGroup) Schema(
 				stringvalidator.OneOf("internal", "external"),
 			},
 		},
+		"vpn_apply_export": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Apply both the VRF export and BGP group or neighbor export policies (VRF first, then BGP) before routes from the vrf or l2vpn routing tables are advertised to other PE routers.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
 	}
 	maps.Copy(attributes, bgpAttrData{}.attributesSchema())
 
@@ -139,6 +146,7 @@ type bgpGroupData struct {
 	Name            types.String `tfsdk:"name"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 	Type            types.String `tfsdk:"type"`
+	VpnApplyExport  types.Bool   `tfsdk:"vpn_apply_export"`
 }
 
 type bgpGroupConfig struct {
@@ -148,6 +156,7 @@ type bgpGroupConfig struct {
 	Name            types.String `tfsdk:"name"`
 	RoutingInstance types.String `tfsdk:"routing_instance"`
 	Type            types.String `tfsdk:"type"`
+	VpnApplyExport  types.Bool   `tfsdk:"vpn_apply_export"`
 }
 
 func (rsc *bgpGroup) ValidateConfig(
@@ -456,6 +465,9 @@ func (rscData *bgpGroupData) set(
 	if err != nil {
 		return errPath, err
 	}
+	if rscData.VpnApplyExport.ValueBool() {
+		configSet = append(configSet, setPrefix+"vpn-apply-export")
+	}
 	configSet = append(configSet, dataConfigSet...)
 
 	return path.Empty(), junSess.ConfigSet(ctx, configSet)
@@ -492,6 +504,8 @@ func (rscData *bgpGroupData) read(
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "type "):
 				rscData.Type = types.StringValue(itemTrim)
+			case itemTrim == "vpn-apply-export":
+				rscData.VpnApplyExport = types.BoolValue(true)
 			default:
 				if err := rscData.bgpAttrData.read(itemTrim, junSess); err != nil {
 					return err
