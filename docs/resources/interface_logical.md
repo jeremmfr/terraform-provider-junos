@@ -101,6 +101,8 @@ The following arguments are supported:
     Sample all packets input on this interface.
   - **sampling_output** (Optional, Boolean)  
     Sample all packets output on this interface.
+- **proxy_macip_advertisement** (Optional, Boolean)
+  Enable the proxy advertisement feature on a QFX Series switch that can function as a Layer 3 gateway.
 - **routing_instance** (Optional, String)  
   Add this interface in routing_instance.  
   Need to be created before.

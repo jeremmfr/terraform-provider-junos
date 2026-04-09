@@ -99,6 +99,8 @@ The following attributes are exported:
     Sample all packets input on this interface.
   - **sampling_output** (Boolean)  
     Sample all packets output on this interface.
+- **proxy_macip_advertisement** (Boolean)
+  Enable the proxy advertisement feature on a QFX Series switch that can function as a Layer 3 gateway.
 - **routing_instance** (String)  
   Routing_instance where the interface is (if not default instance).
 - **security_inbound_protocols** (Set of String)  
