@@ -33,8 +33,9 @@ resource "junos_bgp_group" "testacc_bgpneighbor2b" {
   type = "internal"
 }
 resource "junos_bgp_neighbor" "testacc_bgpneighbor2b" {
-  ip    = "192.0.2.5"
-  group = junos_bgp_group.testacc_bgpneighbor2b.name
+  ip               = "192.0.2.5"
+  group            = junos_bgp_group.testacc_bgpneighbor2b.name
+  vpn_apply_export = true
   family_evpn {}
   bgp_error_tolerance {
     no_malformed_route_limit = true
