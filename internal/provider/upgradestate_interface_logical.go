@@ -532,7 +532,7 @@ func upgradeInterfaceLogicalV0toV1(
 				VRRPGroup []struct {
 					Identifier              types.Int64    `tfsdk:"identifier"`
 					VirtualAddress          []types.String `tfsdk:"virtual_address"`
-					VirutalLinkLocalAddress types.String   `tfsdk:"virtual_link_local_address"`
+					VirtualLinkLocalAddress types.String   `tfsdk:"virtual_link_local_address"`
 					AcceptData              types.Bool     `tfsdk:"accept_data"`
 					NoAcceptData            types.Bool     `tfsdk:"no_accept_data"`
 					AdvertiseInterval       types.Int64    `tfsdk:"advertise_interval"`
@@ -710,7 +710,7 @@ func upgradeInterfaceLogicalV0toV1(
 					NoPreempt:               subBlockV0.NoPreempt,
 					Identifier:              subBlockV0.Identifier,
 					VirtualAddress:          subBlockV0.VirtualAddress,
-					VirutalLinkLocalAddress: subBlockV0.VirutalLinkLocalAddress,
+					VirtualLinkLocalAddress: subBlockV0.VirtualLinkLocalAddress,
 					AdvertiseInterval:       subBlockV0.AdvertiseInterval,
 					AdvertisementsThreshold: subBlockV0.AdvertisementsThreshold,
 					Priority:                subBlockV0.Priority,

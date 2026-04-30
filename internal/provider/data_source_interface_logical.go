@@ -227,7 +227,6 @@ func (dsc *interfaceLogicalDataSource) Schema(
 						"vrrp_group": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 							"identifier":                 types.Int64Type,
 							"virtual_address":            types.ListType{}.WithElementType(types.StringType),
-							"virtual_link_local_address": types.StringType,
 							"accept_data":                types.BoolType,
 							"no_accept_data":             types.BoolType,
 							"advertise_interval":         types.Int64Type,
@@ -235,6 +234,7 @@ func (dsc *interfaceLogicalDataSource) Schema(
 							"preempt":                    types.BoolType,
 							"no_preempt":                 types.BoolType,
 							"priority":                   types.Int64Type,
+							"virtual_link_local_address": types.StringType,
 							"track_interface": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 								"interface":     types.StringType,
 								"priority_cost": types.StringType,

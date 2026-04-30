@@ -116,8 +116,6 @@ func TestAccResourceInterfaceLogical_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
 							"family_inet6.address.0.vrrp_group.0.virtual_address.0", "2001:db8::2"),
 						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
-							"family_inet6.address.0.vrrp_group.0.virtual_link_local_address", "fe80::2"),
-						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
 							"family_inet6.address.0.vrrp_group.0.accept_data", "true"),
 						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical",
 							"family_inet6.address.0.vrrp_group.0.advertise_interval", "100"),

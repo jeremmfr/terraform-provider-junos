@@ -73,14 +73,13 @@ resource "junos_interface_logical" "testacc_interface_logical" {
     address {
       cidr_ip = "2001:db8::1/64"
       vrrp_group {
-        identifier                 = 100
-        virtual_address            = ["2001:db8::2"]
-        virtual_link_local_address = "fe80::2"
-        accept_data                = true
-        advertise_interval         = 100
-        advertisements_threshold   = 3
-        preempt                    = true
-        priority                   = 100
+        identifier               = 100
+        virtual_address          = ["2001:db8::2"]
+        accept_data              = true
+        advertise_interval       = 100
+        advertisements_threshold = 3
+        preempt                  = true
+        priority                 = 100
         track_interface {
           interface     = junos_interface_physical.testacc_interface_logical_phy.name
           priority_cost = 20

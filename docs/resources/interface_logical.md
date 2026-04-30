@@ -295,7 +295,7 @@ The following arguments are supported:
 Same as [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet)
 block but without `authentication_key`, `authentication_type` and with
 
-- **virtual_link_local_address** (Required, String)  
+- **virtual_link_local_address** (Optional, String)  
   Address IPv6 for Virtual link-local addresses.
 
 ---
