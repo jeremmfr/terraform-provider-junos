@@ -173,6 +173,8 @@ func TestAccResourceBgpNeighbor_basic(t *testing.T) {
 							"local_as_alias", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor2",
 							"metric_out_minimum_igp", "true"),
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor2b",
+							"vpn_apply_export", "true"),
 					),
 				},
 			},
