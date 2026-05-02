@@ -107,6 +107,10 @@ func (dsc *interfaceLogicalDataSource) Schema(
 				Computed:    true,
 				Description: "Logical link-layer encapsulation.",
 			},
+			"proxy_macip_advertisement": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Proxy advertisement of type 2 MAC+IP route for EVPN.",
+			},
 			"routing_instance": schema.StringAttribute{
 				Computed:    true,
 				Description: "Routing_instance where the interface is.",
@@ -294,6 +298,7 @@ type interfaceLogicalDataSourceData struct {
 	Description              types.String                      `tfsdk:"description"`
 	Disable                  types.Bool                        `tfsdk:"disable"`
 	Encapsulation            types.String                      `tfsdk:"encapsulation"`
+	ProxyMacipAdvertisement  types.Bool                        `tfsdk:"proxy_macip_advertisement"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
@@ -443,6 +448,7 @@ func (dscData *interfaceLogicalDataSourceData) copyFromResourceData(rscData inte
 	dscData.Encapsulation = rscData.Encapsulation
 	dscData.FamilyInet = rscData.FamilyInet
 	dscData.FamilyInet6 = rscData.FamilyInet6
+	dscData.ProxyMacipAdvertisement = rscData.ProxyMacipAdvertisement
 	dscData.RoutingInstance = rscData.RoutingInstance
 	dscData.SecurityInboundProtocols = rscData.SecurityInboundProtocols
 	dscData.SecurityInboundServices = rscData.SecurityInboundServices

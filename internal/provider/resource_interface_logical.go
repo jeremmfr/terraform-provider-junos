@@ -138,6 +138,13 @@ func (rsc *interfaceLogical) Schema(
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
+			"proxy_macip_advertisement": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Proxy advertisement of type 2 MAC+IP route for EVPN.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"routing_instance": schema.StringAttribute{
 				Optional:    true,
 				Description: "Add this interface in routing_instance.",
@@ -1119,6 +1126,7 @@ type interfaceLogicalData struct {
 	Description              types.String                      `tfsdk:"description"`
 	Disable                  types.Bool                        `tfsdk:"disable"`
 	Encapsulation            types.String                      `tfsdk:"encapsulation"`
+	ProxyMacipAdvertisement  types.Bool                        `tfsdk:"proxy_macip_advertisement"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
@@ -1140,6 +1148,7 @@ type interfaceLogicalConfig struct {
 	Description              types.String                            `tfsdk:"description"`
 	Disable                  types.Bool                              `tfsdk:"disable"`
 	Encapsulation            types.String                            `tfsdk:"encapsulation"`
+	ProxyMacipAdvertisement  types.Bool                              `tfsdk:"proxy_macip_advertisement"`
 	RoutingInstance          types.String                            `tfsdk:"routing_instance"`
 	SecurityInboundProtocols types.Set                               `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  types.Set                               `tfsdk:"security_inbound_services"`
@@ -1407,6 +1416,14 @@ func (rsc *interfaceLogical) ValidateConfig(
 
 	if !config.Name.IsNull() && !config.Name.IsUnknown() &&
 		!strings.HasPrefix(config.Name.ValueString(), "irb.") {
+		if !config.ProxyMacipAdvertisement.IsNull() &&
+			!config.ProxyMacipAdvertisement.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("proxy_macip_advertisement"),
+				tfdiag.ConflictConfigErrSummary,
+				"cannot set proxy_macip_advertisement if interface name doesn't have 'irb.' prefix",
+			)
+		}
 		if !config.VirtualGatewayAcceptData.IsNull() &&
 			!config.VirtualGatewayAcceptData.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
@@ -2552,6 +2569,9 @@ func (rscData *interfaceLogicalData) set(
 	if v := rscData.Encapsulation.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"encapsulation "+v)
 	}
+	if rscData.ProxyMacipAdvertisement.ValueBool() {
+		configSet = append(configSet, setPrefix+"proxy-macip-advertisement")
+	}
 	if rscData.VirtualGatewayAcceptData.ValueBool() {
 		configSet = append(configSet, setPrefix+"virtual-gateway-accept-data")
 	}
@@ -3246,6 +3266,8 @@ func (rscData *interfaceLogicalData) read(
 				case itemTrim == " sampling output":
 					rscData.FamilyInet.SamplingOutput = types.BoolValue(true)
 				}
+			case itemTrim == "proxy-macip-advertisement":
+				rscData.ProxyMacipAdvertisement = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "tunnel "):
 				if rscData.Tunnel == nil {
 					rscData.Tunnel = &interfaceLogicalBlockTunnel{}
@@ -3703,6 +3725,7 @@ func (rscData *interfaceLogicalData) delOpts(
 		delPrefix + "encapsulation",
 		delPrefix + "family inet",
 		delPrefix + "family inet6",
+		delPrefix + "proxy-macip-advertisement",
 		delPrefix + "tunnel",
 		delPrefix + "virtual-gateway-accept-data",
 		delPrefix + "virtual-gateway-v4-mac",
