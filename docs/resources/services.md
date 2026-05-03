@@ -260,13 +260,13 @@ The following arguments are supported:
     Need to be `http` or `https`.
   - **port** (Optional, Number)  
     Server port (1..65535).
-  - **primary_ca_certificate** (Optional, String)  
+  - **primary_ca_certificate** (Optional, String, **Deprecated**)  
     Ca-certificate file name of Primary server.
   - **query_api** (Optional, String)  
     Query API.
   - **secondary_address** (Optional, String)  
     IP address of Secondary server.
-  - **secondary_ca_certificate** (Optional, String)  
+  - **secondary_ca_certificate** (Optional, String, **Deprecated**)  
     Ca-certificate file name of Secondary server.
   - **secondary_client_id** (Optional, String)  
     Client ID of Secondary server for OAuth2 grant.

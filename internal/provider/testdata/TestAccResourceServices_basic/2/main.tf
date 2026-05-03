@@ -70,14 +70,13 @@ resource "junos_services" "testacc" {
     device_info_auth_source = "network-access-controller"
     identity_management {
       connection {
-        primary_address        = "192.0.2.254"
-        primary_client_id      = "clientID"
-        primary_client_secret  = "mySecret2"
-        connect_method         = "https"
-        port                   = 2000
-        primary_ca_certificate = "ca@2"
-        query_api              = "user_query/v2"
-        token_api              = "oauth_token/oauth"
+        primary_address       = "192.0.2.254"
+        primary_client_id     = "clientID"
+        primary_client_secret = "mySecret2"
+        connect_method        = "https"
+        port                  = 2000
+        query_api             = "user_query/v2"
+        token_api             = "oauth_token/oauth"
       }
     }
   }
