@@ -2,6 +2,7 @@ resource "junos_interface_physical" "testacc_interface" {
   name        = var.interface
   description = "testacc_interface"
   disable     = true
+  speed       = "1g"
   gigether_opts {
     ae_8023ad = var.interfaceAE
   }

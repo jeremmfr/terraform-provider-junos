@@ -46,7 +46,6 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
     }
     no_flow_control   = true
     no_loopback       = true
-    link_speed        = "1g"
     minimum_bandwidth = "1 gbps"
   }
   vlan_tagging = true
