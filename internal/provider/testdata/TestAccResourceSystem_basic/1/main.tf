@@ -161,7 +161,7 @@ resource "junos_system" "testacc_system" {
       client_alive_interval          = 30
       connection_limit               = 10
       fingerprint_hash               = "md5"
-      hostkey_algorithm              = ["no-ssh-dss"]
+      hostkey_algorithm_list         = ["ed25519", "rsa"]
       key_exchange                   = ["ecdh-sha2-nistp256"]
       macs                           = ["hmac-sha2-256", "hmac-sha2-256-etm@openssh.com"]
       max_pre_authentication_packets = 10000

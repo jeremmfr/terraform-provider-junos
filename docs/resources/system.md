@@ -480,7 +480,9 @@ The following arguments are supported:
   Maximum number of allowed connections (1..250).
 - **fingerprint_hash** (Optional, String)  
   Configure hash algorithm used when displaying key fingerprints.
-- **hostkey_algorithm** (Optional, Set of String)  
+- **hostkey_algorithm** (Optional, Set of String, **Deprecated**)  
+  Specify permissible SSH host-key algorithms.
+- **hostkey_algorithm_list** (Optional, Set of String)  
   Specify permissible SSH host-key algorithms.
 - **key_exchange** (Optional, Set of String)  
   Specify ssh key-exchange for Diffie-Hellman keys.
