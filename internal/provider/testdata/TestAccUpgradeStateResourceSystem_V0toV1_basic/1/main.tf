@@ -139,7 +139,6 @@ resource "junos_system" "testacc_system" {
       protocol_version               = ["v2"]
       rate_limit                     = 200
       root_login                     = "deny"
-      tcp_forwarding                 = true
     }
     web_management_http {
       interface = ["fxp0.0"]

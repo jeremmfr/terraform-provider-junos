@@ -77,8 +77,7 @@ resource "junos_system" "testacc_system" {
       flag                   = ["incoming", "outgoing"]
     }
     ssh {
-      ciphers           = ["aes256-ctr"]
-      no_tcp_forwarding = true
+      ciphers = ["aes256-ctr"]
     }
     web_management_http {}
     web_management_https {

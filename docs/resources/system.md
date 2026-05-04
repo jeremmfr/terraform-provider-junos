@@ -506,9 +506,9 @@ The following arguments are supported:
 - **root_login** (Optional, String)  
   Configure root access via ssh.  
   Need to be `allow`, `deny` or `deny-password`.
-- **tcp_forwarding** (Optional, Boolean)  
+- **tcp_forwarding** (Optional, Boolean, **Deprecated**)  
   Allow forwarding TCP connections via SSH.
-- **no_tcp_forwarding** (Optional, Boolean)  
+- **no_tcp_forwarding** (Optional, Boolean, **Deprecated**)  
   Do not allow forwarding TCP connections via SSH.
 
 ---

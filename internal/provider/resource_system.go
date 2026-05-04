@@ -1494,14 +1494,18 @@ func (rsc *system) Schema(
 								},
 							},
 							"tcp_forwarding": schema.BoolAttribute{
-								Optional:    true,
+								Optional: true,
+								DeprecationMessage: "Option removed in the latest versions of JunOS." +
+									" This attribute will be removed in the next major version of the provider.",
 								Description: "Allow forwarding TCP connections via SSH.",
 								Validators: []validator.Bool{
 									tfvalidator.BoolTrue(),
 								},
 							},
 							"no_tcp_forwarding": schema.BoolAttribute{
-								Optional:    true,
+								Optional: true,
+								DeprecationMessage: "Option removed in the latest versions of JunOS." +
+									" This attribute will be removed in the next major version of the provider.",
 								Description: "Do not allow forwarding TCP connections via SSH.",
 								Validators: []validator.Bool{
 									tfvalidator.BoolTrue(),

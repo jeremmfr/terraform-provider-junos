@@ -170,7 +170,6 @@ resource "junos_system" "testacc_system" {
       protocol_version               = ["v2"]
       rate_limit                     = 200
       root_login                     = "deny"
-      tcp_forwarding                 = true
     }
     web_management_session_idle_timeout = 600
     web_management_session_limit        = 100
