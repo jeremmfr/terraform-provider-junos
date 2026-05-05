@@ -179,18 +179,18 @@ The following arguments are supported:
   PPP interface name for propagating DNS/WINS settings.
 - **propagate_settings** (Optional, String)  
   Interface name for propagating TCP/IP Settings to pool.
-- **router** (Optional, String)  
+- **router** (Optional, Set of String)  
   Routers advertised to clients.  
   Need to be valid IPv4 addresses.
 - **server_identifier** (Optional, String)  
   Server Identifier - IP address value.  
   Need to be a valid IPv4 address.
-- **sip_server_inet_address** (Optional, List of String)  
+- **sip_server_inet_address** (Optional, Set of String)  
   SIP servers list of IPv4 addresses available to the client.  
   Need to be valid IPv4 addresses.
-- **sip_server_inet_domain_name** (Optional, List of String)  
+- **sip_server_inet_domain_name** (Optional, Set of String)  
   SIP server domain name available to clients.
-- **sip_server_inet6_address** (Optional, List of String)  
+- **sip_server_inet6_address** (Optional, Set of String)  
   SIP Servers list of IPv6 addresses available to the client.  
   Need to be valid IPv6 addresses.  
   `type` need to be `inet6`.  

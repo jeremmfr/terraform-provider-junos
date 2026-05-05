@@ -354,14 +354,14 @@ func (rsc *accessAddressAssignmentPool) Schema(
 									tfvalidator.StringDoubleQuoteExclusion(),
 								},
 							},
-							"router": schema.ListAttribute{
+							"router": schema.SetAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
 								Description: "Routers advertised to clients.",
-								Validators: []validator.List{
-									listvalidator.SizeAtLeast(1),
-									listvalidator.NoNullValues(),
-									listvalidator.ValueStringsAre(
+								Validators: []validator.Set{
+									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
+									setvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv4Only(),
 									),
 								},
@@ -373,39 +373,39 @@ func (rsc *accessAddressAssignmentPool) Schema(
 									tfvalidator.StringIPAddress().IPv4Only(),
 								},
 							},
-							"sip_server_inet_address": schema.ListAttribute{
+							"sip_server_inet_address": schema.SetAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
 								Description: "SIP servers list of IPv4 addresses available to the client.",
-								Validators: []validator.List{
-									listvalidator.SizeAtLeast(1),
-									listvalidator.NoNullValues(),
-									listvalidator.ValueStringsAre(
+								Validators: []validator.Set{
+									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
+									setvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv4Only(),
 									),
 								},
 							},
-							"sip_server_inet_domain_name": schema.ListAttribute{
+							"sip_server_inet_domain_name": schema.SetAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
 								Description: "SIP server domain name available to clients.",
-								Validators: []validator.List{
-									listvalidator.SizeAtLeast(1),
-									listvalidator.NoNullValues(),
-									listvalidator.ValueStringsAre(
+								Validators: []validator.Set{
+									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
+									setvalidator.ValueStringsAre(
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
 									),
 								},
 							},
-							"sip_server_inet6_address": schema.ListAttribute{
+							"sip_server_inet6_address": schema.SetAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
 								Description: "SIP Servers list of IPv6 addresses available to the client.",
-								Validators: []validator.List{
-									listvalidator.SizeAtLeast(1),
-									listvalidator.NoNullValues(),
-									listvalidator.ValueStringsAre(
+								Validators: []validator.Set{
+									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
+									setvalidator.ValueStringsAre(
 										tfvalidator.StringIPAddress().IPv6Only(),
 									),
 								},
@@ -783,11 +783,11 @@ type accessAddressAssignmentPoolBlockFamilyBlockDhcpAttributesConfig struct {
 	PreferredLifetimeInfinite types.Bool   `tfsdk:"preferred_lifetime_infinite"`
 	PropagatePppSettings      types.Set    `tfsdk:"propagate_ppp_settings"`
 	PropagateSettings         types.String `tfsdk:"propagate_settings"`
-	Router                    types.List   `tfsdk:"router"`
+	Router                    types.Set    `tfsdk:"router"`
 	ServerIdentifier          types.String `tfsdk:"server_identifier"`
-	SIPServerInetAddress      types.List   `tfsdk:"sip_server_inet_address"`
-	SIPServerInetDomainName   types.List   `tfsdk:"sip_server_inet_domain_name"`
-	SIPServerInet6Address     types.List   `tfsdk:"sip_server_inet6_address"`
+	SIPServerInetAddress      types.Set    `tfsdk:"sip_server_inet_address"`
+	SIPServerInetDomainName   types.Set    `tfsdk:"sip_server_inet_domain_name"`
+	SIPServerInet6Address     types.Set    `tfsdk:"sip_server_inet6_address"`
 	SIPServerInet6DomainName  types.String `tfsdk:"sip_server_inet6_domain_name"`
 	T1Percentage              types.Int64  `tfsdk:"t1_percentage"`
 	T1RenewalTime             types.Int64  `tfsdk:"t1_renewal_time"`
