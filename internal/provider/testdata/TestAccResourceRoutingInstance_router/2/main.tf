@@ -72,6 +72,7 @@ resource "junos_routing_instance" "testacc_routingInst4" {
   name                = "testacc_routingInst4"
   type                = "virtual-switch"
   route_distinguisher = "10:11"
+  vrf_target          = "target:9:11"
   vrf_export          = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
   vrf_target_auto     = true
   remote_vtep_list    = ["192.0.2.35"]
