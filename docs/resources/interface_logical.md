@@ -101,6 +101,8 @@ The following arguments are supported:
     Sample all packets input on this interface.
   - **sampling_output** (Optional, Boolean)  
     Sample all packets output on this interface.
+- **proxy_macip_advertisement** (Optional, Boolean)  
+  Proxy advertisement of type 2 MAC+IP route for EVPN.
 - **routing_instance** (Optional, String)  
   Add this interface in routing_instance.  
   Need to be created before.
@@ -295,7 +297,7 @@ The following arguments are supported:
 Same as [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet)
 block but without `authentication_key`, `authentication_type` and with
 
-- **virtual_link_local_address** (Required, String)  
+- **virtual_link_local_address** (Optional, String)  
   Address IPv6 for Virtual link-local addresses.
 
 ---

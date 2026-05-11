@@ -1,6 +1,20 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 # changelog
 
+## v2.19.0 (2026-05-11)
+
+ENHANCEMENTS:
+
+* **resource/junos_access_address_assignment_pool**: `router`, `sip_server_inet_address`, `sip_server_inet_domain_name` and `sip_server_inet6_address` arguments in `dhcp_attributes` block in `family` block are now unordered lists (Sets)
+* **resource/junos_bgp_group**: add `vpn_apply_export` argument
+* **resource/junos_bgp_neighbor**: add `vpn_apply_export` argument
+* **resource/junos_interface_logical**: add `proxy_macip_advertisement` argument (Fix [#895](https://github.com/jeremmfr/terraform-provider-junos/issues/895))
+* **resource/junos_interface_logical**: `virtual_link_local_address` argument in `vrrp_group` block in `address` block in `family_inet6` block is now optional (Fix [#899](https://github.com/jeremmfr/terraform-provider-junos/issues/899))
+* **data-source/junos_interface_logical**: add `proxy_macip_advertisement` attribute like resource
+* **resource/junos_services**: deprecate `primary_ca_certificate` and `secondary_ca_certificate` arguments in `connection` block in `identity_management` block in `user_identification` block since these options were removed in recent versions of JunOS
+* **resource/junos_system**: deprecate `tcp_forwarding` and `no_tcp_forwarding` arguments in `ssh` block in `services` block since these options were removed in recent versions of JunOS
+* **resource/junos_system**: add `hostkey_algorithm_list` argument in `ssh` block in `services` block and deprecate `hostkey_algorithm` argument that uses the old JunOS syntax
+
 ## v2.18.0 (2026-04-05)
 
 FEATURES:

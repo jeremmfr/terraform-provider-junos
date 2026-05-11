@@ -138,6 +138,13 @@ func (rsc *interfaceLogical) Schema(
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
+			"proxy_macip_advertisement": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Proxy advertisement of type 2 MAC+IP route for EVPN.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"routing_instance": schema.StringAttribute{
 				Optional:    true,
 				Description: "Add this interface in routing_instance.",
@@ -776,13 +783,6 @@ func (rsc *interfaceLogical) Schema(
 													),
 												},
 											},
-											"virtual_link_local_address": schema.StringAttribute{
-												Required:    true,
-												Description: "Address IPv6 for Virtual link-local addresses.",
-												Validators: []validator.String{
-													tfvalidator.StringIPAddress().IPv6Only(),
-												},
-											},
 											"accept_data": schema.BoolAttribute{
 												Optional:    true,
 												Description: "Accept packets destined for virtual IP address.",
@@ -830,6 +830,13 @@ func (rsc *interfaceLogical) Schema(
 												Description: "Virtual router election priority.",
 												Validators: []validator.Int64{
 													int64validator.Between(1, 255),
+												},
+											},
+											"virtual_link_local_address": schema.StringAttribute{
+												Optional:    true,
+												Description: "Address IPv6 for Virtual link-local addresses.",
+												Validators: []validator.String{
+													tfvalidator.StringIPAddress().IPv6Only(),
 												},
 											},
 										},
@@ -1119,6 +1126,7 @@ type interfaceLogicalData struct {
 	Description              types.String                      `tfsdk:"description"`
 	Disable                  types.Bool                        `tfsdk:"disable"`
 	Encapsulation            types.String                      `tfsdk:"encapsulation"`
+	ProxyMacipAdvertisement  types.Bool                        `tfsdk:"proxy_macip_advertisement"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
@@ -1140,6 +1148,7 @@ type interfaceLogicalConfig struct {
 	Description              types.String                            `tfsdk:"description"`
 	Disable                  types.Bool                              `tfsdk:"disable"`
 	Encapsulation            types.String                            `tfsdk:"encapsulation"`
+	ProxyMacipAdvertisement  types.Bool                              `tfsdk:"proxy_macip_advertisement"`
 	RoutingInstance          types.String                            `tfsdk:"routing_instance"`
 	SecurityInboundProtocols types.Set                               `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  types.Set                               `tfsdk:"security_inbound_services"`
@@ -1321,7 +1330,6 @@ type interfaceLogicalBlockFamilyInet6BlockAddressConfig struct {
 type interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup struct {
 	Identifier              types.Int64                                                                `tfsdk:"identifier"                 tfdata:"identifier"`
 	VirtualAddress          []types.String                                                             `tfsdk:"virtual_address"`
-	VirutalLinkLocalAddress types.String                                                               `tfsdk:"virtual_link_local_address"`
 	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
 	NoAcceptData            types.Bool                                                                 `tfsdk:"no_accept_data"`
 	AdvertiseInterval       types.Int64                                                                `tfsdk:"advertise_interval"`
@@ -1329,6 +1337,7 @@ type interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup struct {
 	Preempt                 types.Bool                                                                 `tfsdk:"preempt"`
 	NoPreempt               types.Bool                                                                 `tfsdk:"no_preempt"`
 	Priority                types.Int64                                                                `tfsdk:"priority"`
+	VirtualLinkLocalAddress types.String                                                               `tfsdk:"virtual_link_local_address"`
 	TrackInterface          []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface `tfsdk:"track_interface"`
 	TrackRoute              []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute     `tfsdk:"track_route"`
 }
@@ -1336,7 +1345,6 @@ type interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup struct {
 type interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroupConfig struct {
 	Identifier              types.Int64  `tfsdk:"identifier"`
 	VirtualAddress          types.List   `tfsdk:"virtual_address"`
-	VirutalLinkLocalAddress types.String `tfsdk:"virtual_link_local_address"`
 	AcceptData              types.Bool   `tfsdk:"accept_data"`
 	NoAcceptData            types.Bool   `tfsdk:"no_accept_data"`
 	AdvertiseInterval       types.Int64  `tfsdk:"advertise_interval"`
@@ -1344,6 +1352,7 @@ type interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroupConfig struct {
 	Preempt                 types.Bool   `tfsdk:"preempt"`
 	NoPreempt               types.Bool   `tfsdk:"no_preempt"`
 	Priority                types.Int64  `tfsdk:"priority"`
+	VirtualLinkLocalAddress types.String `tfsdk:"virtual_link_local_address"`
 	TrackInterface          types.List   `tfsdk:"track_interface"`
 	TrackRoute              types.List   `tfsdk:"track_route"`
 }
@@ -1407,6 +1416,14 @@ func (rsc *interfaceLogical) ValidateConfig(
 
 	if !config.Name.IsNull() && !config.Name.IsUnknown() &&
 		!strings.HasPrefix(config.Name.ValueString(), "irb.") {
+		if !config.ProxyMacipAdvertisement.IsNull() &&
+			!config.ProxyMacipAdvertisement.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("proxy_macip_advertisement"),
+				tfdiag.ConflictConfigErrSummary,
+				"cannot set proxy_macip_advertisement if interface name doesn't have 'irb.' prefix",
+			)
+		}
 		if !config.VirtualGatewayAcceptData.IsNull() &&
 			!config.VirtualGatewayAcceptData.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
@@ -2552,6 +2569,9 @@ func (rscData *interfaceLogicalData) set(
 	if v := rscData.Encapsulation.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"encapsulation "+v)
 	}
+	if rscData.ProxyMacipAdvertisement.ValueBool() {
+		configSet = append(configSet, setPrefix+"proxy-macip-advertisement")
+	}
 	if rscData.VirtualGatewayAcceptData.ValueBool() {
 		configSet = append(configSet, setPrefix+"virtual-gateway-accept-data")
 	}
@@ -2913,10 +2933,8 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup) configS
 	path.Path, // pathErr
 	error, // error
 ) {
+	configSet := make([]string, 0, 100)
 	setPrefix += "vrrp-inet6-group " + utils.ConvI64toa(block.Identifier.ValueInt64()) + " "
-
-	configSet := make([]string, 1, 100)
-	configSet[0] = setPrefix + "virtual-link-local-address " + block.VirutalLinkLocalAddress.ValueString()
 
 	for _, v := range block.VirtualAddress {
 		configSet = append(configSet, setPrefix+"virtual-inet6-address "+v.ValueString())
@@ -2945,6 +2963,9 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup) configS
 	if !block.Priority.IsNull() {
 		configSet = append(configSet, setPrefix+"priority "+
 			utils.ConvI64toa(block.Priority.ValueInt64()))
+	}
+	if v := block.VirtualLinkLocalAddress.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"virtual-link-local-address "+v)
 	}
 
 	trackInterfaceInterface := make(map[string]struct{})
@@ -3246,6 +3267,8 @@ func (rscData *interfaceLogicalData) read(
 				case itemTrim == " sampling output":
 					rscData.FamilyInet.SamplingOutput = types.BoolValue(true)
 				}
+			case itemTrim == "proxy-macip-advertisement":
+				rscData.ProxyMacipAdvertisement = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "tunnel "):
 				if rscData.Tunnel == nil {
 					rscData.Tunnel = &interfaceLogicalBlockTunnel{}
@@ -3527,8 +3550,6 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup) read(it
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "virtual-inet6-address "):
 		block.VirtualAddress = append(block.VirtualAddress, types.StringValue(itemTrim))
-	case balt.CutPrefixInString(&itemTrim, "virtual-link-local-address "):
-		block.VirutalLinkLocalAddress = types.StringValue(itemTrim)
 	case itemTrim == "accept-data":
 		block.AcceptData = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "inet6-advertise-interval "):
@@ -3583,6 +3604,8 @@ func (block *interfaceLogicalBlockFamilyInet6BlockAddressBlockVRRPGroup) read(it
 				PriorityCost:    cost,
 			},
 		)
+	case balt.CutPrefixInString(&itemTrim, "virtual-link-local-address "):
+		block.VirtualLinkLocalAddress = types.StringValue(itemTrim)
 	}
 
 	return nil
@@ -3703,6 +3726,7 @@ func (rscData *interfaceLogicalData) delOpts(
 		delPrefix + "encapsulation",
 		delPrefix + "family inet",
 		delPrefix + "family inet6",
+		delPrefix + "proxy-macip-advertisement",
 		delPrefix + "tunnel",
 		delPrefix + "virtual-gateway-accept-data",
 		delPrefix + "virtual-gateway-v4-mac",

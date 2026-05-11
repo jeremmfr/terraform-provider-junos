@@ -177,6 +177,8 @@ The following arguments are supported:
   Remove well-known private AS numbers.
 - **tcp_aggressive_transmission** (Optional, Boolean)  
   Enable aggressive transmission of pure TCP ACKs and retransmissions
+- **vpn_apply_export** (Optional, Boolean)  
+  Apply BGP export policy when exporting VPN routes.
 
 ---
 

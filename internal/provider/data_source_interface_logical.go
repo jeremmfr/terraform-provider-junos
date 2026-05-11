@@ -107,6 +107,10 @@ func (dsc *interfaceLogicalDataSource) Schema(
 				Computed:    true,
 				Description: "Logical link-layer encapsulation.",
 			},
+			"proxy_macip_advertisement": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Proxy advertisement of type 2 MAC+IP route for EVPN.",
+			},
 			"routing_instance": schema.StringAttribute{
 				Computed:    true,
 				Description: "Routing_instance where the interface is.",
@@ -227,7 +231,6 @@ func (dsc *interfaceLogicalDataSource) Schema(
 						"vrrp_group": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 							"identifier":                 types.Int64Type,
 							"virtual_address":            types.ListType{}.WithElementType(types.StringType),
-							"virtual_link_local_address": types.StringType,
 							"accept_data":                types.BoolType,
 							"no_accept_data":             types.BoolType,
 							"advertise_interval":         types.Int64Type,
@@ -235,6 +238,7 @@ func (dsc *interfaceLogicalDataSource) Schema(
 							"preempt":                    types.BoolType,
 							"no_preempt":                 types.BoolType,
 							"priority":                   types.Int64Type,
+							"virtual_link_local_address": types.StringType,
 							"track_interface": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 								"interface":     types.StringType,
 								"priority_cost": types.StringType,
@@ -294,6 +298,7 @@ type interfaceLogicalDataSourceData struct {
 	Description              types.String                      `tfsdk:"description"`
 	Disable                  types.Bool                        `tfsdk:"disable"`
 	Encapsulation            types.String                      `tfsdk:"encapsulation"`
+	ProxyMacipAdvertisement  types.Bool                        `tfsdk:"proxy_macip_advertisement"`
 	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
 	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
 	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
@@ -443,6 +448,7 @@ func (dscData *interfaceLogicalDataSourceData) copyFromResourceData(rscData inte
 	dscData.Encapsulation = rscData.Encapsulation
 	dscData.FamilyInet = rscData.FamilyInet
 	dscData.FamilyInet6 = rscData.FamilyInet6
+	dscData.ProxyMacipAdvertisement = rscData.ProxyMacipAdvertisement
 	dscData.RoutingInstance = rscData.RoutingInstance
 	dscData.SecurityInboundProtocols = rscData.SecurityInboundProtocols
 	dscData.SecurityInboundServices = rscData.SecurityInboundServices

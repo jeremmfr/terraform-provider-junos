@@ -822,7 +822,9 @@ func (rsc *services) Schema(
 										},
 									},
 									"primary_ca_certificate": schema.StringAttribute{
-										Optional:    true,
+										Optional: true,
+										DeprecationMessage: "Option removed in the latest versions of JunOS." +
+											" This attribute will be removed in the next major version of the provider.",
 										Description: "Ca-certificate file name of Primary server.",
 										Validators: []validator.String{
 											stringvalidator.LengthBetween(1, 256),
@@ -845,7 +847,9 @@ func (rsc *services) Schema(
 										},
 									},
 									"secondary_ca_certificate": schema.StringAttribute{
-										Optional:    true,
+										Optional: true,
+										DeprecationMessage: "Option removed in the latest versions of JunOS." +
+											" This attribute will be removed in the next major version of the provider.",
 										Description: "Ca-certificate file name of Secondary server.",
 										Validators: []validator.String{
 											stringvalidator.LengthBetween(1, 256),

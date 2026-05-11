@@ -67,6 +67,7 @@ type bgpAttrData struct {
 	Preference                   types.Int64                   `tfsdk:"preference"`
 	RemovePrivate                types.Bool                    `tfsdk:"remove_private"`
 	TCPAggressiveTransmission    types.Bool                    `tfsdk:"tcp_aggressive_transmission"`
+	VpnApplyExport               types.Bool                    `tfsdk:"vpn_apply_export"`
 	BfdLivenessDetection         *bgpBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
 	BgpErrorTolerance            *bgpBlockBgpErrorTolerance    `tfsdk:"bgp_error_tolerance"`
 	BgpMultipath                 *bgpBlockBgpMultipath         `tfsdk:"bgp_multipath"`
@@ -398,6 +399,13 @@ func (bgpAttrData) attributesSchema() map[string]schema.Attribute {
 				tfvalidator.BoolTrue(),
 			},
 		},
+		"vpn_apply_export": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Apply BGP export policy when exporting VPN routes.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
 	}
 }
 
@@ -549,6 +557,9 @@ func (rscData *bgpAttrData) configSet(setPrefix string) ([]string, path.Path, er
 	}
 	if rscData.TCPAggressiveTransmission.ValueBool() {
 		configSet = append(configSet, setPrefix+"tcp-aggressive-transmission")
+	}
+	if rscData.VpnApplyExport.ValueBool() {
+		configSet = append(configSet, setPrefix+"vpn-apply-export")
 	}
 	if rscData.BfdLivenessDetection != nil {
 		if rscData.BfdLivenessDetection.isEmpty() {
@@ -744,6 +755,8 @@ func (rscData *bgpAttrData) read(
 		rscData.RemovePrivate = types.BoolValue(true)
 	case itemTrim == "tcp-aggressive-transmission":
 		rscData.TCPAggressiveTransmission = types.BoolValue(true)
+	case itemTrim == "vpn-apply-export":
+		rscData.VpnApplyExport = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
 		if rscData.BfdLivenessDetection == nil {
 			rscData.BfdLivenessDetection = &bgpBlockBfdLivenessDetection{}
@@ -839,6 +852,7 @@ func (rscData bgpAttrData) configOptsToDel(delPrefix string) []string {
 		delPrefix + "preference",
 		delPrefix + "remove-private",
 		delPrefix + "tcp-aggressive-transmission",
+		delPrefix + "vpn-apply-export",
 		delPrefix + "bfd-liveness-detection",
 		delPrefix + "bgp-error-tolerance",
 		delPrefix + "family evpn",
@@ -891,6 +905,7 @@ type bgpAttrConfig struct {
 	Preference                   types.Int64                   `tfsdk:"preference"`
 	RemotePrivate                types.Bool                    `tfsdk:"remove_private"`
 	TCPAggressiveTransmission    types.Bool                    `tfsdk:"tcp_aggressive_transmission"`
+	VpnApplyExport               types.Bool                    `tfsdk:"vpn_apply_export"`
 	BfdLivenessDetection         *bgpBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
 	BgpErrorTolerance            *bgpBlockBgpErrorTolerance    `tfsdk:"bgp_error_tolerance"`
 	BgpMultipah                  *bgpBlockBgpMultipath         `tfsdk:"bgp_multipath"`

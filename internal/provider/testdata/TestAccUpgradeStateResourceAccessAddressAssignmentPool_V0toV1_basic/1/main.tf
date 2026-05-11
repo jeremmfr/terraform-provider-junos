@@ -62,9 +62,9 @@ resource "junos_access_address_assignment_pool" "testacc_accessAddAssP4" {
       }
       propagate_ppp_settings      = [junos_interface_logical.testacc_accessAddAssP4.name, ]
       propagate_settings          = "ff"
-      router                      = ["192.0.2.121", "192.0.2.120"]
+      router                      = ["192.0.2.120", "192.0.2.121"]
       server_identifier           = "192.0.2.6"
-      sip_server_inet_address     = ["192.0.2.62", "192.0.2.61"]
+      sip_server_inet_address     = ["192.0.2.61", "192.0.2.62"]
       sip_server_inet_domain_name = ["domain.name"]
       t1_percentage               = 50
       t2_percentage               = 70

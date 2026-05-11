@@ -14,6 +14,7 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
   local_as               = "65000"
   local_as_alias         = true
   metric_out_minimum_igp = true
+  vpn_apply_export       = true
   family_evpn {}
   bgp_error_tolerance {
     no_malformed_route_limit = true

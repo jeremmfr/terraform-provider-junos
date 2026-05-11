@@ -3,6 +3,8 @@ version: "2"
 linters:
   default: all
   disable:
+    # deprecated
+    - gomodguard
     # unwanted
     - cyclop
     - depguard
@@ -12,6 +14,7 @@ linters:
     - forcetypeassert
     - funcorder
     - funlen
+    - goconst
     - gosec
     - inamedparam
     - ireturn
@@ -29,8 +32,6 @@ linters:
   settings:
     gocognit:
       min-complexity: 180
-    goconst:
-      min-occurrences: 25
     gocritic:
       enabled-checks:
         - ruleguard
