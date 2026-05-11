@@ -130,7 +130,6 @@ resource "junos_system" "testacc_system" {
       client_alive_interval          = 30
       connection_limit               = 10
       fingerprint_hash               = "md5"
-      hostkey_algorithm              = ["no-ssh-dss"]
       key_exchange                   = ["ecdh-sha2-nistp256"]
       macs                           = ["hmac-sha2-256"]
       max_pre_authentication_packets = 10000
@@ -139,7 +138,6 @@ resource "junos_system" "testacc_system" {
       protocol_version               = ["v2"]
       rate_limit                     = 200
       root_login                     = "deny"
-      tcp_forwarding                 = true
     }
     web_management_http {
       interface = ["fxp0.0"]

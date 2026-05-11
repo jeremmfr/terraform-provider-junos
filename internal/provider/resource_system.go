@@ -1389,6 +1389,22 @@ func (rsc *system) Schema(
 							"hostkey_algorithm": schema.SetAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
+								DeprecationMessage: "Configure hostkey_algorithm_list instead." +
+									" This syntax was removed in recent versions of JunOS." +
+									" This attribute will be removed in the next major version of the provider.",
+								Description: "Specify permissible SSH host-key algorithms.",
+								Validators: []validator.Set{
+									setvalidator.SizeAtLeast(1),
+									setvalidator.NoNullValues(),
+									setvalidator.ValueStringsAre(
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringFormat(tfvalidator.AlgorithmFormat),
+									),
+								},
+							},
+							"hostkey_algorithm_list": schema.SetAttribute{
+								ElementType: types.StringType,
+								Optional:    true,
 								Description: "Specify permissible SSH host-key algorithms.",
 								Validators: []validator.Set{
 									setvalidator.SizeAtLeast(1),
@@ -1494,14 +1510,18 @@ func (rsc *system) Schema(
 								},
 							},
 							"tcp_forwarding": schema.BoolAttribute{
-								Optional:    true,
+								Optional: true,
+								DeprecationMessage: "Option removed in the latest versions of JunOS." +
+									" This attribute will be removed in the next major version of the provider.",
 								Description: "Allow forwarding TCP connections via SSH.",
 								Validators: []validator.Bool{
 									tfvalidator.BoolTrue(),
 								},
 							},
 							"no_tcp_forwarding": schema.BoolAttribute{
-								Optional:    true,
+								Optional: true,
+								DeprecationMessage: "Option removed in the latest versions of JunOS." +
+									" This attribute will be removed in the next major version of the provider.",
 								Description: "Do not allow forwarding TCP connections via SSH.",
 								Validators: []validator.Bool{
 									tfvalidator.BoolTrue(),
@@ -2217,6 +2237,7 @@ type systemBlockServicesBlockSSH struct {
 	ConnectionLimit             types.Int64    `tfsdk:"connection_limit"`
 	FingerprintHash             types.String   `tfsdk:"fingerprint_hash"`
 	HostkeyAlgorithm            []types.String `tfsdk:"hostkey_algorithm"`
+	HostkeyAlgorithmList        []types.String `tfsdk:"hostkey_algorithm_list"`
 	KeyExchange                 []types.String `tfsdk:"key_exchange"`
 	LogKeyChanges               types.Bool     `tfsdk:"log_key_changes"`
 	Macs                        []types.String `tfsdk:"macs"`
@@ -2244,6 +2265,7 @@ type systemBlockServicesBlockSSHConfig struct {
 	ConnectionLimit             types.Int64  `tfsdk:"connection_limit"`
 	FingerprintHash             types.String `tfsdk:"fingerprint_hash"`
 	HostkeyAlgorithm            types.Set    `tfsdk:"hostkey_algorithm"`
+	HostkeyAlgorithmList        types.Set    `tfsdk:"hostkey_algorithm_list"`
 	KeyExchange                 types.Set    `tfsdk:"key_exchange"`
 	LogKeyChanges               types.Bool   `tfsdk:"log_key_changes"`
 	Macs                        types.Set    `tfsdk:"macs"`
@@ -3833,6 +3855,9 @@ func (block *systemBlockServices) configSet() (
 		for _, v := range block.SSH.HostkeyAlgorithm {
 			configSet = append(configSet, setPrefix+"ssh hostkey-algorithm \""+v.ValueString()+"\"")
 		}
+		for _, v := range block.SSH.HostkeyAlgorithmList {
+			configSet = append(configSet, setPrefix+"ssh hostkey-algorithm-list \""+v.ValueString()+"\"")
+		}
 		for _, v := range block.SSH.KeyExchange {
 			configSet = append(configSet, setPrefix+"ssh key-exchange \""+v.ValueString()+"\"")
 		}
@@ -4822,6 +4847,7 @@ func (systemBlockServicesBlockSSH) junosLines() []string {
 		"services ssh connection-limit",
 		"services ssh fingerprint-hash",
 		"services ssh hostkey-algorithm",
+		"services ssh hostkey-algorithm-list",
 		"services ssh key-exchange",
 		"services ssh log-key-changes",
 		"services ssh macs",
@@ -4864,6 +4890,8 @@ func (block *systemBlockServicesBlockSSH) read(itemTrim string) (err error) {
 		block.FingerprintHash = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "hostkey-algorithm "):
 		block.HostkeyAlgorithm = append(block.HostkeyAlgorithm, types.StringValue(strings.Trim(itemTrim, "\"")))
+	case balt.CutPrefixInString(&itemTrim, "hostkey-algorithm-list "):
+		block.HostkeyAlgorithmList = append(block.HostkeyAlgorithmList, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "key-exchange "):
 		block.KeyExchange = append(block.KeyExchange, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case itemTrim == "log-key-changes":

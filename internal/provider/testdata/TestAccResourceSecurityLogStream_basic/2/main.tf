@@ -16,7 +16,7 @@ resource "junos_security_log_stream" "testacc_logstream" {
   category = ["idp"]
   format   = "syslog"
   host {
-    ip_address       = "AHostN@me"
+    ip_address       = "AHostName.local"
     port             = 514
     routing_instance = junos_routing_instance.testacc_logstream.name
   }

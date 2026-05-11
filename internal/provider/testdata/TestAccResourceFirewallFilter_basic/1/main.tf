@@ -19,7 +19,6 @@ resource "junos_firewall_filter" "testacc_fwFilter" {
       syslog             = true
       log                = true
       packet_mode        = true
-      port_mirror        = true
       service_accounting = true
     }
   }

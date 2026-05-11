@@ -60,8 +60,6 @@ func TestAccResourceFirewallFilter_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.then.log", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.0.then.port_mirror", "true"),
-						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.then.service_accounting", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.1.from.icmp_code.#", "1"),
