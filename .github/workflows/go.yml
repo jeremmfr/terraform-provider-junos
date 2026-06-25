@@ -24,7 +24,7 @@ jobs:
       - name: Show version
         run: go version
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Build
         run: go build -v .
 
@@ -49,6 +49,6 @@ jobs:
       - name: Show version
         run: go version
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Test
         run: go test -v ./...
