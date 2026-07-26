@@ -36,6 +36,15 @@ The following arguments are supported:
   Routing instance if not root level.  
   Need to be `default` or name of routing instance.  
   Defaults to `default`
+- **chassis_fpc_slot_numbers** (Optional, Set of Number)  
+  Attach sampling instance to chassis FPC slots.  
+  Generate `chassis fpc <slot_number> sampling-instance <name>` lines with the same commit as the
+  sampling instance itself, which is required on some Junos systems where the sampling instance and
+  the FPC binding cannot be committed separately.  
+  Cannot be set when `routing_instance` is not `default`, a chassis FPC can only be attached to a
+  root level sampling instance.  
+  Don't manage the same FPC slot with the `sampling_instance` argument of a `junos_chassis_fpc`
+  resource, set `configure_sampling_instance_singly` on it instead.
 - **disable** (Optional, Boolean)  
   Disable sampling instance.
 - **family_inet_input** (Optional, Block)  
@@ -157,3 +166,7 @@ Junos forwarding-options sampling instance can be imported using an id made up o
 ```shell
 $ terraform import junos_forwardingoptions_sampling_instance.demo demo
 ```
+
+`chassis_fpc_slot_numbers` is never imported.  
+Add the argument in the configuration after the import to manage the FPC slots with this resource,
+the apply doesn't change the Junos configuration if the lines are already configured.

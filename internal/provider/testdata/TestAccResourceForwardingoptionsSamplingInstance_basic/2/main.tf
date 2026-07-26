@@ -112,6 +112,22 @@ resource "junos_routing_instance" "testacc_sampInstance5" {
   name = "testacc_sampInstance5"
 }
 
+resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance6" {
+  name                     = "testacc_instance@6"
+  chassis_fpc_slot_numbers = [3]
+  family_inet_input {
+    rate = 3
+  }
+  family_inet_output {
+    inline_jflow_source_address = "192.0.2.2"
+    flow_server {
+      hostname               = "192.0.2.1"
+      port                   = 3000
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance2.name
+    }
+  }
+}
+
 resource "junos_system_ntp_server" "testacc_sampInstance" {
   address = "192.0.2.3"
 }
