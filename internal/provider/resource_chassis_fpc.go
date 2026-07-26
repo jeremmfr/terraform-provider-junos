@@ -107,6 +107,14 @@ func (rsc *chassisFpc) Schema(
 					tfvalidator.BoolTrue(),
 				},
 			},
+			"configure_sampling_instance_singly": schema.BoolAttribute{
+				Optional: true,
+				Description: "Configure `sampling-instance` option in other resource " +
+					"(like `junos_forwardingoptions_sampling_instance`).",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
 			"sampling_instance": schema.StringAttribute{
 				Optional:    true,
 				Description: "Name for sampling instance.",
@@ -171,12 +179,14 @@ func (rsc *chassisFpc) Schema(
 	}
 }
 
+//nolint:lll
 type chassisFpcData struct {
-	ID               types.String          `tfsdk:"id"                tfdata:"skip_isempty"`
-	SlotNumber       types.Int64           `tfsdk:"slot_number"       tfdata:"skip_isempty"`
-	CfpToEt          types.Bool            `tfsdk:"cfp_to_et"`
-	SamplingInstance types.String          `tfsdk:"sampling_instance"`
-	Error            *chassisFpcBlockError `tfsdk:"error"`
+	ID                              types.String          `tfsdk:"id"                                 tfdata:"skip_isempty"`
+	SlotNumber                      types.Int64           `tfsdk:"slot_number"                        tfdata:"skip_isempty"`
+	CfpToEt                         types.Bool            `tfsdk:"cfp_to_et"`
+	ConfigureSamplingInstanceSingly types.Bool            `tfsdk:"configure_sampling_instance_singly" tfdata:"skip_isempty"`
+	SamplingInstance                types.String          `tfsdk:"sampling_instance"`
+	Error                           *chassisFpcBlockError `tfsdk:"error"`
 }
 
 func (rscData *chassisFpcData) isEmpty() bool {
@@ -213,6 +223,15 @@ func (rsc *chassisFpc) ValidateConfig(
 		)
 	}
 
+	if config.ConfigureSamplingInstanceSingly.ValueBool() &&
+		!config.SamplingInstance.IsNull() && !config.SamplingInstance.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("configure_sampling_instance_singly"),
+			tfdiag.ConflictConfigErrSummary,
+			"cannot have configure_sampling_instance_singly and want to configure sampling instance at the same time",
+		)
+	}
+
 	if config.Error != nil {
 		if config.Error.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
@@ -237,7 +256,11 @@ func (rsc *chassisFpc) Create(
 		ctx,
 		rsc,
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			slotNumberExists, err := checkChassisFpcExists(fnCtx, plan.SlotNumber.ValueInt64(), junSess)
+			slotNumberExists, err := checkChassisFpcExists(fnCtx,
+				plan.SlotNumber.ValueInt64(),
+				plan.ConfigureSamplingInstanceSingly.ValueBool(),
+				junSess,
+			)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PreCheckErrSummary, err.Error())
 
@@ -255,7 +278,11 @@ func (rsc *chassisFpc) Create(
 			return true
 		},
 		func(fnCtx context.Context, junSess *junos.Session) bool {
-			slotNumberExists, err := checkChassisFpcExists(fnCtx, plan.SlotNumber.ValueInt64(), junSess)
+			slotNumberExists, err := checkChassisFpcExists(fnCtx,
+				plan.SlotNumber.ValueInt64(),
+				plan.ConfigureSamplingInstanceSingly.ValueBool(),
+				junSess,
+			)
 			if err != nil {
 				resp.Diagnostics.AddError(tfdiag.PostCheckErrSummary, err.Error())
 
@@ -295,7 +322,12 @@ func (rsc *chassisFpc) Read(
 			state.SlotNumber.ValueInt64(),
 		},
 		&data,
-		nil,
+		func() {
+			data.ConfigureSamplingInstanceSingly = state.ConfigureSamplingInstanceSingly
+			if data.ConfigureSamplingInstanceSingly.ValueBool() {
+				data.SamplingInstance = types.StringNull()
+			}
+		},
 		resp,
 	)
 }
@@ -310,13 +342,90 @@ func (rsc *chassisFpc) Update(
 		return
 	}
 
-	defaultResourceUpdate(
-		ctx,
-		rsc,
-		&state,
-		&plan,
-		resp,
-	)
+	samplingInstanceSingly := plan.ConfigureSamplingInstanceSingly.ValueBool()
+	if !plan.ConfigureSamplingInstanceSingly.Equal(state.ConfigureSamplingInstanceSingly) {
+		if state.ConfigureSamplingInstanceSingly.ValueBool() {
+			samplingInstanceSingly = state.ConfigureSamplingInstanceSingly.ValueBool()
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("configure_sampling_instance_singly"),
+				"Disable configure_sampling_instance_singly on resource already created",
+				"It's doesn't delete sampling-instance line already configured. "+
+					"So remove the slot number from `chassis_fpc_slot_numbers` argument on the "+
+					"`junos_forwardingoptions_sampling_instance` resource to avoid conflict",
+			)
+		} else {
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("configure_sampling_instance_singly"),
+				"Enable configure_sampling_instance_singly on resource already created",
+				"It's doesn't delete sampling-instance line already configured. "+
+					"So add the slot number in `chassis_fpc_slot_numbers` argument on the "+
+					"`junos_forwardingoptions_sampling_instance` resource to be able to manage it",
+			)
+		}
+	}
+
+	if rsc.client.FakeUpdateAlso() {
+		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
+
+		if err := state.delOpts(ctx, samplingInstanceSingly, junSess); err != nil {
+			resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
+
+			return
+		}
+		if errPath, err := plan.set(ctx, junSess); err != nil {
+			if !errPath.Equal(path.Empty()) {
+				resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
+			} else {
+				resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
+			}
+
+			return
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+		return
+	}
+
+	junSess, err := rsc.client.StartNewSession(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
+
+		return
+	}
+	defer junSess.Close()
+	if err := junSess.ConfigLock(ctx); err != nil {
+		resp.Diagnostics.AddError(tfdiag.ConfigLockErrSummary, err.Error())
+
+		return
+	}
+	defer func() {
+		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
+	}()
+
+	if err := state.delOpts(ctx, samplingInstanceSingly, junSess); err != nil {
+		resp.Diagnostics.AddError(tfdiag.ConfigDelErrSummary, err.Error())
+
+		return
+	}
+	if errPath, err := plan.set(ctx, junSess); err != nil {
+		if !errPath.Equal(path.Empty()) {
+			resp.Diagnostics.AddAttributeError(errPath, tfdiag.ConfigSetErrSummary, err.Error())
+		} else {
+			resp.Diagnostics.AddError(tfdiag.ConfigSetErrSummary, err.Error())
+		}
+
+		return
+	}
+	warns, err := junSess.CommitConf(ctx, "update resource "+rsc.typeName())
+	resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigCommitWarnSummary, warns)...)
+	if err != nil {
+		resp.Diagnostics.AddError(tfdiag.ConfigCommitErrSummary, err.Error())
+
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (rsc *chassisFpc) Delete(
@@ -353,7 +462,7 @@ func (rsc *chassisFpc) ImportState(
 }
 
 func checkChassisFpcExists(
-	ctx context.Context, slotNumber int64, junSess *junos.Session,
+	ctx context.Context, slotNumber int64, samplingInstanceSingly bool, junSess *junos.Session,
 ) (
 	bool, error,
 ) {
@@ -377,7 +486,7 @@ func checkChassisFpcExists(
 		case strings.HasPrefix(itemTrim, "error minor "):
 			return true
 		case strings.HasPrefix(itemTrim, "sampling-instance "):
-			return true
+			return !samplingInstanceSingly
 		default:
 			return false
 		}
@@ -412,8 +521,10 @@ func (rscData *chassisFpcData) set(
 	if rscData.CfpToEt.ValueBool() {
 		configSet = append(configSet, setPrefix+"cfp-to-et")
 	}
-	if v := rscData.SamplingInstance.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"sampling-instance \""+v+"\"")
+	if !rscData.ConfigureSamplingInstanceSingly.ValueBool() {
+		if v := rscData.SamplingInstance.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"sampling-instance \""+v+"\"")
+		}
 	}
 
 	if rscData.Error != nil {
@@ -533,6 +644,12 @@ func (block *chassisFpcBlockError) read(itemTrim string) (err error) {
 func (rscData *chassisFpcData) del(
 	ctx context.Context, junSess *junos.Session,
 ) error {
+	return rscData.delOpts(ctx, rscData.ConfigureSamplingInstanceSingly.ValueBool(), junSess)
+}
+
+func (rscData *chassisFpcData) delOpts(
+	ctx context.Context, samplingInstanceSingly bool, junSess *junos.Session,
+) error {
 	delPrefix := junos.DeleteLS + "chassis fpc " + utils.ConvI64toa(rscData.SlotNumber.ValueInt64()) + " "
 
 	configSet := []string{
@@ -540,7 +657,10 @@ func (rscData *chassisFpcData) del(
 		delPrefix + "error fatal",
 		delPrefix + "error major",
 		delPrefix + "error minor",
-		delPrefix + "sampling-instance \"" + rscData.SamplingInstance.ValueString() + "\"",
+	}
+	if !samplingInstanceSingly {
+		configSet = append(configSet,
+			delPrefix+"sampling-instance \""+rscData.SamplingInstance.ValueString()+"\"")
 	}
 
 	return junSess.ConfigSet(ctx, configSet)
