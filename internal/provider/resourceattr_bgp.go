@@ -16,10 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -34,6 +36,8 @@ type bgpAttrData struct {
 	ASOverride                   types.Bool                    `tfsdk:"as_override"`
 	AuthenticationAlgorithm      types.String                  `tfsdk:"authentication_algorithm"`
 	AuthenticationKey            types.String                  `tfsdk:"authentication_key"`
+	AuthenticationKeyWO          types.String                  `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion   types.Int64                   `tfsdk:"authentication_key_wo_version"`
 	AuthenticationKeyChain       types.String                  `tfsdk:"authentication_key_chain"`
 	Cluster                      types.String                  `tfsdk:"cluster"`
 	Damping                      types.Bool                    `tfsdk:"damping"`
@@ -144,6 +148,24 @@ func (bgpAttrData) attributesSchema() map[string]schema.Attribute {
 			Validators: []validator.String{
 				stringvalidator.LengthBetween(1, 126),
 				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+		"authentication_key_wo": schema.StringAttribute{
+			Optional:    true,
+			Sensitive:   true,
+			WriteOnly:   true,
+			Description: "MD5 authentication key, not stored in state.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 126),
+				tfvalidator.StringDoubleQuoteExclusion(),
+				stringvalidator.AlsoRequires(path.MatchRoot("authentication_key_wo_version")),
+			},
+		},
+		"authentication_key_wo_version": schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version of `authentication_key_wo` to trigger the sending of its value.",
+			Validators: []validator.Int64{
+				int64validator.AlsoRequires(path.MatchRoot("authentication_key_wo")),
 			},
 		},
 		"authentication_key_chain": schema.StringAttribute{
@@ -421,6 +443,23 @@ func (bgpAttrData) blocksSchema() map[string]schema.Block {
 	}
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *bgpAttrData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) diag.Diagnostics {
+	return config.GetAttribute(ctx, path.Root("authentication_key_wo"), &rscData.AuthenticationKeyWO)
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *bgpAttrData) keepWriteOnly(state *bgpAttrData) {
+	rscData.AuthenticationKeyWOVersion = state.AuthenticationKeyWOVersion
+	if !state.AuthenticationKeyWOVersion.IsNull() {
+		rscData.AuthenticationKey = types.StringNull()
+	}
+}
+
 func (rscData *bgpAttrData) configSet(setPrefix string) ([]string, path.Path, error) {
 	configSet := make([]string, 0, 100)
 
@@ -449,6 +488,8 @@ func (rscData *bgpAttrData) configSet(setPrefix string) ([]string, path.Path, er
 		configSet = append(configSet, setPrefix+"authentication-algorithm "+v)
 	}
 	if v := rscData.AuthenticationKey.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
+	} else if v := rscData.AuthenticationKeyWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
 	}
 	if v := rscData.AuthenticationKeyChain.ValueString(); v != "" {
@@ -872,6 +913,8 @@ type bgpAttrConfig struct {
 	ASOverride                   types.Bool                    `tfsdk:"as_override"`
 	AuthenticationAlgorithm      types.String                  `tfsdk:"authentication_algorithm"`
 	AuthenticationKey            types.String                  `tfsdk:"authentication_key"`
+	AuthenticationKeyWO          types.String                  `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion   types.Int64                   `tfsdk:"authentication_key_wo_version"`
 	AuthenticationKeyChain       types.String                  `tfsdk:"authentication_key_chain"`
 	Cluster                      types.String                  `tfsdk:"cluster"`
 	Damping                      types.Bool                    `tfsdk:"damping"`
@@ -935,21 +978,32 @@ func (config *bgpAttrConfig) validateConfig(
 			"keep_all and keep_none can't be true in same time",
 		)
 	}
-	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() {
+	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() ||
+		!config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
 		if !config.AuthenticationAlgorithm.IsNull() && !config.AuthenticationAlgorithm.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_algorithm"),
 				tfdiag.ConflictConfigErrSummary,
-				"authentication_algorithm and authentication_key cannot be configured together",
+				"authentication_algorithm and authentication_key or authentication_key_wo"+
+					" cannot be configured together",
 			)
 		}
 		if !config.AuthenticationKeyChain.IsNull() && !config.AuthenticationKeyChain.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_key_chain"),
 				tfdiag.ConflictConfigErrSummary,
-				"authentication_key_chain and authentication_key cannot be configured together",
+				"authentication_key_chain and authentication_key or authentication_key_wo"+
+					" cannot be configured together",
 			)
 		}
+	}
+	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() &&
+		!config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("authentication_key"),
+			tfdiag.ConflictConfigErrSummary,
+			"authentication_key and authentication_key_wo cannot be configured together",
+		)
 	}
 	if !config.LocalASAlias.IsNull() && !config.LocalASAlias.IsUnknown() {
 		if !config.LocalASPrivate.IsNull() && !config.LocalASPrivate.IsUnknown() {

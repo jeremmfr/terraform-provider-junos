@@ -186,6 +186,7 @@ func (rsc *bgpGroup) Create(
 ) {
 	var plan bgpGroupData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -324,7 +325,9 @@ func (rsc *bgpGroup) Read(
 			state.RoutingInstance.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state.bgpAttrData)
+		},
 		resp,
 	)
 }
@@ -335,6 +338,7 @@ func (rsc *bgpGroup) Update(
 	var plan, state bgpGroupData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

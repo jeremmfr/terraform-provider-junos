@@ -50,13 +50,21 @@ The following arguments are supported:
   Replace neighbor AS number with our AS number.
 - **authentication_algorithm** (Optional, String)  
   Authentication algorithm name.  
-  Conflict with `authentication_key`.
+  Conflict with `authentication_key` and `authentication_key_wo`.
 - **authentication_key** (Optional, String, Sensitive)  
   MD5 authentication key.  
   Conflict with `authentication_*`.
+- **authentication_key_wo** (Optional, String, Sensitive, Write-only)  
+  MD5 authentication key, not stored in state.  
+  Requires `authentication_key_wo_version` and Terraform 1.11 or later.  
+  Conflict with `authentication_*`.
+- **authentication_key_wo_version** (Optional, Number)  
+  Version of `authentication_key_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `authentication_key_wo` to the device.  
+  Requires `authentication_key_wo`.
 - **authentication_key_chain** (Optional, String)  
   Key chain name.  
-  Conflict with `authentication_key`.
+  Conflict with `authentication_key` and `authentication_key_wo`.
 - **bfd_liveness_detection** (Optional, Block)  
   Define Bidirectional Forwarding Detection (BFD) options.  
   See [below for nested schema](#bfd_liveness_detection-arguments).
@@ -249,3 +257,8 @@ Junos bgp neighbor can be imported using an id made up of `<ip>_-_<routing_insta
 ```shell
 $ terraform import junos_bgp_neighbor.bgpneighbordemo 192.0.2.4_-_default_-_GroupBgpDemo
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the MD5 authentication key read on the
+  device is stored in `authentication_key`, and therefore in the Terraform state.  
+  When the configuration uses `authentication_key_wo`, the next apply removes it from the state.
