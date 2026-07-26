@@ -2,12 +2,17 @@ package provider_test
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 // export TESTACC_INTERFACE=<inteface> to choose interface available else it's ge-0/0/3.
@@ -165,6 +170,93 @@ func TestAccResourceOspfArea_basic(t *testing.T) {
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
 					},
+				},
+			},
+		})
+	}
+}
+
+func TestAccResourceOspfArea_writeOnly(t *testing.T) {
+	testaccInterface := junos.DefaultInterfaceTestAcc
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
+	}
+	if os.Getenv("TESTACC_SWITCH") == "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+				tfversion.SkipBelow(tfversion.Version1_11_0),
+			},
+			Steps: []resource.TestStep{
+				{
+					// 1
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckNoResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.0.authentication_simple_password"),
+						resource.TestCheckNoResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.0.authentication_simple_password_wo"),
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.0.authentication_simple_password_wo_version", "1"),
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.1.authentication_md5.#", "2"),
+						resource.TestCheckNoResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.1.authentication_md5.0.key"),
+						resource.TestCheckNoResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.1.authentication_md5.0.key_wo"),
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.1.authentication_md5.0.key_wo_version", "1"),
+						resource.TestCheckNoResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.1.authentication_md5.1.key"),
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.1.authentication_md5.1.key_wo_version", "1"),
+					),
+				},
+				{
+					// 2 check that the write-only keys have really been sent to the device
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
+					ConfigStateChecks: []statecheck.StateCheck{
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_ospfarea_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`area 0.0.0.0 interface all authentication simple-password `)),
+						),
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_ospfarea_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`interface `+testaccInterface+`\.0 authentication md5 1 key `)),
+						),
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_ospfarea_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`interface `+testaccInterface+`\.0 authentication md5 2 key `)),
+						),
+					},
+				},
+				{
+					// 3
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.0.authentication_simple_password_wo_version", "2"),
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.1.authentication_md5.0.key_wo_version", "2"),
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea_wo",
+							"interface.1.authentication_md5.1.key_wo_version", "2"),
+					),
 				},
 			},
 		})

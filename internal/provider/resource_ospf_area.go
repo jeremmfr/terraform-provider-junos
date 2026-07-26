@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -25,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -241,6 +243,29 @@ func (rsc *ospfArea) Schema(
 							Validators: []validator.String{
 								stringvalidator.LengthAtLeast(1),
 								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
+						"authentication_simple_password_wo": schema.StringAttribute{
+							Optional:    true,
+							Sensitive:   true,
+							WriteOnly:   true,
+							Description: "Authentication key, not stored in state.",
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
+								stringvalidator.AlsoRequires(
+									path.MatchRelative().AtParent().AtName("authentication_simple_password_wo_version"),
+								),
+							},
+						},
+						"authentication_simple_password_wo_version": schema.Int64Attribute{
+							Optional: true,
+							Description: "Version of `authentication_simple_password_wo`" +
+								" to trigger the sending of its value.",
+							Validators: []validator.Int64{
+								int64validator.AlsoRequires(
+									path.MatchRelative().AtParent().AtName("authentication_simple_password_wo"),
+								),
 							},
 						},
 						"dead_interval": schema.Int64Attribute{
@@ -481,12 +506,34 @@ func (rsc *ospfArea) Schema(
 										},
 									},
 									"key": schema.StringAttribute{
-										Required:    true,
+										Optional:    true,
 										Sensitive:   true,
 										Description: "MD5 authentication key value.",
 										Validators: []validator.String{
 											stringvalidator.LengthAtLeast(1),
 											tfvalidator.StringDoubleQuoteExclusion(),
+										},
+									},
+									"key_wo": schema.StringAttribute{
+										Optional:    true,
+										Sensitive:   true,
+										WriteOnly:   true,
+										Description: "MD5 authentication key value, not stored in state.",
+										Validators: []validator.String{
+											stringvalidator.LengthAtLeast(1),
+											tfvalidator.StringDoubleQuoteExclusion(),
+											stringvalidator.AlsoRequires(
+												path.MatchRelative().AtParent().AtName("key_wo_version"),
+											),
+										},
+									},
+									"key_wo_version": schema.Int64Attribute{
+										Optional:    true,
+										Description: "Version of `key_wo` to trigger the sending of its value.",
+										Validators: []validator.Int64{
+											int64validator.AlsoRequires(
+												path.MatchRelative().AtParent().AtName("key_wo"),
+											),
 										},
 									},
 									"start_time": schema.StringAttribute{
@@ -937,6 +984,8 @@ type ospfAreaConfig struct {
 type ospfAreaBlockInterface struct {
 	Name                                        types.String                                       `tfsdk:"name"                                              tfdata:"identifier"`
 	AuthenticationSimplePassword                types.String                                       `tfsdk:"authentication_simple_password"`
+	AuthenticationSimplePasswordWO              types.String                                       `tfsdk:"authentication_simple_password_wo"`
+	AuthenticationSimplePasswordWOVersion       types.Int64                                        `tfsdk:"authentication_simple_password_wo_version"`
 	DeadInterval                                types.Int64                                        `tfsdk:"dead_interval"`
 	DemandCircuit                               types.Bool                                         `tfsdk:"demand_circuit"`
 	Disable                                     types.Bool                                         `tfsdk:"disable"`
@@ -978,6 +1027,8 @@ type ospfAreaBlockInterface struct {
 type ospfAreaBlockInterfaceConfig struct {
 	Name                                        types.String                                     `tfsdk:"name"`
 	AuthenticationSimplePassword                types.String                                     `tfsdk:"authentication_simple_password"`
+	AuthenticationSimplePasswordWO              types.String                                     `tfsdk:"authentication_simple_password_wo"`
+	AuthenticationSimplePasswordWOVersion       types.Int64                                      `tfsdk:"authentication_simple_password_wo_version"`
 	DeadInterval                                types.Int64                                      `tfsdk:"dead_interval"`
 	DemandCircuit                               types.Bool                                       `tfsdk:"demand_circuit"`
 	Disable                                     types.Bool                                       `tfsdk:"disable"`
@@ -1016,9 +1067,11 @@ type ospfAreaBlockInterfaceConfig struct {
 }
 
 type ospfAreaBlockInterfaceBlockAuthenticationMD5 struct {
-	KeyID     types.Int64  `tfsdk:"key_id"     tfdata:"identifier"`
-	Key       types.String `tfsdk:"key"`
-	StartTime types.String `tfsdk:"start_time"`
+	KeyID        types.Int64  `tfsdk:"key_id"         tfdata:"identifier"`
+	Key          types.String `tfsdk:"key"`
+	KeyWO        types.String `tfsdk:"key_wo"`
+	KeyWOVersion types.Int64  `tfsdk:"key_wo_version"`
+	StartTime    types.String `tfsdk:"start_time"`
 }
 
 type ospfAreaBlockInterfaceBlockBandwidthBasedMetrics struct {
@@ -1106,7 +1159,7 @@ type ospfAreaBlockVirtualLink struct {
 	TransitDelay       types.Int64  `tfsdk:"transit_delay"`
 }
 
-func (rsc *ospfArea) ValidateConfig( //nolint:gocognit
+func (rsc *ospfArea) ValidateConfig( //nolint:gocognit,gocyclo
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
 	var config ospfAreaConfig
@@ -1187,12 +1240,31 @@ func (rsc *ospfArea) ValidateConfig( //nolint:gocognit
 				}
 				interfaceName[name] = struct{}{}
 			}
-			if !block.AuthenticationSimplePassword.IsNull() && !block.AuthenticationSimplePassword.IsUnknown() &&
+			if !block.AuthenticationSimplePassword.IsNull() && !block.AuthenticationSimplePassword.IsUnknown() {
+				if !block.AuthenticationMD5.IsNull() && !block.AuthenticationMD5.IsUnknown() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("interface").AtListIndex(i).AtName("authentication_simple_password"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("authentication_simple_password and authentication_md5 cannot be configured together"+
+							" in interface block %q", block.Name.ValueString()),
+					)
+				}
+				if !block.AuthenticationSimplePasswordWO.IsNull() &&
+					!block.AuthenticationSimplePasswordWO.IsUnknown() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("interface").AtListIndex(i).AtName("authentication_simple_password"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("authentication_simple_password and authentication_simple_password_wo"+
+							" cannot be configured together in interface block %q", block.Name.ValueString()),
+					)
+				}
+			}
+			if !block.AuthenticationSimplePasswordWO.IsNull() && !block.AuthenticationSimplePasswordWO.IsUnknown() &&
 				!block.AuthenticationMD5.IsNull() && !block.AuthenticationMD5.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
-					path.Root("interface").AtListIndex(i).AtName("authentication_simple_password"),
+					path.Root("interface").AtListIndex(i).AtName("authentication_simple_password_wo"),
 					tfdiag.ConflictConfigErrSummary,
-					fmt.Sprintf("authentication_simple_password and authentication_md5 cannot be configured together"+
+					fmt.Sprintf("authentication_simple_password_wo and authentication_md5 cannot be configured together"+
 						" in interface block %q", block.Name.ValueString()),
 				)
 			}
@@ -1260,6 +1332,26 @@ func (rsc *ospfArea) ValidateConfig( //nolint:gocognit
 						)
 					}
 					authenticationMD5KeyID[keyID] = struct{}{}
+
+					if !blockAuthenticationMD5.Key.IsNull() && !blockAuthenticationMD5.Key.IsUnknown() &&
+						!blockAuthenticationMD5.KeyWO.IsNull() && !blockAuthenticationMD5.KeyWO.IsUnknown() {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("interface").AtListIndex(i).AtName("authentication_md5").AtListIndex(ii).AtName("key"),
+							tfdiag.ConflictConfigErrSummary,
+							fmt.Sprintf("key and key_wo cannot be configured together"+
+								" in authentication_md5 block %d in interface block %q",
+								keyID, block.Name.ValueString()),
+						)
+					}
+					if blockAuthenticationMD5.Key.IsNull() && blockAuthenticationMD5.KeyWO.IsNull() {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("interface").AtListIndex(i).AtName("authentication_md5").AtListIndex(ii).AtName("key"),
+							tfdiag.MissingConfigErrSummary,
+							fmt.Sprintf("key or key_wo must be specified"+
+								" in authentication_md5 block %d in interface block %q",
+								keyID, block.Name.ValueString()),
+						)
+					}
 				}
 			}
 			if !block.BandwidthBasedMetrics.IsNull() && !block.BandwidthBasedMetrics.IsUnknown() {
@@ -1444,6 +1536,7 @@ func (rsc *ospfArea) Create(
 ) {
 	var plan ospfAreaData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -1608,7 +1701,9 @@ func (rsc *ospfArea) Read(
 			state.RoutingInstance.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -1619,6 +1714,7 @@ func (rsc *ospfArea) Update(
 	var plan, state ospfAreaData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -1755,6 +1851,75 @@ func (rscData *ospfAreaData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+//
+// The write-only arguments are inside list blocks, so they are read by index:
+// the plan keeps the order of the configuration for a list block,
+// reading the whole list from the configuration isn't possible
+// because it may be unknown at this time.
+func (rscData *ospfAreaData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	for i := range rscData.Interface {
+		interfacePath := path.Root("interface").AtListIndex(i)
+
+		diags.Append(config.GetAttribute(ctx,
+			interfacePath.AtName("authentication_simple_password_wo"),
+			&rscData.Interface[i].AuthenticationSimplePasswordWO)...)
+
+		for ii := range rscData.Interface[i].AuthenticationMD5 {
+			diags.Append(config.GetAttribute(ctx,
+				interfacePath.AtName("authentication_md5").AtListIndex(ii).AtName("key_wo"),
+				&rscData.Interface[i].AuthenticationMD5[ii].KeyWO)...)
+		}
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+//
+// The blocks read on the device aren't in the order of the configuration,
+// so they are matched with the state with their identifier.
+func (rscData *ospfAreaData) keepWriteOnly(state *ospfAreaData) {
+	stateInterface := make(map[string]ospfAreaBlockInterface, len(state.Interface))
+	for _, block := range state.Interface {
+		stateInterface[block.Name.ValueString()] = block
+	}
+
+	for i, block := range rscData.Interface {
+		stateBlock, ok := stateInterface[block.Name.ValueString()]
+		if !ok {
+			continue
+		}
+
+		rscData.Interface[i].AuthenticationSimplePasswordWOVersion = stateBlock.AuthenticationSimplePasswordWOVersion
+		if !stateBlock.AuthenticationSimplePasswordWOVersion.IsNull() {
+			rscData.Interface[i].AuthenticationSimplePassword = types.StringNull()
+		}
+
+		stateAuthenticationMD5 := make(
+			map[int64]ospfAreaBlockInterfaceBlockAuthenticationMD5, len(stateBlock.AuthenticationMD5),
+		)
+		for _, blockMD5 := range stateBlock.AuthenticationMD5 {
+			stateAuthenticationMD5[blockMD5.KeyID.ValueInt64()] = blockMD5
+		}
+		for ii, blockMD5 := range block.AuthenticationMD5 {
+			stateBlockMD5, ok := stateAuthenticationMD5[blockMD5.KeyID.ValueInt64()]
+			if !ok {
+				continue
+			}
+
+			rscData.Interface[i].AuthenticationMD5[ii].KeyWOVersion = stateBlockMD5.KeyWOVersion
+			if !stateBlockMD5.KeyWOVersion.IsNull() {
+				rscData.Interface[i].AuthenticationMD5[ii].Key = types.StringNull()
+			}
+		}
+	}
+}
+
 func (rscData *ospfAreaData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -1872,7 +2037,18 @@ func (block *ospfAreaBlockInterface) configSet(
 	configSet := make([]string, 1, 100)
 	configSet[0] = setPrefix
 
-	if v := block.AuthenticationSimplePassword.ValueString(); v != "" {
+	if v := block.AuthenticationSimplePassword.ValueString(); v == "" {
+		v = block.AuthenticationSimplePasswordWO.ValueString()
+		if v != "" {
+			if len(block.AuthenticationMD5) > 0 {
+				return configSet,
+					pathRoot.AtName("authentication_md5"),
+					fmt.Errorf("authentication_simple_password_wo and authentication_md5 cannot be configured together"+
+						" in interface block %q", block.Name.ValueString())
+			}
+			configSet = append(configSet, setPrefix+"authentication simple-password \""+v+"\"")
+		}
+	} else {
 		if len(block.AuthenticationMD5) > 0 {
 			return configSet,
 				pathRoot.AtName("authentication_md5"),
@@ -2020,8 +2196,18 @@ func (block *ospfAreaBlockInterface) configSet(
 		}
 		authenticationMD5KeyID[keyID] = struct{}{}
 
-		configSet = append(configSet, setPrefix+"authentication md5 "+
-			utils.ConvI64toa(keyID)+" key \""+blockAuthenticationMD5.Key.ValueString()+"\"")
+		if v := blockAuthenticationMD5.Key.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"authentication md5 "+
+				utils.ConvI64toa(keyID)+" key \""+v+"\"")
+		} else if v := blockAuthenticationMD5.KeyWO.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"authentication md5 "+
+				utils.ConvI64toa(keyID)+" key \""+v+"\"")
+		} else {
+			return configSet,
+				pathRoot.AtName("authentication_md5").AtListIndex(i).AtName("key"),
+				fmt.Errorf("key or key_wo must be specified"+
+					" in authentication_md5 block %d in interface block %q", keyID, block.Name.ValueString())
+		}
 		if v := blockAuthenticationMD5.StartTime.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"authentication md5 "+
 				utils.ConvI64toa(keyID)+" start-time "+v)
