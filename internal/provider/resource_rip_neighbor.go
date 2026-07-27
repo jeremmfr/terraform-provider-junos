@@ -521,7 +521,7 @@ func (rsc *ripNeighbor) ValidateConfig(
 	if !config.Peer.IsNull() && !config.Peer.IsUnknown() &&
 		config.InterfaceTypeP2mp.IsNull() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("dynamic_peers"),
+			path.Root("peer"),
 			tfdiag.MissingConfigErrSummary,
 			"interface_type_p2mp must be specified with peer",
 		)
