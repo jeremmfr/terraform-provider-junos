@@ -2,10 +2,15 @@ package provider_test
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 func TestAccResourceIccp_basic(t *testing.T) {
@@ -24,6 +29,54 @@ func TestAccResourceIccp_basic(t *testing.T) {
 				},
 				{
 					ConfigDirectory: config.TestStepDirectory(),
+				},
+			},
+		})
+	}
+}
+
+func TestAccResourceIccp_writeOnly(t *testing.T) {
+	if os.Getenv("TESTACC_ROUTER") != "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+				tfversion.SkipBelow(tfversion.Version1_11_0),
+			},
+			Steps: []resource.TestStep{
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckNoResourceAttr("junos_iccp.testacc_iccp_wo",
+							"authentication_key"),
+						resource.TestCheckNoResourceAttr("junos_iccp.testacc_iccp_wo",
+							"authentication_key_wo"),
+						resource.TestCheckResourceAttr("junos_iccp.testacc_iccp_wo",
+							"authentication_key_wo_version", "1"),
+					),
+				},
+				{
+					// check that the write-only key has really been sent to the device
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigStateChecks: []statecheck.StateCheck{
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_iccp_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`set protocols iccp authentication-key `)),
+						),
+					},
+				},
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckNoResourceAttr("junos_iccp.testacc_iccp_wo",
+							"authentication_key"),
+						resource.TestCheckNoResourceAttr("junos_iccp.testacc_iccp_wo",
+							"authentication_key_wo"),
+						resource.TestCheckResourceAttr("junos_iccp.testacc_iccp_wo",
+							"authentication_key_wo_version", "2"),
+					),
 				},
 			},
 		})
