@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
@@ -12,21 +13,24 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &systemRadiusServer{}
-	_ resource.ResourceWithConfigure   = &systemRadiusServer{}
-	_ resource.ResourceWithImportState = &systemRadiusServer{}
+	_ resource.Resource                   = &systemRadiusServer{}
+	_ resource.ResourceWithConfigure      = &systemRadiusServer{}
+	_ resource.ResourceWithValidateConfig = &systemRadiusServer{}
+	_ resource.ResourceWithImportState    = &systemRadiusServer{}
 )
 
 type systemRadiusServer struct {
@@ -95,12 +99,30 @@ func (rsc *systemRadiusServer) Schema(
 				},
 			},
 			"secret": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "Shared secret with the RADIUS server.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"secret_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Shared secret with the RADIUS server, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("secret_wo_version")),
+				},
+			},
+			"secret_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `secret_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("secret_wo")),
 				},
 			},
 			"accounting_port": schema.Int64Attribute{
@@ -161,6 +183,24 @@ func (rsc *systemRadiusServer) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"preauthentication_secret_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Shared secret with the RADIUS server, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("preauthentication_secret_wo_version")),
+				},
+			},
+			"preauthentication_secret_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `preauthentication_secret_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("preauthentication_secret_wo")),
+				},
+			},
 			"retry": schema.Int64Attribute{
 				Optional:    true,
 				Description: "Retry attempts.",
@@ -195,21 +235,59 @@ func (rsc *systemRadiusServer) Schema(
 }
 
 type systemRadiusServerData struct {
-	ID                      types.String `tfsdk:"id"`
-	Address                 types.String `tfsdk:"address"`
-	Secret                  types.String `tfsdk:"secret"`
-	AccountingPort          types.Int64  `tfsdk:"accounting_port"`
-	AccountingRetry         types.Int64  `tfsdk:"accounting_retry"`
-	AccountingTimeout       types.Int64  `tfsdk:"accounting_timeout"`
-	DynamicRequestPort      types.Int64  `tfsdk:"dynamic_request_port"`
-	MaxOutstandingRequests  types.Int64  `tfsdk:"max_outstanding_requests"`
-	Port                    types.Int64  `tfsdk:"port"`
-	PreauthenticationPort   types.Int64  `tfsdk:"preauthentication_port"`
-	PreauthenticationSecret types.String `tfsdk:"preauthentication_secret"`
-	Retry                   types.Int64  `tfsdk:"retry"`
-	RoutingInstance         types.String `tfsdk:"routing_instance"`
-	SourceAddress           types.String `tfsdk:"source_address"`
-	Timeout                 types.Int64  `tfsdk:"timeout"`
+	ID                               types.String `tfsdk:"id"`
+	Address                          types.String `tfsdk:"address"`
+	Secret                           types.String `tfsdk:"secret"`
+	SecretWO                         types.String `tfsdk:"secret_wo"`
+	SecretWOVersion                  types.Int64  `tfsdk:"secret_wo_version"`
+	AccountingPort                   types.Int64  `tfsdk:"accounting_port"`
+	AccountingRetry                  types.Int64  `tfsdk:"accounting_retry"`
+	AccountingTimeout                types.Int64  `tfsdk:"accounting_timeout"`
+	DynamicRequestPort               types.Int64  `tfsdk:"dynamic_request_port"`
+	MaxOutstandingRequests           types.Int64  `tfsdk:"max_outstanding_requests"`
+	Port                             types.Int64  `tfsdk:"port"`
+	PreauthenticationPort            types.Int64  `tfsdk:"preauthentication_port"`
+	PreauthenticationSecret          types.String `tfsdk:"preauthentication_secret"`
+	PreauthenticationSecretWO        types.String `tfsdk:"preauthentication_secret_wo"`
+	PreauthenticationSecretWOVersion types.Int64  `tfsdk:"preauthentication_secret_wo_version"`
+	Retry                            types.Int64  `tfsdk:"retry"`
+	RoutingInstance                  types.String `tfsdk:"routing_instance"`
+	SourceAddress                    types.String `tfsdk:"source_address"`
+	Timeout                          types.Int64  `tfsdk:"timeout"`
+}
+
+func (rsc *systemRadiusServer) ValidateConfig(
+	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
+) {
+	var config systemRadiusServerData
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.Secret.IsNull() && config.SecretWO.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("secret"),
+			tfdiag.MissingConfigErrSummary,
+			"one of secret or secret_wo must be specified",
+		)
+	}
+	if !config.Secret.IsNull() && !config.Secret.IsUnknown() &&
+		!config.SecretWO.IsNull() && !config.SecretWO.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("secret"),
+			tfdiag.ConflictConfigErrSummary,
+			"secret and secret_wo cannot be configured together",
+		)
+	}
+	if !config.PreauthenticationSecret.IsNull() && !config.PreauthenticationSecret.IsUnknown() &&
+		!config.PreauthenticationSecretWO.IsNull() && !config.PreauthenticationSecretWO.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("preauthentication_secret"),
+			tfdiag.ConflictConfigErrSummary,
+			"preauthentication_secret and preauthentication_secret_wo cannot be configured together",
+		)
+	}
 }
 
 func (rsc *systemRadiusServer) Create(
@@ -217,6 +295,7 @@ func (rsc *systemRadiusServer) Create(
 ) {
 	var plan systemRadiusServerData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -291,7 +370,9 @@ func (rsc *systemRadiusServer) Read(
 			state.Address.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -302,6 +383,7 @@ func (rsc *systemRadiusServer) Update(
 	var plan, state systemRadiusServerData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -365,6 +447,32 @@ func checkSystemRadiusServerExists(
 	return true, nil
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *systemRadiusServerData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("secret_wo"), &rscData.SecretWO)...)
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("preauthentication_secret_wo"), &rscData.PreauthenticationSecretWO)...)
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *systemRadiusServerData) keepWriteOnly(state *systemRadiusServerData) {
+	rscData.SecretWOVersion = state.SecretWOVersion
+	if !state.SecretWOVersion.IsNull() {
+		rscData.Secret = types.StringNull()
+	}
+	rscData.PreauthenticationSecretWOVersion = state.PreauthenticationSecretWOVersion
+	if !state.PreauthenticationSecretWOVersion.IsNull() {
+		rscData.PreauthenticationSecret = types.StringNull()
+	}
+}
+
 func (rscData *systemRadiusServerData) fillID() {
 	rscData.ID = types.StringValue(rscData.Address.ValueString())
 }
@@ -381,7 +489,13 @@ func (rscData *systemRadiusServerData) set(
 	setPrefix := "set system radius-server " + rscData.Address.ValueString() + " "
 
 	configSet := make([]string, 1, 100)
-	configSet[0] = setPrefix + "secret \"" + rscData.Secret.ValueString() + "\""
+	if v := rscData.Secret.ValueString(); v != "" {
+		configSet[0] = setPrefix + "secret \"" + v + "\""
+	} else if v := rscData.SecretWO.ValueString(); v != "" {
+		configSet[0] = setPrefix + "secret \"" + v + "\""
+	} else {
+		return path.Root("secret"), errors.New("one of secret or secret_wo must be specified")
+	}
 
 	if !rscData.AccountingPort.IsNull() {
 		configSet = append(configSet, setPrefix+"accounting-port "+
@@ -412,6 +526,8 @@ func (rscData *systemRadiusServerData) set(
 			utils.ConvI64toa(rscData.PreauthenticationPort.ValueInt64()))
 	}
 	if v := rscData.PreauthenticationSecret.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"preauthentication-secret \""+v+"\"")
+	} else if v := rscData.PreauthenticationSecretWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"preauthentication-secret \""+v+"\"")
 	}
 	if !rscData.Retry.IsNull() {

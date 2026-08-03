@@ -1,11 +1,16 @@
 package provider_test
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
@@ -71,6 +76,66 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 						plancheck.ExpectEmptyPlan(),
 					},
 				},
+			},
+		},
+	})
+}
+
+func TestAccResourceSystemRadiusServer_writeOnly(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0),
+		},
+		Steps: []resource.TestStep{
+			{
+				ConfigDirectory: config.TestStepDirectory(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"secret"),
+					resource.TestCheckNoResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"secret_wo"),
+					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"secret_wo_version", "1"),
+					resource.TestCheckNoResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"preauthentication_secret"),
+					resource.TestCheckNoResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"preauthentication_secret_wo"),
+					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"preauthentication_secret_wo_version", "1"),
+				),
+			},
+			{
+				// check that the write-only secrets have really been sent to the device
+				ConfigDirectory: config.TestStepDirectory(),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"data.junos_config_raw.testacc_radiusServer_wo",
+						tfjsonpath.New("config"),
+						knownvalue.StringRegexp(regexp.MustCompile(
+							`set system radius-server 192.0.2.11 secret `)),
+					),
+					statecheck.ExpectKnownValue(
+						"data.junos_config_raw.testacc_radiusServer_wo",
+						tfjsonpath.New("config"),
+						knownvalue.StringRegexp(regexp.MustCompile(
+							`set system radius-server 192.0.2.11 preauthentication-secret `)),
+					),
+				},
+			},
+			{
+				ConfigDirectory: config.TestStepDirectory(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"secret"),
+					resource.TestCheckNoResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"secret_wo"),
+					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"secret_wo_version", "2"),
+					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer_wo",
+						"preauthentication_secret_wo_version", "2"),
+				),
 			},
 		},
 	})

@@ -20,10 +20,22 @@ resource "junos_system_radius_server" "demo_radius_server" {
 
 The following arguments are supported:
 
+-> **Note**
+  One of `secret` or `secret_wo` arguments is required.
+
 - **address** (Required, String, Forces new resource)  
   RADIUS server address.
-- **secret** (Required, String, Sensitive)  
-  Shared secret with the RADIUS server.
+- **secret** (Optional, String, Sensitive)  
+  Shared secret with the RADIUS server.  
+  Conflict with `secret_wo`.
+- **secret_wo** (Optional, String, Sensitive, Write-only)  
+  Shared secret with the RADIUS server, not stored in state.  
+  Requires `secret_wo_version` and Terraform 1.11 or later.  
+  Conflict with `secret`.
+- **secret_wo_version** (Optional, Number)  
+  Version of `secret_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `secret_wo` to the device.  
+  Requires `secret_wo`.
 - **accounting_port** (Optional, Number)  
   RADIUS server accounting port number (1..65535).
 - **accounting_retry** (Optional, Number)  
@@ -39,7 +51,16 @@ The following arguments are supported:
 - **preauthentication_port** (Optional, Number)  
   RADIUS server preauthentication port number (1..65535).
 - **preauthentication_secret** (Optional, String, Sensitive)  
-  Preauthentication shared secret with the RADIUS server.
+  Preauthentication shared secret with the RADIUS server.  
+  Conflict with `preauthentication_secret_wo`.
+- **preauthentication_secret_wo** (Optional, String, Sensitive, Write-only)  
+  Preauthentication shared secret with the RADIUS server, not stored in state.  
+  Requires `preauthentication_secret_wo_version` and Terraform 1.11 or later.  
+  Conflict with `preauthentication_secret`.
+- **preauthentication_secret_wo_version** (Optional, Number)  
+  Version of `preauthentication_secret_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `preauthentication_secret_wo` to the device.  
+  Requires `preauthentication_secret_wo`.
 - **retry** (Optional, Number)  
   Retry attempts (1..100).
 - **routing_instance** (Optional, String)  
@@ -63,3 +84,9 @@ Junos system radius-server can be imported using an id made up of `<address>`, e
 ```shell
 $ terraform import junos_system_radius_server.demo_radius_server 192.0.2.1
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the shared secrets read on the device
+  are stored in `secret` and `preauthentication_secret`, and therefore in the Terraform state.  
+  When the configuration uses the write-only arguments, the next apply removes them from the
+  state.
