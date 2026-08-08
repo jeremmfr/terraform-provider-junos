@@ -17,12 +17,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -244,6 +246,29 @@ func (rsc *securityIpsecVpn) Schema(
 							tfvalidator.StringFormat(tfvalidator.HexadecimalFormat).WithSensitiveData(),
 						},
 					},
+					"authentication_key_hexa_wo": schema.StringAttribute{
+						Optional:    true,
+						Sensitive:   true,
+						WriteOnly:   true,
+						Description: "Define an authentication key with format as hexadecimal, not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringFormat(tfvalidator.HexadecimalFormat).WithSensitiveData(),
+							stringvalidator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("authentication_key_hexa_wo_version"),
+							),
+						},
+					},
+					"authentication_key_hexa_wo_version": schema.Int64Attribute{
+						Optional: true,
+						Description: "Version of `authentication_key_hexa_wo`" +
+							" to trigger the sending of its value.",
+						Validators: []validator.Int64{
+							int64validator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("authentication_key_hexa_wo"),
+							),
+						},
+					},
 					"authentication_key_text": schema.StringAttribute{
 						Optional:    true,
 						Sensitive:   true,
@@ -251,6 +276,29 @@ func (rsc *securityIpsecVpn) Schema(
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"authentication_key_text_wo": schema.StringAttribute{
+						Optional:    true,
+						Sensitive:   true,
+						WriteOnly:   true,
+						Description: "Define an authentication key with format as text, not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+							stringvalidator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("authentication_key_text_wo_version"),
+							),
+						},
+					},
+					"authentication_key_text_wo_version": schema.Int64Attribute{
+						Optional: true,
+						Description: "Version of `authentication_key_text_wo`" +
+							" to trigger the sending of its value.",
+						Validators: []validator.Int64{
+							int64validator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("authentication_key_text_wo"),
+							),
 						},
 					},
 					"encryption_algorithm": schema.StringAttribute{
@@ -270,6 +318,29 @@ func (rsc *securityIpsecVpn) Schema(
 							tfvalidator.StringFormat(tfvalidator.HexadecimalFormat).WithSensitiveData(),
 						},
 					},
+					"encryption_key_hexa_wo": schema.StringAttribute{
+						Optional:    true,
+						Sensitive:   true,
+						WriteOnly:   true,
+						Description: "Define an encryption key with format as hexadecimal, not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringFormat(tfvalidator.HexadecimalFormat).WithSensitiveData(),
+							stringvalidator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("encryption_key_hexa_wo_version"),
+							),
+						},
+					},
+					"encryption_key_hexa_wo_version": schema.Int64Attribute{
+						Optional: true,
+						Description: "Version of `encryption_key_hexa_wo`" +
+							" to trigger the sending of its value.",
+						Validators: []validator.Int64{
+							int64validator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("encryption_key_hexa_wo"),
+							),
+						},
+					},
 					"encryption_key_text": schema.StringAttribute{
 						Optional:    true,
 						Sensitive:   true,
@@ -277,6 +348,29 @@ func (rsc *securityIpsecVpn) Schema(
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"encryption_key_text_wo": schema.StringAttribute{
+						Optional:    true,
+						Sensitive:   true,
+						WriteOnly:   true,
+						Description: "Define an encryption key with format as text, not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+							stringvalidator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("encryption_key_text_wo_version"),
+							),
+						},
+					},
+					"encryption_key_text_wo_version": schema.Int64Attribute{
+						Optional: true,
+						Description: "Version of `encryption_key_text_wo`" +
+							" to trigger the sending of its value.",
+						Validators: []validator.Int64{
+							int64validator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("encryption_key_text_wo"),
+							),
 						},
 					},
 					"gateway": schema.StringAttribute{
@@ -420,16 +514,24 @@ func (block *securityIpsecVpnBlockIke) hasKnownValue() bool {
 }
 
 type securityIpsecVpnBlockManual struct {
-	ExternalInterface       types.String `tfsdk:"external_interface"`
-	Protocol                types.String `tfsdk:"protocol"`
-	Spi                     types.Int64  `tfsdk:"spi"`
-	AuthenticationAlgorithm types.String `tfsdk:"authentication_algorithm"`
-	AuthenticationKeyHexa   types.String `tfsdk:"authentication_key_hexa"`
-	AuthenticationKeyText   types.String `tfsdk:"authentication_key_text"`
-	EncryptionAlgorithm     types.String `tfsdk:"encryption_algorithm"`
-	EncryptionKeyHexa       types.String `tfsdk:"encryption_key_hexa"`
-	EncryptionKeyText       types.String `tfsdk:"encryption_key_text"`
-	Gateway                 types.String `tfsdk:"gateway"`
+	ExternalInterface              types.String `tfsdk:"external_interface"`
+	Protocol                       types.String `tfsdk:"protocol"`
+	Spi                            types.Int64  `tfsdk:"spi"`
+	AuthenticationAlgorithm        types.String `tfsdk:"authentication_algorithm"`
+	AuthenticationKeyHexa          types.String `tfsdk:"authentication_key_hexa"`
+	AuthenticationKeyHexaWO        types.String `tfsdk:"authentication_key_hexa_wo"`
+	AuthenticationKeyHexaWOVersion types.Int64  `tfsdk:"authentication_key_hexa_wo_version"`
+	AuthenticationKeyText          types.String `tfsdk:"authentication_key_text"`
+	AuthenticationKeyTextWO        types.String `tfsdk:"authentication_key_text_wo"`
+	AuthenticationKeyTextWOVersion types.Int64  `tfsdk:"authentication_key_text_wo_version"`
+	EncryptionAlgorithm            types.String `tfsdk:"encryption_algorithm"`
+	EncryptionKeyHexa              types.String `tfsdk:"encryption_key_hexa"`
+	EncryptionKeyHexaWO            types.String `tfsdk:"encryption_key_hexa_wo"`
+	EncryptionKeyHexaWOVersion     types.Int64  `tfsdk:"encryption_key_hexa_wo_version"`
+	EncryptionKeyText              types.String `tfsdk:"encryption_key_text"`
+	EncryptionKeyTextWO            types.String `tfsdk:"encryption_key_text_wo"`
+	EncryptionKeyTextWOVersion     types.Int64  `tfsdk:"encryption_key_text_wo_version"`
+	Gateway                        types.String `tfsdk:"gateway"`
 }
 
 func (block *securityIpsecVpnBlockManual) hasKnownValue() bool {
@@ -547,42 +649,82 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 				"spi must be specified in manual block",
 			)
 		}
-		if !config.Manual.AuthenticationAlgorithm.IsNull() {
-			if config.Manual.AuthenticationKeyHexa.IsNull() &&
-				config.Manual.AuthenticationKeyText.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("manual").AtName("authentication_algorithm"),
-					tfdiag.MissingConfigErrSummary,
-					"one of authentication_key_hexa or authentication_key_text must be specified "+
-						"when authentication_algorithm is specified in manual block",
-				)
+		// the authentication key can only be set once, whatever its format
+		// and whether it's a write-only argument or not
+		var authenticationKeyConfigured, authenticationKeyKnown []string
+		for _, authenticationKey := range []struct {
+			name  string
+			value types.String
+		}{
+			{name: "authentication_key_hexa", value: config.Manual.AuthenticationKeyHexa},
+			{name: "authentication_key_hexa_wo", value: config.Manual.AuthenticationKeyHexaWO},
+			{name: "authentication_key_text", value: config.Manual.AuthenticationKeyText},
+			{name: "authentication_key_text_wo", value: config.Manual.AuthenticationKeyTextWO},
+		} {
+			if authenticationKey.value.IsNull() {
+				continue
+			}
+			// an unknown value is set, so it's enough to satisfy the requirement below,
+			// but it can't be compared with the others to detect a conflict
+			authenticationKeyConfigured = append(authenticationKeyConfigured, authenticationKey.name)
+			if !authenticationKey.value.IsUnknown() {
+				authenticationKeyKnown = append(authenticationKeyKnown, authenticationKey.name)
 			}
 		}
-		if !config.Manual.AuthenticationKeyHexa.IsNull() && !config.Manual.AuthenticationKeyHexa.IsUnknown() &&
-			!config.Manual.AuthenticationKeyText.IsNull() && !config.Manual.AuthenticationKeyText.IsUnknown() {
+		if !config.Manual.AuthenticationAlgorithm.IsNull() &&
+			len(authenticationKeyConfigured) == 0 {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("manual").AtName("authentication_key_text"),
-				tfdiag.ConflictConfigErrSummary,
-				"only one of authentication_key_hexa or authentication_key_text can be specified in manual block",
+				path.Root("manual").AtName("authentication_algorithm"),
+				tfdiag.MissingConfigErrSummary,
+				"one of authentication_key_hexa, authentication_key_hexa_wo, authentication_key_text"+
+					" or authentication_key_text_wo must be specified"+
+					" when authentication_algorithm is specified in manual block",
 			)
 		}
-		if !config.Manual.EncryptionAlgorithm.IsNull() {
-			if config.Manual.EncryptionKeyHexa.IsNull() &&
-				config.Manual.EncryptionKeyText.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("manual").AtName("encryption_algorithm"),
-					tfdiag.MissingConfigErrSummary,
-					"one of encryption_key_hexa or encryption_key_text must be specified "+
-						"when encryption_algorithm is specified in manual block",
-				)
+		if len(authenticationKeyKnown) > 1 {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("manual").AtName(authenticationKeyKnown[0]),
+				tfdiag.ConflictConfigErrSummary,
+				"only one of "+strings.Join(authenticationKeyKnown, ", ")+" can be specified in manual block",
+			)
+		}
+		// the encryption key can only be set once, whatever its format
+		// and whether it's a write-only argument or not
+		var encryptionKeyConfigured, encryptionKeyKnown []string
+		for _, encryptionKey := range []struct {
+			name  string
+			value types.String
+		}{
+			{name: "encryption_key_hexa", value: config.Manual.EncryptionKeyHexa},
+			{name: "encryption_key_hexa_wo", value: config.Manual.EncryptionKeyHexaWO},
+			{name: "encryption_key_text", value: config.Manual.EncryptionKeyText},
+			{name: "encryption_key_text_wo", value: config.Manual.EncryptionKeyTextWO},
+		} {
+			if encryptionKey.value.IsNull() {
+				continue
+			}
+			// an unknown value is set, so it's enough to satisfy the requirement below,
+			// but it can't be compared with the others to detect a conflict
+			encryptionKeyConfigured = append(encryptionKeyConfigured, encryptionKey.name)
+			if !encryptionKey.value.IsUnknown() {
+				encryptionKeyKnown = append(encryptionKeyKnown, encryptionKey.name)
 			}
 		}
-		if !config.Manual.EncryptionKeyHexa.IsNull() && !config.Manual.EncryptionKeyHexa.IsUnknown() &&
-			!config.Manual.EncryptionKeyText.IsNull() && !config.Manual.EncryptionKeyText.IsUnknown() {
+		if !config.Manual.EncryptionAlgorithm.IsNull() &&
+			len(encryptionKeyConfigured) == 0 {
 			resp.Diagnostics.AddAttributeError(
-				path.Root("manual").AtName("encryption_key_text"),
+				path.Root("manual").AtName("encryption_algorithm"),
+				tfdiag.MissingConfigErrSummary,
+				"one of encryption_key_hexa, encryption_key_hexa_wo, encryption_key_text"+
+					" or encryption_key_text_wo must be specified"+
+					" when encryption_algorithm is specified in manual block",
+			)
+		}
+		if len(encryptionKeyKnown) > 1 {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("manual").AtName(encryptionKeyKnown[0]),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of encryption_key_hexa or encryption_key_text can be specified in manual block",
+				"only one of "+strings.Join(encryptionKeyKnown, ", ")+" can be specified in manual block",
 			)
 		}
 	}
@@ -698,6 +840,7 @@ func (rsc *securityIpsecVpn) Create(
 ) {
 	var plan securityIpsecVpnData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -786,6 +929,8 @@ func (rsc *securityIpsecVpn) Read(
 		},
 		&data,
 		func() {
+			data.keepWriteOnly(&state)
+
 			if data.VpnMonitor != nil && state.VpnMonitor != nil {
 				data.VpnMonitor.SourceInterfaceAuto = state.VpnMonitor.SourceInterfaceAuto
 			}
@@ -800,6 +945,7 @@ func (rsc *securityIpsecVpn) Update(
 	var plan, state securityIpsecVpnData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -884,6 +1030,53 @@ func (rscData *securityIpsecVpnData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *securityIpsecVpnData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	if rscData.Manual != nil {
+		manualPath := path.Root("manual")
+
+		diags.Append(config.GetAttribute(ctx,
+			manualPath.AtName("authentication_key_hexa_wo"), &rscData.Manual.AuthenticationKeyHexaWO)...)
+		diags.Append(config.GetAttribute(ctx,
+			manualPath.AtName("authentication_key_text_wo"), &rscData.Manual.AuthenticationKeyTextWO)...)
+		diags.Append(config.GetAttribute(ctx,
+			manualPath.AtName("encryption_key_hexa_wo"), &rscData.Manual.EncryptionKeyHexaWO)...)
+		diags.Append(config.GetAttribute(ctx,
+			manualPath.AtName("encryption_key_text_wo"), &rscData.Manual.EncryptionKeyTextWO)...)
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *securityIpsecVpnData) keepWriteOnly(state *securityIpsecVpnData) {
+	if rscData.Manual == nil || state.Manual == nil {
+		return
+	}
+
+	rscData.Manual.AuthenticationKeyHexaWOVersion = state.Manual.AuthenticationKeyHexaWOVersion
+	rscData.Manual.AuthenticationKeyTextWOVersion = state.Manual.AuthenticationKeyTextWOVersion
+	if !state.Manual.AuthenticationKeyHexaWOVersion.IsNull() {
+		rscData.Manual.AuthenticationKeyHexa = types.StringNull()
+	}
+	if !state.Manual.AuthenticationKeyTextWOVersion.IsNull() {
+		rscData.Manual.AuthenticationKeyText = types.StringNull()
+	}
+
+	rscData.Manual.EncryptionKeyHexaWOVersion = state.Manual.EncryptionKeyHexaWOVersion
+	rscData.Manual.EncryptionKeyTextWOVersion = state.Manual.EncryptionKeyTextWOVersion
+	if !state.Manual.EncryptionKeyHexaWOVersion.IsNull() {
+		rscData.Manual.EncryptionKeyHexa = types.StringNull()
+	}
+	if !state.Manual.EncryptionKeyTextWOVersion.IsNull() {
+		rscData.Manual.EncryptionKeyText = types.StringNull()
+	}
+}
+
 func (rscData *securityIpsecVpnData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -945,8 +1138,12 @@ func (rscData *securityIpsecVpnData) set(
 		}
 		if v := rscData.Manual.AuthenticationKeyHexa.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual authentication key hexadecimal \""+v+"\"")
+		} else if v := rscData.Manual.AuthenticationKeyHexaWO.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"manual authentication key hexadecimal \""+v+"\"")
 		}
 		if v := rscData.Manual.AuthenticationKeyText.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"manual authentication key ascii-text \""+v+"\"")
+		} else if v := rscData.Manual.AuthenticationKeyTextWO.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual authentication key ascii-text \""+v+"\"")
 		}
 		if v := rscData.Manual.EncryptionAlgorithm.ValueString(); v != "" {
@@ -954,8 +1151,12 @@ func (rscData *securityIpsecVpnData) set(
 		}
 		if v := rscData.Manual.EncryptionKeyHexa.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual encryption key hexadecimal \""+v+"\"")
+		} else if v := rscData.Manual.EncryptionKeyHexaWO.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"manual encryption key hexadecimal \""+v+"\"")
 		}
 		if v := rscData.Manual.EncryptionKeyText.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"manual encryption key ascii-text \""+v+"\"")
+		} else if v := rscData.Manual.EncryptionKeyTextWO.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"manual encryption key ascii-text \""+v+"\"")
 		}
 		if v := rscData.Manual.Gateway.ValueString(); v != "" {
