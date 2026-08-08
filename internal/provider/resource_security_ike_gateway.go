@@ -16,12 +16,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -264,6 +266,28 @@ func (rsc *securityIkeGateway) Schema(
 							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
+					"client_password_wo": schema.StringAttribute{
+						Optional:    true,
+						Sensitive:   true,
+						WriteOnly:   true,
+						Description: "AAA client password, not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.LengthBetween(1, 128),
+							tfvalidator.StringDoubleQuoteExclusion(),
+							stringvalidator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("client_password_wo_version"),
+							),
+						},
+					},
+					"client_password_wo_version": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Version of `client_password_wo` to trigger the sending of its value.",
+						Validators: []validator.Int64{
+							int64validator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("client_password_wo"),
+							),
+						},
+					},
 					"client_username": schema.StringAttribute{
 						Optional:    true,
 						Description: "AAA client username.",
@@ -434,9 +458,11 @@ func (block *securityIkeGatewayBlockDynamicRemoteBlockDistinguishedName) hasKnow
 }
 
 type securityIkeGatewayBlockAaa struct {
-	AccessProfile  types.String `tfsdk:"access_profile"`
-	ClientPassword types.String `tfsdk:"client_password"`
-	ClientUsername types.String `tfsdk:"client_username"`
+	AccessProfile           types.String `tfsdk:"access_profile"`
+	ClientPassword          types.String `tfsdk:"client_password"`
+	ClientPasswordWO        types.String `tfsdk:"client_password_wo"`
+	ClientPasswordWOVersion types.Int64  `tfsdk:"client_password_wo_version"`
+	ClientUsername          types.String `tfsdk:"client_username"`
 }
 
 type securityIkeGatewayBlockDeadPeerDetection struct {
@@ -457,7 +483,7 @@ type securityIkeGatewayBlockRemoteIdentity struct {
 	DistinguishedNameWildcard  types.String `tfsdk:"distinguished_name_wildcard"`
 }
 
-func (rsc *securityIkeGateway) ValidateConfig(
+func (rsc *securityIkeGateway) ValidateConfig( //nolint:gocyclo
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
 	var config securityIkeGatewayConfig
@@ -553,7 +579,8 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		}
 	}
 	if config.Aaa != nil {
-		if config.Aaa.AccessProfile.IsNull() && config.Aaa.ClientUsername.IsNull() && config.Aaa.ClientPassword.IsNull() {
+		if config.Aaa.AccessProfile.IsNull() && config.Aaa.ClientUsername.IsNull() &&
+			config.Aaa.ClientPassword.IsNull() && config.Aaa.ClientPasswordWO.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("*"),
 				tfdiag.MissingConfigErrSummary,
@@ -562,25 +589,38 @@ func (rsc *securityIkeGateway) ValidateConfig(
 		}
 		if !config.Aaa.AccessProfile.IsNull() && !config.Aaa.AccessProfile.IsUnknown() &&
 			((!config.Aaa.ClientUsername.IsNull() && !config.Aaa.ClientUsername.IsUnknown()) ||
-				(!config.Aaa.ClientPassword.IsNull() && !config.Aaa.ClientPassword.IsUnknown())) {
+				(!config.Aaa.ClientPassword.IsNull() && !config.Aaa.ClientPassword.IsUnknown()) ||
+				(!config.Aaa.ClientPasswordWO.IsNull() && !config.Aaa.ClientPasswordWO.IsUnknown())) {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("access_profile"),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of access_profile or client_username/client_password must be specifiedin aaa block",
+				"only one of access_profile or client_username/client_password must be specified in aaa block",
 			)
 		}
-		if config.Aaa.ClientUsername.IsNull() && !config.Aaa.ClientPassword.IsNull() {
+		if config.Aaa.ClientUsername.IsNull() &&
+			(!config.Aaa.ClientPassword.IsNull() || !config.Aaa.ClientPasswordWO.IsNull()) {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("client_password"),
 				tfdiag.MissingConfigErrSummary,
-				"client_username and client_password must be specified together in aaa block",
+				"client_username and one of client_password or client_password_wo"+
+					" must be specified together in aaa block",
 			)
 		}
-		if !config.Aaa.ClientUsername.IsNull() && config.Aaa.ClientPassword.IsNull() {
+		if !config.Aaa.ClientUsername.IsNull() &&
+			config.Aaa.ClientPassword.IsNull() && config.Aaa.ClientPasswordWO.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("client_username"),
 				tfdiag.MissingConfigErrSummary,
-				"client_username and client_password must be specified together in aaa block",
+				"client_username and one of client_password or client_password_wo"+
+					" must be specified together in aaa block",
+			)
+		}
+		if !config.Aaa.ClientPassword.IsNull() && !config.Aaa.ClientPassword.IsUnknown() &&
+			!config.Aaa.ClientPasswordWO.IsNull() && !config.Aaa.ClientPasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("aaa").AtName("client_password"),
+				tfdiag.ConflictConfigErrSummary,
+				"only one of client_password or client_password_wo can be specified in aaa block",
 			)
 		}
 	}
@@ -658,6 +698,7 @@ func (rsc *securityIkeGateway) Create(
 ) {
 	var plan securityIkeGatewayData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -740,7 +781,9 @@ func (rsc *securityIkeGateway) Read(
 			state.Name.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -751,6 +794,7 @@ func (rsc *securityIkeGateway) Update(
 	var plan, state securityIkeGatewayData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -822,6 +866,32 @@ func (rscData *securityIkeGatewayData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *securityIkeGatewayData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	if rscData.Aaa != nil {
+		diags.Append(config.GetAttribute(ctx,
+			path.Root("aaa").AtName("client_password_wo"), &rscData.Aaa.ClientPasswordWO)...)
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *securityIkeGatewayData) keepWriteOnly(state *securityIkeGatewayData) {
+	if rscData.Aaa == nil || state.Aaa == nil {
+		return
+	}
+
+	rscData.Aaa.ClientPasswordWOVersion = state.Aaa.ClientPasswordWOVersion
+	if !state.Aaa.ClientPasswordWOVersion.IsNull() {
+		rscData.Aaa.ClientPassword = types.StringNull()
+	}
+}
+
 func (rscData *securityIkeGatewayData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -874,9 +944,15 @@ func (rscData *securityIkeGatewayData) set(
 		}
 		if v := rscData.Aaa.ClientPassword.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"aaa client password \""+v+"\"")
+		} else if v := rscData.Aaa.ClientPasswordWO.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"aaa client password \""+v+"\"")
 		}
 		if v := rscData.Aaa.ClientUsername.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"aaa client username \""+v+"\"")
+		}
+		if !strings.Contains(configSet[len(configSet)-1], setPrefix+"aaa ") {
+			return path.Root("aaa").AtName("*"),
+				errors.New("one of access_profile or client_username/client_password must be specified in aaa block")
 		}
 	}
 	if rscData.DeadPeerDetection != nil {

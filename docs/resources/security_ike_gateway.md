@@ -43,7 +43,15 @@ The following arguments are supported:
     Conflict with `aaa.client_*`.
   - **client_password** (Optional, String, Sensitive)  
     AAA client password with 1 to 128 characters.  
-    Conflict with `aaa.access_profile`.  
+    Conflict with `aaa.access_profile` and `aaa.client_password_wo`.  
+  - **client_password_wo** (Optional, String, Sensitive, Write-only)  
+    AAA client password with 1 to 128 characters, not stored in state.  
+    Requires `aaa.client_password_wo_version` and Terraform 1.11 or later.  
+    Conflict with `aaa.access_profile` and `aaa.client_password`.  
+  - **client_password_wo_version** (Optional, Number)  
+    Version of `aaa.client_password_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `aaa.client_password_wo` to the device.  
+    Requires `aaa.client_password_wo`.  
   - **client_username** (Optional, String)  
     AAA client username with 1 to 128 characters.  
     Conflict with `aaa.access_profile`.
@@ -141,3 +149,8 @@ Junos security IKE gateway can be imported using an id made up of `<name>`, e.g.
 ```shell
 $ terraform import junos_security_ike_gateway.demo_vpn_p1 first-vpn
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the AAA client password read on the
+  device is stored in `aaa.client_password`, and therefore in the Terraform state.  
+  When the configuration uses a write-only argument, the next apply removes it from the state.
