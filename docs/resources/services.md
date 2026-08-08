@@ -211,6 +211,15 @@ The following arguments are supported:
   is not specified, url is deleted.
 - **url_parameter** (Optional, String, Sensitive)  
   Configure the parameter of url.  
+  Conflict with `url_parameter_wo`.
+- **url_parameter_wo** (Optional, String, Sensitive, Write-only)  
+  Configure the parameter of url, not stored in state.  
+  Requires `url_parameter_wo_version` and Terraform 1.11 or later.  
+  Conflict with `url_parameter`.
+- **url_parameter_wo_version** (Optional, Number)  
+  Version of `url_parameter_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `url_parameter_wo` to the device.  
+  Requires `url_parameter_wo`.  
 
 ---
 
@@ -253,8 +262,17 @@ The following arguments are supported:
     IP address of Primary server.
   - **primary_client_id** (Required, String)  
     Client ID of Primary server for OAuth2 grant.
-  - **primary_client_secret** (Required, String, Sensitive)  
+  - **primary_client_secret** (Optional, String, Sensitive)  
     Client secret of Primary server for OAuth2 grant.  
+    One of `primary_client_secret` or `primary_client_secret_wo` is required.
+  - **primary_client_secret_wo** (Optional, String, Sensitive, Write-only)  
+    Client secret of Primary server for OAuth2 grant, not stored in state.  
+    Requires `primary_client_secret_wo_version` and Terraform 1.11 or later.  
+    One of `primary_client_secret` or `primary_client_secret_wo` is required.
+  - **primary_client_secret_wo_version** (Optional, Number)  
+    Version of `primary_client_secret_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `primary_client_secret_wo` to the device.  
+    Requires `primary_client_secret_wo`.
   - **connect_method** (Optional, String)  
     Method of connection.  
     Need to be `http` or `https`.
@@ -272,6 +290,15 @@ The following arguments are supported:
     Client ID of Secondary server for OAuth2 grant.
   - **secondary_client_secret** (Optional, String, Sensitive)  
     Client secret of Secondary server for OAuth2 grant.  
+    Conflict with `secondary_client_secret_wo`.
+  - **secondary_client_secret_wo** (Optional, String, Sensitive, Write-only)  
+    Client secret of Secondary server for OAuth2 grant, not stored in state.  
+    Requires `secondary_client_secret_wo_version` and Terraform 1.11 or later.  
+    Conflict with `secondary_client_secret`.
+  - **secondary_client_secret_wo_version** (Optional, Number)  
+    Version of `secondary_client_secret_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `secondary_client_secret_wo` to the device.  
+    Requires `secondary_client_secret_wo`.
   - **token_api** (Optional, String)  
     API of acquiring token for OAuth2 authentication.
 - **authentication_entry_timeout** (Optional, Number)  
@@ -311,3 +338,11 @@ Junos services can be imported using any id, e.g.
 ```shell
 $ terraform import junos_services.services random
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the secrets read on the device are
+  stored in `security_intelligence.url_parameter`,
+  `user_identification.identity_management.connection.primary_client_secret` and
+  `user_identification.identity_management.connection.secondary_client_secret`, and therefore
+  in the Terraform state.  
+  When the configuration uses a write-only argument, the next apply removes it from the state.
