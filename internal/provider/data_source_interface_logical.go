@@ -175,12 +175,12 @@ func (dsc *interfaceLogicalDataSource) Schema(
 							"priority":                 types.Int64Type,
 							"track_interface": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 								"interface":     types.StringType,
-								"priority_cost": types.StringType,
+								"priority_cost": types.Int64Type,
 							})),
 							"track_route": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 								"route":            types.StringType,
 								"routing_instance": types.StringType,
-								"priority_cost":    types.StringType,
+								"priority_cost":    types.Int64Type,
 							})),
 						})),
 					})),
@@ -241,12 +241,12 @@ func (dsc *interfaceLogicalDataSource) Schema(
 							"virtual_link_local_address": types.StringType,
 							"track_interface": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 								"interface":     types.StringType,
-								"priority_cost": types.StringType,
+								"priority_cost": types.Int64Type,
 							})),
 							"track_route": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 								"route":            types.StringType,
 								"routing_instance": types.StringType,
-								"priority_cost":    types.StringType,
+								"priority_cost":    types.Int64Type,
 							})),
 						})),
 					})),
