@@ -23,14 +23,26 @@ resource "junos_services_user_identification_ad_access_domain" "demo" {
 
 ## Argument Reference
 
+-> **Note**
+  One of `user_password` or `user_password_wo` arguments is required.
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   Domain name.
 - **user_name** (Required, String)  
   User name.
-- **user_password** (Required, String, Sensitive)  
+- **user_password** (Optional, String, Sensitive)  
   Password string.  
+  Conflict with `user_password_wo`.
+- **user_password_wo** (Optional, String, Sensitive, Write-only)  
+  Password string, not stored in state.  
+  Requires `user_password_wo_version` and Terraform 1.11 or later.  
+  Conflict with `user_password`.
+- **user_password_wo_version** (Optional, Number)  
+  Version of `user_password_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `user_password_wo` to the device.  
+  Requires `user_password_wo`.
 - **domain_controller** (Optional, Block List)  
   For each name of domain-controller, configure address.
   - **name** (Required, String)  
@@ -57,6 +69,15 @@ The following arguments are supported:
     User name.
   - **user_password** (Optional, String, Sensitive)  
     Password string.  
+    Conflict with `user_password_wo`.
+  - **user_password_wo** (Optional, String, Sensitive, Write-only)  
+    Password string, not stored in state.  
+    Requires `user_password_wo_version` and Terraform 1.11 or later.  
+    Conflict with `user_password`.
+  - **user_password_wo_version** (Optional, Number)  
+    Version of `user_password_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `user_password_wo` to the device.  
+    Requires `user_password_wo`.
 
 ## Attribute Reference
 
@@ -73,3 +94,8 @@ id made up of `<name>`, e.g.
 ```shell
 $ terraform import junos_services_user_identification_ad_access_domain.demo example.com
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the passwords read on the device are
+  stored in the `user_password` arguments, and therefore in the Terraform state.  
+  When the configuration uses the write-only arguments, the next apply removes them from the state.
