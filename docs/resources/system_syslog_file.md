@@ -85,7 +85,16 @@ The following arguments are supported:
   - **url** (Required, String)  
     Primary or failover URLs to receive archive files.
   - **password** (Optional, String, Sensitive)  
-    Password for login into the archive site.
+    Password for login into the archive site.  
+    Conflict with `password_wo`.
+  - **password_wo** (Optional, String, Sensitive, Write-only)  
+    Password for login into the archive site, not stored in state.  
+    Requires `password_wo_version` and Terraform 1.11 or later.  
+    Conflict with `password`.
+  - **password_wo_version** (Optional, Number)  
+    Version of `password_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `password_wo` to the device.  
+    Requires `password_wo`.
   - **routing_instance** (Optional, String)  
     Routing instance.
 - **size** (Optional, Number)  
@@ -118,3 +127,8 @@ Junos system syslog file can be imported using an id made up of `<filename>`, e.
 ```shell
 $ terraform import junos_system_syslog_file.demo_syslog_file demo
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the passwords read on the device are
+  stored in `password`, and therefore in the Terraform state.  
+  When the configuration uses the write-only arguments, the next apply removes them from the state.
