@@ -2,14 +2,18 @@ package provider_test
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 // export TESTACC_INTERFACE=<inteface> to choose interface available else it's ge-0/0/3.
@@ -223,6 +227,79 @@ func TestAccResourceInterfaceLogical_router(t *testing.T) {
 				},
 				{
 					ConfigDirectory: config.TestStepDirectory(),
+				},
+			},
+		})
+	}
+}
+
+func TestAccResourceInterfaceLogical_writeOnly(t *testing.T) {
+	testaccInterface := junos.DefaultInterfaceTestAcc
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
+	}
+	if os.Getenv("TESTACC_SWITCH") == "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+				tfversion.SkipBelow(tfversion.Version1_11_0),
+			},
+			Steps: []resource.TestStep{
+				{
+					// 1
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckNoResourceAttr("junos_interface_logical.testacc_interface_logical_wo",
+							"family_inet.address.0.vrrp_group.0.authentication_key"),
+						resource.TestCheckNoResourceAttr("junos_interface_logical.testacc_interface_logical_wo",
+							"family_inet.address.0.vrrp_group.0.authentication_key_wo"),
+						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical_wo",
+							"family_inet.address.0.vrrp_group.0.authentication_key_wo_version", "1"),
+						resource.TestCheckNoResourceAttr("junos_interface_logical.testacc_interface_logical_wo",
+							"family_inet.address.1.vrrp_group.0.authentication_key"),
+						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical_wo",
+							"family_inet.address.1.vrrp_group.0.authentication_key_wo_version", "1"),
+					),
+				},
+				{
+					// 2 check that the write-only keys have really been sent to the device
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
+					ConfigStateChecks: []statecheck.StateCheck{
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_interface_logical_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								testaccInterface+` unit 100 family inet address 192\.0\.2\.1/25`+
+									` vrrp-group 100 authentication-key `)),
+						),
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_interface_logical_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								testaccInterface+` unit 100 family inet address 192\.0\.2\.129/25`+
+									` vrrp-group 101 authentication-key `)),
+						),
+					},
+				},
+				{
+					// 3
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigVariables: map[string]config.Variable{
+						"interface": config.StringVariable(testaccInterface),
+					},
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical_wo",
+							"family_inet.address.0.vrrp_group.0.authentication_key_wo_version", "2"),
+						resource.TestCheckResourceAttr("junos_interface_logical.testacc_interface_logical_wo",
+							"family_inet.address.1.vrrp_group.0.authentication_key_wo_version", "2"),
+					),
 				},
 			},
 		})

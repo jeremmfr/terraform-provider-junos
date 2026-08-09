@@ -291,25 +291,67 @@ func (dsc *interfaceLogicalDataSource) Schema(
 }
 
 type interfaceLogicalDataSourceData struct {
-	ID                       types.String                      `tfsdk:"id"`
-	ConfigInterface          types.String                      `tfsdk:"config_interface"`
-	Match                    types.String                      `tfsdk:"match"`
-	Name                     types.String                      `tfsdk:"name"`
-	Description              types.String                      `tfsdk:"description"`
-	Disable                  types.Bool                        `tfsdk:"disable"`
-	Encapsulation            types.String                      `tfsdk:"encapsulation"`
-	ProxyMacipAdvertisement  types.Bool                        `tfsdk:"proxy_macip_advertisement"`
-	RoutingInstance          types.String                      `tfsdk:"routing_instance"`
-	SecurityInboundProtocols []types.String                    `tfsdk:"security_inbound_protocols"`
-	SecurityInboundServices  []types.String                    `tfsdk:"security_inbound_services"`
-	SecurityZone             types.String                      `tfsdk:"security_zone"`
-	VirtualGatewayAcceptData types.Bool                        `tfsdk:"virtual_gateway_accept_data"`
-	VirtualGatewayV4Mac      types.String                      `tfsdk:"virtual_gateway_v4_mac"`
-	VirtualGatewayV6Mac      types.String                      `tfsdk:"virtual_gateway_v6_mac"`
-	VlanID                   types.Int64                       `tfsdk:"vlan_id"`
-	FamilyInet               *interfaceLogicalBlockFamilyInet  `tfsdk:"family_inet"`
-	FamilyInet6              *interfaceLogicalBlockFamilyInet6 `tfsdk:"family_inet6"`
-	Tunnel                   *interfaceLogicalBlockTunnel      `tfsdk:"tunnel"`
+	ID                       types.String                               `tfsdk:"id"`
+	ConfigInterface          types.String                               `tfsdk:"config_interface"`
+	Match                    types.String                               `tfsdk:"match"`
+	Name                     types.String                               `tfsdk:"name"`
+	Description              types.String                               `tfsdk:"description"`
+	Disable                  types.Bool                                 `tfsdk:"disable"`
+	Encapsulation            types.String                               `tfsdk:"encapsulation"`
+	ProxyMacipAdvertisement  types.Bool                                 `tfsdk:"proxy_macip_advertisement"`
+	RoutingInstance          types.String                               `tfsdk:"routing_instance"`
+	SecurityInboundProtocols []types.String                             `tfsdk:"security_inbound_protocols"`
+	SecurityInboundServices  []types.String                             `tfsdk:"security_inbound_services"`
+	SecurityZone             types.String                               `tfsdk:"security_zone"`
+	VirtualGatewayAcceptData types.Bool                                 `tfsdk:"virtual_gateway_accept_data"`
+	VirtualGatewayV4Mac      types.String                               `tfsdk:"virtual_gateway_v4_mac"`
+	VirtualGatewayV6Mac      types.String                               `tfsdk:"virtual_gateway_v6_mac"`
+	VlanID                   types.Int64                                `tfsdk:"vlan_id"`
+	FamilyInet               *interfaceLogicalDataSourceBlockFamilyInet `tfsdk:"family_inet"`
+	FamilyInet6              *interfaceLogicalBlockFamilyInet6          `tfsdk:"family_inet6"`
+	Tunnel                   *interfaceLogicalBlockTunnel               `tfsdk:"tunnel"`
+}
+
+// the vrrp_group block of the resource has write-only arguments,
+// which have no meaning in a data source,
+// so the family_inet block has its own structs to not declare them.
+type interfaceLogicalDataSourceBlockFamilyInet struct {
+	FilterInput      types.String                                            `tfsdk:"filter_input"`
+	FilterInputList  []types.String                                          `tfsdk:"filter_input_list"`
+	FilterOutput     types.String                                            `tfsdk:"filter_output"`
+	FilterOutputList []types.String                                          `tfsdk:"filter_output_list"`
+	Mtu              types.Int64                                             `tfsdk:"mtu"`
+	SamplingInput    types.Bool                                              `tfsdk:"sampling_input"`
+	SamplingOutput   types.Bool                                              `tfsdk:"sampling_output"`
+	Address          []interfaceLogicalDataSourceBlockFamilyInetBlockAddress `tfsdk:"address"`
+	DHCP             *interfaceLogicalBlockFamilyInetBlockDhcp               `tfsdk:"dhcp"`
+	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck               `tfsdk:"rpf_check"`
+}
+
+//nolint:lll
+type interfaceLogicalDataSourceBlockFamilyInetBlockAddress struct {
+	CidrIP                types.String                                                          `tfsdk:"cidr_ip"`
+	Preferred             types.Bool                                                            `tfsdk:"preferred"`
+	Primary               types.Bool                                                            `tfsdk:"primary"`
+	VirtualGatewayAddress types.String                                                          `tfsdk:"virtual_gateway_address"`
+	VRRPGroup             []interfaceLogicalDataSourceBlockFamilyInetBlockAddressBlockVRRPGroup `tfsdk:"vrrp_group"`
+}
+
+//nolint:lll
+type interfaceLogicalDataSourceBlockFamilyInetBlockAddressBlockVRRPGroup struct {
+	Identifier              types.Int64                                                                `tfsdk:"identifier"`
+	VirtualAddress          []types.String                                                             `tfsdk:"virtual_address"`
+	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
+	NoAcceptData            types.Bool                                                                 `tfsdk:"no_accept_data"`
+	AdvertiseInterval       types.Int64                                                                `tfsdk:"advertise_interval"`
+	AdvertisementsThreshold types.Int64                                                                `tfsdk:"advertisements_threshold"`
+	AuthenticationKey       types.String                                                               `tfsdk:"authentication_key"`
+	AuthenticationType      types.String                                                               `tfsdk:"authentication_type"`
+	Preempt                 types.Bool                                                                 `tfsdk:"preempt"`
+	NoPreempt               types.Bool                                                                 `tfsdk:"no_preempt"`
+	Priority                types.Int64                                                                `tfsdk:"priority"`
+	TrackInterface          []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface `tfsdk:"track_interface"`
+	TrackRoute              []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute     `tfsdk:"track_route"`
 }
 
 func (dsc *interfaceLogicalDataSource) ValidateConfig(
@@ -446,7 +488,10 @@ func (dscData *interfaceLogicalDataSourceData) copyFromResourceData(rscData inte
 	dscData.Description = rscData.Description
 	dscData.Disable = rscData.Disable
 	dscData.Encapsulation = rscData.Encapsulation
-	dscData.FamilyInet = rscData.FamilyInet
+	if rscData.FamilyInet != nil {
+		dscData.FamilyInet = new(interfaceLogicalDataSourceBlockFamilyInet)
+		dscData.FamilyInet.copyFromResourceBlock(rscData.FamilyInet)
+	}
 	dscData.FamilyInet6 = rscData.FamilyInet6
 	dscData.ProxyMacipAdvertisement = rscData.ProxyMacipAdvertisement
 	dscData.RoutingInstance = rscData.RoutingInstance
@@ -458,4 +503,59 @@ func (dscData *interfaceLogicalDataSourceData) copyFromResourceData(rscData inte
 	dscData.VirtualGatewayV4Mac = rscData.VirtualGatewayV4Mac
 	dscData.VirtualGatewayV6Mac = rscData.VirtualGatewayV6Mac
 	dscData.VlanID = rscData.VlanID
+}
+
+func (dscBlock *interfaceLogicalDataSourceBlockFamilyInet) copyFromResourceBlock(
+	block *interfaceLogicalBlockFamilyInet,
+) {
+	dscBlock.FilterInput = block.FilterInput
+	dscBlock.FilterInputList = block.FilterInputList
+	dscBlock.FilterOutput = block.FilterOutput
+	dscBlock.FilterOutputList = block.FilterOutputList
+	dscBlock.Mtu = block.Mtu
+	dscBlock.SamplingInput = block.SamplingInput
+	dscBlock.SamplingOutput = block.SamplingOutput
+	dscBlock.DHCP = block.DHCP
+	dscBlock.RPFCheck = block.RPFCheck
+
+	for _, blockAddress := range block.Address {
+		var dscBlockAddress interfaceLogicalDataSourceBlockFamilyInetBlockAddress
+		dscBlockAddress.copyFromResourceBlock(&blockAddress)
+
+		dscBlock.Address = append(dscBlock.Address, dscBlockAddress)
+	}
+}
+
+func (dscBlock *interfaceLogicalDataSourceBlockFamilyInetBlockAddress) copyFromResourceBlock(
+	block *interfaceLogicalBlockFamilyInetBlockAddress,
+) {
+	dscBlock.CidrIP = block.CidrIP
+	dscBlock.Preferred = block.Preferred
+	dscBlock.Primary = block.Primary
+	dscBlock.VirtualGatewayAddress = block.VirtualGatewayAddress
+
+	for _, blockVRRPGroup := range block.VRRPGroup {
+		var dscBlockVRRPGroup interfaceLogicalDataSourceBlockFamilyInetBlockAddressBlockVRRPGroup
+		dscBlockVRRPGroup.copyFromResourceBlock(&blockVRRPGroup)
+
+		dscBlock.VRRPGroup = append(dscBlock.VRRPGroup, dscBlockVRRPGroup)
+	}
+}
+
+func (dscBlock *interfaceLogicalDataSourceBlockFamilyInetBlockAddressBlockVRRPGroup) copyFromResourceBlock(
+	block *interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup,
+) {
+	dscBlock.Identifier = block.Identifier
+	dscBlock.VirtualAddress = block.VirtualAddress
+	dscBlock.AcceptData = block.AcceptData
+	dscBlock.NoAcceptData = block.NoAcceptData
+	dscBlock.AdvertiseInterval = block.AdvertiseInterval
+	dscBlock.AdvertisementsThreshold = block.AdvertisementsThreshold
+	dscBlock.AuthenticationKey = block.AuthenticationKey
+	dscBlock.AuthenticationType = block.AuthenticationType
+	dscBlock.Preempt = block.Preempt
+	dscBlock.NoPreempt = block.NoPreempt
+	dscBlock.Priority = block.Priority
+	dscBlock.TrackInterface = block.TrackInterface
+	dscBlock.TrackRoute = block.TrackRoute
 }

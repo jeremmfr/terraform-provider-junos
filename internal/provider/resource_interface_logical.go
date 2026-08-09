@@ -19,12 +19,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -386,6 +388,28 @@ func (rsc *interfaceLogical) Schema(
 												Validators: []validator.String{
 													stringvalidator.LengthBetween(1, 16),
 													tfvalidator.StringDoubleQuoteExclusion(),
+												},
+											},
+											"authentication_key_wo": schema.StringAttribute{
+												Optional:    true,
+												Sensitive:   true,
+												WriteOnly:   true,
+												Description: "Authentication key, not stored in state.",
+												Validators: []validator.String{
+													stringvalidator.LengthBetween(1, 16),
+													tfvalidator.StringDoubleQuoteExclusion(),
+													stringvalidator.AlsoRequires(
+														path.MatchRelative().AtParent().AtName("authentication_key_wo_version"),
+													),
+												},
+											},
+											"authentication_key_wo_version": schema.Int64Attribute{
+												Optional:    true,
+												Description: "Version of `authentication_key_wo` to trigger the sending of its value.",
+												Validators: []validator.Int64{
+													int64validator.AlsoRequires(
+														path.MatchRelative().AtParent().AtName("authentication_key_wo"),
+													),
 												},
 											},
 											"authentication_type": schema.StringAttribute{
@@ -1213,35 +1237,39 @@ type interfaceLogicalBlockFamilyInetBlockAddressConfig struct {
 
 //nolint:lll
 type interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup struct {
-	Identifier              types.Int64                                                                `tfsdk:"identifier"               tfdata:"identifier"`
-	VirtualAddress          []types.String                                                             `tfsdk:"virtual_address"`
-	AcceptData              types.Bool                                                                 `tfsdk:"accept_data"`
-	NoAcceptData            types.Bool                                                                 `tfsdk:"no_accept_data"`
-	AdvertiseInterval       types.Int64                                                                `tfsdk:"advertise_interval"`
-	AdvertisementsThreshold types.Int64                                                                `tfsdk:"advertisements_threshold"`
-	AuthenticationKey       types.String                                                               `tfsdk:"authentication_key"`
-	AuthenticationType      types.String                                                               `tfsdk:"authentication_type"`
-	Preempt                 types.Bool                                                                 `tfsdk:"preempt"`
-	NoPreempt               types.Bool                                                                 `tfsdk:"no_preempt"`
-	Priority                types.Int64                                                                `tfsdk:"priority"`
-	TrackInterface          []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface `tfsdk:"track_interface"`
-	TrackRoute              []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute     `tfsdk:"track_route"`
+	Identifier                 types.Int64                                                                `tfsdk:"identifier"                    tfdata:"identifier"`
+	VirtualAddress             []types.String                                                             `tfsdk:"virtual_address"`
+	AcceptData                 types.Bool                                                                 `tfsdk:"accept_data"`
+	NoAcceptData               types.Bool                                                                 `tfsdk:"no_accept_data"`
+	AdvertiseInterval          types.Int64                                                                `tfsdk:"advertise_interval"`
+	AdvertisementsThreshold    types.Int64                                                                `tfsdk:"advertisements_threshold"`
+	AuthenticationKey          types.String                                                               `tfsdk:"authentication_key"`
+	AuthenticationKeyWO        types.String                                                               `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion types.Int64                                                                `tfsdk:"authentication_key_wo_version"`
+	AuthenticationType         types.String                                                               `tfsdk:"authentication_type"`
+	Preempt                    types.Bool                                                                 `tfsdk:"preempt"`
+	NoPreempt                  types.Bool                                                                 `tfsdk:"no_preempt"`
+	Priority                   types.Int64                                                                `tfsdk:"priority"`
+	TrackInterface             []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface `tfsdk:"track_interface"`
+	TrackRoute                 []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackRoute     `tfsdk:"track_route"`
 }
 
 type interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroupConfig struct {
-	Identifier              types.Int64  `tfsdk:"identifier"`
-	VirtualAddress          types.List   `tfsdk:"virtual_address"`
-	AcceptData              types.Bool   `tfsdk:"accept_data"`
-	NoAcceptData            types.Bool   `tfsdk:"no_accept_data"`
-	AdvertiseInterval       types.Int64  `tfsdk:"advertise_interval"`
-	AdvertisementsThreshold types.Int64  `tfsdk:"advertisements_threshold"`
-	AuthenticationKey       types.String `tfsdk:"authentication_key"`
-	AuthenticationType      types.String `tfsdk:"authentication_type"`
-	Preempt                 types.Bool   `tfsdk:"preempt"`
-	NoPreempt               types.Bool   `tfsdk:"no_preempt"`
-	Priority                types.Int64  `tfsdk:"priority"`
-	TrackInterface          types.List   `tfsdk:"track_interface"`
-	TrackRoute              types.List   `tfsdk:"track_route"`
+	Identifier                 types.Int64  `tfsdk:"identifier"`
+	VirtualAddress             types.List   `tfsdk:"virtual_address"`
+	AcceptData                 types.Bool   `tfsdk:"accept_data"`
+	NoAcceptData               types.Bool   `tfsdk:"no_accept_data"`
+	AdvertiseInterval          types.Int64  `tfsdk:"advertise_interval"`
+	AdvertisementsThreshold    types.Int64  `tfsdk:"advertisements_threshold"`
+	AuthenticationKey          types.String `tfsdk:"authentication_key"`
+	AuthenticationKeyWO        types.String `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion types.Int64  `tfsdk:"authentication_key_wo_version"`
+	AuthenticationType         types.String `tfsdk:"authentication_type"`
+	Preempt                    types.Bool   `tfsdk:"preempt"`
+	NoPreempt                  types.Bool   `tfsdk:"no_preempt"`
+	Priority                   types.Int64  `tfsdk:"priority"`
+	TrackInterface             types.List   `tfsdk:"track_interface"`
+	TrackRoute                 types.List   `tfsdk:"track_route"`
 }
 
 type interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface struct {
@@ -1604,6 +1632,18 @@ func (rsc *interfaceLogical) ValidateConfig(
 							vrrpGroupID[identifier] = struct{}{}
 						}
 
+						if !vrrpGroup.AuthenticationKey.IsNull() && !vrrpGroup.AuthenticationKey.IsUnknown() &&
+							!vrrpGroup.AuthenticationKeyWO.IsNull() && !vrrpGroup.AuthenticationKeyWO.IsUnknown() {
+							resp.Diagnostics.AddAttributeError(
+								path.Root("family_inet").AtName("address").AtListIndex(i).
+									AtName("vrrp_group").AtListIndex(ii).AtName("authentication_key"),
+								tfdiag.ConflictConfigErrSummary,
+								fmt.Sprintf("authentication_key and authentication_key_wo cannot be configured together"+
+									" in vrrp_group block %d in address block %q in family_inet block",
+									vrrpGroup.Identifier.ValueInt64(), address.CidrIP.ValueString()),
+							)
+						}
+
 						if !vrrpGroup.TrackInterface.IsNull() && !vrrpGroup.TrackInterface.IsUnknown() {
 							var configTrackInterface []interfaceLogicalBlockFamilyBlockAddressBlockVRRPGroupBlockTrackInterface
 							asDiags := vrrpGroup.TrackInterface.ElementsAs(ctx, &configTrackInterface, false)
@@ -1919,6 +1959,7 @@ func (rsc *interfaceLogical) Create(
 ) {
 	var plan interfaceLogicalData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -2188,6 +2229,7 @@ func (rsc *interfaceLogical) Read(
 
 	data.St0AlsoOnDestroy = state.St0AlsoOnDestroy
 	data.VlanNoCompute = state.VlanNoCompute
+	data.keepWriteOnly(&state)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -2197,6 +2239,7 @@ func (rsc *interfaceLogical) Update(
 	var plan, state interfaceLogicalData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -2540,6 +2583,78 @@ func checkInterfaceLogicalNCEmpty(
 	}
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+//
+// The write-only arguments are inside list blocks, so they are read by index:
+// the plan keeps the order of the configuration for a list block,
+// reading the whole list from the configuration isn't possible
+// because it may be unknown at this time.
+func (rscData *interfaceLogicalData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	if rscData.FamilyInet == nil {
+		return diags
+	}
+
+	for i := range rscData.FamilyInet.Address {
+		addressPath := path.Root("family_inet").AtName("address").AtListIndex(i)
+
+		for ii := range rscData.FamilyInet.Address[i].VRRPGroup {
+			diags.Append(config.GetAttribute(ctx,
+				addressPath.AtName("vrrp_group").AtListIndex(ii).AtName("authentication_key_wo"),
+				&rscData.FamilyInet.Address[i].VRRPGroup[ii].AuthenticationKeyWO)...)
+		}
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+//
+// The blocks read on the device aren't in the order of the configuration,
+// so they are matched with the state with their identifier.
+func (rscData *interfaceLogicalData) keepWriteOnly(state *interfaceLogicalData) {
+	if rscData.FamilyInet == nil || state.FamilyInet == nil {
+		return
+	}
+
+	stateAddress := make(
+		map[string]interfaceLogicalBlockFamilyInetBlockAddress, len(state.FamilyInet.Address),
+	)
+	for _, block := range state.FamilyInet.Address {
+		stateAddress[block.CidrIP.ValueString()] = block
+	}
+
+	for i, block := range rscData.FamilyInet.Address {
+		stateBlock, ok := stateAddress[block.CidrIP.ValueString()]
+		if !ok {
+			continue
+		}
+
+		stateVRRPGroup := make(
+			map[int64]interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup, len(stateBlock.VRRPGroup),
+		)
+		for _, blockVRRPGroup := range stateBlock.VRRPGroup {
+			stateVRRPGroup[blockVRRPGroup.Identifier.ValueInt64()] = blockVRRPGroup
+		}
+		for ii, blockVRRPGroup := range block.VRRPGroup {
+			stateBlockVRRPGroup, ok := stateVRRPGroup[blockVRRPGroup.Identifier.ValueInt64()]
+			if !ok {
+				continue
+			}
+
+			rscData.FamilyInet.Address[i].VRRPGroup[ii].
+				AuthenticationKeyWOVersion = stateBlockVRRPGroup.AuthenticationKeyWOVersion
+			if !stateBlockVRRPGroup.AuthenticationKeyWOVersion.IsNull() {
+				rscData.FamilyInet.Address[i].VRRPGroup[ii].
+					AuthenticationKey = types.StringNull()
+			}
+		}
+	}
+}
+
 func (rscData *interfaceLogicalData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -2815,6 +2930,8 @@ func (block *interfaceLogicalBlockFamilyInetBlockAddressBlockVRRPGroup) configSe
 			utils.ConvI64toa(block.AdvertiseInterval.ValueInt64()))
 	}
 	if v := block.AuthenticationKey.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
+	} else if v := block.AuthenticationKeyWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
 	}
 	if v := block.AuthenticationType.ValueString(); v != "" {
