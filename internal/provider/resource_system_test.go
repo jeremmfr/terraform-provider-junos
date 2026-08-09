@@ -2,10 +2,15 @@ package provider_test
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 // export TESTACC_LICENSE_KEY=<key> to test license keys attribute.
@@ -220,6 +225,104 @@ func TestAccResourceSystem_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
+					ConfigDirectory: config.TestStepDirectory(),
+				},
+			},
+		})
+	}
+}
+
+func TestAccResourceSystem_writeOnly(t *testing.T) {
+	if os.Getenv("TESTACC_SRX") != "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+				tfversion.SkipBelow(tfversion.Version1_11_0),
+			},
+			Steps: []resource.TestStep{
+				{
+					// 1
+					ConfigDirectory: config.TestStepDirectory(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckNoResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_radius_server.0.secret"),
+						resource.TestCheckNoResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_radius_server.0.secret_wo"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_radius_server.0.secret_wo_version", "1"),
+						resource.TestCheckNoResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_radius_server.0.preauthentication_secret"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_radius_server.0.preauthentication_secret_wo_version", "1"),
+						resource.TestCheckNoResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_tacplus_server.0.secret"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_tacplus_server.0.secret_wo_version", "1"),
+						resource.TestCheckNoResourceAttr("junos_system.testacc_system_wo",
+							"archival_configuration.archive_site.0.password"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"archival_configuration.archive_site.0.password_wo_version", "1"),
+						resource.TestCheckNoResourceAttr("junos_system.testacc_system_wo",
+							"license.autoupdate_password"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"license.autoupdate_password_wo_version", "1"),
+					),
+				},
+				{
+					// 2 check that the write-only secrets have really been sent to the device
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigStateChecks: []statecheck.StateCheck{
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_system_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`accounting destination radius server "?192\.0\.2\.53"? secret `)),
+						),
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_system_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`accounting destination radius server "?192\.0\.2\.53"? preauthentication-secret `)),
+						),
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_system_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`accounting destination tacplus server "?192\.0\.2\.55"? secret `)),
+						),
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_system_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`archival configuration archive-sites "?scp://juniper-configs@192\.0\.2\.30:/dir"? password `)),
+						),
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_system_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`license autoupdate url "?https://ae1\.juniper\.net/junos/key_retrieval"? password `)),
+						),
+					},
+				},
+				{
+					// 3
+					ConfigDirectory: config.TestStepDirectory(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_radius_server.0.secret_wo_version", "2"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_radius_server.0.preauthentication_secret_wo_version", "2"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"accounting.destination_tacplus_server.0.secret_wo_version", "2"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"archival_configuration.archive_site.0.password_wo_version", "2"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system_wo",
+							"license.autoupdate_password_wo_version", "2"),
+					),
+				},
+				{
+					// 4 remove the secrets from the device, the resource isn't deleted
 					ConfigDirectory: config.TestStepDirectory(),
 				},
 			},
