@@ -93,6 +93,9 @@ func TestAccResourceSystemSyslogFile_basic(t *testing.T) {
 				ResourceName:      "junos_system_syslog_file.testacc_syslogFile",
 				ImportState:       true,
 				ImportStateVerify: true,
+				// on import, the date is read from the device without the leading zeros
+				// removed by it, so it cannot match the value in the configuration
+				ImportStateVerifyIgnore: []string{"archive.start_time"},
 			},
 		},
 	})
