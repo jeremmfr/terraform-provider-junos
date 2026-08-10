@@ -18,7 +18,7 @@ func TestAccResourceSystemLoginUser_basic(t *testing.T) {
 		PreCheck: func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_login_user.testacc",
@@ -28,7 +28,7 @@ func TestAccResourceSystemLoginUser_basic(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
@@ -50,13 +50,13 @@ func TestAccResourceSystemLoginUser_basic(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ResourceName:             "junos_system_login_user.testacc",
 				ImportState:              true,
 				ImportStateVerify:        true,
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ExpectNonEmptyPlan:       true,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -74,7 +74,7 @@ func TestAccResourceSystemLoginUser_basic(t *testing.T) {
 				},
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ExpectNonEmptyPlan:       true,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -98,7 +98,7 @@ func TestAccResourceSystemLoginUser_basic(t *testing.T) {
 func TestAccResourceSystemLoginUser_writeOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_11_0),
 		},

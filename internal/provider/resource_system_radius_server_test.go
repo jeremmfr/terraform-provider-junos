@@ -18,7 +18,7 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 		PreCheck: func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
@@ -28,7 +28,7 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
@@ -58,18 +58,18 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ResourceName:             "junos_system_radius_server.testacc_radiusServer",
 				ImportState:              true,
 				ImportStateVerify:        true,
 			},
 			// testing no_decode_secrets provider attribute
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
@@ -84,7 +84,7 @@ func TestAccResourceSystemRadiusServer_basic(t *testing.T) {
 func TestAccResourceSystemRadiusServer_writeOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_11_0),
 		},

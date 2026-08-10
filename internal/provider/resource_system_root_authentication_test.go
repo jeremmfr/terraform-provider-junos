@@ -20,7 +20,7 @@ func TestAccResourceSystemRootAuthentication_basic(t *testing.T) {
 			PreCheck: func() { testAccPreCheck(t) },
 			Steps: []resource.TestStep{
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_system_root_authentication.root_auth",
@@ -30,13 +30,13 @@ func TestAccResourceSystemRootAuthentication_basic(t *testing.T) {
 					),
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ResourceName:             "junos_system_root_authentication.root_auth",
 					ImportState:              true,
 					ImportStateVerify:        true,
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_system_root_authentication.root_auth",
@@ -44,7 +44,7 @@ func TestAccResourceSystemRootAuthentication_basic(t *testing.T) {
 					),
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					ExpectNonEmptyPlan:       true,
 					ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -62,7 +62,7 @@ func TestAccResourceSystemRootAuthentication_basic(t *testing.T) {
 					},
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					ExpectNonEmptyPlan:       true,
 					ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -88,7 +88,7 @@ func TestAccResourceSystemRootAuthentication_writeOnly(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 				tfversion.SkipBelow(tfversion.Version1_11_0),
 			},

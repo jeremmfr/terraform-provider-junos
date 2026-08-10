@@ -38,7 +38,7 @@ func TestAccUpgradeStateResourceLayer2Control_V0toV1_basic(t *testing.T) {
 					},
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface":  config.StringVariable(testaccInterface),

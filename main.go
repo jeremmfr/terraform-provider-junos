@@ -23,7 +23,7 @@ func main() {
 	err := providerserver.Serve(ctx, provider.New, providerserver.ServeOpts{
 		Address:         "registry.terraform.io/jeremmfr/junos",
 		Debug:           debug,
-		ProtocolVersion: 5,
+		ProtocolVersion: 6,
 	})
 	if err != nil {
 		log.Fatal(err.Error())
