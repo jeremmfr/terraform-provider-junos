@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -855,7 +857,7 @@ func upgradeSecurityV0toV1(
 			AutomaticEnable:           dataV0.IdpSecurityPackage[0].AutomaticEnable,
 			InstallIgnoreVersionCheck: dataV0.IdpSecurityPackage[0].InstallIgnoreVersionCheck,
 			AutomaticInterval:         dataV0.IdpSecurityPackage[0].AutomaticInterval,
-			AutomaticStartTime:        dataV0.IdpSecurityPackage[0].AutomaticStartTime,
+			AutomaticStartTime:        tftypes.NewStringDateFromString(dataV0.IdpSecurityPackage[0].AutomaticStartTime),
 			ProxyProfile:              dataV0.IdpSecurityPackage[0].ProxyProfile,
 			SourceAddress:             dataV0.IdpSecurityPackage[0].SourceAddress,
 			URL:                       dataV0.IdpSecurityPackage[0].URL,
