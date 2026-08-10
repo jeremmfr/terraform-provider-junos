@@ -48,6 +48,9 @@ func TestAccResourceRipNeighbor_basic(t *testing.T) {
 					ResourceName:      "junos_rip_neighbor.testacc_ripneigh2",
 					ImportState:       true,
 					ImportStateVerify: true,
+					// on import, the date is read from the device without the leading zeros
+					// removed by it, so it cannot match the value in the configuration
+					ImportStateVerifyIgnore: []string{"authentication_selective_md5.1.start_time"},
 				},
 				{
 					ConfigVariables: map[string]config.Variable{

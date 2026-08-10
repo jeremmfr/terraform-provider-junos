@@ -86,7 +86,7 @@ resource "junos_rip_neighbor" "testacc_ripneigh2" {
   authentication_selective_md5 {
     key_id     = 3
     key        = "testKey#3"
-    start_time = "2016-1-1.02:00:00"
+    start_time = "2016-01-01.02:00:00"
   }
   bfd_liveness_detection {
     authentication_loose_check         = true
