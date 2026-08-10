@@ -11,6 +11,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -490,6 +491,7 @@ func (rsc *ospfArea) Schema(
 										},
 									},
 									"start_time": schema.StringAttribute{
+										CustomType:  tftypes.StringDateType{},
 										Optional:    true,
 										Description: "Start time for key transmission.",
 										Validators: []validator.String{
@@ -1016,9 +1018,9 @@ type ospfAreaBlockInterfaceConfig struct {
 }
 
 type ospfAreaBlockInterfaceBlockAuthenticationMD5 struct {
-	KeyID     types.Int64  `tfsdk:"key_id"     tfdata:"identifier"`
-	Key       types.String `tfsdk:"key"`
-	StartTime types.String `tfsdk:"start_time"`
+	KeyID     types.Int64        `tfsdk:"key_id"     tfdata:"identifier"`
+	Key       types.String       `tfsdk:"key"`
+	StartTime tftypes.StringDate `tfsdk:"start_time"`
 }
 
 type ospfAreaBlockInterfaceBlockBandwidthBasedMetrics struct {
@@ -2521,7 +2523,7 @@ func (block *ospfAreaBlockInterface) read(
 				return err
 			}
 		case balt.CutPrefixInString(&itemTrim, "start-time "):
-			authenticationMD5.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
+			authenticationMD5.StartTime = tftypes.NewStringDateValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 		}
 	case balt.CutPrefixInString(&itemTrim, "bandwidth-based-metrics bandwidth "):
 		itemTrimFields := strings.Split(itemTrim, " ")
