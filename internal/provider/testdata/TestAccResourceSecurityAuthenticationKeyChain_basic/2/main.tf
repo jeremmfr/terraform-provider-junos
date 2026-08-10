@@ -10,7 +10,7 @@ resource "junos_security_authentication_key_chain" "testacc_secauthKeyChain" {
   key {
     id         = 5
     secret     = "aSecret#1234"
-    start_time = "2024-12-11.10:09:08"
+    start_time = "2024-06-01.10:09:08"
 
     algorithm = "md5"
     key_name  = "ffaa1234"
