@@ -15,6 +15,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -116,6 +117,18 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
 				},
 			},
+			"chassis_fpc_slot_numbers": schema.SetAttribute{
+				ElementType: types.Int64Type,
+				Optional:    true,
+				Description: "Attach sampling instance to chassis FPC slots.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.NoNullValues(),
+					setvalidator.ValueInt64sAre(
+						int64validator.AtLeast(0),
+					),
+				},
+			},
 			"disable": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Disable sampling instance.",
@@ -182,31 +195,33 @@ func (rsc *forwardingoptionsSamplingInstance) Schema(
 }
 
 type forwardingoptionsSamplingInstanceData struct {
-	ID                types.String                                             `tfsdk:"id"`
-	Name              types.String                                             `tfsdk:"name"`
-	RoutingInstance   types.String                                             `tfsdk:"routing_instance"`
-	Disable           types.Bool                                               `tfsdk:"disable"`
-	FamilyInetInput   *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet_input"`
-	FamilyInetOutput  *forwardingoptionsSamplingInstanceBlockFamilyInetOutput  `tfsdk:"family_inet_output"`
-	FamilyInet6Input  *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet6_input"`
-	FamilyInet6Output *forwardingoptionsSamplingInstanceBlockFamilyInet6Output `tfsdk:"family_inet6_output"`
-	FamilyMplsInput   *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput  *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput  `tfsdk:"family_mpls_output"`
-	Input             *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"input"`
+	ID                    types.String                                             `tfsdk:"id"`
+	Name                  types.String                                             `tfsdk:"name"`
+	RoutingInstance       types.String                                             `tfsdk:"routing_instance"`
+	ChassisFpcSlotNumbers []types.Int64                                            `tfsdk:"chassis_fpc_slot_numbers"`
+	Disable               types.Bool                                               `tfsdk:"disable"`
+	FamilyInetInput       *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet_input"`
+	FamilyInetOutput      *forwardingoptionsSamplingInstanceBlockFamilyInetOutput  `tfsdk:"family_inet_output"`
+	FamilyInet6Input      *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_inet6_input"`
+	FamilyInet6Output     *forwardingoptionsSamplingInstanceBlockFamilyInet6Output `tfsdk:"family_inet6_output"`
+	FamilyMplsInput       *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput      *forwardingoptionsSamplingInstanceBlockFamilyMplsOutput  `tfsdk:"family_mpls_output"`
+	Input                 *forwardingoptionsSamplingInstanceBlockInput             `tfsdk:"input"`
 }
 
 type forwardingoptionsSamplingInstanceConfig struct {
-	ID                types.String                                                  `tfsdk:"id"`
-	Name              types.String                                                  `tfsdk:"name"`
-	RoutingInstance   types.String                                                  `tfsdk:"routing_instance"`
-	Disable           types.Bool                                                    `tfsdk:"disable"`
-	FamilyInetInput   *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet_input"`
-	FamilyInetOutput  *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet_output"`
-	FamilyInet6Input  *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet6_input"`
-	FamilyInet6Output *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet6_output"`
-	FamilyMplsInput   *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput  *forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig `tfsdk:"family_mpls_output"`
-	Input             *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"input"`
+	ID                    types.String                                                  `tfsdk:"id"`
+	Name                  types.String                                                  `tfsdk:"name"`
+	RoutingInstance       types.String                                                  `tfsdk:"routing_instance"`
+	ChassisFpcSlotNumbers types.Set                                                     `tfsdk:"chassis_fpc_slot_numbers"`
+	Disable               types.Bool                                                    `tfsdk:"disable"`
+	FamilyInetInput       *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet_input"`
+	FamilyInetOutput      *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet_output"`
+	FamilyInet6Input      *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet6_input"`
+	FamilyInet6Output     *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet6_output"`
+	FamilyMplsInput       *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput      *forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig `tfsdk:"family_mpls_output"`
+	Input                 *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"input"`
 }
 
 type forwardingoptionsSamplingInstanceBlockInput struct {
@@ -654,6 +669,17 @@ func (rsc *forwardingoptionsSamplingInstance) ValidateConfig(
 		return
 	}
 
+	if !config.ChassisFpcSlotNumbers.IsNull() && !config.ChassisFpcSlotNumbers.IsUnknown() &&
+		!config.RoutingInstance.IsNull() && !config.RoutingInstance.IsUnknown() &&
+		config.RoutingInstance.ValueString() != junos.DefaultW {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("chassis_fpc_slot_numbers"),
+			tfdiag.ConflictConfigErrSummary,
+			"cannot set chassis_fpc_slot_numbers when routing_instance is not "+junos.DefaultW+
+				" because a chassis FPC can only be attached to a root level sampling instance",
+		)
+	}
+
 	if config.Input != nil {
 		if config.Input.isEmpty() {
 			resp.Diagnostics.AddAttributeError(
@@ -1065,18 +1091,40 @@ func (rsc *forwardingoptionsSamplingInstance) Read(
 		return
 	}
 
-	var _ resourceDataReadFrom2String = &data
-	defaultResourceRead(
-		ctx,
-		rsc,
-		[]any{
-			state.Name.ValueString(),
-			state.RoutingInstance.ValueString(),
-		},
-		&data,
-		nil,
-		resp,
-	)
+	junSess, err := rsc.client.StartNewSession(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(tfdiag.StartSessErrSummary, err.Error())
+
+		return
+	}
+	defer junSess.Close()
+
+	junos.MutexLock()
+	if err := data.read(
+		ctx, state.Name.ValueString(), state.RoutingInstance.ValueString(), junSess,
+	); err != nil {
+		junos.MutexUnlock()
+		resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
+
+		return
+	}
+	if !data.nullID() && state.ChassisFpcSlotNumbers != nil {
+		if err := data.readChassisFpcSlotNumbers(ctx, state.Name.ValueString(), junSess); err != nil {
+			junos.MutexUnlock()
+			resp.Diagnostics.AddError(tfdiag.ConfigReadErrSummary, err.Error())
+
+			return
+		}
+	}
+	junos.MutexUnlock()
+
+	if data.nullID() {
+		resp.State.RemoveResource(ctx)
+
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (rsc *forwardingoptionsSamplingInstance) Update(
@@ -1199,6 +1247,17 @@ func (rscData *forwardingoptionsSamplingInstanceData) set(
 	}
 	setPrefix += "forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\" "
 
+	if len(rscData.ChassisFpcSlotNumbers) > 0 {
+		if v := rscData.RoutingInstance.ValueString(); v != "" && v != junos.DefaultW {
+			return path.Root("chassis_fpc_slot_numbers"),
+				errors.New("cannot set chassis_fpc_slot_numbers when routing_instance is not " + junos.DefaultW +
+					" because a chassis FPC can only be attached to a root level sampling instance")
+		}
+		for _, v := range rscData.ChassisFpcSlotNumbers {
+			configSet = append(configSet, junos.SetLS+"chassis fpc "+utils.ConvI64toa(v.ValueInt64())+
+				" sampling-instance \""+rscData.Name.ValueString()+"\"")
+		}
+	}
 	if rscData.Disable.ValueBool() {
 		configSet = append(configSet, setPrefix+"disable")
 	}
@@ -1708,6 +1767,47 @@ func (rscData *forwardingoptionsSamplingInstanceData) read(
 	return nil
 }
 
+func (rscData *forwardingoptionsSamplingInstanceData) readChassisFpcSlotNumbers(
+	ctx context.Context, name string, junSess *junos.Session,
+) error {
+	showConfig, err := junSess.Command(ctx, junos.CmdShowConfig+
+		"chassis"+junos.PipeDisplaySetRelative)
+	if err != nil {
+		return err
+	}
+	if showConfig == junos.EmptyW {
+		return nil
+	}
+
+	for item := range strings.SplitSeq(showConfig, "\n") {
+		if strings.Contains(item, junos.XMLStartTagConfigOut) {
+			continue
+		}
+		if strings.Contains(item, junos.XMLEndTagConfigOut) {
+			break
+		}
+		itemTrim := strings.TrimPrefix(item, junos.SetLS)
+		if !balt.CutPrefixInString(&itemTrim, "fpc ") {
+			continue
+		}
+		slotNumber := tfdata.FirstElementOfJunosLine(itemTrim)
+		if !balt.CutPrefixInString(&itemTrim, slotNumber+" sampling-instance ") {
+			continue
+		}
+		if strings.Trim(itemTrim, "\"") != name {
+			continue
+		}
+
+		slotNumberValue, err := tfdata.ConvAtoi64Value(slotNumber)
+		if err != nil {
+			return err
+		}
+		rscData.ChassisFpcSlotNumbers = append(rscData.ChassisFpcSlotNumbers, slotNumberValue)
+	}
+
+	return nil
+}
+
 func (block *forwardingoptionsSamplingInstanceBlockInput) read(itemTrim string) (err error) {
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "max-packets-per-second "):
@@ -2002,8 +2102,13 @@ func (rscData *forwardingoptionsSamplingInstanceData) del(
 		delPrefix += junos.RoutingInstancesWS + v + " "
 	}
 
-	configSet := []string{
-		delPrefix + "forwarding-options sampling instance \"" + rscData.Name.ValueString() + "\"",
+	configSet := make([]string, 0, 1+len(rscData.ChassisFpcSlotNumbers))
+	configSet = append(configSet,
+		delPrefix+"forwarding-options sampling instance \""+rscData.Name.ValueString()+"\"")
+	for _, v := range rscData.ChassisFpcSlotNumbers {
+		configSet = append(configSet,
+			junos.DeleteLS+"chassis fpc "+utils.ConvI64toa(v.ValueInt64())+
+				" sampling-instance \""+rscData.Name.ValueString()+"\"")
 	}
 
 	return junSess.ConfigSet(ctx, configSet)

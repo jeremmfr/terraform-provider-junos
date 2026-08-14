@@ -20,6 +20,28 @@ resource "junos_chassis_fpc" "fpc0" {
 }
 ```
 
+```hcl
+# Configure chassis FPC slot 0 with the sampling instance attached by the sampling instance resource
+resource "junos_chassis_fpc" "fpc0" {
+  slot_number                        = 0
+  configure_sampling_instance_singly = true
+
+  error {
+    major_action    = "alarm"
+    major_threshold = 10
+  }
+}
+
+resource "junos_forwardingoptions_sampling_instance" "demo" {
+  name                     = "demo"
+  chassis_fpc_slot_numbers = [0]
+
+  input {
+    rate = 1
+  }
+}
+```
+
 ## Argument Reference
 
 -> **Note**
@@ -31,6 +53,12 @@ The following arguments are supported:
   FPC number.
 - **cfp_to_et** (Optional, Boolean)  
   Enable ET interface and remove CFP client.
+- **configure_sampling_instance_singly** (Optional, Boolean)  
+  Configure `sampling-instance` option in other resource
+  (like `junos_forwardingoptions_sampling_instance` with `chassis_fpc_slot_numbers` argument).  
+  Conflict with `sampling_instance`.  
+  Required on some Junos systems where the sampling instance and the FPC binding cannot be
+  committed separately.
 - **sampling_instance** (Optional, String)  
   Name for sampling instance.
 - **error** (Optional, Block)  
