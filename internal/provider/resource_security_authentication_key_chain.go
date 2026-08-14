@@ -11,6 +11,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -174,6 +175,7 @@ func (rsc *securityAuthenticationKeyChain) Schema(
 							},
 						},
 						"start_time": schema.StringAttribute{
+							CustomType:  tftypes.StringDateType{},
 							Required:    true,
 							Description: "Start time for key transmission (YYYY-MM-DD.HH:MM:SS).",
 							Validators: []validator.String{
@@ -270,16 +272,16 @@ type securityAuthenticationKeyChainAttrKeySecretWO struct {
 }
 
 type securityAuthenticationKeyChainBlockKey struct {
-	ID                       types.Int64  `tfsdk:"id"                         tfdata:"identifier"`
-	Secret                   types.String `tfsdk:"secret"`
-	StartTime                types.String `tfsdk:"start_time"`
-	Algorithm                types.String `tfsdk:"algorithm"`
-	AOCryptographicAlgorithm types.String `tfsdk:"ao_cryptographic_algorithm"`
-	AORecvID                 types.Int64  `tfsdk:"ao_recv_id"`
-	AOSendID                 types.Int64  `tfsdk:"ao_send_id"`
-	AOTcpAOOption            types.String `tfsdk:"ao_tcp_ao_option"`
-	KeyName                  types.String `tfsdk:"key_name"`
-	Options                  types.String `tfsdk:"options"`
+	ID                       types.Int64        `tfsdk:"id"                         tfdata:"identifier"`
+	Secret                   types.String       `tfsdk:"secret"`
+	StartTime                tftypes.StringDate `tfsdk:"start_time"`
+	Algorithm                types.String       `tfsdk:"algorithm"`
+	AOCryptographicAlgorithm types.String       `tfsdk:"ao_cryptographic_algorithm"`
+	AORecvID                 types.Int64        `tfsdk:"ao_recv_id"`
+	AOSendID                 types.Int64        `tfsdk:"ao_send_id"`
+	AOTcpAOOption            types.String       `tfsdk:"ao_tcp_ao_option"`
+	KeyName                  types.String       `tfsdk:"key_name"`
+	Options                  types.String       `tfsdk:"options"`
 }
 
 func (rsc *securityAuthenticationKeyChain) ValidateConfig(
@@ -717,7 +719,7 @@ func (block *securityAuthenticationKeyChainBlockKey) read(
 			return err
 		}
 	case balt.CutPrefixInString(&itemTrim, "start-time "):
-		block.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
+		block.StartTime = tftypes.NewStringDateValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 	case balt.CutPrefixInString(&itemTrim, "algorithm "):
 		block.Algorithm = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "ao-attribute cryptographic-algorithm "):

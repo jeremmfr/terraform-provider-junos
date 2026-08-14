@@ -29,6 +29,12 @@ func TestAccResourceSecurityAuthenticationKeyChain_basic(t *testing.T) {
 					ResourceName:      "junos_security_authentication_key_chain.testacc_secauthKeyChain",
 					ImportState:       true,
 					ImportStateVerify: true,
+					// on import, the date is read from the device without the leading zeros
+					// removed by it, so it cannot match the value in the configuration
+					ImportStateVerifyIgnore: []string{
+						"key.0.start_time",
+						"key.1.start_time",
+					},
 				},
 				{
 					ResourceName:      "junos_security_authentication_key_chain.testacc_secauthKeyChainAO",

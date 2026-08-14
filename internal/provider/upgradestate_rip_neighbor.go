@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -229,7 +231,7 @@ func upgradeRipNeighborStateV0toV1(
 			ripNeighborBlockAuthenticationSelectiveMd5{
 				KeyID:     block.KeyID,
 				Key:       block.Key,
-				StartTime: block.StartTime,
+				StartTime: tftypes.NewStringDateFromString(block.StartTime),
 			},
 		)
 	}

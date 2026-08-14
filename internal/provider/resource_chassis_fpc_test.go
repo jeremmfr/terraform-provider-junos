@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccResourceChassisFpc_switch(t *testing.T) {
-	if os.Getenv("TESTACC_SWITCH") != "" {
+func TestAccResourceChassisFpc_basic(t *testing.T) {
+	if os.Getenv("TESTACC_ROUTER") != "" || os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

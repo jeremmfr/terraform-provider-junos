@@ -10,6 +10,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -628,6 +629,7 @@ func (rsc *security) Schema(
 						},
 					},
 					"automatic_start_time": schema.StringAttribute{
+						CustomType:  tftypes.StringDateType{},
 						Optional:    true,
 						Description: "Automatic start time (YYYY-MM-DD.HH:MM:SS).",
 						Validators: []validator.String{
@@ -1455,14 +1457,14 @@ func (block *securityBlockForwardingProcess) isEmpty() bool {
 }
 
 type securityBlockIdpSecurityPackage struct {
-	AutomaticEnable           types.Bool   `tfsdk:"automatic_enable"`
-	AutomaticInterval         types.Int64  `tfsdk:"automatic_interval"`
-	AutomaticStartTime        types.String `tfsdk:"automatic_start_time"`
-	InstallIgnoreVersionCheck types.Bool   `tfsdk:"install_ignore_version_check"`
-	ProxyProfile              types.String `tfsdk:"proxy_profile"`
-	RoutingInstance           types.String `tfsdk:"routing_instance"`
-	SourceAddress             types.String `tfsdk:"source_address"`
-	URL                       types.String `tfsdk:"url"`
+	AutomaticEnable           types.Bool         `tfsdk:"automatic_enable"`
+	AutomaticInterval         types.Int64        `tfsdk:"automatic_interval"`
+	AutomaticStartTime        tftypes.StringDate `tfsdk:"automatic_start_time"`
+	InstallIgnoreVersionCheck types.Bool         `tfsdk:"install_ignore_version_check"`
+	ProxyProfile              types.String       `tfsdk:"proxy_profile"`
+	RoutingInstance           types.String       `tfsdk:"routing_instance"`
+	SourceAddress             types.String       `tfsdk:"source_address"`
+	URL                       types.String       `tfsdk:"url"`
 }
 
 func (block *securityBlockIdpSecurityPackage) isEmpty() bool {
@@ -3244,7 +3246,7 @@ func (block *securityBlockIdpSecurityPackage) read(itemTrim string) (err error) 
 			return err
 		}
 	case balt.CutPrefixInString(&itemTrim, "automatic start-time "):
-		block.AutomaticStartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
+		block.AutomaticStartTime = tftypes.NewStringDateValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 	case itemTrim == "install ignore-version-check":
 		block.InstallIgnoreVersionCheck = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "proxy-profile "):
