@@ -8,6 +8,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -105,6 +106,7 @@ func (rsc *eventoptionsGenerateEvent) Schema(
 				},
 			},
 			"start_time": schema.StringAttribute{
+				CustomType:  tftypes.StringDateType{},
 				Optional:    true,
 				Description: "Start-time to generate event.",
 				Validators: []validator.String{
@@ -136,12 +138,12 @@ func (rsc *eventoptionsGenerateEvent) Schema(
 }
 
 type eventoptionsGenerateEventData struct {
-	ID           types.String `tfsdk:"id"`
-	Name         types.String `tfsdk:"name"`
-	NoDrift      types.Bool   `tfsdk:"no_drift"`
-	StartTime    types.String `tfsdk:"start_time"`
-	TimeInterval types.Int64  `tfsdk:"time_interval"`
-	TimeOfDay    types.String `tfsdk:"time_of_day"`
+	ID           types.String       `tfsdk:"id"`
+	Name         types.String       `tfsdk:"name"`
+	NoDrift      types.Bool         `tfsdk:"no_drift"`
+	StartTime    tftypes.StringDate `tfsdk:"start_time"`
+	TimeInterval types.Int64        `tfsdk:"time_interval"`
+	TimeOfDay    types.String       `tfsdk:"time_of_day"`
 }
 
 func (rsc *eventoptionsGenerateEvent) ValidateConfig(
@@ -389,7 +391,7 @@ func (rscData *eventoptionsGenerateEventData) read(
 			case itemTrim == "no-drift":
 				rscData.NoDrift = types.BoolValue(true)
 			case balt.CutPrefixInString(&itemTrim, "start-time "):
-				rscData.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
+				rscData.StartTime = tftypes.NewStringDateValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 			case balt.CutPrefixInString(&itemTrim, "time-interval "):
 				rscData.TimeInterval, err = tfdata.ConvAtoi64Value(itemTrim)
 				if err != nil {

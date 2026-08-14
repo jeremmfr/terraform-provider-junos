@@ -10,6 +10,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -278,6 +279,7 @@ func (rsc *systemSyslogFile) Schema(
 						},
 					},
 					"start_time": schema.StringAttribute{
+						CustomType:  tftypes.StringDateType{},
 						Optional:    true,
 						Description: "Start time for file transmission (YYYY-MM-DD.HH:MM:SS).",
 						Validators: []validator.String{
@@ -423,7 +425,7 @@ type systemSyslogFileBlockArchive struct {
 	NoBinaryData     types.Bool                               `tfsdk:"no_binary_data"`
 	Files            types.Int64                              `tfsdk:"files"`
 	Size             types.Int64                              `tfsdk:"size"`
-	StartTime        types.String                             `tfsdk:"start_time"`
+	StartTime        tftypes.StringDate                       `tfsdk:"start_time"`
 	TransferInterval types.Int64                              `tfsdk:"transfer_interval"`
 	WorldReadable    types.Bool                               `tfsdk:"world_readable"`
 	NoWorldReadable  types.Bool                               `tfsdk:"no_world_readable"`
@@ -431,15 +433,15 @@ type systemSyslogFileBlockArchive struct {
 }
 
 type systemSyslogFileBlockArchiveConfig struct {
-	BinaryData       types.Bool   `tfsdk:"binary_data"`
-	NoBinaryData     types.Bool   `tfsdk:"no_binary_data"`
-	Files            types.Int64  `tfsdk:"files"`
-	Size             types.Int64  `tfsdk:"size"`
-	StartTime        types.String `tfsdk:"start_time"`
-	TransferInterval types.Int64  `tfsdk:"transfer_interval"`
-	WorldReadable    types.Bool   `tfsdk:"world_readable"`
-	NoWorldReadable  types.Bool   `tfsdk:"no_world_readable"`
-	Sites            types.List   `tfsdk:"sites"`
+	BinaryData       types.Bool         `tfsdk:"binary_data"`
+	NoBinaryData     types.Bool         `tfsdk:"no_binary_data"`
+	Files            types.Int64        `tfsdk:"files"`
+	Size             types.Int64        `tfsdk:"size"`
+	StartTime        tftypes.StringDate `tfsdk:"start_time"`
+	TransferInterval types.Int64        `tfsdk:"transfer_interval"`
+	WorldReadable    types.Bool         `tfsdk:"world_readable"`
+	NoWorldReadable  types.Bool         `tfsdk:"no_world_readable"`
+	Sites            types.List         `tfsdk:"sites"`
 }
 
 type systemSyslogFileBlockArchiveBlockSites struct {
@@ -905,7 +907,7 @@ func (rscData *systemSyslogFileData) read(
 						return err
 					}
 				case balt.CutPrefixInString(&itemTrim, " start-time "):
-					rscData.Archive.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
+					rscData.Archive.StartTime = tftypes.NewStringDateValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 				case itemTrim == " world-readable":
 					rscData.Archive.WorldReadable = types.BoolValue(true)
 				case itemTrim == " no-world-readable":
