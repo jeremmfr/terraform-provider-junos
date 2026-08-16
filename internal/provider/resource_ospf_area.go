@@ -2039,22 +2039,19 @@ func (block *ospfAreaBlockInterface) configSet(
 	configSet := make([]string, 1, 100)
 	configSet[0] = setPrefix
 
-	if v := block.AuthenticationSimplePassword.ValueString(); v == "" {
-		v = block.AuthenticationSimplePasswordWO.ValueString()
-		if v != "" {
-			if len(block.AuthenticationMD5) > 0 {
-				return configSet,
-					pathRoot.AtName("authentication_md5"),
-					fmt.Errorf("authentication_simple_password_wo and authentication_md5 cannot be configured together"+
-						" in interface block %q", block.Name.ValueString())
-			}
-			configSet = append(configSet, setPrefix+"authentication simple-password \""+v+"\"")
-		}
-	} else {
+	if v := block.AuthenticationSimplePassword.ValueString(); v != "" {
 		if len(block.AuthenticationMD5) > 0 {
 			return configSet,
 				pathRoot.AtName("authentication_md5"),
 				fmt.Errorf("authentication_simple_password and authentication_md5 cannot be configured together"+
+					" in interface block %q", block.Name.ValueString())
+		}
+		configSet = append(configSet, setPrefix+"authentication simple-password \""+v+"\"")
+	} else if v := block.AuthenticationSimplePasswordWO.ValueString(); v != "" {
+		if len(block.AuthenticationMD5) > 0 {
+			return configSet,
+				pathRoot.AtName("authentication_md5"),
+				fmt.Errorf("authentication_simple_password_wo and authentication_md5 cannot be configured together"+
 					" in interface block %q", block.Name.ValueString())
 		}
 		configSet = append(configSet, setPrefix+"authentication simple-password \""+v+"\"")
