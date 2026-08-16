@@ -2568,7 +2568,7 @@ func (rsc *system) ValidateConfig(
 						resp.Diagnostics.AddAttributeError(
 							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("secret"),
 							tfdiag.ConflictConfigErrSummary,
-							fmt.Sprintf("secret and secret_wo cannot be configured together"+
+							fmt.Sprintf("only one of secret or secret_wo must be specified"+
 								" in destination_radius_server block %q in accounting block", block.Address.ValueString()),
 						)
 					}
@@ -2576,7 +2576,7 @@ func (rsc *system) ValidateConfig(
 						resp.Diagnostics.AddAttributeError(
 							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("secret"),
 							tfdiag.MissingConfigErrSummary,
-							fmt.Sprintf("secret or secret_wo must be specified"+
+							fmt.Sprintf("one of secret or secret_wo must be specified"+
 								" in destination_radius_server block %q in accounting block", block.Address.ValueString()),
 						)
 					}
@@ -3015,7 +3015,7 @@ func (rsc *system) ValidateConfig(
 				resp.Diagnostics.AddAttributeError(
 					path.Root("services").AtName("web_management_session_idle_timeout"),
 					tfdiag.MissingConfigErrSummary,
-					"web_management_http or web_management_https block must be specified"+
+					"one of web_management_http or web_management_https block must be specified"+
 						" with web_management_session_idle_timeout in services block",
 				)
 			}
@@ -3025,7 +3025,7 @@ func (rsc *system) ValidateConfig(
 				resp.Diagnostics.AddAttributeError(
 					path.Root("services").AtName("web_management_session_limit"),
 					tfdiag.MissingConfigErrSummary,
-					"web_management_http or web_management_https block must be specified"+
+					"one of web_management_http or web_management_https block must be specified"+
 						" with web_management_session_limit in services block",
 				)
 			}
@@ -3624,7 +3624,7 @@ func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet(
 	} else {
 		return configSet,
 			pathRoot.AtName("secret"),
-			fmt.Errorf("secret or secret_wo must be specified"+
+			fmt.Errorf("one of secret or secret_wo must be specified"+
 				" in destination_radius_server block %q in accounting block", block.Address.ValueString())
 	}
 
@@ -4106,7 +4106,7 @@ func (block *systemBlockServices) configSet() (
 	if !block.WebManagementSessionIdleTimeout.IsNull() {
 		if block.WebManagementHTTP == nil && block.WebManagementHTTPS == nil {
 			return configSet, path.Root("services").AtName("web_management_session_idle_timeout"),
-				errors.New("web_management_http or web_management_https block must be specified" +
+				errors.New("one of web_management_http or web_management_https block must be specified" +
 					" with web_management_session_idle_timeout in services block")
 		}
 		configSet = append(configSet, setPrefix+"web-management session idle-timeout "+
@@ -4115,7 +4115,7 @@ func (block *systemBlockServices) configSet() (
 	if !block.WebManagementSessionLimit.IsNull() {
 		if block.WebManagementHTTP == nil && block.WebManagementHTTPS == nil {
 			return configSet, path.Root("services").AtName("web_management_session_limit"),
-				errors.New("web_management_http or web_management_https block must be specified" +
+				errors.New("one of web_management_http or web_management_https block must be specified" +
 					" with web_management_session_limit in services block")
 		}
 		configSet = append(configSet, setPrefix+"web-management session session-limit "+

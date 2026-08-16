@@ -1756,7 +1756,7 @@ func (rsc *interfaceLogical) ValidateConfig(
 				resp.Diagnostics.AddAttributeError(
 					path.Root("family_inet6").AtName("dhcpv6_client").AtName("*"),
 					tfdiag.MissingConfigErrSummary,
-					"at least one client_ia_type_na or client_ia_type_pd must be specified",
+					"at least one of client_ia_type_na or client_ia_type_pd must be specified",
 				)
 			}
 		}

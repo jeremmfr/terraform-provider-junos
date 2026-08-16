@@ -277,7 +277,7 @@ func (rsc *systemRadiusServer) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("secret"),
 			tfdiag.ConflictConfigErrSummary,
-			"secret and secret_wo cannot be configured together",
+			"only one of secret or secret_wo must be specified",
 		)
 	}
 	if !config.PreauthenticationSecret.IsNull() && !config.PreauthenticationSecret.IsUnknown() &&

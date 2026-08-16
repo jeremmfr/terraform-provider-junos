@@ -396,7 +396,7 @@ func (rscData *securityZoneBookAddressSetData) set(
 		rscData.Zone.ValueString() + " address-book address-set " + rscData.Name.ValueString() + " "
 
 	if len(rscData.Address) == 0 && len(rscData.AddressSet) == 0 {
-		return path.Empty(), errors.New("at least one element of address or address_set must be specified")
+		return path.Empty(), errors.New("at least one of address or address_set must be specified")
 	}
 	for _, v := range rscData.Address {
 		configSet = append(configSet, setPrefix+"address "+v.ValueString())

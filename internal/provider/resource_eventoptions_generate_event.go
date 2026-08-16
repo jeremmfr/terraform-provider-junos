@@ -168,7 +168,7 @@ func (rsc *eventoptionsGenerateEvent) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("time_of_day"),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of time_interval or time_of_day can be specified",
+			"only one of time_interval or time_of_day must be specified",
 		)
 	}
 	if !config.StartTime.IsNull() && !config.StartTime.IsUnknown() {

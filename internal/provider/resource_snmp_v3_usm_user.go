@@ -447,7 +447,7 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_type"),
 				tfdiag.MissingConfigErrSummary,
-				"authentication_key, authentication_password, authentication_key_wo or authentication_password_wo"+
+				"one of authentication_key, authentication_password, authentication_key_wo or authentication_password_wo"+
 					" must be specified when authentication_type != authentication-none",
 			)
 		}
@@ -496,7 +496,7 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("privacy_type"),
 				tfdiag.MissingConfigErrSummary,
-				"privacy_key, privacy_password, privacy_key_wo or privacy_password_wo"+
+				"one of privacy_key, privacy_password, privacy_key_wo or privacy_password_wo"+
 					" must be specified when privacy_type != privacy-none",
 			)
 		}
@@ -930,7 +930,7 @@ func (rscData *snmpV3UsmUserData) set(
 		if rscData.AuthenticationKey.ValueString() == "" && rscData.AuthenticationPassword.ValueString() == "" &&
 			rscData.AuthenticationKeyWO.ValueString() == "" && rscData.AuthenticationPasswordWO.ValueString() == "" {
 			return path.Root("authentication_type"),
-				errors.New("authentication_key, authentication_password, authentication_key_wo or " +
+				errors.New("one of authentication_key, authentication_password, authentication_key_wo or " +
 					"authentication_password_wo must be specified when authentication_type != authentication-none")
 		}
 		if v := rscData.AuthenticationKey.ValueString(); v != "" {
@@ -970,7 +970,7 @@ func (rscData *snmpV3UsmUserData) set(
 		if rscData.PrivacyKey.ValueString() == "" && rscData.PrivacyPassword.ValueString() == "" &&
 			rscData.PrivacyKeyWO.ValueString() == "" && rscData.PrivacyPasswordWO.ValueString() == "" {
 			return path.Root("privacy_type"),
-				errors.New("privacy_key, privacy_password, privacy_key_wo or privacy_password_wo " +
+				errors.New("one of privacy_key, privacy_password, privacy_key_wo or privacy_password_wo " +
 					"must be specified when privacy_type != privacy-none")
 		}
 		if v := rscData.PrivacyKey.ValueString(); v != "" {

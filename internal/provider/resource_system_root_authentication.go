@@ -261,7 +261,7 @@ func (rsc *systemRootAuthentication) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root(passwordKnown[0]),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of "+strings.Join(passwordKnown, ", ")+" can be specified",
+			"only one of "+strings.Join(passwordKnown, ", ")+" must be specified",
 		)
 	}
 	if !config.NoPublicKeys.IsNull() &&

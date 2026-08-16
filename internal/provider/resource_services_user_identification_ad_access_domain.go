@@ -355,7 +355,7 @@ func (rsc *servicesUserIdentificationADAccessDomain) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("user_password"),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of user_password or user_password_wo can be specified",
+			"only one of user_password or user_password_wo must be specified",
 		)
 	}
 	if !config.DomainController.IsNull() &&
@@ -398,7 +398,7 @@ func (rsc *servicesUserIdentificationADAccessDomain) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("user_group_mapping_ldap").AtName("user_password"),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of user_password or user_password_wo can be specified"+
+				"user_password and user_password_wo cannot be configured together"+
 					" in user_group_mapping_ldap block",
 			)
 		}

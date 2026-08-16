@@ -575,7 +575,7 @@ func (rsc *ripNeighbor) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("authentication_key"),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of authentication_key or authentication_key_wo can be specified",
+			"authentication_key and authentication_key_wo cannot be configured together",
 		)
 	}
 	if !config.CheckZero.IsNull() && !config.CheckZero.IsUnknown() &&
@@ -639,7 +639,7 @@ func (rsc *ripNeighbor) ValidateConfig(
 				resp.Diagnostics.AddAttributeError(
 					path.Root("authentication_selective_md5").AtListIndex(i).AtName("key"),
 					tfdiag.ConflictConfigErrSummary,
-					fmt.Sprintf("only one of key or key_wo can be specified"+
+					fmt.Sprintf("only one of key or key_wo must be specified"+
 						" in authentication_selective_md5 block %d", keyID),
 				)
 			}

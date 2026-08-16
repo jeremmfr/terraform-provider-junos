@@ -367,7 +367,7 @@ func (rsc *firewallPolicer) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("if_exceeding").AtName("*"),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of if_exceeding or if_exceeding_pps block can be specified",
+			"only one of if_exceeding or if_exceeding_pps block must be specified",
 		)
 	}
 	if config.IfExceeding != nil {

@@ -249,7 +249,7 @@ func (rsc *mstpMsti) ValidateConfig(
 				resp.Diagnostics.AddAttributeError(
 					path.Root("interface"),
 					tfdiag.MissingConfigErrSummary,
-					fmt.Sprintf("cost or priority must be specified"+
+					fmt.Sprintf("one of cost or priority must be specified"+
 						" in interface block %q", block.Name.ValueString()),
 				)
 			}
@@ -516,7 +516,7 @@ func (rscData *mstpMstiData) set(
 
 		if block.isEmpty() {
 			return path.Root("interface"),
-				fmt.Errorf("cost or priority must be specified"+
+				fmt.Errorf("one of cost or priority must be specified"+
 					" in interface block %q", name)
 		}
 

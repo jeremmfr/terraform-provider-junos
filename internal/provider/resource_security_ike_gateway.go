@@ -620,7 +620,7 @@ func (rsc *securityIkeGateway) ValidateConfig( //nolint:gocyclo
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aaa").AtName("client_password"),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of client_password or client_password_wo can be specified in aaa block",
+				"only one of client_password or client_password_wo must be specified in aaa block",
 			)
 		}
 	}

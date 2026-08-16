@@ -1432,7 +1432,7 @@ func (rsc *services) ValidateConfig( //nolint:gocyclo
 			resp.Diagnostics.AddAttributeError(
 				path.Root("security_intelligence").AtName("url_parameter"),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of url_parameter or url_parameter_wo can be specified"+
+				"url_parameter and url_parameter_wo cannot be configured together"+
 					" in security_intelligence block",
 			)
 		}
@@ -1534,7 +1534,7 @@ func (rsc *services) ValidateConfig( //nolint:gocyclo
 						path.Root("user_identification").AtName("identity_management").
 							AtName("connection").AtName("primary_client_secret"),
 						tfdiag.ConflictConfigErrSummary,
-						"only one of primary_client_secret or primary_client_secret_wo can be specified"+
+						"only one of primary_client_secret or primary_client_secret_wo must be specified"+
 							" in connection block in identity_management block in user_identification block",
 					)
 				}
@@ -1546,7 +1546,7 @@ func (rsc *services) ValidateConfig( //nolint:gocyclo
 						path.Root("user_identification").AtName("identity_management").
 							AtName("connection").AtName("secondary_client_secret"),
 						tfdiag.ConflictConfigErrSummary,
-						"only one of secondary_client_secret or secondary_client_secret_wo can be specified"+
+						"secondary_client_secret and secondary_client_secret_wo cannot be configured together"+
 							" in connection block in identity_management block in user_identification block",
 					)
 				}

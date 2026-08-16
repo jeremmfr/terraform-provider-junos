@@ -685,7 +685,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName(authenticationKeyKnown[0]),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of "+strings.Join(authenticationKeyKnown, ", ")+" can be specified in manual block",
+				"only one of "+strings.Join(authenticationKeyKnown, ", ")+" must be specified in manual block",
 			)
 		}
 		// the encryption key can only be set once, whatever its format
@@ -724,7 +724,7 @@ func (rsc *securityIpsecVpn) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("manual").AtName(encryptionKeyKnown[0]),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of "+strings.Join(encryptionKeyKnown, ", ")+" can be specified in manual block",
+				"only one of "+strings.Join(encryptionKeyKnown, ", ")+" must be specified in manual block",
 			)
 		}
 	}

@@ -936,7 +936,7 @@ func (rsc *interfacePhysical) ValidateConfig(
 			resp.Diagnostics.AddAttributeError(
 				path.Root("esi").AtName("auto_derive_lacp"),
 				tfdiag.ConflictConfigErrSummary,
-				"only one of auto_derive_lacp or identifier can be specified in esi block",
+				"auto_derive_lacp and identifier cannot be configured together in esi block",
 			)
 		}
 	}

@@ -1340,7 +1340,7 @@ func (rsc *ospfArea) ValidateConfig( //nolint:gocognit,gocyclo
 						resp.Diagnostics.AddAttributeError(
 							path.Root("interface").AtListIndex(i).AtName("authentication_md5").AtListIndex(ii).AtName("key"),
 							tfdiag.ConflictConfigErrSummary,
-							fmt.Sprintf("key and key_wo cannot be configured together"+
+							fmt.Sprintf("only one of key or key_wo must be specified"+
 								" in authentication_md5 block %d in interface block %q",
 								keyID, block.Name.ValueString()),
 						)
@@ -1349,7 +1349,7 @@ func (rsc *ospfArea) ValidateConfig( //nolint:gocognit,gocyclo
 						resp.Diagnostics.AddAttributeError(
 							path.Root("interface").AtListIndex(i).AtName("authentication_md5").AtListIndex(ii).AtName("key"),
 							tfdiag.MissingConfigErrSummary,
-							fmt.Sprintf("key or key_wo must be specified"+
+							fmt.Sprintf("one of key or key_wo must be specified"+
 								" in authentication_md5 block %d in interface block %q",
 								keyID, block.Name.ValueString()),
 						)
@@ -2204,7 +2204,7 @@ func (block *ospfAreaBlockInterface) configSet(
 		} else {
 			return configSet,
 				pathRoot.AtName("authentication_md5").AtListIndex(i).AtName("key"),
-				fmt.Errorf("key or key_wo must be specified"+
+				fmt.Errorf("one of key or key_wo must be specified"+
 					" in authentication_md5 block %d in interface block %q", keyID, block.Name.ValueString())
 		}
 		if v := blockAuthenticationMD5.StartTime.ValueString(); v != "" {

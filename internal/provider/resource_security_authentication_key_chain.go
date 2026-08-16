@@ -344,7 +344,7 @@ func (rsc *securityAuthenticationKeyChain) ValidateConfig(
 					path.Root("key"),
 					tfdiag.ConflictConfigErrSummary,
 					fmt.Sprintf("only one of secret in key block %d"+
-						" or an entry with this id in key_secret_wo can be specified", id),
+						" or an entry with this id in key_secret_wo must be specified", id),
 				)
 			}
 		}

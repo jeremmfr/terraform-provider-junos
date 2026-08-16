@@ -422,7 +422,7 @@ func (rsc *securityNatStatic) ValidateConfig(
 				resp.Diagnostics.AddAttributeError(
 					path.Root("rule").AtListIndex(i).AtName("destination_address"),
 					tfdiag.ConflictConfigErrSummary,
-					fmt.Sprintf("destination_address and destination_address_name cannot be configured together"+
+					fmt.Sprintf("only one of destination_address or destination_address_name must be specified"+
 						" in rule block %q", block.Name.ValueString()),
 				)
 			}
@@ -817,12 +817,12 @@ func (rscData *securityNatStaticData) set(
 			}
 			if block.DestinationAddress.IsNull() && block.DestinationAddressName.IsNull() {
 				return path.Root("rule").AtListIndex(i).AtName("destination_address"),
-					fmt.Errorf("destination_address or destination_address_name must be specified"+
+					fmt.Errorf("one of destination_address or destination_address_name must be specified"+
 						" in rule block %q", name)
 			}
 			if !block.DestinationAddress.IsNull() && !block.DestinationAddressName.IsNull() {
 				return path.Root("rule").AtListIndex(i).AtName("destination_address"),
-					fmt.Errorf("destination_address and destination_address_name cannot be configured together"+
+					fmt.Errorf("only one of destination_address or destination_address_name must be specified"+
 						" in rule block %q", name)
 			}
 			if v := block.DestinationAddress.ValueString(); v != "" {
