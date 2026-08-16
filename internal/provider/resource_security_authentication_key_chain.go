@@ -294,8 +294,9 @@ func (rsc *securityAuthenticationKeyChain) ValidateConfig(
 	}
 
 	keySecretWO := make(map[string]struct{})
+	unknownKeySecretWO := config.KeySecretWO.IsUnknown()
 	if !config.KeySecretWO.IsNull() &&
-		!config.KeySecretWO.IsUnknown() {
+		!unknownKeySecretWO {
 		for id := range config.KeySecretWO.Elements() {
 			keySecretWO[id] = struct{}{}
 		}
@@ -331,7 +332,9 @@ func (rsc *securityAuthenticationKeyChain) ValidateConfig(
 			keyID[id] = struct{}{}
 
 			_, withSecretWO := keySecretWO[utils.ConvI64toa(id)]
-			if block.Secret.IsNull() && !withSecretWO {
+			// with an unknown key_secret_wo, an entry with this id may be present,
+			// so a missing secret can't be detected
+			if block.Secret.IsNull() && !withSecretWO && !unknownKeySecretWO {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("key"),
 					tfdiag.MissingConfigErrSummary,
