@@ -176,7 +176,7 @@ func (rsc *securityIkePolicy) Schema(
 			"pre_shared_key_text": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
-				Description: "Preshared key wit format as text.",
+				Description: "Preshared key with format as text.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),
@@ -186,7 +186,7 @@ func (rsc *securityIkePolicy) Schema(
 				Optional:    true,
 				Sensitive:   true,
 				WriteOnly:   true,
-				Description: "Preshared key wit format as text, not stored in state.",
+				Description: "Preshared key with format as text, not stored in state.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),

@@ -35,10 +35,10 @@ The following arguments are supported:
   Need to `main` or `aggressive`.  
   Defaults to `main`.
 - **pre_shared_key_text** (Optional, String, Sensitive)  
-  Preshared key wit format as text.  
+  Preshared key with format as text.  
   Conflict with the other `pre_shared_key_*` arguments.
 - **pre_shared_key_text_wo** (Optional, String, Sensitive, Write-only)  
-  Preshared key wit format as text, not stored in state.  
+  Preshared key with format as text, not stored in state.  
   Requires `pre_shared_key_text_wo_version` and Terraform 1.11 or later.  
   Conflict with the other `pre_shared_key_*` arguments.
 - **pre_shared_key_text_wo_version** (Optional, Number)  
