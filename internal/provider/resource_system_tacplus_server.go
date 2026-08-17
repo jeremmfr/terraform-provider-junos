@@ -12,21 +12,24 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &systemTacplusServer{}
-	_ resource.ResourceWithConfigure   = &systemTacplusServer{}
-	_ resource.ResourceWithImportState = &systemTacplusServer{}
+	_ resource.Resource                   = &systemTacplusServer{}
+	_ resource.ResourceWithConfigure      = &systemTacplusServer{}
+	_ resource.ResourceWithValidateConfig = &systemTacplusServer{}
+	_ resource.ResourceWithImportState    = &systemTacplusServer{}
 )
 
 type systemTacplusServer struct {
@@ -118,6 +121,24 @@ func (rsc *systemTacplusServer) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"secret_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Shared secret with the authentication server, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("secret_wo_version")),
+				},
+			},
+			"secret_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `secret_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("secret_wo")),
+				},
+			},
 			"single_connection": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Optimize TCP connection attempts.",
@@ -149,9 +170,30 @@ type systemTacplusServerData struct {
 	Port             types.Int64  `tfsdk:"port"`
 	RoutingInstance  types.String `tfsdk:"routing_instance"`
 	Secret           types.String `tfsdk:"secret"`
+	SecretWO         types.String `tfsdk:"secret_wo"`
+	SecretWOVersion  types.Int64  `tfsdk:"secret_wo_version"`
 	SingleConnection types.Bool   `tfsdk:"single_connection"`
 	SourceAddress    types.String `tfsdk:"source_address"`
 	Timeout          types.Int64  `tfsdk:"timeout"`
+}
+
+func (rsc *systemTacplusServer) ValidateConfig(
+	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
+) {
+	var config systemTacplusServerData
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !config.Secret.IsNull() && !config.Secret.IsUnknown() &&
+		!config.SecretWO.IsNull() && !config.SecretWO.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("secret"),
+			tfdiag.ConflictConfigErrSummary,
+			"secret and secret_wo cannot be configured together",
+		)
+	}
 }
 
 func (rsc *systemTacplusServer) Create(
@@ -159,6 +201,7 @@ func (rsc *systemTacplusServer) Create(
 ) {
 	var plan systemTacplusServerData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -233,7 +276,9 @@ func (rsc *systemTacplusServer) Read(
 			state.Address.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -244,6 +289,7 @@ func (rsc *systemTacplusServer) Update(
 	var plan, state systemTacplusServerData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -307,6 +353,23 @@ func checkSystemTacplusServerExists(
 	return true, nil
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *systemTacplusServerData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) diag.Diagnostics {
+	return config.GetAttribute(ctx, path.Root("secret_wo"), &rscData.SecretWO)
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *systemTacplusServerData) keepWriteOnly(state *systemTacplusServerData) {
+	rscData.SecretWOVersion = state.SecretWOVersion
+	if !state.SecretWOVersion.IsNull() {
+		rscData.Secret = types.StringNull()
+	}
+}
+
 func (rscData *systemTacplusServerData) fillID() {
 	rscData.ID = types.StringValue(rscData.Address.ValueString())
 }
@@ -333,6 +396,8 @@ func (rscData *systemTacplusServerData) set(
 		configSet = append(configSet, setPrefix+"routing-instance "+v)
 	}
 	if v := rscData.Secret.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"secret \""+v+"\"")
+	} else if v := rscData.SecretWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"secret \""+v+"\"")
 	}
 	if rscData.SingleConnection.ValueBool() {

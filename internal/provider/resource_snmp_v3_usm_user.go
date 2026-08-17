@@ -11,6 +11,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -131,6 +133,24 @@ func (rsc *snmpV3UsmUser) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"authentication_key_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Encrypted key used for user authentication, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("authentication_key_wo_version")),
+				},
+			},
+			"authentication_key_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `authentication_key_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("authentication_key_wo")),
+				},
+			},
 			"authentication_password": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
@@ -138,6 +158,24 @@ func (rsc *snmpV3UsmUser) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 1024),
 					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"authentication_password_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "User's authentication password, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 1024),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("authentication_password_wo_version")),
+				},
+			},
+			"authentication_password_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `authentication_password_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("authentication_password_wo")),
 				},
 			},
 			"authentication_type": schema.StringAttribute{
@@ -166,6 +204,24 @@ func (rsc *snmpV3UsmUser) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"privacy_key_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Encrypted key used for user privacy, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("privacy_key_wo_version")),
+				},
+			},
+			"privacy_key_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `privacy_key_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("privacy_key_wo")),
+				},
+			},
 			"privacy_password": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
@@ -173,6 +229,24 @@ func (rsc *snmpV3UsmUser) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 1024),
 					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"privacy_password_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "User's privacy password, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 1024),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("privacy_password_wo_version")),
+				},
+			},
+			"privacy_password_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `privacy_password_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("privacy_password_wo")),
 				},
 			},
 			"privacy_type": schema.StringAttribute{
@@ -194,16 +268,24 @@ func (rsc *snmpV3UsmUser) Schema(
 }
 
 type snmpV3UsmUserData struct {
-	ID                     types.String `tfsdk:"id"`
-	Name                   types.String `tfsdk:"name"`
-	EngineType             types.String `tfsdk:"engine_type"`
-	EngineID               types.String `tfsdk:"engine_id"`
-	AuthenticationKey      types.String `tfsdk:"authentication_key"`
-	AuthenticationPassword types.String `tfsdk:"authentication_password"`
-	AuthenticationType     types.String `tfsdk:"authentication_type"`
-	PrivacyKey             types.String `tfsdk:"privacy_key"`
-	PrivacyPassword        types.String `tfsdk:"privacy_password"`
-	PrivacyType            types.String `tfsdk:"privacy_type"`
+	ID                              types.String `tfsdk:"id"`
+	Name                            types.String `tfsdk:"name"`
+	EngineType                      types.String `tfsdk:"engine_type"`
+	EngineID                        types.String `tfsdk:"engine_id"`
+	AuthenticationKey               types.String `tfsdk:"authentication_key"`
+	AuthenticationKeyWO             types.String `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion      types.Int64  `tfsdk:"authentication_key_wo_version"`
+	AuthenticationPassword          types.String `tfsdk:"authentication_password"`
+	AuthenticationPasswordWO        types.String `tfsdk:"authentication_password_wo"`
+	AuthenticationPasswordWOVersion types.Int64  `tfsdk:"authentication_password_wo_version"`
+	AuthenticationType              types.String `tfsdk:"authentication_type"`
+	PrivacyKey                      types.String `tfsdk:"privacy_key"`
+	PrivacyKeyWO                    types.String `tfsdk:"privacy_key_wo"`
+	PrivacyKeyWOVersion             types.Int64  `tfsdk:"privacy_key_wo_version"`
+	PrivacyPassword                 types.String `tfsdk:"privacy_password"`
+	PrivacyPasswordWO               types.String `tfsdk:"privacy_password_wo"`
+	PrivacyPasswordWOVersion        types.Int64  `tfsdk:"privacy_password_wo_version"`
+	PrivacyType                     types.String `tfsdk:"privacy_type"`
 }
 
 type snmpV3UsmUserPrivateState struct {
@@ -263,29 +345,110 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 		}
 	}
 
-	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() &&
-		!config.AuthenticationPassword.IsNull() && !config.AuthenticationPassword.IsUnknown() {
+	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() {
+		if !config.AuthenticationPassword.IsNull() && !config.AuthenticationPassword.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_key"),
+				tfdiag.ConflictConfigErrSummary,
+				"authentication_key and authentication_password cannot be configured together",
+			)
+		}
+		if !config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_key"),
+				tfdiag.ConflictConfigErrSummary,
+				"authentication_key and authentication_key_wo cannot be configured together",
+			)
+		}
+		if !config.AuthenticationPasswordWO.IsNull() && !config.AuthenticationPasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_key"),
+				tfdiag.ConflictConfigErrSummary,
+				"authentication_key and authentication_password_wo cannot be configured together",
+			)
+		}
+	}
+	if !config.AuthenticationPassword.IsNull() && !config.AuthenticationPassword.IsUnknown() {
+		if !config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_password"),
+				tfdiag.ConflictConfigErrSummary,
+				"authentication_password and authentication_key_wo cannot be configured together",
+			)
+		}
+		if !config.AuthenticationPasswordWO.IsNull() && !config.AuthenticationPasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_password"),
+				tfdiag.ConflictConfigErrSummary,
+				"authentication_password and authentication_password_wo cannot be configured together",
+			)
+		}
+	}
+	if !config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() &&
+		!config.AuthenticationPasswordWO.IsNull() && !config.AuthenticationPasswordWO.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("authentication_key"),
+			path.Root("authentication_key_wo"),
 			tfdiag.ConflictConfigErrSummary,
-			"authentication_key and authentication_password cannot be configured together",
+			"authentication_key_wo and authentication_password_wo cannot be configured together",
 		)
 	}
-	if !config.PrivacyKey.IsNull() && !config.PrivacyKey.IsUnknown() &&
-		!config.PrivacyPassword.IsNull() && !config.PrivacyPassword.IsUnknown() {
+	if !config.PrivacyKey.IsNull() && !config.PrivacyKey.IsUnknown() {
+		if !config.PrivacyPassword.IsNull() && !config.PrivacyPassword.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("privacy_key"),
+				tfdiag.ConflictConfigErrSummary,
+				"privacy_key and privacy_password cannot be configured together",
+			)
+		}
+		if !config.PrivacyKeyWO.IsNull() && !config.PrivacyKeyWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("privacy_key"),
+				tfdiag.ConflictConfigErrSummary,
+				"privacy_key and privacy_key_wo cannot be configured together",
+			)
+		}
+		if !config.PrivacyPasswordWO.IsNull() && !config.PrivacyPasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("privacy_key"),
+				tfdiag.ConflictConfigErrSummary,
+				"privacy_key and privacy_password_wo cannot be configured together",
+			)
+		}
+	}
+	if !config.PrivacyPassword.IsNull() && !config.PrivacyPassword.IsUnknown() {
+		if !config.PrivacyKeyWO.IsNull() && !config.PrivacyKeyWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("privacy_password"),
+				tfdiag.ConflictConfigErrSummary,
+				"privacy_password and privacy_key_wo cannot be configured together",
+			)
+		}
+		if !config.PrivacyPasswordWO.IsNull() && !config.PrivacyPasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("privacy_password"),
+				tfdiag.ConflictConfigErrSummary,
+				"privacy_password and privacy_password_wo cannot be configured together",
+			)
+		}
+	}
+	if !config.PrivacyKeyWO.IsNull() && !config.PrivacyKeyWO.IsUnknown() &&
+		!config.PrivacyPasswordWO.IsNull() && !config.PrivacyPasswordWO.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("privacy_key"),
+			path.Root("privacy_key_wo"),
 			tfdiag.ConflictConfigErrSummary,
-			"privacy_key and privacy_password cannot be configured together",
+			"privacy_key_wo and privacy_password_wo cannot be configured together",
 		)
 	}
+
 	if !config.AuthenticationType.IsNull() && !config.AuthenticationType.IsUnknown() &&
 		config.AuthenticationType.ValueString() != "authentication-none" {
-		if config.AuthenticationKey.IsNull() && config.AuthenticationPassword.IsNull() {
+		if config.AuthenticationKey.IsNull() && config.AuthenticationPassword.IsNull() &&
+			config.AuthenticationKeyWO.IsNull() && config.AuthenticationPasswordWO.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_type"),
 				tfdiag.MissingConfigErrSummary,
-				"authentication_key or authentication_password must be specified when authentication_type != authentication-none",
+				"one of authentication_key, authentication_password, authentication_key_wo or authentication_password_wo"+
+					" must be specified when authentication_type != authentication-none",
 			)
 		}
 	} else if config.AuthenticationType.IsNull() || config.AuthenticationType.ValueString() == "authentication-none" {
@@ -304,6 +467,13 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 				"authentication_key not compatible when authentication_type = authentication-none",
 			)
 		}
+		if !config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_key_wo"),
+				tfdiag.ConflictConfigErrSummary,
+				"authentication_key_wo not compatible when authentication_type = authentication-none",
+			)
+		}
 		if !config.AuthenticationPassword.IsNull() && !config.AuthenticationPassword.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_password"),
@@ -311,14 +481,23 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 				"authentication_password not compatible when authentication_type = authentication-none",
 			)
 		}
+		if !config.AuthenticationPasswordWO.IsNull() && !config.AuthenticationPasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_password_wo"),
+				tfdiag.ConflictConfigErrSummary,
+				"authentication_password_wo not compatible when authentication_type = authentication-none",
+			)
+		}
 	}
 	if !config.PrivacyType.IsNull() && !config.PrivacyType.IsUnknown() &&
 		config.PrivacyType.ValueString() != "privacy-none" {
-		if config.PrivacyKey.IsNull() && config.PrivacyPassword.IsNull() {
+		if config.PrivacyKey.IsNull() && config.PrivacyPassword.IsNull() &&
+			config.PrivacyKeyWO.IsNull() && config.PrivacyPasswordWO.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("privacy_type"),
 				tfdiag.MissingConfigErrSummary,
-				"privacy_key or privacy_password must be specified when privacy_type != privacy-none",
+				"one of privacy_key, privacy_password, privacy_key_wo or privacy_password_wo"+
+					" must be specified when privacy_type != privacy-none",
 			)
 		}
 	} else if config.PrivacyType.IsNull() || config.PrivacyType.ValueString() == "privacy-none" {
@@ -329,11 +508,25 @@ func (rsc *snmpV3UsmUser) ValidateConfig(
 				"privacy_key not compatible when privacy_type = privacy-none",
 			)
 		}
+		if !config.PrivacyKeyWO.IsNull() && !config.PrivacyKeyWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("privacy_key_wo"),
+				tfdiag.ConflictConfigErrSummary,
+				"privacy_key_wo not compatible when privacy_type = privacy-none",
+			)
+		}
 		if !config.PrivacyPassword.IsNull() && !config.PrivacyPassword.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("privacy_password"),
 				tfdiag.ConflictConfigErrSummary,
 				"privacy_password not compatible when privacy_type = privacy-none",
+			)
+		}
+		if !config.PrivacyPasswordWO.IsNull() && !config.PrivacyPasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("privacy_password_wo"),
+				tfdiag.ConflictConfigErrSummary,
+				"privacy_password_wo not compatible when privacy_type = privacy-none",
 			)
 		}
 	}
@@ -344,6 +537,7 @@ func (rsc *snmpV3UsmUser) Create(
 ) {
 	var plan snmpV3UsmUserData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -501,6 +695,8 @@ func (rsc *snmpV3UsmUser) Read(
 		},
 		&data,
 		func() {
+			data.keepWriteOnly(&state)
+
 			var privateState snmpV3UsmUserPrivateState
 			resp.Diagnostics.Append(privateState.get(ctx, req.Private)...)
 			if resp.Diagnostics.HasError() {
@@ -550,6 +746,7 @@ func (rsc *snmpV3UsmUser) Update(
 	var plan, state snmpV3UsmUserData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -659,6 +856,42 @@ func checkSnmpV3UsmUserExists(
 	return true, nil
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *snmpV3UsmUserData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("authentication_key_wo"), &rscData.AuthenticationKeyWO)...)
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("authentication_password_wo"), &rscData.AuthenticationPasswordWO)...)
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("privacy_key_wo"), &rscData.PrivacyKeyWO)...)
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("privacy_password_wo"), &rscData.PrivacyPasswordWO)...)
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *snmpV3UsmUserData) keepWriteOnly(state *snmpV3UsmUserData) {
+	rscData.AuthenticationKeyWOVersion = state.AuthenticationKeyWOVersion
+	rscData.AuthenticationPasswordWOVersion = state.AuthenticationPasswordWOVersion
+	if !state.AuthenticationKeyWOVersion.IsNull() ||
+		!state.AuthenticationPasswordWOVersion.IsNull() {
+		rscData.AuthenticationKey = types.StringNull()
+		rscData.AuthenticationPassword = types.StringNull()
+	}
+	rscData.PrivacyKeyWOVersion = state.PrivacyKeyWOVersion
+	rscData.PrivacyPasswordWOVersion = state.PrivacyPasswordWOVersion
+	if !state.PrivacyKeyWOVersion.IsNull() ||
+		!state.PrivacyPasswordWOVersion.IsNull() {
+		rscData.PrivacyKey = types.StringNull()
+		rscData.PrivacyPassword = types.StringNull()
+	}
+}
+
 func (rscData *snmpV3UsmUserData) fillID() {
 	switch v := rscData.EngineType.ValueString(); v {
 	case "local":
@@ -694,15 +927,20 @@ func (rscData *snmpV3UsmUserData) set(
 	setPrefix += "user \"" + rscData.Name.ValueString() + "\" "
 
 	if authenticationType := rscData.AuthenticationType.ValueString(); authenticationType != "authentication-none" {
-		if rscData.AuthenticationKey.ValueString() == "" && rscData.AuthenticationPassword.ValueString() == "" {
+		if rscData.AuthenticationKey.ValueString() == "" && rscData.AuthenticationPassword.ValueString() == "" &&
+			rscData.AuthenticationKeyWO.ValueString() == "" && rscData.AuthenticationPasswordWO.ValueString() == "" {
 			return path.Root("authentication_type"),
-				errors.New("authentication_key or authentication_password must be specified " +
-					"when authentication_type != authentication-none")
+				errors.New("one of authentication_key, authentication_password, authentication_key_wo or " +
+					"authentication_password_wo must be specified when authentication_type != authentication-none")
 		}
 		if v := rscData.AuthenticationKey.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+authenticationType+" authentication-key \""+v+"\"")
+		} else if v := rscData.AuthenticationKeyWO.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+authenticationType+" authentication-key \""+v+"\"")
 		}
 		if v := rscData.AuthenticationPassword.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+authenticationType+" authentication-password \""+v+"\"")
+		} else if v := rscData.AuthenticationPasswordWO.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+authenticationType+" authentication-password \""+v+"\"")
 		}
 	} else {
@@ -714,21 +952,35 @@ func (rscData *snmpV3UsmUserData) set(
 			return path.Root("authentication_key"),
 				errors.New("authentication_key not compatible when authentication_type = authentication-none")
 		}
+		if rscData.AuthenticationKeyWO.ValueString() != "" {
+			return path.Root("authentication_key_wo"),
+				errors.New("authentication_key_wo not compatible when authentication_type = authentication-none")
+		}
 		if rscData.AuthenticationPassword.ValueString() != "" {
 			return path.Root("authentication_password"),
 				errors.New("authentication_password not compatible when authentication_type = authentication-none")
 		}
+		if rscData.AuthenticationPasswordWO.ValueString() != "" {
+			return path.Root("authentication_password_wo"),
+				errors.New("authentication_password_wo not compatible when authentication_type = authentication-none")
+		}
 		configSet = append(configSet, setPrefix+"authentication-none")
 	}
 	if privacyType := rscData.PrivacyType.ValueString(); privacyType != "privacy-none" {
-		if rscData.PrivacyKey.ValueString() == "" && rscData.PrivacyPassword.ValueString() == "" {
+		if rscData.PrivacyKey.ValueString() == "" && rscData.PrivacyPassword.ValueString() == "" &&
+			rscData.PrivacyKeyWO.ValueString() == "" && rscData.PrivacyPasswordWO.ValueString() == "" {
 			return path.Root("privacy_type"),
-				errors.New("privacy_key or privacy_password must be specified when privacy_type != privacy-none")
+				errors.New("one of privacy_key, privacy_password, privacy_key_wo or privacy_password_wo " +
+					"must be specified when privacy_type != privacy-none")
 		}
 		if v := rscData.PrivacyKey.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+privacyType+" privacy-key \""+v+"\"")
+		} else if v := rscData.PrivacyKeyWO.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+privacyType+" privacy-key \""+v+"\"")
 		}
 		if v := rscData.PrivacyPassword.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+privacyType+" privacy-password \""+v+"\"")
+		} else if v := rscData.PrivacyPasswordWO.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+privacyType+" privacy-password \""+v+"\"")
 		}
 	} else {
@@ -736,9 +988,17 @@ func (rscData *snmpV3UsmUserData) set(
 			return path.Root("privacy_key"),
 				errors.New("privacy_key not compatible when privacy_type = privacy-none")
 		}
+		if rscData.PrivacyKeyWO.ValueString() != "" {
+			return path.Root("privacy_key_wo"),
+				errors.New("privacy_key_wo not compatible when privacy_type = privacy-none")
+		}
 		if rscData.PrivacyPassword.ValueString() != "" {
 			return path.Root("privacy_password"),
 				errors.New("privacy_password not compatible when privacy_type = privacy-none")
+		}
+		if rscData.PrivacyPasswordWO.ValueString() != "" {
+			return path.Root("privacy_password_wo"),
+				errors.New("privacy_password_wo not compatible when privacy_type = privacy-none")
 		}
 		configSet = append(configSet, setPrefix+"privacy-none")
 	}
@@ -820,6 +1080,14 @@ func (rscData *snmpV3UsmUserData) readPrivateToState(
 	if err != nil {
 		return err
 	}
+	// the private state is stored in the Terraform state, so don't keep the keys read on the device
+	// when the write-only arguments are used: they are only compared with the key generated by
+	// authentication_password or privacy_password, which cannot be set in this case
+	authenticationWriteOnly := !rscData.AuthenticationKeyWOVersion.IsNull() ||
+		!rscData.AuthenticationPasswordWOVersion.IsNull()
+	privacyWriteOnly := !rscData.PrivacyKeyWOVersion.IsNull() ||
+		!rscData.PrivacyPasswordWOVersion.IsNull()
+
 	var privateState snmpV3UsmUserPrivateState
 	if showConfig != junos.EmptyW {
 		for item := range strings.SplitSeq(showConfig, "\n") {
@@ -831,7 +1099,7 @@ func (rscData *snmpV3UsmUserData) readPrivateToState(
 			}
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "authentication-"):
+			case !authenticationWriteOnly && strings.HasPrefix(itemTrim, "authentication-"):
 				itemTrimFields := strings.Split(itemTrim, " ")
 				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" authentication-key ") {
 					authenticationKey, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "authentication-key")
@@ -840,7 +1108,7 @@ func (rscData *snmpV3UsmUserData) readPrivateToState(
 					}
 					privateState.AuthenticationKey = authenticationKey.ValueString()
 				}
-			case strings.HasPrefix(itemTrim, "privacy-"):
+			case !privacyWriteOnly && strings.HasPrefix(itemTrim, "privacy-"):
 				itemTrimFields := strings.Split(itemTrim, " ")
 				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" privacy-key ") {
 					privacyKey, err := junSess.JunosDecode(strings.Trim(itemTrim, "\""), "privacy-key")

@@ -33,7 +33,7 @@ func TestAccUpgradeStateResourceLldpInterface_V0toV1_switch(t *testing.T) {
 					},
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),

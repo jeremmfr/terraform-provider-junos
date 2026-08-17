@@ -19,12 +19,12 @@ func TestAccActionLoadConfig_basic(t *testing.T) {
 			Steps: []resource.TestStep{
 				{
 					// 1
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 				},
 				{
 					// 2
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("data.junos_applications.testacc",
@@ -33,7 +33,7 @@ func TestAccActionLoadConfig_basic(t *testing.T) {
 				},
 				{
 					// 3
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckNoResourceAttr("data.junos_applications.testacc",
@@ -42,12 +42,12 @@ func TestAccActionLoadConfig_basic(t *testing.T) {
 				},
 				{
 					// 4
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 				},
 				{
 					// 5
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("data.junos_applications.testacc",
@@ -58,7 +58,7 @@ func TestAccActionLoadConfig_basic(t *testing.T) {
 				},
 				{
 					// 6
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("data.junos_applications.testacc",

@@ -26,7 +26,16 @@ The following arguments are supported:
 - **routing_instance** (Optional, String)  
   Routing instance.
 - **secret** (Optional, String, Sensitive)  
-  Shared secret with the authentication server.
+  Shared secret with the authentication server.  
+  Conflict with `secret_wo`.
+- **secret_wo** (Optional, String, Sensitive, Write-only)  
+  Shared secret with the authentication server, not stored in state.  
+  Requires `secret_wo_version` and Terraform 1.11 or later.  
+  Conflict with `secret`.
+- **secret_wo_version** (Optional, Number)  
+  Version of `secret_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `secret_wo` to the device.  
+  Requires `secret_wo`.
 - **single_connection** (Optional, Boolean)  
   Optimize TCP connection attempts.
 - **source_address** (Optional, String)  
@@ -48,3 +57,8 @@ Junos system tacplus-server can be imported using an id made up of `<address>`, 
 ```shell
 $ terraform import junos_system_tacplus_server.demo_tacplus_server 192.0.2.1
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the shared secret read on the device
+  is stored in `secret`, and therefore in the Terraform state.  
+  When the configuration uses `secret_wo`, the next apply removes it from the state.

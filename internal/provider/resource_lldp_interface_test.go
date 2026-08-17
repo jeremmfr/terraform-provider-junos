@@ -19,7 +19,7 @@ func TestAccResourceLldpInterface_basic(t *testing.T) {
 		}
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -55,7 +55,7 @@ func TestAccResourceLldpInterface_switch(t *testing.T) {
 		}
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),

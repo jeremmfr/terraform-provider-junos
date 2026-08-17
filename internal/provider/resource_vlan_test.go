@@ -14,7 +14,7 @@ func TestAccResourceVlan_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -66,7 +66,7 @@ func TestAccResourceVlan_router(t *testing.T) {
 	if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -87,7 +87,7 @@ func TestAccResourceVlan_srx(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),

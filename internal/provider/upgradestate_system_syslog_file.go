@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -224,7 +226,7 @@ func upgradeSystemSyslogFileV0toV1(
 			NoWorldReadable:  dataV0.Archive[0].NoWorldReadable,
 			Files:            dataV0.Archive[0].Files,
 			Size:             dataV0.Archive[0].Size,
-			StartTime:        dataV0.Archive[0].StartTime,
+			StartTime:        tftypes.NewStringDateFromString(dataV0.Archive[0].StartTime),
 			TransferInterval: dataV0.Archive[0].TransferInterval,
 		}
 		for _, block := range dataV0.Archive[0].Sites {

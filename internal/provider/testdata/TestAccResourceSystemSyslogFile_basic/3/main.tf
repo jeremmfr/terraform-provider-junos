@@ -25,6 +25,7 @@ resource "junos_system_syslog_file" "testacc_syslogFile" {
     size              = 1073741823
     files             = 5
     transfer_interval = 5
+    start_time        = "2022-06-01.00:00:00"
     sites {
       url      = "192.0.2.1"
       password = "password"

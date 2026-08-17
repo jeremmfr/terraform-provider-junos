@@ -33,6 +33,8 @@ resource "junos_chassis_fpc" "testacc_chassis_fpc2" {
 
 resource "junos_chassis_fpc" "testacc_chassis_fpc3" {
   slot_number = 3
+
+  configure_sampling_instance_singly = true
   error {
     fatal_action    = "log"
     fatal_threshold = 100
@@ -40,5 +42,21 @@ resource "junos_chassis_fpc" "testacc_chassis_fpc3" {
     major_threshold = 70
     minor_action    = "trap"
     minor_threshold = 1
+  }
+}
+
+resource "junos_forwardingoptions_sampling_instance" "testacc_chassis_fpc3" {
+  name                     = "sampling_instance for testacc_chassis_fpc3"
+  chassis_fpc_slot_numbers = [3]
+  family_inet_input {
+    rate = 2
+  }
+  family_inet_output {
+    inline_jflow_source_address = "192.0.2.2"
+    flow_server {
+      hostname               = "192.0.2.1"
+      port                   = 3000
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_chassis_fpc.name
+    }
   }
 }

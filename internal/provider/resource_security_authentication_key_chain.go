@@ -3,24 +3,30 @@ package provider
 import (
 	"context"
 	"fmt"
+	"maps"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -108,6 +114,37 @@ func (rsc *securityAuthenticationKeyChain) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"key_secret_wo": schema.MapNestedAttribute{
+				Optional: true,
+				Description: "For each authentication element identifier, " +
+					"authentication key not stored in state.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"value": schema.StringAttribute{
+							Required:    true,
+							Sensitive:   true,
+							WriteOnly:   true,
+							Description: "Authentication key.",
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(1, 126),
+								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
+						"version": schema.Int64Attribute{
+							Required:    true,
+							Description: "Version of `value` to trigger the sending of its value.",
+						},
+					},
+				},
+				Validators: []validator.Map{
+					mapvalidator.SizeAtLeast(1),
+					mapvalidator.KeysAre(
+						stringvalidator.RegexMatches(regexp.MustCompile(`^\d+$`),
+							"must be an authentication element identifier of a key block",
+						),
+					),
+				},
+			},
 			"tolerance": schema.Int64Attribute{
 				Optional:    true,
 				Description: "Clock skew tolerance (seconds).",
@@ -129,7 +166,7 @@ func (rsc *securityAuthenticationKeyChain) Schema(
 							},
 						},
 						"secret": schema.StringAttribute{
-							Required:    true,
+							Optional:    true,
 							Sensitive:   true,
 							Description: "Authentication key.",
 							Validators: []validator.String{
@@ -138,6 +175,7 @@ func (rsc *securityAuthenticationKeyChain) Schema(
 							},
 						},
 						"start_time": schema.StringAttribute{
+							CustomType:  tftypes.StringDateType{},
 							Required:    true,
 							Description: "Start time for key transmission (YYYY-MM-DD.HH:MM:SS).",
 							Validators: []validator.String{
@@ -211,11 +249,12 @@ func (rsc *securityAuthenticationKeyChain) Schema(
 }
 
 type securityAuthenticationKeyChainData struct {
-	ID          types.String                             `tfsdk:"id"`
-	Name        types.String                             `tfsdk:"name"`
-	Description types.String                             `tfsdk:"description"`
-	Tolerance   types.Int64                              `tfsdk:"tolerance"`
-	Key         []securityAuthenticationKeyChainBlockKey `tfsdk:"key"`
+	ID          types.String                                             `tfsdk:"id"`
+	Name        types.String                                             `tfsdk:"name"`
+	Description types.String                                             `tfsdk:"description"`
+	Tolerance   types.Int64                                              `tfsdk:"tolerance"`
+	KeySecretWO map[string]securityAuthenticationKeyChainAttrKeySecretWO `tfsdk:"key_secret_wo"`
+	Key         []securityAuthenticationKeyChainBlockKey                 `tfsdk:"key"`
 }
 
 type securityAuthenticationKeyChainConfig struct {
@@ -223,20 +262,26 @@ type securityAuthenticationKeyChainConfig struct {
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 	Tolerance   types.Int64  `tfsdk:"tolerance"`
+	KeySecretWO types.Map    `tfsdk:"key_secret_wo"`
 	Key         types.Set    `tfsdk:"key"`
 }
 
+type securityAuthenticationKeyChainAttrKeySecretWO struct {
+	Value   types.String `tfsdk:"value"`
+	Version types.Int64  `tfsdk:"version"`
+}
+
 type securityAuthenticationKeyChainBlockKey struct {
-	ID                       types.Int64  `tfsdk:"id"                         tfdata:"identifier"`
-	Secret                   types.String `tfsdk:"secret"`
-	StartTime                types.String `tfsdk:"start_time"`
-	Algorithm                types.String `tfsdk:"algorithm"`
-	AOCryptographicAlgorithm types.String `tfsdk:"ao_cryptographic_algorithm"`
-	AORecvID                 types.Int64  `tfsdk:"ao_recv_id"`
-	AOSendID                 types.Int64  `tfsdk:"ao_send_id"`
-	AOTcpAOOption            types.String `tfsdk:"ao_tcp_ao_option"`
-	KeyName                  types.String `tfsdk:"key_name"`
-	Options                  types.String `tfsdk:"options"`
+	ID                       types.Int64        `tfsdk:"id"                         tfdata:"identifier"`
+	Secret                   types.String       `tfsdk:"secret"`
+	StartTime                tftypes.StringDate `tfsdk:"start_time"`
+	Algorithm                types.String       `tfsdk:"algorithm"`
+	AOCryptographicAlgorithm types.String       `tfsdk:"ao_cryptographic_algorithm"`
+	AORecvID                 types.Int64        `tfsdk:"ao_recv_id"`
+	AOSendID                 types.Int64        `tfsdk:"ao_send_id"`
+	AOTcpAOOption            types.String       `tfsdk:"ao_tcp_ao_option"`
+	KeyName                  types.String       `tfsdk:"key_name"`
+	Options                  types.String       `tfsdk:"options"`
 }
 
 func (rsc *securityAuthenticationKeyChain) ValidateConfig(
@@ -246,6 +291,15 @@ func (rsc *securityAuthenticationKeyChain) ValidateConfig(
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	keySecretWO := make(map[string]struct{})
+	unknownKeySecretWO := config.KeySecretWO.IsUnknown()
+	if !config.KeySecretWO.IsNull() &&
+		!unknownKeySecretWO {
+		for id := range config.KeySecretWO.Elements() {
+			keySecretWO[id] = struct{}{}
+		}
 	}
 
 	if !config.Key.IsNull() &&
@@ -259,8 +313,11 @@ func (rsc *securityAuthenticationKeyChain) ValidateConfig(
 		}
 
 		keyID := make(map[int64]struct{})
+		unknownKeyID := false
 		for _, block := range configKey {
 			if block.ID.IsUnknown() {
+				unknownKeyID = true
+
 				continue
 			}
 
@@ -273,6 +330,44 @@ func (rsc *securityAuthenticationKeyChain) ValidateConfig(
 				)
 			}
 			keyID[id] = struct{}{}
+
+			_, withSecretWO := keySecretWO[utils.ConvI64toa(id)]
+			// with an unknown key_secret_wo, an entry with this id may be present,
+			// so a missing secret can't be detected
+			if block.Secret.IsNull() && !withSecretWO && !unknownKeySecretWO {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("key"),
+					tfdiag.MissingConfigErrSummary,
+					fmt.Sprintf("one of secret in key block %d"+
+						" or an entry with this id in key_secret_wo must be specified", id),
+				)
+			}
+			if !block.Secret.IsNull() && !block.Secret.IsUnknown() && withSecretWO {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("key"),
+					tfdiag.ConflictConfigErrSummary,
+					fmt.Sprintf("only one of secret in key block %d"+
+						" or an entry with this id in key_secret_wo must be specified", id),
+				)
+			}
+		}
+
+		// the key blocks are all known, so an entry of key_secret_wo
+		// without a key block with the same id can be detected
+		if !unknownKeyID {
+			for _, id := range slices.Sorted(maps.Keys(keySecretWO)) {
+				keyIDNum, err := utils.ConvAtoi64(id)
+				if err != nil {
+					continue // rejected by the map keys validator
+				}
+				if _, ok := keyID[keyIDNum]; !ok {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("key_secret_wo").AtMapKey(id),
+						tfdiag.MissingConfigErrSummary,
+						fmt.Sprintf("no key block with id %s to associate with this key_secret_wo entry", id),
+					)
+				}
+			}
 		}
 	}
 }
@@ -282,6 +377,7 @@ func (rsc *securityAuthenticationKeyChain) Create(
 ) {
 	var plan securityAuthenticationKeyChainData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -356,7 +452,9 @@ func (rsc *securityAuthenticationKeyChain) Read(
 			state.Name.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -367,6 +465,7 @@ func (rsc *securityAuthenticationKeyChain) Update(
 	var plan, state securityAuthenticationKeyChainData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -438,6 +537,42 @@ func (rscData *securityAuthenticationKeyChainData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+//
+// Only the write-only argument of each key_secret_wo entry is read:
+// reading the whole entry from the configuration would also read the version,
+// which may be unknown at this time whereas it's resolved in the plan.
+func (rscData *securityAuthenticationKeyChainData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	for id, attribute := range rscData.KeySecretWO {
+		diags.Append(config.GetAttribute(ctx,
+			path.Root("key_secret_wo").AtMapKey(id).AtName("value"),
+			&attribute.Value)...)
+		rscData.KeySecretWO[id] = attribute
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the write-only arguments from the state,
+// only the version of each entry is present in it,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+//
+// The keys of key_secret_wo are the identifiers of the key blocks using
+// the write-only argument, the key blocks read on the device aren't in the order
+// of the state so they are matched with their identifier.
+func (rscData *securityAuthenticationKeyChainData) keepWriteOnly(state *securityAuthenticationKeyChainData) {
+	rscData.KeySecretWO = state.KeySecretWO
+
+	for i, block := range rscData.Key {
+		if _, ok := state.KeySecretWO[utils.ConvI64toa(block.ID.ValueInt64())]; ok {
+			rscData.Key[i].Secret = types.StringNull()
+		}
+	}
+}
+
 func (rscData *securityAuthenticationKeyChainData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -453,6 +588,18 @@ func (rscData *securityAuthenticationKeyChainData) set(
 		configSet = append(configSet, setPrefix+"tolerance "+
 			utils.ConvI64toa(rscData.Tolerance.ValueInt64()))
 	}
+	// index the write-only secrets with the id of the key block they are associated with,
+	// an entry without a key block with the same id is ignored here, it's detected in ValidateConfig
+	keySecretWO := make(map[int64]string, len(rscData.KeySecretWO))
+	for id, attribute := range rscData.KeySecretWO {
+		keyID, err := utils.ConvAtoi64(id)
+		if err != nil {
+			return path.Root("key_secret_wo").AtMapKey(id),
+				fmt.Errorf("invalid key id %q in key_secret_wo", id)
+		}
+		keySecretWO[keyID] = attribute.Value.ValueString()
+	}
+
 	keyID := make(map[int64]struct{})
 	for _, block := range rscData.Key {
 		id := block.ID.ValueInt64()
@@ -462,17 +609,32 @@ func (rscData *securityAuthenticationKeyChainData) set(
 		}
 		keyID[id] = struct{}{}
 
-		configSet = append(configSet, block.configSet(setPrefix)...)
+		blockConfigSet, err := block.configSet(setPrefix, keySecretWO[id])
+		if err != nil {
+			return path.Root("key"), err
+		}
+		configSet = append(configSet, blockConfigSet...)
 	}
 
 	return path.Empty(), junSess.ConfigSet(ctx, configSet)
 }
 
-func (block *securityAuthenticationKeyChainBlockKey) configSet(setPrefix string) []string {
+func (block *securityAuthenticationKeyChainBlockKey) configSet(
+	setPrefix, secretWO string,
+) (
+	[]string, error,
+) {
 	setPrefix += "key " + utils.ConvI64toa(block.ID.ValueInt64()) + " "
 
 	configSet := make([]string, 2, 100)
-	configSet[0] = setPrefix + "secret \"" + block.Secret.ValueString() + "\""
+	if v := block.Secret.ValueString(); v != "" {
+		configSet[0] = setPrefix + "secret \"" + v + "\""
+	} else if secretWO != "" {
+		configSet[0] = setPrefix + "secret \"" + secretWO + "\""
+	} else {
+		return nil, fmt.Errorf("one of secret in key block %d"+
+			" or an entry with this id in key_secret_wo must be specified", block.ID.ValueInt64())
+	}
 	configSet[1] = setPrefix + "start-time " + block.StartTime.ValueString()
 
 	if v := block.Algorithm.ValueString(); v != "" {
@@ -499,7 +661,7 @@ func (block *securityAuthenticationKeyChainBlockKey) configSet(setPrefix string)
 		configSet = append(configSet, setPrefix+"options "+v)
 	}
 
-	return configSet
+	return configSet, nil
 }
 
 func (rscData *securityAuthenticationKeyChainData) read(
@@ -560,7 +722,7 @@ func (block *securityAuthenticationKeyChainBlockKey) read(
 			return err
 		}
 	case balt.CutPrefixInString(&itemTrim, "start-time "):
-		block.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
+		block.StartTime = tftypes.NewStringDateValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 	case balt.CutPrefixInString(&itemTrim, "algorithm "):
 		block.Algorithm = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "ao-attribute cryptographic-algorithm "):

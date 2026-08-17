@@ -2,19 +2,23 @@ package provider_test
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 func TestAccResourceBgpGroup_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -177,6 +181,54 @@ func TestAccResourceBgpGroup_basic(t *testing.T) {
 							"metric_out_minimum_igp", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"vpn_apply_export", "true"),
+					),
+				},
+			},
+		})
+	}
+}
+
+func TestAccResourceBgpGroup_writeOnly(t *testing.T) {
+	if os.Getenv("TESTACC_SWITCH") == "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:                 func() { testAccPreCheck(t) },
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+				tfversion.SkipBelow(tfversion.Version1_11_0),
+			},
+			Steps: []resource.TestStep{
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckNoResourceAttr("junos_bgp_group.testacc_bgpgroup_wo",
+							"authentication_key"),
+						resource.TestCheckNoResourceAttr("junos_bgp_group.testacc_bgpgroup_wo",
+							"authentication_key_wo"),
+						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup_wo",
+							"authentication_key_wo_version", "1"),
+					),
+				},
+				{
+					// check that the write-only key has really been sent to the device
+					ConfigDirectory: config.TestStepDirectory(),
+					ConfigStateChecks: []statecheck.StateCheck{
+						statecheck.ExpectKnownValue(
+							"data.junos_config_raw.testacc_bgpgroup_wo",
+							tfjsonpath.New("config"),
+							knownvalue.StringRegexp(regexp.MustCompile(
+								`set protocols bgp group "?testacc_bgpgroup_wo"? authentication-key `)),
+						),
+					},
+				},
+				{
+					ConfigDirectory: config.TestStepDirectory(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckNoResourceAttr("junos_bgp_group.testacc_bgpgroup_wo",
+							"authentication_key"),
+						resource.TestCheckNoResourceAttr("junos_bgp_group.testacc_bgpgroup_wo",
+							"authentication_key_wo"),
+						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup_wo",
+							"authentication_key_wo_version", "2"),
 					),
 				},
 			},

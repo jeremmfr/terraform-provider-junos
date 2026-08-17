@@ -10,18 +10,21 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -278,6 +281,7 @@ func (rsc *systemSyslogFile) Schema(
 						},
 					},
 					"start_time": schema.StringAttribute{
+						CustomType:  tftypes.StringDateType{},
 						Optional:    true,
 						Description: "Start time for file transmission (YYYY-MM-DD.HH:MM:SS).",
 						Validators: []validator.String{
@@ -329,6 +333,28 @@ func (rsc *systemSyslogFile) Schema(
 									Validators: []validator.String{
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
+								"password_wo": schema.StringAttribute{
+									Optional:    true,
+									Sensitive:   true,
+									WriteOnly:   true,
+									Description: "Password for login into the archive site, not stored in state.",
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringDoubleQuoteExclusion(),
+										stringvalidator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("password_wo_version"),
+										),
+									},
+								},
+								"password_wo_version": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Version of `password_wo` to trigger the sending of its value.",
+									Validators: []validator.Int64{
+										int64validator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("password_wo"),
+										),
 									},
 								},
 								"routing_instance": schema.StringAttribute{
@@ -423,7 +449,7 @@ type systemSyslogFileBlockArchive struct {
 	NoBinaryData     types.Bool                               `tfsdk:"no_binary_data"`
 	Files            types.Int64                              `tfsdk:"files"`
 	Size             types.Int64                              `tfsdk:"size"`
-	StartTime        types.String                             `tfsdk:"start_time"`
+	StartTime        tftypes.StringDate                       `tfsdk:"start_time"`
 	TransferInterval types.Int64                              `tfsdk:"transfer_interval"`
 	WorldReadable    types.Bool                               `tfsdk:"world_readable"`
 	NoWorldReadable  types.Bool                               `tfsdk:"no_world_readable"`
@@ -431,21 +457,23 @@ type systemSyslogFileBlockArchive struct {
 }
 
 type systemSyslogFileBlockArchiveConfig struct {
-	BinaryData       types.Bool   `tfsdk:"binary_data"`
-	NoBinaryData     types.Bool   `tfsdk:"no_binary_data"`
-	Files            types.Int64  `tfsdk:"files"`
-	Size             types.Int64  `tfsdk:"size"`
-	StartTime        types.String `tfsdk:"start_time"`
-	TransferInterval types.Int64  `tfsdk:"transfer_interval"`
-	WorldReadable    types.Bool   `tfsdk:"world_readable"`
-	NoWorldReadable  types.Bool   `tfsdk:"no_world_readable"`
-	Sites            types.List   `tfsdk:"sites"`
+	BinaryData       types.Bool         `tfsdk:"binary_data"`
+	NoBinaryData     types.Bool         `tfsdk:"no_binary_data"`
+	Files            types.Int64        `tfsdk:"files"`
+	Size             types.Int64        `tfsdk:"size"`
+	StartTime        tftypes.StringDate `tfsdk:"start_time"`
+	TransferInterval types.Int64        `tfsdk:"transfer_interval"`
+	WorldReadable    types.Bool         `tfsdk:"world_readable"`
+	NoWorldReadable  types.Bool         `tfsdk:"no_world_readable"`
+	Sites            types.List         `tfsdk:"sites"`
 }
 
 type systemSyslogFileBlockArchiveBlockSites struct {
-	URL             types.String `tfsdk:"url"              tfdata:"identifier"`
-	Password        types.String `tfsdk:"password"`
-	RoutingInstance types.String `tfsdk:"routing_instance"`
+	URL               types.String `tfsdk:"url"                 tfdata:"identifier"`
+	Password          types.String `tfsdk:"password"`
+	PasswordWO        types.String `tfsdk:"password_wo"`
+	PasswordWOVersion types.Int64  `tfsdk:"password_wo_version"`
+	RoutingInstance   types.String `tfsdk:"routing_instance"`
 }
 
 type systemSyslogFileBlockStructuredData struct {
@@ -506,18 +534,27 @@ func (rsc *systemSyslogFile) ValidateConfig(
 
 			sitesURL := make(map[string]struct{})
 			for i, blockSites := range configSites {
-				if blockSites.URL.IsUnknown() {
-					continue
+				if !blockSites.URL.IsUnknown() {
+					url := blockSites.URL.ValueString()
+					if _, ok := sitesURL[url]; ok {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("archive").AtName("sites").AtListIndex(i).AtName("url"),
+							tfdiag.DuplicateConfigErrSummary,
+							fmt.Sprintf("multiple sites blocks with the same url %q in archive block", url),
+						)
+					}
+					sitesURL[url] = struct{}{}
 				}
-				url := blockSites.URL.ValueString()
-				if _, ok := sitesURL[url]; ok {
+
+				if !blockSites.Password.IsNull() && !blockSites.Password.IsUnknown() &&
+					!blockSites.PasswordWO.IsNull() && !blockSites.PasswordWO.IsUnknown() {
 					resp.Diagnostics.AddAttributeError(
-						path.Root("archive").AtName("sites").AtListIndex(i).AtName("url"),
-						tfdiag.DuplicateConfigErrSummary,
-						fmt.Sprintf("multiple sites blocks with the same url %q in archive block", url),
+						path.Root("archive").AtName("sites").AtListIndex(i).AtName("password"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("password and password_wo cannot be configured together"+
+							" in sites block %q in archive block", blockSites.URL.ValueString()),
 					)
 				}
-				sitesURL[url] = struct{}{}
 			}
 		}
 	}
@@ -528,6 +565,7 @@ func (rsc *systemSyslogFile) Create(
 ) {
 	var plan systemSyslogFileData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -602,7 +640,9 @@ func (rsc *systemSyslogFile) Read(
 			state.Filename.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -613,6 +653,7 @@ func (rsc *systemSyslogFile) Update(
 	var plan, state systemSyslogFileData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -682,6 +723,57 @@ func (rscData *systemSyslogFileData) fillID() {
 
 func (rscData *systemSyslogFileData) nullID() bool {
 	return rscData.ID.IsNull()
+}
+
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+//
+// The write-only arguments are inside list blocks, so they are read by index:
+// the plan keeps the order of the configuration for a list block,
+// reading the whole list from the configuration isn't possible
+// because it may be unknown at this time.
+func (rscData *systemSyslogFileData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	if rscData.Archive == nil {
+		return diags
+	}
+
+	for i := range rscData.Archive.Sites {
+		diags.Append(config.GetAttribute(ctx,
+			path.Root("archive").AtName("sites").AtListIndex(i).AtName("password_wo"),
+			&rscData.Archive.Sites[i].PasswordWO)...)
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+//
+// The blocks read on the device aren't in the order of the configuration,
+// so they are matched with the state with their identifier.
+func (rscData *systemSyslogFileData) keepWriteOnly(state *systemSyslogFileData) {
+	if rscData.Archive == nil || state.Archive == nil {
+		return
+	}
+
+	stateSites := make(map[string]systemSyslogFileBlockArchiveBlockSites, len(state.Archive.Sites))
+	for _, block := range state.Archive.Sites {
+		stateSites[block.URL.ValueString()] = block
+	}
+
+	for i, block := range rscData.Archive.Sites {
+		stateBlock, ok := stateSites[block.URL.ValueString()]
+		if !ok {
+			continue
+		}
+
+		rscData.Archive.Sites[i].PasswordWOVersion = stateBlock.PasswordWOVersion
+		if !stateBlock.PasswordWOVersion.IsNull() {
+			rscData.Archive.Sites[i].Password = types.StringNull()
+		}
+	}
 }
 
 func (rscData *systemSyslogFileData) set(
@@ -792,6 +884,8 @@ func (rscData *systemSyslogFileData) set(
 			setPrefixArchiveSites := setPrefix + "archive archive-sites \"" + url + "\""
 			configSet = append(configSet, setPrefixArchiveSites)
 			if v := blockSites.Password.ValueString(); v != "" {
+				configSet = append(configSet, setPrefixArchiveSites+" password \""+v+"\"")
+			} else if v := blockSites.PasswordWO.ValueString(); v != "" {
 				configSet = append(configSet, setPrefixArchiveSites+" password \""+v+"\"")
 			}
 			if v := blockSites.RoutingInstance.ValueString(); v != "" {
@@ -905,7 +999,7 @@ func (rscData *systemSyslogFileData) read(
 						return err
 					}
 				case balt.CutPrefixInString(&itemTrim, " start-time "):
-					rscData.Archive.StartTime = types.StringValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
+					rscData.Archive.StartTime = tftypes.NewStringDateValue(strings.Split(strings.Trim(itemTrim, "\""), " ")[0])
 				case itemTrim == " world-readable":
 					rscData.Archive.WorldReadable = types.BoolValue(true)
 				case itemTrim == " no-world-readable":

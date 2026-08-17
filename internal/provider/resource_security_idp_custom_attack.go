@@ -1408,7 +1408,7 @@ func (rsc *securityIdpCustomAttack) ValidateConfig( //nolint:gocyclo,gocognit
 		resp.Diagnostics.AddAttributeError(
 			path.Root("attack_type_anomaly"),
 			tfdiag.ConflictConfigErrSummary,
-			"attack_type_anomaly and attack_type_chain cannot be configured together",
+			"only one of attack_type_anomaly or attack_type_chain must be specified",
 		)
 	}
 	if config.AttackTypeAnomaly != nil &&
@@ -1418,7 +1418,7 @@ func (rsc *securityIdpCustomAttack) ValidateConfig( //nolint:gocyclo,gocognit
 		resp.Diagnostics.AddAttributeError(
 			path.Root("attack_type_anomaly"),
 			tfdiag.ConflictConfigErrSummary,
-			"attack_type_anomaly and attack_type_signature cannot be configured together",
+			"only one of attack_type_anomaly or attack_type_signature must be specified",
 		)
 	}
 	if config.AttackTypeChain != nil &&
@@ -1428,7 +1428,7 @@ func (rsc *securityIdpCustomAttack) ValidateConfig( //nolint:gocyclo,gocognit
 		resp.Diagnostics.AddAttributeError(
 			path.Root("attack_type_chain"),
 			tfdiag.ConflictConfigErrSummary,
-			"attack_type_chain and attack_type_signature cannot be configured together",
+			"only one of attack_type_chain or attack_type_signature must be specified",
 		)
 	}
 
@@ -1504,7 +1504,7 @@ func (rsc *securityIdpCustomAttack) ValidateConfig( //nolint:gocyclo,gocognit
 					resp.Diagnostics.AddAttributeError(
 						path.Root("attack_type_chain").AtName("member").AtListIndex(i).AtName("attack_type_anomaly"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("attack_type_anomaly and attack_type_signature cannot be configured together"+
+						fmt.Sprintf("only one of attack_type_anomaly or attack_type_signature must be specified"+
 							" in member block %q in attack_type_chain block", block.Name.ValueString()),
 					)
 				}
@@ -3021,7 +3021,7 @@ func (block *securityIdpCustomAttackBlockAttackTypeChainBlockMember) configSet(
 	if block.AttackTypeAnomaly != nil && block.AttackTypeSignature != nil {
 		return configSet,
 			pathRoot.AtName("attack_type_anomaly"),
-			fmt.Errorf("attack_type_anomaly and attack_type_signature cannot be configured together"+
+			fmt.Errorf("only one of attack_type_anomaly or attack_type_signature must be specified"+
 				" in member block %q in attack_type_chain block", block.Name.ValueString())
 	}
 

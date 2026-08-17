@@ -37,14 +37,32 @@ The following arguments are supported:
   Conflict with `ng`.
 - **authentication_key** (Optional, String, Sensitive)  
   Authentication key (password).  
-  Conflict with `authentication_selective_md5`, `ng`.
+  Conflict with `authentication_key_wo`, `authentication_selective_md5`, `ng`.
+- **authentication_key_wo** (Optional, String, Sensitive, Write-only)  
+  Authentication key (password), not stored in state.  
+  Requires `authentication_key_wo_version` and Terraform 1.11 or later.  
+  Conflict with `authentication_key`, `authentication_selective_md5`, `ng`.
+- **authentication_key_wo_version** (Optional, Number)  
+  Version of `authentication_key_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `authentication_key_wo` to the device.  
+  Requires `authentication_key_wo`.
 - **authentication_selective_md5** (Optional, Block List)  
   For each key_id, MD5 authentication key.  
-  Conflict with `authentication_key`, `authentication_type`, `ng`.
+  Conflict with `authentication_key`, `authentication_key_wo`, `authentication_type`, `ng`.  
+  One of `key` or `key_wo` arguments is required.
   - **key_id** (Required, Number)  
     Key ID for MD5 authentication (0..255).
-  - **key** (Required, String, Sensitive)  
-    MD5 authentication key value.
+  - **key** (Optional, String, Sensitive)  
+    MD5 authentication key value.  
+    Conflict with `key_wo`.
+  - **key_wo** (Optional, String, Sensitive, Write-only)  
+    MD5 authentication key value, not stored in state.  
+    Requires `key_wo_version` and Terraform 1.11 or later.  
+    Conflict with `key`.
+  - **key_wo_version** (Optional, Number)  
+    Version of `key_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `key_wo` to the device.  
+    Requires `key_wo`.
   - **start_time** (Optional, String)  
     Start time for key transmission (YYYY-MM-DD.HH:MM:SS).
 - **authentication_type** (Optional, String)  
@@ -134,3 +152,8 @@ Junos RIP or RIPng group can be imported using an id made up of
 ```shell
 $ terraform import junos_rip_neighbor.demo_rip ae0.0_-_group1_-_ng_-_default
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the authentication keys read on the
+  device are stored in `authentication_key` and `key`, and therefore in the Terraform state.  
+  When the configuration uses the write-only arguments, the next apply removes them from the state.

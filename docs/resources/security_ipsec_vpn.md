@@ -65,15 +65,51 @@ The following arguments are supported:
   - **authentication_algorithm** (Optional, String)  
     Define authentication algorithm.
   - **authentication_key_hexa** (Optional, String, Sensitive)  
-    Define an authentication key with format as hexadecimal.
-  - **authentication_key_hexa** (Optional, String, Sensitive)  
-    Define an authentication key with format as text.
+    Define an authentication key with format as hexadecimal.  
+    Conflict with the other `manual.authentication_key_*` arguments.
+  - **authentication_key_hexa_wo** (Optional, String, Sensitive, Write-only)  
+    Define an authentication key with format as hexadecimal, not stored in state.  
+    Requires `manual.authentication_key_hexa_wo_version` and Terraform 1.11 or later.  
+    Conflict with the other `manual.authentication_key_*` arguments.
+  - **authentication_key_hexa_wo_version** (Optional, Number)  
+    Version of `manual.authentication_key_hexa_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `manual.authentication_key_hexa_wo` to the device.  
+    Requires `manual.authentication_key_hexa_wo`.
+  - **authentication_key_text** (Optional, String, Sensitive)  
+    Define an authentication key with format as text.  
+    Conflict with the other `manual.authentication_key_*` arguments.
+  - **authentication_key_text_wo** (Optional, String, Sensitive, Write-only)  
+    Define an authentication key with format as text, not stored in state.  
+    Requires `manual.authentication_key_text_wo_version` and Terraform 1.11 or later.  
+    Conflict with the other `manual.authentication_key_*` arguments.
+  - **authentication_key_text_wo_version** (Optional, Number)  
+    Version of `manual.authentication_key_text_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `manual.authentication_key_text_wo` to the device.  
+    Requires `manual.authentication_key_text_wo`.
   - **encryption_algorithm** (Optional, String)  
     Define encryption algorithm.
   - **encryption_key_hexa** (Optional, String, Sensitive)  
-    Define an encryption key with format as hexadecimal.
+    Define an encryption key with format as hexadecimal.  
+    Conflict with the other `manual.encryption_key_*` arguments.
+  - **encryption_key_hexa_wo** (Optional, String, Sensitive, Write-only)  
+    Define an encryption key with format as hexadecimal, not stored in state.  
+    Requires `manual.encryption_key_hexa_wo_version` and Terraform 1.11 or later.  
+    Conflict with the other `manual.encryption_key_*` arguments.
+  - **encryption_key_hexa_wo_version** (Optional, Number)  
+    Version of `manual.encryption_key_hexa_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `manual.encryption_key_hexa_wo` to the device.  
+    Requires `manual.encryption_key_hexa_wo`.
   - **encryption_key_text** (Optional, String, Sensitive)  
-    Define an encryption key with format as text.
+    Define an encryption key with format as text.  
+    Conflict with the other `manual.encryption_key_*` arguments.
+  - **encryption_key_text_wo** (Optional, String, Sensitive, Write-only)  
+    Define an encryption key with format as text, not stored in state.  
+    Requires `manual.encryption_key_text_wo_version` and Terraform 1.11 or later.  
+    Conflict with the other `manual.encryption_key_*` arguments.
+  - **encryption_key_text_wo_version** (Optional, Number)  
+    Version of `manual.encryption_key_text_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `manual.encryption_key_text_wo` to the device.  
+    Requires `manual.encryption_key_text_wo`.
   - **gateway** (Optional, String)  
     Define the IPSec peer.
 - **multi_sa_forwarding_class** (Optional, Set of String)  
@@ -116,3 +152,10 @@ Junos security IPSec vpn can be imported using an id made up of `<name>`, e.g.
 ```shell
 $ terraform import junos_security_ipsec_vpn.demo_vpn first-vpn
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the keys read on the device are stored
+  in `manual.authentication_key_hexa`, `manual.authentication_key_text`,
+  `manual.encryption_key_hexa` or `manual.encryption_key_text`, and therefore in the Terraform
+  state.  
+  When the configuration uses a write-only argument, the next apply removes it from the state.

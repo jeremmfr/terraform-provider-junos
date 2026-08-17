@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 
+	"github.com/jeremmfr/terraform-provider-junos/internal/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -551,7 +553,7 @@ func upgradeOspfAreaStateV0toV1(
 			subBlockV1 := ospfAreaBlockInterfaceBlockAuthenticationMD5{
 				KeyID:     subBlockV0.KeyID,
 				Key:       subBlockV0.Key,
-				StartTime: subBlockV0.StartTime,
+				StartTime: tftypes.NewStringDateFromString(subBlockV0.StartTime),
 			}
 			blockV1.AuthenticationMD5 = append(blockV1.AuthenticationMD5, subBlockV1)
 		}

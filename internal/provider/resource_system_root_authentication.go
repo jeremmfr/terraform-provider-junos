@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -19,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 	"golang.org/x/crypto/ssh"
@@ -96,6 +99,24 @@ func (rsc *systemRootAuthentication) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"encrypted_password_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Encrypted password string, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 128),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("encrypted_password_wo_version")),
+				},
+			},
+			"encrypted_password_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `encrypted_password_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("encrypted_password_wo")),
+				},
+			},
 			"plain_text_password": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
@@ -103,6 +124,24 @@ func (rsc *systemRootAuthentication) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 128),
 					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"plain_text_password_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Plain text password, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 128),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("plain_text_password_wo_version")),
+				},
+			},
+			"plain_text_password_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `plain_text_password_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("plain_text_password_wo")),
 				},
 			},
 			"no_public_keys": schema.BoolAttribute{
@@ -130,19 +169,27 @@ func (rsc *systemRootAuthentication) Schema(
 }
 
 type systemRootAuthenticationData struct {
-	ID                types.String   `tfsdk:"id"`
-	EncryptedPassword types.String   `tfsdk:"encrypted_password"`
-	PlainTextPassword types.String   `tfsdk:"plain_text_password"`
-	NoPublicKeys      types.Bool     `tfsdk:"no_public_keys"`
-	SSHPublicKeys     []types.String `tfsdk:"ssh_public_keys"`
+	ID                         types.String   `tfsdk:"id"`
+	EncryptedPassword          types.String   `tfsdk:"encrypted_password"`
+	EncryptedPasswordWO        types.String   `tfsdk:"encrypted_password_wo"`
+	EncryptedPasswordWOVersion types.Int64    `tfsdk:"encrypted_password_wo_version"`
+	PlainTextPassword          types.String   `tfsdk:"plain_text_password"`
+	PlainTextPasswordWO        types.String   `tfsdk:"plain_text_password_wo"`
+	PlainTextPasswordWOVersion types.Int64    `tfsdk:"plain_text_password_wo_version"`
+	NoPublicKeys               types.Bool     `tfsdk:"no_public_keys"`
+	SSHPublicKeys              []types.String `tfsdk:"ssh_public_keys"`
 }
 
 type systemRootAuthenticationConfig struct {
-	ID                types.String `tfsdk:"id"`
-	EncryptedPassword types.String `tfsdk:"encrypted_password"`
-	PlainTextPassword types.String `tfsdk:"plain_text_password"`
-	NoPublicKeys      types.Bool   `tfsdk:"no_public_keys"`
-	SSHPublicKeys     types.Set    `tfsdk:"ssh_public_keys"`
+	ID                         types.String `tfsdk:"id"`
+	EncryptedPassword          types.String `tfsdk:"encrypted_password"`
+	EncryptedPasswordWO        types.String `tfsdk:"encrypted_password_wo"`
+	EncryptedPasswordWOVersion types.Int64  `tfsdk:"encrypted_password_wo_version"`
+	PlainTextPassword          types.String `tfsdk:"plain_text_password"`
+	PlainTextPasswordWO        types.String `tfsdk:"plain_text_password_wo"`
+	PlainTextPasswordWOVersion types.Int64  `tfsdk:"plain_text_password_wo_version"`
+	NoPublicKeys               types.Bool   `tfsdk:"no_public_keys"`
+	SSHPublicKeys              types.Set    `tfsdk:"ssh_public_keys"`
 }
 
 type systemRootAuthenticationPrivateState struct {
@@ -180,22 +227,41 @@ func (rsc *systemRootAuthentication) ValidateConfig(
 		return
 	}
 
-	if config.EncryptedPassword.IsNull() &&
-		config.PlainTextPassword.IsNull() {
+	// the password can only be set once, whatever its format
+	// and whether it's a write-only argument or not
+	var passwordConfigured, passwordKnown []string
+	for _, password := range []struct {
+		name  string
+		value types.String
+	}{
+		{name: "encrypted_password", value: config.EncryptedPassword},
+		{name: "encrypted_password_wo", value: config.EncryptedPasswordWO},
+		{name: "plain_text_password", value: config.PlainTextPassword},
+		{name: "plain_text_password_wo", value: config.PlainTextPasswordWO},
+	} {
+		if password.value.IsNull() {
+			continue
+		}
+		// an unknown value is set, so it's enough to satisfy the requirement below,
+		// but it can't be compared with the others to detect a conflict
+		passwordConfigured = append(passwordConfigured, password.name)
+		if !password.value.IsUnknown() {
+			passwordKnown = append(passwordKnown, password.name)
+		}
+	}
+	if len(passwordConfigured) == 0 {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("plain_text_password"),
-			tfdiag.ConflictConfigErrSummary,
-			"encrypted_password or plain_text_password must be specified",
+			tfdiag.MissingConfigErrSummary,
+			"one of encrypted_password, encrypted_password_wo, plain_text_password"+
+				" or plain_text_password_wo must be specified",
 		)
 	}
-	if !config.EncryptedPassword.IsNull() &&
-		!config.EncryptedPassword.IsUnknown() &&
-		!config.PlainTextPassword.IsNull() &&
-		!config.PlainTextPassword.IsUnknown() {
+	if len(passwordKnown) > 1 {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("encrypted_password"),
+			path.Root(passwordKnown[0]),
 			tfdiag.ConflictConfigErrSummary,
-			"encrypted_password and plain_text_password cannot be configured together",
+			"only one of "+strings.Join(passwordKnown, ", ")+" must be specified",
 		)
 	}
 	if !config.NoPublicKeys.IsNull() &&
@@ -249,15 +315,19 @@ func (rsc *systemRootAuthentication) Create(
 ) {
 	var plan systemRootAuthenticationData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	if plan.EncryptedPassword.ValueString() == "" &&
-		plan.PlainTextPassword.ValueString() == "" {
+		plan.EncryptedPasswordWO.ValueString() == "" &&
+		plan.PlainTextPassword.ValueString() == "" &&
+		plan.PlainTextPasswordWO.ValueString() == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("plain_text_password"),
 			"Empty Password",
-			defaultResourceCouldNotCreateWithEmptyMessage(rsc, "encrypted_password and plain_text_password"),
+			defaultResourceCouldNotCreateWithEmptyMessage(rsc,
+				"encrypted_password, encrypted_password_wo, plain_text_password and plain_text_password_wo"),
 		)
 
 		return
@@ -266,7 +336,8 @@ func (rsc *systemRootAuthentication) Create(
 	if rsc.client.FakeCreateSetFile() {
 		junSess := rsc.client.NewSessionWithoutNetconf(ctx)
 
-		if plan.PlainTextPassword.ValueString() != "" {
+		if plan.PlainTextPassword.ValueString() != "" ||
+			plan.PlainTextPasswordWO.ValueString() != "" {
 			// To be able detect a plain text password not accepted by system
 			if err := plan.delPassword(ctx, junSess); err != nil {
 				resp.Diagnostics.AddError("Pre Config Set Error", err.Error())
@@ -306,7 +377,8 @@ func (rsc *systemRootAuthentication) Create(
 		resp.Diagnostics.Append(tfdiag.Warns(tfdiag.ConfigUnlockWarnSummary, junSess.ConfigUnlock(ctx))...)
 	}()
 
-	if plan.PlainTextPassword.ValueString() != "" {
+	if plan.PlainTextPassword.ValueString() != "" ||
+		plan.PlainTextPasswordWO.ValueString() != "" {
 		// To be able detect a plain text password not accepted by system
 		if err := plan.delPassword(ctx, junSess); err != nil {
 			resp.Diagnostics.AddError("Pre Config Set Error", err.Error())
@@ -359,6 +431,8 @@ func (rsc *systemRootAuthentication) Read(
 		nil,
 		&data,
 		func() {
+			data.keepWriteOnly(&state)
+
 			var privateState systemRootAuthenticationPrivateState
 			resp.Diagnostics.Append(privateState.get(ctx, req.Private)...)
 			if resp.Diagnostics.HasError() {
@@ -390,6 +464,7 @@ func (rsc *systemRootAuthentication) Update(
 	var plan, state systemRootAuthenticationData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -426,6 +501,30 @@ func (rsc *systemRootAuthentication) ImportState(
 	)
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *systemRootAuthenticationData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("encrypted_password_wo"), &rscData.EncryptedPasswordWO)...)
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("plain_text_password_wo"), &rscData.PlainTextPasswordWO)...)
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *systemRootAuthenticationData) keepWriteOnly(state *systemRootAuthenticationData) {
+	rscData.EncryptedPasswordWOVersion = state.EncryptedPasswordWOVersion
+	rscData.PlainTextPasswordWOVersion = state.PlainTextPasswordWOVersion
+	if !state.EncryptedPasswordWOVersion.IsNull() ||
+		!state.PlainTextPasswordWOVersion.IsNull() {
+		rscData.EncryptedPassword = types.StringNull()
+	}
+}
+
 func (rscData *systemRootAuthenticationData) fillID() {
 	rscData.ID = types.StringValue("system_root_authentication")
 }
@@ -439,14 +538,23 @@ func (rscData *systemRootAuthenticationData) set(
 ) (
 	path.Path, error,
 ) {
-	configSet := make([]string, 0, 100)
+	configSet := make([]string, 1, 100)
 	setPrefix := "set system root-authentication "
 
 	if v := rscData.PlainTextPassword.ValueString(); v != "" {
-		configSet = append(configSet, setPrefix+"plain-text-password-value \""+v+"\"")
+		configSet[0] = setPrefix + "plain-text-password-value \"" + v + "\""
+	} else if v := rscData.PlainTextPasswordWO.ValueString(); v != "" {
+		configSet[0] = setPrefix + "plain-text-password-value \"" + v + "\""
+	} else if v := rscData.EncryptedPassword.ValueString(); v != "" {
+		configSet[0] = setPrefix + "encrypted-password \"" + v + "\""
+	} else if v := rscData.EncryptedPasswordWO.ValueString(); v != "" {
+		configSet[0] = setPrefix + "encrypted-password \"" + v + "\""
 	} else {
-		configSet = append(configSet, setPrefix+"encrypted-password \""+rscData.EncryptedPassword.ValueString()+"\"")
+		return path.Root("plain_text_password"),
+			errors.New("one of encrypted_password, encrypted_password_wo, plain_text_password" +
+				" or plain_text_password_wo must be specified")
 	}
+
 	if rscData.NoPublicKeys.ValueBool() {
 		configSet = append(configSet, setPrefix+"no-public-keys")
 	}
@@ -516,8 +624,14 @@ func (rscData *systemRootAuthenticationData) readPrivateToState(
 	if err != nil {
 		return err
 	}
+	// the private state is stored in the Terraform state, so don't keep the password read on the
+	// device when the write-only arguments are used: it's only compared with the password
+	// generated by plain_text_password, which cannot be set in this case
+	passwordWriteOnly := !rscData.EncryptedPasswordWOVersion.IsNull() ||
+		!rscData.PlainTextPasswordWOVersion.IsNull()
+
 	var privateState systemRootAuthenticationPrivateState
-	if showConfig != junos.EmptyW {
+	if showConfig != junos.EmptyW && !passwordWriteOnly {
 		for item := range strings.SplitSeq(showConfig, "\n") {
 			if strings.Contains(item, junos.XMLStartTagConfigOut) {
 				continue

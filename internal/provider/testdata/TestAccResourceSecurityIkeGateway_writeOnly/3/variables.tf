@@ -1,0 +1,3 @@
+variable "interface" {
+  type = string
+}

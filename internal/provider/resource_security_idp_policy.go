@@ -759,7 +759,7 @@ func (rsc *securityIdpPolicy) ValidateConfig(
 						resp.Diagnostics.AddAttributeError(
 							path.Root("ips_rule").AtListIndex(i).AtName("then").AtName("action"),
 							tfdiag.MissingConfigErrSummary,
-							fmt.Sprintf("at least action_cos_forwarding_class or action_dscp_code_point"+
+							fmt.Sprintf("at least one of action_cos_forwarding_class or action_dscp_code_point"+
 								" must be specified when action = class-of-service"+
 								" in then block in ips_rule block %q", block.Name.ValueString()),
 						)
@@ -1220,7 +1220,7 @@ func (block *securityIdpPolicyBlockIpsRule) configSet(
 		} else if action == "class-of-service" && block.Then.ActionDscpCodePoint.IsNull() {
 			return configSet,
 				pathRoot.AtName("then").AtName("action"),
-				errors.New("at least action_cos_forwarding_class or action_dscp_code_point" +
+				errors.New("at least one of action_cos_forwarding_class or action_dscp_code_point" +
 					" must be specified when action = class-of-service")
 		}
 		if !block.Then.ActionDscpCodePoint.IsNull() {

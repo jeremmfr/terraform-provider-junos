@@ -13,7 +13,7 @@ func TestAccResourceVirtualChassis_basic(t *testing.T) {
 		os.Getenv("TESTACC_VIRTUAL_CHASSIS_SN") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),

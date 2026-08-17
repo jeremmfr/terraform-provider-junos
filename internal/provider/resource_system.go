@@ -18,12 +18,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
@@ -351,12 +353,34 @@ func (rsc *system) Schema(
 									},
 								},
 								"secret": schema.StringAttribute{
-									Required:    true,
+									Optional:    true,
 									Sensitive:   true,
 									Description: "Shared secret with the RADIUS server.",
 									Validators: []validator.String{
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
+								"secret_wo": schema.StringAttribute{
+									Optional:    true,
+									Sensitive:   true,
+									WriteOnly:   true,
+									Description: "Shared secret with the RADIUS server, not stored in state.",
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringDoubleQuoteExclusion(),
+										stringvalidator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("secret_wo_version"),
+										),
+									},
+								},
+								"secret_wo_version": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Version of `secret_wo` to trigger the sending of its value.",
+									Validators: []validator.Int64{
+										int64validator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("secret_wo"),
+										),
 									},
 								},
 								"accounting_port": schema.Int64Attribute{
@@ -415,6 +439,29 @@ func (rsc *system) Schema(
 									Validators: []validator.String{
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
+								"preauthentication_secret_wo": schema.StringAttribute{
+									Optional:    true,
+									Sensitive:   true,
+									WriteOnly:   true,
+									Description: "Shared secret with the RADIUS server, not stored in state.",
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringDoubleQuoteExclusion(),
+										stringvalidator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("preauthentication_secret_wo_version"),
+										),
+									},
+								},
+								"preauthentication_secret_wo_version": schema.Int64Attribute{
+									Optional: true,
+									Description: "Version of `preauthentication_secret_wo`" +
+										" to trigger the sending of its value.",
+									Validators: []validator.Int64{
+										int64validator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("preauthentication_secret_wo"),
+										),
 									},
 								},
 								"retry": schema.Int64Attribute{
@@ -482,6 +529,28 @@ func (rsc *system) Schema(
 									Validators: []validator.String{
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
+								"secret_wo": schema.StringAttribute{
+									Optional:    true,
+									Sensitive:   true,
+									WriteOnly:   true,
+									Description: "Shared secret with the authentication server, not stored in state.",
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringDoubleQuoteExclusion(),
+										stringvalidator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("secret_wo_version"),
+										),
+									},
+								},
+								"secret_wo_version": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Version of `secret_wo` to trigger the sending of its value.",
+									Validators: []validator.Int64{
+										int64validator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("secret_wo"),
+										),
 									},
 								},
 								"single_connection": schema.BoolAttribute{
@@ -552,6 +621,28 @@ func (rsc *system) Schema(
 									Validators: []validator.String{
 										stringvalidator.LengthAtLeast(1),
 										tfvalidator.StringDoubleQuoteExclusion(),
+									},
+								},
+								"password_wo": schema.StringAttribute{
+									Optional:    true,
+									Sensitive:   true,
+									WriteOnly:   true,
+									Description: "Password for login into the archive site, not stored in state.",
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+										tfvalidator.StringDoubleQuoteExclusion(),
+										stringvalidator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("password_wo_version"),
+										),
+									},
+								},
+								"password_wo_version": schema.Int64Attribute{
+									Optional:    true,
+									Description: "Version of `password_wo` to trigger the sending of its value.",
+									Validators: []validator.Int64{
+										int64validator.AlsoRequires(
+											path.MatchRelative().AtParent().AtName("password_wo"),
+										),
 									},
 								},
 							},
@@ -802,6 +893,28 @@ func (rsc *system) Schema(
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"autoupdate_password_wo": schema.StringAttribute{
+						Optional:    true,
+						Sensitive:   true,
+						WriteOnly:   true,
+						Description: "Password for autoupdate license keys from license servers, not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+							stringvalidator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("autoupdate_password_wo_version"),
+							),
+						},
+					},
+					"autoupdate_password_wo_version": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Version of `autoupdate_password_wo` to trigger the sending of its value.",
+						Validators: []validator.Int64{
+							int64validator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("autoupdate_password_wo"),
+							),
 						},
 					},
 					"autoupdate_url": schema.StringAttribute{
@@ -1928,20 +2041,24 @@ type systemBlockAccountingConfig struct {
 }
 
 type systemBlockAccountingBlockDestinationRadiusServer struct {
-	Address                 types.String `tfsdk:"address"                  tfdata:"identifier"`
-	Secret                  types.String `tfsdk:"secret"`
-	AccountingPort          types.Int64  `tfsdk:"accounting_port"`
-	AccountingRetry         types.Int64  `tfsdk:"accounting_retry"`
-	AccountingTimeout       types.Int64  `tfsdk:"accounting_timeout"`
-	DynamicRequestPort      types.Int64  `tfsdk:"dynamic_request_port"`
-	MaxOutstandingRequests  types.Int64  `tfsdk:"max_outstanding_requests"`
-	Port                    types.Int64  `tfsdk:"port"`
-	PreauthenticationPort   types.Int64  `tfsdk:"preauthentication_port"`
-	PreauthenticationSecret types.String `tfsdk:"preauthentication_secret"`
-	Retry                   types.Int64  `tfsdk:"retry"`
-	RoutingInstance         types.String `tfsdk:"routing_instance"`
-	SourceAddress           types.String `tfsdk:"source_address"`
-	Timeout                 types.Int64  `tfsdk:"timeout"`
+	Address                          types.String `tfsdk:"address"                             tfdata:"identifier"`
+	Secret                           types.String `tfsdk:"secret"`
+	SecretWO                         types.String `tfsdk:"secret_wo"`
+	SecretWOVersion                  types.Int64  `tfsdk:"secret_wo_version"`
+	AccountingPort                   types.Int64  `tfsdk:"accounting_port"`
+	AccountingRetry                  types.Int64  `tfsdk:"accounting_retry"`
+	AccountingTimeout                types.Int64  `tfsdk:"accounting_timeout"`
+	DynamicRequestPort               types.Int64  `tfsdk:"dynamic_request_port"`
+	MaxOutstandingRequests           types.Int64  `tfsdk:"max_outstanding_requests"`
+	Port                             types.Int64  `tfsdk:"port"`
+	PreauthenticationPort            types.Int64  `tfsdk:"preauthentication_port"`
+	PreauthenticationSecret          types.String `tfsdk:"preauthentication_secret"`
+	PreauthenticationSecretWO        types.String `tfsdk:"preauthentication_secret_wo"`
+	PreauthenticationSecretWOVersion types.Int64  `tfsdk:"preauthentication_secret_wo_version"`
+	Retry                            types.Int64  `tfsdk:"retry"`
+	RoutingInstance                  types.String `tfsdk:"routing_instance"`
+	SourceAddress                    types.String `tfsdk:"source_address"`
+	Timeout                          types.Int64  `tfsdk:"timeout"`
 }
 
 type systemBlockAccountingBlockDestinationTacplusServer struct {
@@ -1949,6 +2066,8 @@ type systemBlockAccountingBlockDestinationTacplusServer struct {
 	Port             types.Int64  `tfsdk:"port"`
 	RoutingInstance  types.String `tfsdk:"routing_instance"`
 	Secret           types.String `tfsdk:"secret"`
+	SecretWO         types.String `tfsdk:"secret_wo"`
+	SecretWOVersion  types.Int64  `tfsdk:"secret_wo_version"`
 	SingleConnection types.Bool   `tfsdk:"single_connection"`
 	SourceAddress    types.String `tfsdk:"source_address"`
 	Timeout          types.Int64  `tfsdk:"timeout"`
@@ -1967,8 +2086,10 @@ type systemBlockArchivalConfigurationConfig struct {
 }
 
 type systemBlockArchivalConfigurationBlockArchiveSite struct {
-	URL      types.String `tfsdk:"url"`
-	Password types.String `tfsdk:"password"`
+	URL               types.String `tfsdk:"url"                 tfdata:"identifier"`
+	Password          types.String `tfsdk:"password"`
+	PasswordWO        types.String `tfsdk:"password_wo"`
+	PasswordWOVersion types.Int64  `tfsdk:"password_wo_version"`
 }
 
 type systemBlockInet6BackupRouter struct {
@@ -2021,12 +2142,14 @@ func (block *systemBlockInternetOptionsBlockIcmpRateLimit) isEmpty() bool {
 }
 
 type systemBlockLicense struct {
-	Autoupdate            types.Bool     `tfsdk:"autoupdate"`
-	AutoupdatePassword    types.String   `tfsdk:"autoupdate_password"`
-	AutoupdateURL         types.String   `tfsdk:"autoupdate_url"`
-	Keys                  []types.String `tfsdk:"keys"`
-	RenewBeforeExpiration types.Int64    `tfsdk:"renew_before_expiration"`
-	RenewInterval         types.Int64    `tfsdk:"renew_interval"`
+	Autoupdate                  types.Bool     `tfsdk:"autoupdate"`
+	AutoupdatePassword          types.String   `tfsdk:"autoupdate_password"`
+	AutoupdatePasswordWO        types.String   `tfsdk:"autoupdate_password_wo"`
+	AutoupdatePasswordWOVersion types.Int64    `tfsdk:"autoupdate_password_wo_version"`
+	AutoupdateURL               types.String   `tfsdk:"autoupdate_url"`
+	Keys                        []types.String `tfsdk:"keys"`
+	RenewBeforeExpiration       types.Int64    `tfsdk:"renew_before_expiration"`
+	RenewInterval               types.Int64    `tfsdk:"renew_interval"`
 }
 
 func (block *systemBlockLicense) isEmpty() bool {
@@ -2034,12 +2157,14 @@ func (block *systemBlockLicense) isEmpty() bool {
 }
 
 type systemBlockLicenseConfig struct {
-	Autoupdate            types.Bool   `tfsdk:"autoupdate"`
-	AutoupdatePassword    types.String `tfsdk:"autoupdate_password"`
-	AutoupdateURL         types.String `tfsdk:"autoupdate_url"`
-	Keys                  types.Set    `tfsdk:"keys"`
-	RenewBeforeExpiration types.Int64  `tfsdk:"renew_before_expiration"`
-	RenewInterval         types.Int64  `tfsdk:"renew_interval"`
+	Autoupdate                  types.Bool   `tfsdk:"autoupdate"`
+	AutoupdatePassword          types.String `tfsdk:"autoupdate_password"`
+	AutoupdatePasswordWO        types.String `tfsdk:"autoupdate_password_wo"`
+	AutoupdatePasswordWOVersion types.Int64  `tfsdk:"autoupdate_password_wo_version"`
+	AutoupdateURL               types.String `tfsdk:"autoupdate_url"`
+	Keys                        types.Set    `tfsdk:"keys"`
+	RenewBeforeExpiration       types.Int64  `tfsdk:"renew_before_expiration"`
+	RenewInterval               types.Int64  `tfsdk:"renew_interval"`
 }
 
 func (block *systemBlockLicenseConfig) isEmpty() bool {
@@ -2425,19 +2550,47 @@ func (rsc *system) ValidateConfig(
 				}
 				destinationRadiusServerAddress := make(map[string]struct{})
 				for i, block := range configDestinationRadiusServer {
-					if block.Address.IsUnknown() {
-						continue
+					if !block.Address.IsUnknown() {
+						address := block.Address.ValueString()
+						if _, ok := destinationRadiusServerAddress[address]; ok {
+							resp.Diagnostics.AddAttributeError(
+								path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("address"),
+								tfdiag.DuplicateConfigErrSummary,
+								fmt.Sprintf("multiple destination_radius_server blocks with the same address %q"+
+									" in accounting block", address),
+							)
+						}
+						destinationRadiusServerAddress[address] = struct{}{}
 					}
-					address := block.Address.ValueString()
-					if _, ok := destinationRadiusServerAddress[address]; ok {
+
+					if !block.Secret.IsNull() && !block.Secret.IsUnknown() &&
+						!block.SecretWO.IsNull() && !block.SecretWO.IsUnknown() {
 						resp.Diagnostics.AddAttributeError(
-							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("address"),
-							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple destination_radius_server blocks with the same address %q"+
-								" in accounting block", address),
+							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("secret"),
+							tfdiag.ConflictConfigErrSummary,
+							fmt.Sprintf("only one of secret or secret_wo must be specified"+
+								" in destination_radius_server block %q in accounting block", block.Address.ValueString()),
 						)
 					}
-					destinationRadiusServerAddress[address] = struct{}{}
+					if block.Secret.IsNull() && block.SecretWO.IsNull() {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).AtName("secret"),
+							tfdiag.MissingConfigErrSummary,
+							fmt.Sprintf("one of secret or secret_wo must be specified"+
+								" in destination_radius_server block %q in accounting block", block.Address.ValueString()),
+						)
+					}
+					if !block.PreauthenticationSecret.IsNull() && !block.PreauthenticationSecret.IsUnknown() &&
+						!block.PreauthenticationSecretWO.IsNull() && !block.PreauthenticationSecretWO.IsUnknown() {
+						resp.Diagnostics.AddAttributeError(
+							path.Root("accounting").AtName("destination_radius_server").AtListIndex(i).
+								AtName("preauthentication_secret"),
+							tfdiag.ConflictConfigErrSummary,
+							fmt.Sprintf("preauthentication_secret and preauthentication_secret_wo"+
+								" cannot be configured together"+
+								" in destination_radius_server block %q in accounting block", block.Address.ValueString()),
+						)
+					}
 				}
 			}
 		}
@@ -2460,19 +2613,28 @@ func (rsc *system) ValidateConfig(
 				}
 				destinationTacplusServerAddress := make(map[string]struct{})
 				for i, block := range configDestinationTacplusServer {
-					if block.Address.IsUnknown() {
-						continue
+					if !block.Address.IsUnknown() {
+						address := block.Address.ValueString()
+						if _, ok := destinationTacplusServerAddress[address]; ok {
+							resp.Diagnostics.AddAttributeError(
+								path.Root("accounting").AtName("destination_tacplus_server").AtListIndex(i).AtName("address"),
+								tfdiag.DuplicateConfigErrSummary,
+								fmt.Sprintf("multiple destination_tacplus_server blocks with the same address %q"+
+									" in accounting block", address),
+							)
+						}
+						destinationTacplusServerAddress[address] = struct{}{}
 					}
-					address := block.Address.ValueString()
-					if _, ok := destinationTacplusServerAddress[address]; ok {
+
+					if !block.Secret.IsNull() && !block.Secret.IsUnknown() &&
+						!block.SecretWO.IsNull() && !block.SecretWO.IsUnknown() {
 						resp.Diagnostics.AddAttributeError(
-							path.Root("accounting").AtName("destination_tacplus_server").AtListIndex(i).AtName("address"),
-							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple destination_tacplus_server blocks with the same address %q"+
-								" in accounting block", address),
+							path.Root("accounting").AtName("destination_tacplus_server").AtListIndex(i).AtName("secret"),
+							tfdiag.ConflictConfigErrSummary,
+							fmt.Sprintf("secret and secret_wo cannot be configured together"+
+								" in destination_tacplus_server block %q in accounting block", block.Address.ValueString()),
 						)
 					}
-					destinationTacplusServerAddress[address] = struct{}{}
 				}
 			}
 		}
@@ -2505,6 +2667,16 @@ func (rsc *system) ValidateConfig(
 						)
 					}
 					archiveSiteURL[url] = struct{}{}
+				}
+
+				if !block.Password.IsNull() && !block.Password.IsUnknown() &&
+					!block.PasswordWO.IsNull() && !block.PasswordWO.IsUnknown() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("archival_configuration").AtName("archive_site").AtListIndex(i).AtName("password"),
+						tfdiag.ConflictConfigErrSummary,
+						fmt.Sprintf("password and password_wo cannot be configured together"+
+							" in archive_site block %q in archival_configuration block", block.URL.ValueString()),
+					)
 				}
 			}
 		}
@@ -2660,6 +2832,23 @@ func (rsc *system) ValidateConfig(
 				path.Root("license").AtName("autoupdate_password"),
 				tfdiag.MissingConfigErrSummary,
 				"autoupdate_url must be specified with autoupdate_password in license block",
+			)
+		}
+		if !config.License.AutoupdatePasswordWO.IsNull() &&
+			config.License.AutoupdateURL.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("license").AtName("autoupdate_password_wo"),
+				tfdiag.MissingConfigErrSummary,
+				"autoupdate_url must be specified with autoupdate_password_wo in license block",
+			)
+		}
+		if !config.License.AutoupdatePassword.IsNull() && !config.License.AutoupdatePassword.IsUnknown() &&
+			!config.License.AutoupdatePasswordWO.IsNull() && !config.License.AutoupdatePasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("license").AtName("autoupdate_password"),
+				tfdiag.ConflictConfigErrSummary,
+				"autoupdate_password and autoupdate_password_wo cannot be configured together"+
+					" in license block",
 			)
 		}
 		if !config.License.RenewInterval.IsNull() &&
@@ -2826,7 +3015,7 @@ func (rsc *system) ValidateConfig(
 				resp.Diagnostics.AddAttributeError(
 					path.Root("services").AtName("web_management_session_idle_timeout"),
 					tfdiag.MissingConfigErrSummary,
-					"web_management_http or web_management_https block must be specified"+
+					"one of web_management_http or web_management_https block must be specified"+
 						" with web_management_session_idle_timeout in services block",
 				)
 			}
@@ -2836,7 +3025,7 @@ func (rsc *system) ValidateConfig(
 				resp.Diagnostics.AddAttributeError(
 					path.Root("services").AtName("web_management_session_limit"),
 					tfdiag.MissingConfigErrSummary,
-					"web_management_http or web_management_https block must be specified"+
+					"one of web_management_http or web_management_https block must be specified"+
 						" with web_management_session_limit in services block",
 				)
 			}
@@ -2924,6 +3113,7 @@ func (rsc *system) Create(
 ) {
 	var plan systemData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -2954,6 +3144,8 @@ func (rsc *system) Read(
 		nil,
 		&data,
 		func() {
+			data.keepWriteOnly(&state)
+
 			nameServerWithOpts := false
 			for _, block := range data.NameServerOpts {
 				if !block.RoutingInstance.IsNull() {
@@ -2978,6 +3170,7 @@ func (rsc *system) Update(
 	var plan, state systemData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -3038,6 +3231,128 @@ func (rscData *systemData) fillID() {
 
 func (rscData *systemData) nullID() bool {
 	return rscData.ID.IsNull()
+}
+
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+//
+// The write-only arguments in list blocks are read by index:
+// the plan keeps the order of the configuration for a list block,
+// reading the whole list from the configuration isn't possible
+// because it may be unknown at this time.
+func (rscData *systemData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	if rscData.Accounting != nil {
+		for i := range rscData.Accounting.DestinationRadiusServer {
+			serverPath := path.Root("accounting").AtName("destination_radius_server").AtListIndex(i)
+
+			diags.Append(config.GetAttribute(ctx,
+				serverPath.AtName("secret_wo"),
+				&rscData.Accounting.DestinationRadiusServer[i].SecretWO)...)
+			diags.Append(config.GetAttribute(ctx,
+				serverPath.AtName("preauthentication_secret_wo"),
+				&rscData.Accounting.DestinationRadiusServer[i].PreauthenticationSecretWO)...)
+		}
+		for i := range rscData.Accounting.DestinationTacplusServer {
+			diags.Append(config.GetAttribute(ctx,
+				path.Root("accounting").AtName("destination_tacplus_server").AtListIndex(i).AtName("secret_wo"),
+				&rscData.Accounting.DestinationTacplusServer[i].SecretWO)...)
+		}
+	}
+	if rscData.ArchivalConfiguration != nil {
+		for i := range rscData.ArchivalConfiguration.ArchiveSite {
+			diags.Append(config.GetAttribute(ctx,
+				path.Root("archival_configuration").AtName("archive_site").AtListIndex(i).AtName("password_wo"),
+				&rscData.ArchivalConfiguration.ArchiveSite[i].PasswordWO)...)
+		}
+	}
+	if rscData.License != nil {
+		diags.Append(config.GetAttribute(ctx,
+			path.Root("license").AtName("autoupdate_password_wo"),
+			&rscData.License.AutoupdatePasswordWO)...)
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+//
+// The blocks read on the device aren't in the order of the configuration,
+// so they are matched with the state with their identifier.
+func (rscData *systemData) keepWriteOnly(state *systemData) {
+	if rscData.Accounting != nil && state.Accounting != nil {
+		stateRadiusServer := make(
+			map[string]systemBlockAccountingBlockDestinationRadiusServer,
+			len(state.Accounting.DestinationRadiusServer),
+		)
+		for _, block := range state.Accounting.DestinationRadiusServer {
+			stateRadiusServer[block.Address.ValueString()] = block
+		}
+		for i, block := range rscData.Accounting.DestinationRadiusServer {
+			stateBlock, ok := stateRadiusServer[block.Address.ValueString()]
+			if !ok {
+				continue
+			}
+
+			rscData.Accounting.DestinationRadiusServer[i].SecretWOVersion = stateBlock.SecretWOVersion
+			if !stateBlock.SecretWOVersion.IsNull() {
+				rscData.Accounting.DestinationRadiusServer[i].Secret = types.StringNull()
+			}
+			rscData.Accounting.DestinationRadiusServer[i].
+				PreauthenticationSecretWOVersion = stateBlock.PreauthenticationSecretWOVersion
+			if !stateBlock.PreauthenticationSecretWOVersion.IsNull() {
+				rscData.Accounting.DestinationRadiusServer[i].
+					PreauthenticationSecret = types.StringNull()
+			}
+		}
+
+		stateTacplusServer := make(
+			map[string]systemBlockAccountingBlockDestinationTacplusServer,
+			len(state.Accounting.DestinationTacplusServer),
+		)
+		for _, block := range state.Accounting.DestinationTacplusServer {
+			stateTacplusServer[block.Address.ValueString()] = block
+		}
+		for i, block := range rscData.Accounting.DestinationTacplusServer {
+			stateBlock, ok := stateTacplusServer[block.Address.ValueString()]
+			if !ok {
+				continue
+			}
+
+			rscData.Accounting.DestinationTacplusServer[i].SecretWOVersion = stateBlock.SecretWOVersion
+			if !stateBlock.SecretWOVersion.IsNull() {
+				rscData.Accounting.DestinationTacplusServer[i].Secret = types.StringNull()
+			}
+		}
+	}
+	if rscData.ArchivalConfiguration != nil && state.ArchivalConfiguration != nil {
+		stateArchiveSite := make(
+			map[string]systemBlockArchivalConfigurationBlockArchiveSite,
+			len(state.ArchivalConfiguration.ArchiveSite),
+		)
+		for _, block := range state.ArchivalConfiguration.ArchiveSite {
+			stateArchiveSite[block.URL.ValueString()] = block
+		}
+		for i, block := range rscData.ArchivalConfiguration.ArchiveSite {
+			stateBlock, ok := stateArchiveSite[block.URL.ValueString()]
+			if !ok {
+				continue
+			}
+
+			rscData.ArchivalConfiguration.ArchiveSite[i].PasswordWOVersion = stateBlock.PasswordWOVersion
+			if !stateBlock.PasswordWOVersion.IsNull() {
+				rscData.ArchivalConfiguration.ArchiveSite[i].Password = types.StringNull()
+			}
+		}
+	}
+	if rscData.License != nil && state.License != nil {
+		rscData.License.AutoupdatePasswordWOVersion = state.License.AutoupdatePasswordWOVersion
+		if !state.License.AutoupdatePasswordWOVersion.IsNull() {
+			rscData.License.AutoupdatePassword = types.StringNull()
+		}
+	}
 }
 
 func (rscData *systemData) set(
@@ -3268,7 +3583,13 @@ func (block *systemBlockAccounting) configSet() (
 		}
 		destinationRadiusServerAddress[address] = struct{}{}
 
-		configSet = append(configSet, v.configSet()...)
+		blockSet, pathErr, err := v.configSet(
+			path.Root("accounting").AtName("destination_radius_server").AtListIndex(i),
+		)
+		if err != nil {
+			return configSet, pathErr, err
+		}
+		configSet = append(configSet, blockSet...)
 	}
 	destinationTacplusServerAddress := make(map[string]struct{})
 	for i, v := range block.DestinationTacplusServer {
@@ -3286,11 +3607,26 @@ func (block *systemBlockAccounting) configSet() (
 	return configSet, path.Empty(), nil
 }
 
-func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet() []string {
+func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet(
+	pathRoot path.Path,
+) (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
 	setPrefix := "set system accounting destination radius server " + block.Address.ValueString() + " "
 
 	configSet := make([]string, 1, 100)
-	configSet[0] = setPrefix + "secret \"" + block.Secret.ValueString() + "\""
+	if v := block.Secret.ValueString(); v != "" {
+		configSet[0] = setPrefix + "secret \"" + v + "\""
+	} else if v := block.SecretWO.ValueString(); v != "" {
+		configSet[0] = setPrefix + "secret \"" + v + "\""
+	} else {
+		return configSet,
+			pathRoot.AtName("secret"),
+			fmt.Errorf("one of secret or secret_wo must be specified"+
+				" in destination_radius_server block %q in accounting block", block.Address.ValueString())
+	}
 
 	if !block.AccountingPort.IsNull() {
 		configSet = append(configSet, setPrefix+"accounting-port "+
@@ -3322,6 +3658,8 @@ func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet() []st
 	}
 	if v := block.PreauthenticationSecret.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"preauthentication-secret \""+v+"\"")
+	} else if v := block.PreauthenticationSecretWO.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"preauthentication-secret \""+v+"\"")
 	}
 	if !block.Retry.IsNull() {
 		configSet = append(configSet, setPrefix+"retry "+
@@ -3338,7 +3676,7 @@ func (block *systemBlockAccountingBlockDestinationRadiusServer) configSet() []st
 			utils.ConvI64toa(block.Timeout.ValueInt64()))
 	}
 
-	return configSet
+	return configSet, path.Empty(), nil
 }
 
 func (block *systemBlockAccountingBlockDestinationTacplusServer) configSet() []string {
@@ -3355,6 +3693,8 @@ func (block *systemBlockAccountingBlockDestinationTacplusServer) configSet() []s
 		configSet = append(configSet, setPrefix+"routing-instance "+v)
 	}
 	if v := block.Secret.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"secret \""+v+"\"")
+	} else if v := block.SecretWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"secret \""+v+"\"")
 	}
 	if block.SingleConnection.ValueBool() {
@@ -3390,6 +3730,9 @@ func (block *systemBlockArchivalConfiguration) configSet() (
 		archiveSiteURL[url] = struct{}{}
 		configSet = append(configSet, setPrefix+"archive-sites \""+url+"\"")
 		if password := v.Password.ValueString(); password != "" {
+			configSet = append(configSet,
+				setPrefix+"archive-sites \""+url+"\" password \""+password+"\"")
+		} else if password := v.PasswordWO.ValueString(); password != "" {
 			configSet = append(configSet,
 				setPrefix+"archive-sites \""+url+"\" password \""+password+"\"")
 		}
@@ -3528,18 +3871,27 @@ func (block *systemBlockLicense) configSet() (
 			configSet = append(configSet, setPrefix+"autoupdate url \""+vURL+"\"")
 			if v := block.AutoupdatePassword.ValueString(); v != "" {
 				configSet = append(configSet, setPrefix+"autoupdate url \""+vURL+"\" password \""+v+"\"")
+			} else if v := block.AutoupdatePasswordWO.ValueString(); v != "" {
+				configSet = append(configSet, setPrefix+"autoupdate url \""+vURL+"\" password \""+v+"\"")
 			}
 		} else if block.AutoupdatePassword.ValueString() != "" {
 			return configSet, path.Root("license").AtName("autoupdate_password"),
 				errors.New("autoupdate_url must be specified with autoupdate_password in license block")
+		} else if block.AutoupdatePasswordWO.ValueString() != "" {
+			return configSet, path.Root("license").AtName("autoupdate_password_wo"),
+				errors.New("autoupdate_url must be specified with autoupdate_password_wo in license block")
 		}
 	} else {
-		if block.AutoupdateURL.ValueString() != "" {
+		switch {
+		case block.AutoupdateURL.ValueString() != "":
 			return configSet, path.Root("license").AtName("autoupdate_url"),
 				errors.New("autoupdate must be specified with autoupdate_url in license block")
-		} else if block.AutoupdatePassword.ValueString() != "" {
+		case block.AutoupdatePassword.ValueString() != "":
 			return configSet, path.Root("license").AtName("autoupdate_password"),
 				errors.New("autoupdate and autoupdate_url must be specified with autoupdate_password in license block")
+		case block.AutoupdatePasswordWO.ValueString() != "":
+			return configSet, path.Root("license").AtName("autoupdate_password_wo"),
+				errors.New("autoupdate and autoupdate_url must be specified with autoupdate_password_wo in license block")
 		}
 	}
 	for _, v := range block.Keys {
@@ -3754,7 +4106,7 @@ func (block *systemBlockServices) configSet() (
 	if !block.WebManagementSessionIdleTimeout.IsNull() {
 		if block.WebManagementHTTP == nil && block.WebManagementHTTPS == nil {
 			return configSet, path.Root("services").AtName("web_management_session_idle_timeout"),
-				errors.New("web_management_http or web_management_https block must be specified" +
+				errors.New("one of web_management_http or web_management_https block must be specified" +
 					" with web_management_session_idle_timeout in services block")
 		}
 		configSet = append(configSet, setPrefix+"web-management session idle-timeout "+
@@ -3763,7 +4115,7 @@ func (block *systemBlockServices) configSet() (
 	if !block.WebManagementSessionLimit.IsNull() {
 		if block.WebManagementHTTP == nil && block.WebManagementHTTPS == nil {
 			return configSet, path.Root("services").AtName("web_management_session_limit"),
-				errors.New("web_management_http or web_management_https block must be specified" +
+				errors.New("one of web_management_http or web_management_https block must be specified" +
 					" with web_management_session_limit in services block")
 		}
 		configSet = append(configSet, setPrefix+"web-management session session-limit "+

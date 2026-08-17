@@ -1382,7 +1382,7 @@ func (rsc *accessAddressAssignmentPool) ValidateConfig( //nolint:gocognit,gocycl
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family").AtName("host").AtListIndex(i).AtName("name"),
 						tfdiag.MissingConfigErrSummary,
-						fmt.Sprintf("hardware_address or user_name must be specified"+
+						fmt.Sprintf("one of hardware_address or user_name must be specified"+
 							" in host block %q in family block", block.Name.ValueString()),
 					)
 				}
@@ -1393,7 +1393,7 @@ func (rsc *accessAddressAssignmentPool) ValidateConfig( //nolint:gocognit,gocycl
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family").AtName("host").AtListIndex(i).AtName("hardware_address"),
 						tfdiag.ConflictConfigErrSummary,
-						fmt.Sprintf("hardware_address and user_name cannot be configured together"+
+						fmt.Sprintf("only one of hardware_address or user_name must be specified"+
 							" in host block %q in family block", block.Name.ValueString()),
 					)
 				}
@@ -1496,7 +1496,7 @@ func (rsc *accessAddressAssignmentPool) ValidateConfig( //nolint:gocognit,gocycl
 					resp.Diagnostics.AddAttributeError(
 						path.Root("family").AtName("inet6_range").AtListIndex(i).AtName("name"),
 						tfdiag.MissingConfigErrSummary,
-						fmt.Sprintf("prefix_length or combination of low and high must be specified"+
+						fmt.Sprintf("one of prefix_length or combination of low and high must be specified"+
 							" in inet6_range block %q in family block", block.Name.ValueString()),
 					)
 				}
@@ -1898,7 +1898,7 @@ func (block *accessAddressAssignmentPoolBlockFamily) configSet(
 		default:
 			return configSet,
 				path.Root("family").AtName("inet6_range").AtListIndex(i).AtName("*"),
-				fmt.Errorf("prefix_length or combination of low and high must be specified"+
+				fmt.Errorf("one of prefix_length or combination of low and high must be specified"+
 					" in inet6_range block %q in family block", name)
 		}
 	}

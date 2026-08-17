@@ -24,7 +24,7 @@ func TestAccUpgradeStateResourceGroupDualSystem_V0toV1_basic(t *testing.T) {
 					ConfigDirectory: config.TestStepDirectory(),
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					ConfigPlanChecks: resource.ConfigPlanChecks{
 						PreApply: []plancheck.PlanCheck{

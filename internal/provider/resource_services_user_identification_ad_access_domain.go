@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -15,12 +16,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -110,12 +113,34 @@ func (rsc *servicesUserIdentificationADAccessDomain) Schema(
 				},
 			},
 			"user_password": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "Password string.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 128),
 					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"user_password_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Password string, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 128),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(
+						path.MatchRoot("user_password_wo_version"),
+					),
+				},
+			},
+			"user_password_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `user_password_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(
+						path.MatchRoot("user_password_wo"),
+					),
 				},
 			},
 		},
@@ -219,6 +244,28 @@ func (rsc *servicesUserIdentificationADAccessDomain) Schema(
 							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
+					"user_password_wo": schema.StringAttribute{
+						Optional:    true,
+						Sensitive:   true,
+						WriteOnly:   true,
+						Description: "Password string, not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.LengthBetween(1, 128),
+							tfvalidator.StringDoubleQuoteExclusion(),
+							stringvalidator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("user_password_wo_version"),
+							),
+						},
+					},
+					"user_password_wo_version": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Version of `user_password_wo` to trigger the sending of its value.",
+						Validators: []validator.Int64{
+							int64validator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("user_password_wo"),
+							),
+						},
+					},
 				},
 				PlanModifiers: []planmodifier.Object{
 					tfplanmodifier.BlockRemoveNull(),
@@ -234,6 +281,8 @@ type servicesUserIdentificationADAccessDomainData struct {
 	Name                      types.String                                                            `tfsdk:"name"`
 	UserName                  types.String                                                            `tfsdk:"user_name"`
 	UserPassword              types.String                                                            `tfsdk:"user_password"`
+	UserPasswordWO            types.String                                                            `tfsdk:"user_password_wo"`
+	UserPasswordWOVersion     types.Int64                                                             `tfsdk:"user_password_wo_version"`
 	DomainController          []servicesUserIdentificationADAccessDomainBlockDomainController         `tfsdk:"domain_controller"`
 	IPUserMappingDiscoveryWmi *servicesUserIdentificationADAccessDomainBlockIPUserMappingDiscoveryWmi `tfsdk:"ip_user_mapping_discovery_wmi"`
 	UserGroupMappingLdap      *servicesUserIdentificationADAccessDomainBlockUserGroupMappingLdap      `tfsdk:"user_group_mapping_ldap"`
@@ -245,6 +294,8 @@ type servicesUserIdentificationADAccessDomainConfig struct {
 	Name                      types.String                                                             `tfsdk:"name"`
 	UserName                  types.String                                                             `tfsdk:"user_name"`
 	UserPassword              types.String                                                             `tfsdk:"user_password"`
+	UserPasswordWO            types.String                                                             `tfsdk:"user_password_wo"`
+	UserPasswordWOVersion     types.Int64                                                              `tfsdk:"user_password_wo_version"`
 	DomainController          types.List                                                               `tfsdk:"domain_controller"`
 	IPUserMappingDiscoveryWmi *servicesUserIdentificationADAccessDomainBlockIPUserMappingDiscoveryWmi  `tfsdk:"ip_user_mapping_discovery_wmi"`
 	UserGroupMappingLdap      *servicesUserIdentificationADAccessDomainBlockUserGroupMappingLdapConfig `tfsdk:"user_group_mapping_ldap"`
@@ -261,21 +312,25 @@ type servicesUserIdentificationADAccessDomainBlockIPUserMappingDiscoveryWmi stru
 }
 
 type servicesUserIdentificationADAccessDomainBlockUserGroupMappingLdap struct {
-	Base           types.String   `tfsdk:"base"`
-	Address        []types.String `tfsdk:"address"`
-	AuthAlgoSimple types.Bool     `tfsdk:"auth_algo_simple"`
-	Ssl            types.Bool     `tfsdk:"ssl"`
-	UserName       types.String   `tfsdk:"user_name"`
-	UserPassword   types.String   `tfsdk:"user_password"`
+	Base                  types.String   `tfsdk:"base"`
+	Address               []types.String `tfsdk:"address"`
+	AuthAlgoSimple        types.Bool     `tfsdk:"auth_algo_simple"`
+	Ssl                   types.Bool     `tfsdk:"ssl"`
+	UserName              types.String   `tfsdk:"user_name"`
+	UserPassword          types.String   `tfsdk:"user_password"`
+	UserPasswordWO        types.String   `tfsdk:"user_password_wo"`
+	UserPasswordWOVersion types.Int64    `tfsdk:"user_password_wo_version"`
 }
 
 type servicesUserIdentificationADAccessDomainBlockUserGroupMappingLdapConfig struct {
-	Base           types.String `tfsdk:"base"`
-	Address        types.List   `tfsdk:"address"`
-	AuthAlgoSimple types.Bool   `tfsdk:"auth_algo_simple"`
-	Ssl            types.Bool   `tfsdk:"ssl"`
-	UserName       types.String `tfsdk:"user_name"`
-	UserPassword   types.String `tfsdk:"user_password"`
+	Base                  types.String `tfsdk:"base"`
+	Address               types.List   `tfsdk:"address"`
+	AuthAlgoSimple        types.Bool   `tfsdk:"auth_algo_simple"`
+	Ssl                   types.Bool   `tfsdk:"ssl"`
+	UserName              types.String `tfsdk:"user_name"`
+	UserPassword          types.String `tfsdk:"user_password"`
+	UserPasswordWO        types.String `tfsdk:"user_password_wo"`
+	UserPasswordWOVersion types.Int64  `tfsdk:"user_password_wo_version"`
 }
 
 func (rsc *servicesUserIdentificationADAccessDomain) ValidateConfig(
@@ -287,6 +342,22 @@ func (rsc *servicesUserIdentificationADAccessDomain) ValidateConfig(
 		return
 	}
 
+	if config.UserPassword.IsNull() &&
+		config.UserPasswordWO.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("user_password"),
+			tfdiag.MissingConfigErrSummary,
+			"one of user_password or user_password_wo must be specified",
+		)
+	}
+	if !config.UserPassword.IsNull() && !config.UserPassword.IsUnknown() &&
+		!config.UserPasswordWO.IsNull() && !config.UserPasswordWO.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("user_password"),
+			tfdiag.ConflictConfigErrSummary,
+			"only one of user_password or user_password_wo must be specified",
+		)
+	}
 	if !config.DomainController.IsNull() &&
 		!config.DomainController.IsUnknown() {
 		var configDomainController []servicesUserIdentificationADAccessDomainBlockDomainController
@@ -320,6 +391,17 @@ func (rsc *servicesUserIdentificationADAccessDomain) ValidateConfig(
 				"base must be specified in user_group_mapping_ldap block",
 			)
 		}
+		if !config.UserGroupMappingLdap.UserPassword.IsNull() &&
+			!config.UserGroupMappingLdap.UserPassword.IsUnknown() &&
+			!config.UserGroupMappingLdap.UserPasswordWO.IsNull() &&
+			!config.UserGroupMappingLdap.UserPasswordWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("user_group_mapping_ldap").AtName("user_password"),
+				tfdiag.ConflictConfigErrSummary,
+				"user_password and user_password_wo cannot be configured together"+
+					" in user_group_mapping_ldap block",
+			)
+		}
 	}
 }
 
@@ -328,6 +410,7 @@ func (rsc *servicesUserIdentificationADAccessDomain) Create(
 ) {
 	var plan servicesUserIdentificationADAccessDomainData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -402,7 +485,9 @@ func (rsc *servicesUserIdentificationADAccessDomain) Read(
 			state.Name.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -413,6 +498,7 @@ func (rsc *servicesUserIdentificationADAccessDomain) Update(
 	var plan, state servicesUserIdentificationADAccessDomainData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -484,6 +570,42 @@ func (rscData *servicesUserIdentificationADAccessDomainData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *servicesUserIdentificationADAccessDomainData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("user_password_wo"),
+		&rscData.UserPasswordWO)...)
+
+	if rscData.UserGroupMappingLdap != nil {
+		diags.Append(config.GetAttribute(ctx,
+			path.Root("user_group_mapping_ldap").AtName("user_password_wo"),
+			&rscData.UserGroupMappingLdap.UserPasswordWO)...)
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *servicesUserIdentificationADAccessDomainData) keepWriteOnly(
+	state *servicesUserIdentificationADAccessDomainData,
+) {
+	rscData.UserPasswordWOVersion = state.UserPasswordWOVersion
+	if !state.UserPasswordWOVersion.IsNull() {
+		rscData.UserPassword = types.StringNull()
+	}
+
+	if rscData.UserGroupMappingLdap != nil && state.UserGroupMappingLdap != nil {
+		rscData.UserGroupMappingLdap.UserPasswordWOVersion = state.UserGroupMappingLdap.UserPasswordWOVersion
+		if !state.UserGroupMappingLdap.UserPasswordWOVersion.IsNull() {
+			rscData.UserGroupMappingLdap.UserPassword = types.StringNull()
+		}
+	}
+}
+
 func (rscData *servicesUserIdentificationADAccessDomainData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -493,7 +615,14 @@ func (rscData *servicesUserIdentificationADAccessDomainData) set(
 
 	configSet := make([]string, 2, 100)
 	configSet[0] = setPrefix + "user " + rscData.UserName.ValueString()
-	configSet[1] = setPrefix + "user password \"" + rscData.UserPassword.ValueString() + "\""
+	if v := rscData.UserPassword.ValueString(); v != "" {
+		configSet[1] = setPrefix + "user password \"" + v + "\""
+	} else if v := rscData.UserPasswordWO.ValueString(); v != "" {
+		configSet[1] = setPrefix + "user password \"" + v + "\""
+	} else {
+		return path.Root("user_password"),
+			errors.New("one of user_password or user_password_wo must be specified")
+	}
 
 	domainControllerName := make(map[string]struct{})
 	for i, block := range rscData.DomainController {
@@ -556,6 +685,8 @@ func (block *servicesUserIdentificationADAccessDomainBlockUserGroupMappingLdap) 
 		configSet = append(configSet, setPrefix+"user "+v)
 	}
 	if v := block.UserPassword.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"user password \""+v+"\"")
+	} else if v := block.UserPasswordWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"user password \""+v+"\"")
 	}
 

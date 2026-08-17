@@ -84,6 +84,16 @@ The following arguments are supported:
   - **autoupdate_password** (Optional, String, Sensitive)  
     Password for autoupdate license keys from license servers.  
     `autoupdate_url` needs to be set.  
+    Conflict with `autoupdate_password_wo`.
+  - **autoupdate_password_wo** (Optional, String, Sensitive, Write-only)  
+    Password for autoupdate license keys from license servers, not stored in state.  
+    `autoupdate_url` needs to be set.  
+    Requires `autoupdate_password_wo_version` and Terraform 1.11 or later.  
+    Conflict with `autoupdate_password`.
+  - **autoupdate_password_wo_version** (Optional, Number)  
+    Version of `autoupdate_password_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `autoupdate_password_wo` to the device.  
+    Requires `autoupdate_password_wo`.
   - **autoupdate_url** (Optional, String)  
     Url for autoupdate license keys from license servers.  
     `autoupdate` needs to be set.
@@ -242,8 +252,19 @@ The following arguments are supported:
 
 - **address** (Required, String)  
   RADIUS server address.
-- **secret** (Required, String, Sensitive)  
-  Shared secret with the RADIUS server.
+- **secret** (Optional, String, Sensitive)  
+  Shared secret with the RADIUS server.  
+  One of `secret` or `secret_wo` is required.  
+  Conflict with `secret_wo`.
+- **secret_wo** (Optional, String, Sensitive, Write-only)  
+  Shared secret with the RADIUS server, not stored in state.  
+  One of `secret` or `secret_wo` is required.  
+  Requires `secret_wo_version` and Terraform 1.11 or later.  
+  Conflict with `secret`.
+- **secret_wo_version** (Optional, Number)  
+  Version of `secret_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `secret_wo` to the device.  
+  Requires `secret_wo`.
 - **accounting_port** (Optional, Number)  
   RADIUS server accounting port number (1..65535).
 - **accounting_retry** (Optional, Number)  
@@ -259,7 +280,16 @@ The following arguments are supported:
 - **preauthentication_port** (Optional, Number)  
   RADIUS server preauthentication port number (1..65535).
 - **preauthentication_secret** (Optional, String, Sensitive)  
-  Preauthentication shared secret with the RADIUS server.
+  Preauthentication shared secret with the RADIUS server.  
+  Conflict with `preauthentication_secret_wo`.
+- **preauthentication_secret_wo** (Optional, String, Sensitive, Write-only)  
+  Preauthentication shared secret with the RADIUS server, not stored in state.  
+  Requires `preauthentication_secret_wo_version` and Terraform 1.11 or later.  
+  Conflict with `preauthentication_secret`.
+- **preauthentication_secret_wo_version** (Optional, Number)  
+  Version of `preauthentication_secret_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `preauthentication_secret_wo` to the device.  
+  Requires `preauthentication_secret_wo`.
 - **retry** (Optional, Number)  
   Retry attempts (1..100).
 - **routing_instance** (Optional, String)  
@@ -280,7 +310,16 @@ The following arguments are supported:
 - **routing_instance** (Optional, String)  
   Routing instance.
 - **secret** (Optional, String, Sensitive)  
-  Shared secret with the authentication server.
+  Shared secret with the authentication server.  
+  Conflict with `secret_wo`.
+- **secret_wo** (Optional, String, Sensitive, Write-only)  
+  Shared secret with the authentication server, not stored in state.  
+  Requires `secret_wo_version` and Terraform 1.11 or later.  
+  Conflict with `secret`.
+- **secret_wo_version** (Optional, Number)  
+  Version of `secret_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `secret_wo` to the device.  
+  Requires `secret_wo`.
 - **single_connection** (Optional, Boolean)  
   Optimize TCP connection attempts.
 - **source_address** (Optional, String)  
@@ -298,6 +337,15 @@ The following arguments are supported:
     URLs to receive configuration files.
   - **password** (Optional, String, Sensitive)  
     Password for login into the archive site.  
+    Conflict with `password_wo`.
+  - **password_wo** (Optional, String, Sensitive, Write-only)  
+    Password for login into the archive site, not stored in state.  
+    Requires `password_wo_version` and Terraform 1.11 or later.  
+    Conflict with `password`.
+  - **password_wo_version** (Optional, Number)  
+    Version of `password_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `password_wo` to the device.  
+    Requires `password_wo`.
 - **transfer_interval** (Optional, Number)  
   Frequency at which file transfer happens (15..2880 minutes).  
   Need to set one of `transfer_interval` or `transfer_on_commit`.
@@ -607,3 +655,8 @@ Junos system can be imported using any id, e.g.
 ```shell
 $ terraform import junos_system.system random
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the secrets and passwords read on the
+  device are stored in the standard arguments, and therefore in the Terraform state.  
+  When the configuration uses the write-only arguments, the next apply removes them from the state.

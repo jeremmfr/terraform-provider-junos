@@ -19,7 +19,7 @@ func TestAccResourceSecurity_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -151,6 +151,9 @@ func TestAccResourceSecurity_basic(t *testing.T) {
 					ResourceName:      "junos_security.testacc_security",
 					ImportState:       true,
 					ImportStateVerify: true,
+					// on import, the date is read from the device without the leading zeros
+					// removed by it, so it cannot match the value in the configuration
+					ImportStateVerifyIgnore: []string{"idp_security_package.automatic_start_time"},
 				},
 				{
 					ConfigDirectory: config.TestStepDirectory(),

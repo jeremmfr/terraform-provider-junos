@@ -184,6 +184,7 @@ func (rsc *bgpNeighbor) Create(
 ) {
 	var plan bgpNeighborData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -358,7 +359,9 @@ func (rsc *bgpNeighbor) Read(
 			state.Group.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state.bgpAttrData)
+		},
 		resp,
 	)
 }
@@ -369,6 +372,7 @@ func (rsc *bgpNeighbor) Update(
 	var plan, state bgpNeighborData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

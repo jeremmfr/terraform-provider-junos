@@ -6,26 +6,30 @@ import (
 
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &iccp{}
-	_ resource.ResourceWithConfigure   = &iccp{}
-	_ resource.ResourceWithImportState = &iccp{}
+	_ resource.Resource                   = &iccp{}
+	_ resource.ResourceWithConfigure      = &iccp{}
+	_ resource.ResourceWithValidateConfig = &iccp{}
+	_ resource.ResourceWithImportState    = &iccp{}
 )
 
 type iccp struct {
@@ -100,6 +104,24 @@ func (rsc *iccp) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"authentication_key_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "MD5 authentication key for all peers, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 126),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("authentication_key_wo_version")),
+				},
+			},
+			"authentication_key_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `authentication_key_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("authentication_key_wo")),
+				},
+			},
 			"session_establishment_hold_time": schema.Int64Attribute{
 				Optional:    true,
 				Description: "Time within which connection must succeed with peers (seconds).",
@@ -115,7 +137,28 @@ type iccpData struct {
 	ID                           types.String `tfsdk:"id"`
 	LocalIPAddr                  types.String `tfsdk:"local_ip_addr"`
 	AuthenticationKey            types.String `tfsdk:"authentication_key"`
+	AuthenticationKeyWO          types.String `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion   types.Int64  `tfsdk:"authentication_key_wo_version"`
 	SessionEstablishmentHoldTime types.Int64  `tfsdk:"session_establishment_hold_time"`
+}
+
+func (rsc *iccp) ValidateConfig(
+	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
+) {
+	var config iccpData
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() &&
+		!config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("authentication_key"),
+			tfdiag.ConflictConfigErrSummary,
+			"authentication_key and authentication_key_wo cannot be configured together",
+		)
+	}
 }
 
 func (rsc *iccp) Create(
@@ -123,6 +166,7 @@ func (rsc *iccp) Create(
 ) {
 	var plan iccpData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -152,7 +196,9 @@ func (rsc *iccp) Read(
 		rsc,
 		nil,
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -163,6 +209,7 @@ func (rsc *iccp) Update(
 	var plan, state iccpData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -209,6 +256,23 @@ func (rsc *iccp) ImportState(
 	)
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *iccpData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) diag.Diagnostics {
+	return config.GetAttribute(ctx, path.Root("authentication_key_wo"), &rscData.AuthenticationKeyWO)
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *iccpData) keepWriteOnly(state *iccpData) {
+	rscData.AuthenticationKeyWOVersion = state.AuthenticationKeyWOVersion
+	if !state.AuthenticationKeyWOVersion.IsNull() {
+		rscData.AuthenticationKey = types.StringNull()
+	}
+}
+
 func (rscData *iccpData) fillID() {
 	rscData.ID = types.StringValue("iccp")
 }
@@ -228,6 +292,8 @@ func (rscData *iccpData) set(
 	configSet[0] = setPrefix + "local-ip-addr " + rscData.LocalIPAddr.ValueString()
 
 	if v := rscData.AuthenticationKey.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
+	} else if v := rscData.AuthenticationKeyWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
 	}
 	if !rscData.SessionEstablishmentHoldTime.IsNull() {

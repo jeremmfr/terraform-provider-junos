@@ -21,7 +21,7 @@ resource "junos_ospf_area" "testacc_ospfarea" {
     authentication_md5 {
       key_id     = 2
       key        = "testK3y2"
-      start_time = "2022-3-9.12:50:00"
+      start_time = "2022-03-09.12:50:00"
     }
     strict_bfd = true
     bfd_liveness_detection {
