@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -153,13 +155,49 @@ func (rsc *securityIkePolicy) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
-			"pre_shared_key_text": schema.StringAttribute{
+			"pre_shared_key_hexa_wo": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
-				Description: "Preshared key wit format as text.",
+				WriteOnly:   true,
+				Description: "Preshared key with format as hexadecimal, not stored in state.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("pre_shared_key_hexa_wo_version")),
+				},
+			},
+			"pre_shared_key_hexa_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `pre_shared_key_hexa_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("pre_shared_key_hexa_wo")),
+				},
+			},
+			"pre_shared_key_text": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Preshared key with format as text.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"pre_shared_key_text_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Preshared key with format as text, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("pre_shared_key_text_wo_version")),
+				},
+			},
+			"pre_shared_key_text_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `pre_shared_key_text_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("pre_shared_key_text_wo")),
 				},
 			},
 			"reauth_frequency": schema.Int64Attribute{
@@ -174,27 +212,35 @@ func (rsc *securityIkePolicy) Schema(
 }
 
 type securityIkePolicyData struct {
-	ID               types.String   `tfsdk:"id"`
-	Name             types.String   `tfsdk:"name"`
-	Description      types.String   `tfsdk:"description"`
-	Mode             types.String   `tfsdk:"mode"`
-	PreSharedKeyHexa types.String   `tfsdk:"pre_shared_key_hexa"`
-	PreSharedKeyText types.String   `tfsdk:"pre_shared_key_text"`
-	Proposals        []types.String `tfsdk:"proposals"`
-	ProposalSet      types.String   `tfsdk:"proposal_set"`
-	ReauthFrequency  types.Int64    `tfsdk:"reauth_frequency"`
+	ID                        types.String   `tfsdk:"id"`
+	Name                      types.String   `tfsdk:"name"`
+	Description               types.String   `tfsdk:"description"`
+	Mode                      types.String   `tfsdk:"mode"`
+	PreSharedKeyHexa          types.String   `tfsdk:"pre_shared_key_hexa"`
+	PreSharedKeyHexaWO        types.String   `tfsdk:"pre_shared_key_hexa_wo"`
+	PreSharedKeyHexaWOVersion types.Int64    `tfsdk:"pre_shared_key_hexa_wo_version"`
+	PreSharedKeyText          types.String   `tfsdk:"pre_shared_key_text"`
+	PreSharedKeyTextWO        types.String   `tfsdk:"pre_shared_key_text_wo"`
+	PreSharedKeyTextWOVersion types.Int64    `tfsdk:"pre_shared_key_text_wo_version"`
+	Proposals                 []types.String `tfsdk:"proposals"`
+	ProposalSet               types.String   `tfsdk:"proposal_set"`
+	ReauthFrequency           types.Int64    `tfsdk:"reauth_frequency"`
 }
 
 type securityIkePolicyConfig struct {
-	ID               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	Description      types.String `tfsdk:"description"`
-	Mode             types.String `tfsdk:"mode"`
-	PreSharedKeyHexa types.String `tfsdk:"pre_shared_key_hexa"`
-	PreSharedKeyText types.String `tfsdk:"pre_shared_key_text"`
-	Proposals        types.List   `tfsdk:"proposals"`
-	ProposalSet      types.String `tfsdk:"proposal_set"`
-	ReauthFrequency  types.Int64  `tfsdk:"reauth_frequency"`
+	ID                        types.String `tfsdk:"id"`
+	Name                      types.String `tfsdk:"name"`
+	Description               types.String `tfsdk:"description"`
+	Mode                      types.String `tfsdk:"mode"`
+	PreSharedKeyHexa          types.String `tfsdk:"pre_shared_key_hexa"`
+	PreSharedKeyHexaWO        types.String `tfsdk:"pre_shared_key_hexa_wo"`
+	PreSharedKeyHexaWOVersion types.Int64  `tfsdk:"pre_shared_key_hexa_wo_version"`
+	PreSharedKeyText          types.String `tfsdk:"pre_shared_key_text"`
+	PreSharedKeyTextWO        types.String `tfsdk:"pre_shared_key_text_wo"`
+	PreSharedKeyTextWOVersion types.Int64  `tfsdk:"pre_shared_key_text_wo_version"`
+	Proposals                 types.List   `tfsdk:"proposals"`
+	ProposalSet               types.String `tfsdk:"proposal_set"`
+	ReauthFrequency           types.Int64  `tfsdk:"reauth_frequency"`
 }
 
 func (rsc *securityIkePolicy) ValidateConfig(
@@ -211,15 +257,30 @@ func (rsc *securityIkePolicy) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("proposals"),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of proposals or proposal_set must be specified",
+			"proposals and proposal_set cannot be configured together",
 		)
 	}
-	if !config.PreSharedKeyText.IsNull() && !config.PreSharedKeyText.IsUnknown() &&
-		!config.PreSharedKeyHexa.IsNull() && !config.PreSharedKeyHexa.IsUnknown() {
+	// the pre-shared key can only be set once, whatever its format
+	// and whether it's a write-only argument or not
+	var preSharedKeyConfigured []string
+	for _, preSharedKey := range []struct {
+		name  string
+		value types.String
+	}{
+		{name: "pre_shared_key_hexa", value: config.PreSharedKeyHexa},
+		{name: "pre_shared_key_hexa_wo", value: config.PreSharedKeyHexaWO},
+		{name: "pre_shared_key_text", value: config.PreSharedKeyText},
+		{name: "pre_shared_key_text_wo", value: config.PreSharedKeyTextWO},
+	} {
+		if !preSharedKey.value.IsNull() && !preSharedKey.value.IsUnknown() {
+			preSharedKeyConfigured = append(preSharedKeyConfigured, preSharedKey.name)
+		}
+	}
+	if len(preSharedKeyConfigured) > 1 {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("pre_shared_key_text"),
+			path.Root(preSharedKeyConfigured[0]),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of pre_shared_key_text or pre_shared_key_hexa can be specified",
+			"only one of "+strings.Join(preSharedKeyConfigured, ", ")+" can be specified",
 		)
 	}
 }
@@ -229,6 +290,7 @@ func (rsc *securityIkePolicy) Create(
 ) {
 	var plan securityIkePolicyData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -303,7 +365,9 @@ func (rsc *securityIkePolicy) Read(
 			state.Name.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -314,6 +378,7 @@ func (rsc *securityIkePolicy) Update(
 	var plan, state securityIkePolicyData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -377,6 +442,32 @@ func checkSecurityIkePolicyExists(
 	return true, nil
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *securityIkePolicyData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("pre_shared_key_hexa_wo"), &rscData.PreSharedKeyHexaWO)...)
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("pre_shared_key_text_wo"), &rscData.PreSharedKeyTextWO)...)
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *securityIkePolicyData) keepWriteOnly(state *securityIkePolicyData) {
+	rscData.PreSharedKeyHexaWOVersion = state.PreSharedKeyHexaWOVersion
+	rscData.PreSharedKeyTextWOVersion = state.PreSharedKeyTextWOVersion
+	if !state.PreSharedKeyHexaWOVersion.IsNull() {
+		rscData.PreSharedKeyHexa = types.StringNull()
+	}
+	if !state.PreSharedKeyTextWOVersion.IsNull() {
+		rscData.PreSharedKeyText = types.StringNull()
+	}
+}
+
 func (rscData *securityIkePolicyData) fillID() {
 	rscData.ID = types.StringValue(rscData.Name.ValueString())
 }
@@ -411,8 +502,12 @@ func (rscData *securityIkePolicyData) set(
 	}
 	if v := rscData.PreSharedKeyHexa.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"pre-shared-key hexadecimal \""+v+"\"")
+	} else if v := rscData.PreSharedKeyHexaWO.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"pre-shared-key hexadecimal \""+v+"\"")
 	}
 	if v := rscData.PreSharedKeyText.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"pre-shared-key ascii-text \""+v+"\"")
+	} else if v := rscData.PreSharedKeyTextWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"pre-shared-key ascii-text \""+v+"\"")
 	}
 	if !rscData.ReauthFrequency.IsNull() {

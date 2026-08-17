@@ -8,13 +8,13 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-var testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){ //nolint:gochecknoglobals
-	"junos": providerserver.NewProtocol5WithError(provider.New()),
+var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){ //nolint:gochecknoglobals
+	"junos": providerserver.NewProtocol6WithError(provider.New()),
 }
 
 func testAccPreCheck(t *testing.T) {
@@ -48,7 +48,7 @@ func TestAccProviderSingleSession_basic(t *testing.T) {
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory:          config.TestStepDirectory(),
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				},
 			},
 		})

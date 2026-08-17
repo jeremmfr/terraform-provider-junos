@@ -198,7 +198,16 @@ The following arguments are supported:
 - **advertisements_threshold** (Optional, Number)  
   Number of vrrp advertisements missed before declaring master down.
 - **authentication_key** (Optional, String, Sensitive)  
-  Authentication key.
+  Authentication key.  
+  Conflict with `authentication_key_wo`.
+- **authentication_key_wo** (Optional, String, Sensitive, Write-only)  
+  Authentication key, not stored in state.  
+  Requires `authentication_key_wo_version` and Terraform 1.11 or later.  
+  Conflict with `authentication_key`.
+- **authentication_key_wo_version** (Optional, Number)  
+  Version of `authentication_key_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `authentication_key_wo` to the device.  
+  Requires `authentication_key_wo`.
 - **authentication_type** (Optional, String)  
   Authentication type.  
   Need to be `md5` or `simple`.
@@ -295,7 +304,8 @@ The following arguments are supported:
 ### vrrp_group arguments for address in family_inet6
 
 Same as [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet)
-block but without `authentication_key`, `authentication_type` and with
+block but without `authentication_key`, `authentication_key_wo`, `authentication_key_wo_version`,
+`authentication_type` and with
 
 - **virtual_link_local_address** (Optional, String)  
   Address IPv6 for Virtual link-local addresses.
@@ -356,3 +366,8 @@ Junos interface can be imported using an id made up of `<name>`, e.g.
 ```shell
 $ terraform import junos_interface_logical.interface_fw_demo_100 ae.100
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the authentication keys read on the
+  device are stored in `authentication_key`, and therefore in the Terraform state.  
+  When the configuration uses the write-only arguments, the next apply removes them from the state.

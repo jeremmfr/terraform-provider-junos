@@ -45,11 +45,19 @@ The following arguments are supported:
     Name of interface or interface-range.
   - **authentication_simple_password** (Optional, String, Sensitive)  
     Authentication key.  
-    Conflict with `authentication_md5`.
+    Conflict with `authentication_simple_password_wo` and `authentication_md5`.
+  - **authentication_simple_password_wo** (Optional, String, Sensitive, Write-only)  
+    Authentication key, not stored in state.  
+    Requires `authentication_simple_password_wo_version` and Terraform 1.11 or later.  
+    Conflict with `authentication_simple_password` and `authentication_md5`.
+  - **authentication_simple_password_wo_version** (Optional, Number)  
+    Version of `authentication_simple_password_wo` to trigger the sending of its value.  
+    Increment it to send the current value of `authentication_simple_password_wo` to the device.  
+    Requires `authentication_simple_password_wo`.
   - **authentication_md5** (Optional, Block List)  
     For each key_id, MD5 authentication key.  
     See [below for nested schema](#authentication_md5-arguments-for-interface).  
-    Conflict with `authentication_simple_password`.
+    Conflict with `authentication_simple_password` and `authentication_simple_password_wo`.
   - **bandwidth_based_metrics** (Optional, Block Set)  
     For each bandwidth, configure bandwidth based metrics.  
     See [below for nested schema](#bandwidth_based_metrics-arguments-for-interface).
@@ -198,10 +206,22 @@ The following arguments are supported:
 
 ### authentication_md5 arguments for interface
 
+-> **Note**
+  One of `key` or `key_wo` arguments is required.
+
 - **key_id** (Required, Number)  
   Key ID for MD5 authentication (0..255).
-- **key** (Required, String, Sensitive)  
-  MD5 authentication key value.
+- **key** (Optional, String, Sensitive)  
+  MD5 authentication key value.  
+  Conflict with `key_wo`.
+- **key_wo** (Optional, String, Sensitive, Write-only)  
+  MD5 authentication key value, not stored in state.  
+  Requires `key_wo_version` and Terraform 1.11 or later.  
+  Conflict with `key`.
+- **key_wo_version** (Optional, Number)  
+  Version of `key_wo` to trigger the sending of its value.  
+  Increment it to send the current value of `key_wo` to the device.  
+  Requires `key_wo`.
 - **start_time** (Optional, String)  
   Start time for key transmission (YYYY-MM-DD.HH:MM:SS).
 
@@ -298,3 +318,9 @@ Junos ospf area can be imported using an id made up of
 $ terraform import junos_ospf_area.demo_area 0.0.0.0_-_v2_-_default
 $ terraform import junos_ospf_area.demo_area2 0.0.0.0_-_v3_-_ipv4-unicast_-_default
 ```
+
+!> **Warning**
+  Write-only arguments cannot be filled by an import, so the authentication keys read on the
+  device are stored in `authentication_simple_password` and `key`, and therefore in the
+  Terraform state.  
+  When the configuration uses the write-only arguments, the next apply removes them from the state.

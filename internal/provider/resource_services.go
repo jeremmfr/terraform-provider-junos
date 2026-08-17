@@ -17,12 +17,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
@@ -576,6 +578,28 @@ func (rsc *services) Schema(
 							tfvalidator.StringDoubleQuoteExclusion(),
 						},
 					},
+					"url_parameter_wo": schema.StringAttribute{
+						Optional:    true,
+						Sensitive:   true,
+						WriteOnly:   true,
+						Description: "Configure the parameter of url, not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+							tfvalidator.StringDoubleQuoteExclusion(),
+							stringvalidator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("url_parameter_wo_version"),
+							),
+						},
+					},
+					"url_parameter_wo_version": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Version of `url_parameter_wo` to trigger the sending of its value.",
+						Validators: []validator.Int64{
+							int64validator.AlsoRequires(
+								path.MatchRelative().AtParent().AtName("url_parameter_wo"),
+							),
+						},
+					},
 				},
 				Blocks: map[string]schema.Block{
 					"default_policy": schema.ListNestedBlock{
@@ -807,6 +831,30 @@ func (rsc *services) Schema(
 											tfvalidator.StringDoubleQuoteExclusion(),
 										},
 									},
+									"primary_client_secret_wo": schema.StringAttribute{
+										Optional:  true,
+										Sensitive: true,
+										WriteOnly: true,
+										Description: "Client secret of Primary server for OAuth2 grant," +
+											" not stored in state.",
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(1, 128),
+											tfvalidator.StringDoubleQuoteExclusion(),
+											stringvalidator.AlsoRequires(
+												path.MatchRelative().AtParent().AtName("primary_client_secret_wo_version"),
+											),
+										},
+									},
+									"primary_client_secret_wo_version": schema.Int64Attribute{
+										Optional: true,
+										Description: "Version of `primary_client_secret_wo`" +
+											" to trigger the sending of its value.",
+										Validators: []validator.Int64{
+											int64validator.AlsoRequires(
+												path.MatchRelative().AtParent().AtName("primary_client_secret_wo"),
+											),
+										},
+									},
 									"connect_method": schema.StringAttribute{
 										Optional:    true,
 										Description: "Method of connection.",
@@ -871,6 +919,30 @@ func (rsc *services) Schema(
 										Validators: []validator.String{
 											stringvalidator.LengthBetween(1, 128),
 											tfvalidator.StringDoubleQuoteExclusion(),
+										},
+									},
+									"secondary_client_secret_wo": schema.StringAttribute{
+										Optional:  true,
+										Sensitive: true,
+										WriteOnly: true,
+										Description: "Client secret of Secondary server for OAuth2 grant," +
+											" not stored in state.",
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(1, 128),
+											tfvalidator.StringDoubleQuoteExclusion(),
+											stringvalidator.AlsoRequires(
+												path.MatchRelative().AtParent().AtName("secondary_client_secret_wo_version"),
+											),
+										},
+									},
+									"secondary_client_secret_wo_version": schema.Int64Attribute{
+										Optional: true,
+										Description: "Version of `secondary_client_secret_wo`" +
+											" to trigger the sending of its value.",
+										Validators: []validator.Int64{
+											int64validator.AlsoRequires(
+												path.MatchRelative().AtParent().AtName("secondary_client_secret_wo"),
+											),
 										},
 									},
 									"token_api": schema.StringAttribute{
@@ -1010,6 +1082,8 @@ type servicesBlockSecurityIntelligence struct {
 	ProxyProfile             types.String                                          `tfsdk:"proxy_profile"`
 	URL                      types.String                                          `tfsdk:"url"`
 	URLParameter             types.String                                          `tfsdk:"url_parameter"`
+	URLParameterWO           types.String                                          `tfsdk:"url_parameter_wo"`
+	URLParameterWOVersion    types.Int64                                           `tfsdk:"url_parameter_wo_version"`
 	DefaultPolicy            []servicesBlockSecurityIntelligenceBlockDefaultPolicy `tfsdk:"default_policy"`
 }
 
@@ -1024,6 +1098,8 @@ type servicesBlockSecurityIntelligenceConfig struct {
 	ProxyProfile             types.String `tfsdk:"proxy_profile"`
 	URL                      types.String `tfsdk:"url"`
 	URLParameter             types.String `tfsdk:"url_parameter"`
+	URLParameterWO           types.String `tfsdk:"url_parameter_wo"`
+	URLParameterWOVersion    types.Int64  `tfsdk:"url_parameter_wo_version"`
 	DefaultPolicy            types.List   `tfsdk:"default_policy"`
 }
 
@@ -1113,21 +1189,25 @@ func (block *servicesBlockUserIdentificationBlockIdentityManagementConfig) hasKn
 }
 
 type servicesBlockUserIdentificationBlockIdentityManagementBlockConnection struct {
-	PrimaryAddress         types.String `tfsdk:"primary_address"`
-	PrimaryClientID        types.String `tfsdk:"primary_client_id"`
-	PrimaryClientSecret    types.String `tfsdk:"primary_client_secret"`
-	ConnectMethod          types.String `tfsdk:"connect_method"`
-	Port                   types.Int64  `tfsdk:"port"`
-	PrimaryCACertificate   types.String `tfsdk:"primary_ca_certificate"`
-	QueryAPI               types.String `tfsdk:"query_api"`
-	SecondaryAddress       types.String `tfsdk:"secondary_address"`
-	SecondaryCACertificate types.String `tfsdk:"secondary_ca_certificate"`
-	SecondaryClientID      types.String `tfsdk:"secondary_client_id"`
-	SecondaryClientSecret  types.String `tfsdk:"secondary_client_secret"`
-	TokenAPI               types.String `tfsdk:"token_api"`
+	PrimaryAddress                 types.String `tfsdk:"primary_address"`
+	PrimaryClientID                types.String `tfsdk:"primary_client_id"`
+	PrimaryClientSecret            types.String `tfsdk:"primary_client_secret"`
+	PrimaryClientSecretWO          types.String `tfsdk:"primary_client_secret_wo"`
+	PrimaryClientSecretWOVersion   types.Int64  `tfsdk:"primary_client_secret_wo_version"`
+	ConnectMethod                  types.String `tfsdk:"connect_method"`
+	Port                           types.Int64  `tfsdk:"port"`
+	PrimaryCACertificate           types.String `tfsdk:"primary_ca_certificate"`
+	QueryAPI                       types.String `tfsdk:"query_api"`
+	SecondaryAddress               types.String `tfsdk:"secondary_address"`
+	SecondaryCACertificate         types.String `tfsdk:"secondary_ca_certificate"`
+	SecondaryClientID              types.String `tfsdk:"secondary_client_id"`
+	SecondaryClientSecret          types.String `tfsdk:"secondary_client_secret"`
+	SecondaryClientSecretWO        types.String `tfsdk:"secondary_client_secret_wo"`
+	SecondaryClientSecretWOVersion types.Int64  `tfsdk:"secondary_client_secret_wo_version"`
+	TokenAPI                       types.String `tfsdk:"token_api"`
 }
 
-func (rsc *services) ValidateConfig(
+func (rsc *services) ValidateConfig( //nolint:gocyclo
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
 ) {
 	var config servicesConfig
@@ -1345,6 +1425,17 @@ func (rsc *services) ValidateConfig(
 					" in security_intelligence block",
 			)
 		}
+		if !config.SecurityIntelligence.URLParameter.IsNull() &&
+			!config.SecurityIntelligence.URLParameter.IsUnknown() &&
+			!config.SecurityIntelligence.URLParameterWO.IsNull() &&
+			!config.SecurityIntelligence.URLParameterWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("security_intelligence").AtName("url_parameter"),
+				tfdiag.ConflictConfigErrSummary,
+				"url_parameter and url_parameter_wo cannot be configured together"+
+					" in security_intelligence block",
+			)
+		}
 	}
 	if config.UserIdentification != nil {
 		if config.UserIdentification.isEmpty() {
@@ -1425,12 +1516,37 @@ func (rsc *services) ValidateConfig(
 							" in connection block in identity_management block in user_identification block",
 					)
 				}
-				if config.UserIdentification.IdentityManagement.Connection.PrimaryClientSecret.IsNull() {
+				if config.UserIdentification.IdentityManagement.Connection.PrimaryClientSecret.IsNull() &&
+					config.UserIdentification.IdentityManagement.Connection.PrimaryClientSecretWO.IsNull() {
 					resp.Diagnostics.AddAttributeError(
 						path.Root("user_identification").AtName("identity_management").
 							AtName("connection").AtName("primary_client_secret"),
 						tfdiag.MissingConfigErrSummary,
-						"primary_client_secret must be specified"+
+						"one of primary_client_secret or primary_client_secret_wo must be specified"+
+							" in connection block in identity_management block in user_identification block",
+					)
+				}
+				if !config.UserIdentification.IdentityManagement.Connection.PrimaryClientSecret.IsNull() &&
+					!config.UserIdentification.IdentityManagement.Connection.PrimaryClientSecret.IsUnknown() &&
+					!config.UserIdentification.IdentityManagement.Connection.PrimaryClientSecretWO.IsNull() &&
+					!config.UserIdentification.IdentityManagement.Connection.PrimaryClientSecretWO.IsUnknown() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("user_identification").AtName("identity_management").
+							AtName("connection").AtName("primary_client_secret"),
+						tfdiag.ConflictConfigErrSummary,
+						"only one of primary_client_secret or primary_client_secret_wo must be specified"+
+							" in connection block in identity_management block in user_identification block",
+					)
+				}
+				if !config.UserIdentification.IdentityManagement.Connection.SecondaryClientSecret.IsNull() &&
+					!config.UserIdentification.IdentityManagement.Connection.SecondaryClientSecret.IsUnknown() &&
+					!config.UserIdentification.IdentityManagement.Connection.SecondaryClientSecretWO.IsNull() &&
+					!config.UserIdentification.IdentityManagement.Connection.SecondaryClientSecretWO.IsUnknown() {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("user_identification").AtName("identity_management").
+							AtName("connection").AtName("secondary_client_secret"),
+						tfdiag.ConflictConfigErrSummary,
+						"secondary_client_secret and secondary_client_secret_wo cannot be configured together"+
 							" in connection block in identity_management block in user_identification block",
 					)
 				}
@@ -1451,6 +1567,7 @@ func (rsc *services) Create(
 ) {
 	var plan servicesData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -1482,6 +1599,8 @@ func (rsc *services) Read(
 		nil,
 		&data,
 		func() {
+			data.keepWriteOnly(&state)
+
 			data.CleanOnDestroy = state.CleanOnDestroy
 		},
 		resp,
@@ -1493,6 +1612,7 @@ func (rsc *services) Update(
 ) {
 	var plan servicesData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -1615,6 +1735,63 @@ func (rscData *servicesData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *servicesData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	if rscData.SecurityIntelligence != nil {
+		diags.Append(config.GetAttribute(ctx,
+			path.Root("security_intelligence").AtName("url_parameter_wo"),
+			&rscData.SecurityIntelligence.URLParameterWO)...)
+	}
+	if rscData.UserIdentification != nil &&
+		rscData.UserIdentification.IdentityManagement != nil &&
+		rscData.UserIdentification.IdentityManagement.Connection != nil {
+		connectionPath := path.Root("user_identification").
+			AtName("identity_management").
+			AtName("connection")
+
+		diags.Append(config.GetAttribute(ctx,
+			connectionPath.AtName("primary_client_secret_wo"),
+			&rscData.UserIdentification.IdentityManagement.Connection.PrimaryClientSecretWO)...)
+		diags.Append(config.GetAttribute(ctx,
+			connectionPath.AtName("secondary_client_secret_wo"),
+			&rscData.UserIdentification.IdentityManagement.Connection.SecondaryClientSecretWO)...)
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *servicesData) keepWriteOnly(state *servicesData) {
+	if rscData.SecurityIntelligence != nil && state.SecurityIntelligence != nil {
+		rscData.SecurityIntelligence.URLParameterWOVersion = state.SecurityIntelligence.URLParameterWOVersion
+		if !state.SecurityIntelligence.URLParameterWOVersion.IsNull() {
+			rscData.SecurityIntelligence.URLParameter = types.StringNull()
+		}
+	}
+	if rscData.UserIdentification != nil &&
+		rscData.UserIdentification.IdentityManagement != nil &&
+		rscData.UserIdentification.IdentityManagement.Connection != nil &&
+		state.UserIdentification != nil &&
+		state.UserIdentification.IdentityManagement != nil &&
+		state.UserIdentification.IdentityManagement.Connection != nil {
+		connection := rscData.UserIdentification.IdentityManagement.Connection
+		stateConnection := state.UserIdentification.IdentityManagement.Connection
+
+		connection.PrimaryClientSecretWOVersion = stateConnection.PrimaryClientSecretWOVersion
+		if !stateConnection.PrimaryClientSecretWOVersion.IsNull() {
+			connection.PrimaryClientSecret = types.StringNull()
+		}
+		connection.SecondaryClientSecretWOVersion = stateConnection.SecondaryClientSecretWOVersion
+		if !stateConnection.SecondaryClientSecretWOVersion.IsNull() {
+			connection.SecondaryClientSecret = types.StringNull()
+		}
+	}
+}
+
 func (rscData *servicesData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -1655,7 +1832,11 @@ func (rscData *servicesData) set(
 				errors.New("user_identification block is empty")
 		}
 
-		configSet = append(configSet, rscData.UserIdentification.configSet()...)
+		blockSet, pathErr, err := rscData.UserIdentification.configSet()
+		if err != nil {
+			return pathErr, err
+		}
+		configSet = append(configSet, blockSet...)
 	}
 
 	return path.Empty(), junSess.ConfigSet(ctx, configSet)
@@ -1934,6 +2115,8 @@ func (block *servicesBlockSecurityIntelligence) configSet() (
 	}
 	if v := block.URLParameter.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"url-parameter \""+v+"\"")
+	} else if v := block.URLParameterWO.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"url-parameter \""+v+"\"")
 	}
 
 	defaultPolicyCategoryName := make(map[string]struct{})
@@ -1953,7 +2136,11 @@ func (block *servicesBlockSecurityIntelligence) configSet() (
 	return configSet, path.Empty(), nil
 }
 
-func (block *servicesBlockUserIdentification) configSet() []string {
+func (block *servicesBlockUserIdentification) configSet() (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
 	setPrefix := "set services user-identification "
 	configSet := make([]string, 0, 100)
 
@@ -1965,10 +2152,14 @@ func (block *servicesBlockUserIdentification) configSet() []string {
 		configSet = append(configSet, block.ADAccess.configSet()...)
 	}
 	if block.IdentityManagement != nil {
-		configSet = append(configSet, block.IdentityManagement.configSet()...)
+		blockSet, pathErr, err := block.IdentityManagement.configSet()
+		if err != nil {
+			return configSet, pathErr, err
+		}
+		configSet = append(configSet, blockSet...)
 	}
 
-	return configSet
+	return configSet, path.Empty(), nil
 }
 
 func (block *servicesBlockUserIdentificationBlockADAccess) configSet() []string {
@@ -2006,7 +2197,11 @@ func (block *servicesBlockUserIdentificationBlockADAccess) configSet() []string 
 	return configSet
 }
 
-func (block *servicesBlockUserIdentificationBlockIdentityManagement) configSet() []string {
+func (block *servicesBlockUserIdentificationBlockIdentityManagement) configSet() (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
 	configSet := make([]string, 0, 100)
 	setPrefix := "set services user-identification identity-management "
 
@@ -2050,19 +2245,37 @@ func (block *servicesBlockUserIdentificationBlockIdentityManagement) configSet()
 	}
 
 	if block.Connection != nil {
-		configSet = append(configSet, block.Connection.configSet()...)
+		blockSet, pathErr, err := block.Connection.configSet()
+		if err != nil {
+			return configSet, pathErr, err
+		}
+		configSet = append(configSet, blockSet...)
 	}
 
-	return configSet
+	return configSet, path.Empty(), nil
 }
 
-func (block *servicesBlockUserIdentificationBlockIdentityManagementBlockConnection) configSet() []string {
+func (block *servicesBlockUserIdentificationBlockIdentityManagementBlockConnection) configSet() (
+	[]string, // configSet
+	path.Path, // pathErr
+	error, // error
+) {
 	setPrefix := "set services user-identification identity-management connection "
 
 	configSet := make([]string, 3, 100)
 	configSet[0] = setPrefix + "primary address " + block.PrimaryAddress.ValueString()
 	configSet[1] = setPrefix + "primary client-id \"" + block.PrimaryClientID.ValueString() + "\""
-	configSet[2] = setPrefix + "primary client-secret \"" + block.PrimaryClientSecret.ValueString() + "\""
+	if v := block.PrimaryClientSecret.ValueString(); v != "" {
+		configSet[2] = setPrefix + "primary client-secret \"" + v + "\""
+	} else if v := block.PrimaryClientSecretWO.ValueString(); v != "" {
+		configSet[2] = setPrefix + "primary client-secret \"" + v + "\""
+	} else {
+		return configSet,
+			path.Root("user_identification").AtName("identity_management").
+				AtName("connection").AtName("primary_client_secret"),
+			errors.New("one of primary_client_secret or primary_client_secret_wo must be specified" +
+				" in connection block in identity_management block in user_identification block")
+	}
 
 	if v := block.ConnectMethod.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"connect-method "+v)
@@ -2088,12 +2301,14 @@ func (block *servicesBlockUserIdentificationBlockIdentityManagementBlockConnecti
 	}
 	if v := block.SecondaryClientSecret.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"secondary client-secret \""+v+"\"")
+	} else if v := block.SecondaryClientSecretWO.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"secondary client-secret \""+v+"\"")
 	}
 	if v := block.TokenAPI.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"token-api \""+v+"\"")
 	}
 
-	return configSet
+	return configSet, path.Empty(), nil
 }
 
 func (rscData *servicesData) read(

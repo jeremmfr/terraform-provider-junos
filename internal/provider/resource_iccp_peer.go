@@ -15,12 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -117,6 +119,24 @@ func (rsc *iccpPeer) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 126),
 					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"authentication_key_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "MD5 authentication key, not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 126),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(path.MatchRoot("authentication_key_wo_version")),
+				},
+			},
+			"authentication_key_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `authentication_key_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRoot("authentication_key_wo")),
 				},
 			},
 			"local_ip_addr": schema.StringAttribute{
@@ -226,6 +246,8 @@ type iccpPeerData struct {
 	IPAddress                    types.String                          `tfsdk:"ip_address"`
 	RedundancyGroupIDList        []types.Int64                         `tfsdk:"redundancy_group_id_list"`
 	AuthenticationKey            types.String                          `tfsdk:"authentication_key"`
+	AuthenticationKeyWO          types.String                          `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion   types.Int64                           `tfsdk:"authentication_key_wo_version"`
 	LocalIPAddr                  types.String                          `tfsdk:"local_ip_addr"`
 	SessionEstablishmentHoldTime types.Int64                           `tfsdk:"session_establishment_hold_time"`
 	BackupLivenessDetection      *iccpPeerBlockBackupLivenessDetection `tfsdk:"backup_liveness_detection"`
@@ -237,6 +259,8 @@ type iccpPeerConfig struct {
 	IPAddress                    types.String                          `tfsdk:"ip_address"`
 	RedundancyGroupIDList        types.Set                             `tfsdk:"redundancy_group_id_list"`
 	AuthenticationKey            types.String                          `tfsdk:"authentication_key"`
+	AuthenticationKeyWO          types.String                          `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion   types.Int64                           `tfsdk:"authentication_key_wo_version"`
 	LocalIPAddr                  types.String                          `tfsdk:"local_ip_addr"`
 	SessionEstablishmentHoldTime types.Int64                           `tfsdk:"session_establishment_hold_time"`
 	BackupLivenessDetection      *iccpPeerBlockBackupLivenessDetection `tfsdk:"backup_liveness_detection"`
@@ -267,6 +291,14 @@ func (rsc *iccpPeer) ValidateConfig(
 		return
 	}
 
+	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() &&
+		!config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("authentication_key"),
+			tfdiag.ConflictConfigErrSummary,
+			"authentication_key and authentication_key_wo cannot be configured together",
+		)
+	}
 	if config.LivenessDetection != nil &&
 		config.LivenessDetection.MinimumInterval.IsNull() {
 		if config.LivenessDetection.MinimumReceiveInterval.IsNull() {
@@ -293,6 +325,7 @@ func (rsc *iccpPeer) Create(
 ) {
 	var plan iccpPeerData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -367,7 +400,9 @@ func (rsc *iccpPeer) Read(
 			state.IPAddress.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -378,6 +413,7 @@ func (rsc *iccpPeer) Update(
 	var plan, state iccpPeerData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -424,6 +460,23 @@ func (rsc *iccpPeer) ImportState(
 	)
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+func (rscData *iccpPeerData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) diag.Diagnostics {
+	return config.GetAttribute(ctx, path.Root("authentication_key_wo"), &rscData.AuthenticationKeyWO)
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+func (rscData *iccpPeerData) keepWriteOnly(state *iccpPeerData) {
+	rscData.AuthenticationKeyWOVersion = state.AuthenticationKeyWOVersion
+	if !state.AuthenticationKeyWOVersion.IsNull() {
+		rscData.AuthenticationKey = types.StringNull()
+	}
+}
+
 func checkIccpPeerExists(
 	ctx context.Context, ipAddress string, junSess *junos.Session,
 ) (
@@ -462,6 +515,8 @@ func (rscData *iccpPeerData) set(
 			utils.ConvI64toa(v.ValueInt64()))
 	}
 	if v := rscData.AuthenticationKey.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
+	} else if v := rscData.AuthenticationKeyWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
 	}
 	if v := rscData.LocalIPAddr.ValueString(); v != "" {

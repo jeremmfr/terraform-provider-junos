@@ -174,7 +174,7 @@ func (rsc *securityIpsecPolicy) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("proposals"),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of proposals or proposal_set must be specified",
+			"proposals and proposal_set cannot be configured together",
 		)
 	}
 }

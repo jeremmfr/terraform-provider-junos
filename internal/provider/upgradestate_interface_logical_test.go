@@ -33,7 +33,7 @@ func TestAccUpgradeStateResourceInterfaceLogical_V0toV1_basic(t *testing.T) {
 					},
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					ConfigVariables: map[string]config.Variable{
 						"interface": config.StringVariable(testaccInterface),
@@ -64,7 +64,7 @@ func TestAccUpgradeStateResourceInterfaceLogical_V0toV1_router(t *testing.T) {
 					ConfigDirectory: config.TestStepDirectory(),
 				},
 				{
-					ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+					ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 					ConfigDirectory:          config.TestStepDirectory(),
 					ConfigPlanChecks: resource.ConfigPlanChecks{
 						PreApply: []plancheck.PlanCheck{

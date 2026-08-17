@@ -19,7 +19,7 @@ func TestAccDataSourceInterfaceLogical_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { testAccPreCheck(t) },
-			ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					ConfigDirectory: config.TestStepDirectory(),
@@ -41,6 +41,10 @@ func TestAccDataSourceInterfaceLogical_basic(t *testing.T) {
 							"family_inet.address.#", "1"),
 						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL",
 							"family_inet.address.0.cidr_ip", "192.0.2.1/25"),
+						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL",
+							"family_inet.address.0.vrrp_group.0.track_interface.0.priority_cost", "20"),
+						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL",
+							"family_inet.address.0.vrrp_group.0.track_route.0.priority_cost", "20"),
 						resource.TestCheckResourceAttr("data.junos_interface_logical.testacc_datainterfaceL2",
 							"id", testaccInterface+".100"),
 						resource.TestCheckResourceAttrSet("data.junos_interface_logical.testacc_datainterfaceL3",

@@ -12,7 +12,7 @@ func TestAccResourceSystemSyslogUser_basic(t *testing.T) {
 		PreCheck: func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_syslog_user.testacc_syslogUser",
@@ -50,11 +50,11 @@ func TestAccResourceSystemSyslogUser_basic(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ResourceName:             "junos_system_syslog_user.testacc_syslogUser",
 				ImportState:              true,
 				ImportStateVerify:        true,

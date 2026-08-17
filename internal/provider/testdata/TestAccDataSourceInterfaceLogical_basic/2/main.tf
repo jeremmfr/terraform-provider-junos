@@ -9,6 +9,19 @@ resource "junos_interface_logical" "testacc_datainterfaceL" {
   family_inet {
     address {
       cidr_ip = "192.0.2.1/25"
+      vrrp_group {
+        identifier      = 100
+        virtual_address = ["192.0.2.2"]
+        track_interface {
+          interface     = junos_interface_physical.testacc_datainterfaceP.name
+          priority_cost = 20
+        }
+        track_route {
+          route            = "192.0.2.128/25"
+          routing_instance = "default"
+          priority_cost    = 20
+        }
+      }
     }
   }
 }

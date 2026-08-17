@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -26,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -162,6 +164,28 @@ func (rsc *ripNeighbor) Schema(
 					tfvalidator.StringDoubleQuoteExclusion(),
 				},
 			},
+			"authentication_key_wo": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				WriteOnly:   true,
+				Description: "Authentication key (password), not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+					stringvalidator.AlsoRequires(
+						path.MatchRoot("authentication_key_wo_version"),
+					),
+				},
+			},
+			"authentication_key_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version of `authentication_key_wo` to trigger the sending of its value.",
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(
+						path.MatchRoot("authentication_key_wo"),
+					),
+				},
+			},
 			"authentication_type": schema.StringAttribute{
 				Optional:    true,
 				Description: "Authentication type.",
@@ -292,12 +316,34 @@ func (rsc *ripNeighbor) Schema(
 							},
 						},
 						"key": schema.StringAttribute{
-							Required:    true,
+							Optional:    true,
 							Sensitive:   true,
 							Description: "MD5 authentication key value.",
 							Validators: []validator.String{
 								stringvalidator.LengthAtLeast(1),
 								tfvalidator.StringDoubleQuoteExclusion(),
+							},
+						},
+						"key_wo": schema.StringAttribute{
+							Optional:    true,
+							Sensitive:   true,
+							WriteOnly:   true,
+							Description: "MD5 authentication key value, not stored in state.",
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
+								stringvalidator.AlsoRequires(
+									path.MatchRelative().AtParent().AtName("key_wo_version"),
+								),
+							},
+						},
+						"key_wo_version": schema.Int64Attribute{
+							Optional:    true,
+							Description: "Version of `key_wo` to trigger the sending of its value.",
+							Validators: []validator.Int64{
+								int64validator.AlsoRequires(
+									path.MatchRelative().AtParent().AtName("key_wo"),
+								),
 							},
 						},
 						"start_time": schema.StringAttribute{
@@ -327,6 +373,8 @@ type ripNeighborData struct {
 	RoutingInstance            types.String                                 `tfsdk:"routing_instance"`
 	AnySender                  types.Bool                                   `tfsdk:"any_sender"`
 	AuthenticationKey          types.String                                 `tfsdk:"authentication_key"`
+	AuthenticationKeyWO        types.String                                 `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion types.Int64                                  `tfsdk:"authentication_key_wo_version"`
 	AuthenticationType         types.String                                 `tfsdk:"authentication_type"`
 	CheckZero                  types.Bool                                   `tfsdk:"check_zero"`
 	NoCheckZero                types.Bool                                   `tfsdk:"no_check_zero"`
@@ -354,6 +402,8 @@ type ripNeighborConfig struct {
 	RoutingInstance            types.String                  `tfsdk:"routing_instance"`
 	AnySender                  types.Bool                    `tfsdk:"any_sender"`
 	AuthenticationKey          types.String                  `tfsdk:"authentication_key"`
+	AuthenticationKeyWO        types.String                  `tfsdk:"authentication_key_wo"`
+	AuthenticationKeyWOVersion types.Int64                   `tfsdk:"authentication_key_wo_version"`
 	AuthenticationType         types.String                  `tfsdk:"authentication_type"`
 	CheckZero                  types.Bool                    `tfsdk:"check_zero"`
 	NoCheckZero                types.Bool                    `tfsdk:"no_check_zero"`
@@ -374,9 +424,11 @@ type ripNeighborConfig struct {
 }
 
 type ripNeighborBlockAuthenticationSelectiveMd5 struct {
-	KeyID     types.Int64        `tfsdk:"key_id"     tfdata:"identifier"`
-	Key       types.String       `tfsdk:"key"`
-	StartTime tftypes.StringDate `tfsdk:"start_time"`
+	KeyID        types.Int64        `tfsdk:"key_id"         tfdata:"identifier"`
+	Key          types.String       `tfsdk:"key"`
+	KeyWO        types.String       `tfsdk:"key_wo"`
+	KeyWOVersion types.Int64        `tfsdk:"key_wo_version"`
+	StartTime    tftypes.StringDate `tfsdk:"start_time"`
 }
 
 func (rsc *ripNeighbor) ValidateConfig(
@@ -401,6 +453,13 @@ func (rsc *ripNeighbor) ValidateConfig(
 				path.Root("authentication_key"),
 				tfdiag.ConflictConfigErrSummary,
 				"ng and authentication_key cannot be configured together",
+			)
+		}
+		if !config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_key_wo"),
+				tfdiag.ConflictConfigErrSummary,
+				"ng and authentication_key_wo cannot be configured together",
 			)
 		}
 		if !config.AuthenticationType.IsNull() && !config.AuthenticationType.IsUnknown() {
@@ -496,6 +555,13 @@ func (rsc *ripNeighbor) ValidateConfig(
 				"authentication_selective_md5 and authentication_key cannot be configured together",
 			)
 		}
+		if !config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("authentication_key_wo"),
+				tfdiag.ConflictConfigErrSummary,
+				"authentication_selective_md5 and authentication_key_wo cannot be configured together",
+			)
+		}
 		if !config.AuthenticationType.IsNull() && !config.AuthenticationType.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("authentication_type"),
@@ -503,6 +569,14 @@ func (rsc *ripNeighbor) ValidateConfig(
 				"authentication_selective_md5 and authentication_type cannot be configured together",
 			)
 		}
+	}
+	if !config.AuthenticationKey.IsNull() && !config.AuthenticationKey.IsUnknown() &&
+		!config.AuthenticationKeyWO.IsNull() && !config.AuthenticationKeyWO.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("authentication_key"),
+			tfdiag.ConflictConfigErrSummary,
+			"authentication_key and authentication_key_wo cannot be configured together",
+		)
 	}
 	if !config.CheckZero.IsNull() && !config.CheckZero.IsUnknown() &&
 		!config.NoCheckZero.IsNull() && !config.NoCheckZero.IsUnknown() {
@@ -551,6 +625,24 @@ func (rsc *ripNeighbor) ValidateConfig(
 				)
 			}
 			authenticationSelectiveMD5KeyID[keyID] = struct{}{}
+
+			if block.Key.IsNull() && block.KeyWO.IsNull() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("authentication_selective_md5").AtListIndex(i).AtName("key"),
+					tfdiag.MissingConfigErrSummary,
+					fmt.Sprintf("one of key or key_wo must be specified"+
+						" in authentication_selective_md5 block %d", keyID),
+				)
+			}
+			if !block.Key.IsNull() && !block.Key.IsUnknown() &&
+				!block.KeyWO.IsNull() && !block.KeyWO.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("authentication_selective_md5").AtListIndex(i).AtName("key"),
+					tfdiag.ConflictConfigErrSummary,
+					fmt.Sprintf("only one of key or key_wo must be specified"+
+						" in authentication_selective_md5 block %d", keyID),
+				)
+			}
 		}
 	}
 	if config.BfdLivenessDetection != nil && config.BfdLivenessDetection.isEmpty() {
@@ -567,6 +659,7 @@ func (rsc *ripNeighbor) Create(
 ) {
 	var plan ripNeighborData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -741,7 +834,9 @@ func (rsc *ripNeighbor) Read(
 			state.RoutingInstance.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -752,6 +847,7 @@ func (rsc *ripNeighbor) Update(
 	var plan, state ripNeighborData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -883,6 +979,59 @@ func (rscData *ripNeighborData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+//
+// The write-only arguments of the list block are read by index:
+// the plan keeps the order of the configuration for a list block,
+// reading the whole list from the configuration isn't possible
+// because it may be unknown at this time.
+func (rscData *ripNeighborData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	diags.Append(config.GetAttribute(ctx,
+		path.Root("authentication_key_wo"),
+		&rscData.AuthenticationKeyWO)...)
+
+	for i := range rscData.AuthenticationSelectiveMD5 {
+		diags.Append(config.GetAttribute(ctx,
+			path.Root("authentication_selective_md5").AtListIndex(i).AtName("key_wo"),
+			&rscData.AuthenticationSelectiveMD5[i].KeyWO)...)
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+//
+// The blocks read on the device aren't in the order of the configuration,
+// so they are matched with the state with their identifier.
+func (rscData *ripNeighborData) keepWriteOnly(state *ripNeighborData) {
+	rscData.AuthenticationKeyWOVersion = state.AuthenticationKeyWOVersion
+	if !state.AuthenticationKeyWOVersion.IsNull() {
+		rscData.AuthenticationKey = types.StringNull()
+	}
+
+	stateAuthenticationSelectiveMD5 := make(
+		map[int64]ripNeighborBlockAuthenticationSelectiveMd5, len(state.AuthenticationSelectiveMD5),
+	)
+	for _, block := range state.AuthenticationSelectiveMD5 {
+		stateAuthenticationSelectiveMD5[block.KeyID.ValueInt64()] = block
+	}
+	for i, block := range rscData.AuthenticationSelectiveMD5 {
+		stateBlock, ok := stateAuthenticationSelectiveMD5[block.KeyID.ValueInt64()]
+		if !ok {
+			continue
+		}
+
+		rscData.AuthenticationSelectiveMD5[i].KeyWOVersion = stateBlock.KeyWOVersion
+		if !stateBlock.KeyWOVersion.IsNull() {
+			rscData.AuthenticationSelectiveMD5[i].Key = types.StringNull()
+		}
+	}
+}
+
 func (rscData *ripNeighborData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -906,6 +1055,8 @@ func (rscData *ripNeighborData) set(
 		configSet = append(configSet, setPrefix+"any-sender")
 	}
 	if v := rscData.AuthenticationKey.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
+	} else if v := rscData.AuthenticationKeyWO.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"authentication-key \""+v+"\"")
 	}
 	if v := rscData.AuthenticationType.ValueString(); v != "" {
@@ -967,8 +1118,17 @@ func (rscData *ripNeighborData) set(
 		}
 		authenticationSelectiveMD5KeyID[keyID] = struct{}{}
 
-		configSet = append(configSet, setPrefix+"authentication-selective-md5 "+
-			utils.ConvI64toa(keyID)+" key \""+block.Key.ValueString()+"\"")
+		if v := block.Key.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"authentication-selective-md5 "+
+				utils.ConvI64toa(keyID)+" key \""+v+"\"")
+		} else if v := block.KeyWO.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"authentication-selective-md5 "+
+				utils.ConvI64toa(keyID)+" key \""+v+"\"")
+		} else {
+			return path.Root("authentication_selective_md5").AtListIndex(i).AtName("key"),
+				fmt.Errorf("one of key or key_wo must be specified"+
+					" in authentication_selective_md5 block %d", keyID)
+		}
 		if v := block.StartTime.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"authentication-selective-md5 "+
 				utils.ConvI64toa(keyID)+" start-time "+v)

@@ -14,12 +14,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	balt "github.com/jeremmfr/go-utils/basicalter"
 )
@@ -129,6 +131,28 @@ func (rsc *eventoptionsDestination) Schema(
 								tfvalidator.StringDoubleQuoteExclusion(),
 							},
 						},
+						"password_wo": schema.StringAttribute{
+							Optional:    true,
+							Sensitive:   true,
+							WriteOnly:   true,
+							Description: "Password for login into the archive site, not stored in state.",
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+								tfvalidator.StringDoubleQuoteExclusion(),
+								stringvalidator.AlsoRequires(
+									path.MatchRelative().AtParent().AtName("password_wo_version"),
+								),
+							},
+						},
+						"password_wo_version": schema.Int64Attribute{
+							Optional:    true,
+							Description: "Version of `password_wo` to trigger the sending of its value.",
+							Validators: []validator.Int64{
+								int64validator.AlsoRequires(
+									path.MatchRelative().AtParent().AtName("password_wo"),
+								),
+							},
+						},
 					},
 				},
 				Validators: []validator.List{
@@ -155,8 +179,10 @@ type eventoptionsDestinationConfig struct {
 }
 
 type eventoptionsDestinationBlockArchiveSite struct {
-	URL      types.String `tfsdk:"url"`
-	Password types.String `tfsdk:"password"`
+	URL               types.String `tfsdk:"url"`
+	Password          types.String `tfsdk:"password"`
+	PasswordWO        types.String `tfsdk:"password_wo"`
+	PasswordWOVersion types.Int64  `tfsdk:"password_wo_version"`
 }
 
 func (rsc *eventoptionsDestination) ValidateConfig(
@@ -180,18 +206,27 @@ func (rsc *eventoptionsDestination) ValidateConfig(
 
 		archiveSiteURL := make(map[string]struct{})
 		for i, block := range configArchiveSite {
-			if block.URL.IsUnknown() {
-				continue
+			if !block.URL.IsUnknown() {
+				url := block.URL.ValueString()
+				if _, ok := archiveSiteURL[url]; ok {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("archive_site").AtListIndex(i).AtName("url"),
+						tfdiag.DuplicateConfigErrSummary,
+						fmt.Sprintf("multiple archive_site blocks with the same url %q", url),
+					)
+				}
+				archiveSiteURL[url] = struct{}{}
 			}
-			url := block.URL.ValueString()
-			if _, ok := archiveSiteURL[url]; ok {
+
+			if !block.Password.IsNull() && !block.Password.IsUnknown() &&
+				!block.PasswordWO.IsNull() && !block.PasswordWO.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
-					path.Root("archive_site").AtListIndex(i).AtName("url"),
-					tfdiag.DuplicateConfigErrSummary,
-					fmt.Sprintf("multiple archive_site blocks with the same url %q", url),
+					path.Root("archive_site").AtListIndex(i).AtName("password"),
+					tfdiag.ConflictConfigErrSummary,
+					fmt.Sprintf("password and password_wo cannot be configured together"+
+						" in archive_site block %q", block.URL.ValueString()),
 				)
 			}
-			archiveSiteURL[url] = struct{}{}
 		}
 	}
 }
@@ -201,6 +236,7 @@ func (rsc *eventoptionsDestination) Create(
 ) {
 	var plan eventoptionsDestinationData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -275,7 +311,9 @@ func (rsc *eventoptionsDestination) Read(
 			state.Name.ValueString(),
 		},
 		&data,
-		nil,
+		func() {
+			data.keepWriteOnly(&state)
+		},
 		resp,
 	)
 }
@@ -286,6 +324,7 @@ func (rsc *eventoptionsDestination) Update(
 	var plan, state eventoptionsDestinationData
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.getWriteOnly(ctx, req.Config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -357,6 +396,49 @@ func (rscData *eventoptionsDestinationData) nullID() bool {
 	return rscData.ID.IsNull()
 }
 
+// getWriteOnly read the write-only arguments from the configuration,
+// their values aren't present in the plan or the state.
+//
+// The write-only arguments are inside list blocks, so they are read by index:
+// the plan keeps the order of the configuration for a list block,
+// reading the whole list from the configuration isn't possible
+// because it may be unknown at this time.
+func (rscData *eventoptionsDestinationData) getWriteOnly(
+	ctx context.Context, config tfsdk.Config,
+) (diags diag.Diagnostics) {
+	for i := range rscData.ArchiveSite {
+		diags.Append(config.GetAttribute(ctx,
+			path.Root("archive_site").AtListIndex(i).AtName("password_wo"),
+			&rscData.ArchiveSite[i].PasswordWO)...)
+	}
+
+	return diags
+}
+
+// keepWriteOnly carry over the version arguments of the write-only arguments from the state,
+// and don't read the secrets in the standard arguments when the write-only ones are used.
+//
+// The blocks read on the device aren't in the order of the configuration,
+// so they are matched with the state with their identifier.
+func (rscData *eventoptionsDestinationData) keepWriteOnly(state *eventoptionsDestinationData) {
+	stateArchiveSite := make(map[string]eventoptionsDestinationBlockArchiveSite, len(state.ArchiveSite))
+	for _, block := range state.ArchiveSite {
+		stateArchiveSite[block.URL.ValueString()] = block
+	}
+
+	for i, block := range rscData.ArchiveSite {
+		stateBlock, ok := stateArchiveSite[block.URL.ValueString()]
+		if !ok {
+			continue
+		}
+
+		rscData.ArchiveSite[i].PasswordWOVersion = stateBlock.PasswordWOVersion
+		if !stateBlock.PasswordWOVersion.IsNull() {
+			rscData.ArchiveSite[i].Password = types.StringNull()
+		}
+	}
+}
+
 func (rscData *eventoptionsDestinationData) set(
 	ctx context.Context, junSess *junos.Session,
 ) (
@@ -376,6 +458,8 @@ func (rscData *eventoptionsDestinationData) set(
 
 		configSet = append(configSet, setPrefix+"archive-sites \""+url+"\"")
 		if v := block.Password.ValueString(); v != "" {
+			configSet = append(configSet, setPrefix+"archive-sites \""+url+"\" password \""+v+"\"")
+		} else if v := block.PasswordWO.ValueString(); v != "" {
 			configSet = append(configSet, setPrefix+"archive-sites \""+url+"\" password \""+v+"\"")
 		}
 	}

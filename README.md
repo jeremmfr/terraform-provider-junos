@@ -27,7 +27,7 @@ for provider and resources documentation.
 
 ## Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/install)
+- [Terraform](https://developer.hashicorp.com/terraform/install) `v1.0` or later
 
 ### In addition to develop
 
@@ -89,7 +89,7 @@ To contribute, please read the [contribution guideline](.github/CONTRIBUTING.md)
 
 ## Compile a binary from source to use with Terraform
 
-### Build to override automatic install version (Terraform 0.14 and later)
+### Build to override automatic install version
 
 Since Terraform 0.14,
 [development overrides for provider developers](https://developer.hashicorp.com/terraform/cli/config/config-file#development-overrides-for-provider-developers)
@@ -116,7 +116,7 @@ go install
 
 ---
 
-### Build to use with a fake registry (Terraform 0.13)
+### Build to use with a fake registry
 
 ```bash
 git clone https://github.com/jeremmfr/terraform-provider-junos.git

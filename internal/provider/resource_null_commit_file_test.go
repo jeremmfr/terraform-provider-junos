@@ -23,7 +23,7 @@ func TestAccResourceNullCommitFile_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// 1
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ConfigVariables: map[string]config.Variable{
 					"interface": config.StringVariable(testaccInterface),
@@ -32,7 +32,7 @@ func TestAccResourceNullCommitFile_basic(t *testing.T) {
 			},
 			{
 				// 2
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ConfigVariables: map[string]config.Variable{
 					"interface": config.StringVariable(testaccInterface),
@@ -41,7 +41,7 @@ func TestAccResourceNullCommitFile_basic(t *testing.T) {
 			},
 			{
 				// 3
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ConfigVariables: map[string]config.Variable{
 					"interface": config.StringVariable(testaccInterface),
@@ -50,7 +50,7 @@ func TestAccResourceNullCommitFile_basic(t *testing.T) {
 			},
 			{
 				// 4
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ConfigVariables: map[string]config.Variable{
 					"interface": config.StringVariable(testaccInterface),
@@ -60,7 +60,7 @@ func TestAccResourceNullCommitFile_basic(t *testing.T) {
 			},
 			{
 				// 5
-				ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ConfigDirectory:          config.TestStepDirectory(),
 				ConfigVariables: map[string]config.Variable{
 					"interface": config.StringVariable(testaccInterface),

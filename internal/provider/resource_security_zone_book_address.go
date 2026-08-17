@@ -209,7 +209,7 @@ func (rsc *securityZoneBookAddress) ValidateConfig(
 		resp.Diagnostics.AddAttributeError(
 			path.Root("dns_ipv4_only"),
 			tfdiag.ConflictConfigErrSummary,
-			"only one of dns_ipv4_only or dns_ipv6_only can be specified",
+			"dns_ipv4_only and dns_ipv6_only cannot be configured together",
 		)
 	}
 	if !config.RangeTo.IsNull() && config.RangeFrom.IsNull() {
