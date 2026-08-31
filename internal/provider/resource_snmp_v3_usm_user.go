@@ -806,7 +806,8 @@ func (rsc *snmpV3UsmUser) ImportState(
 					"local"+junos.IDSeparator+"<name> or "+
 					"remote"+junos.IDSeparator+"<engine_id>"+junos.IDSeparator+"<name>)",
 				req.ID,
-			))
+			),
+		)
 
 		return
 	}

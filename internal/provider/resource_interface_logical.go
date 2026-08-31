@@ -521,9 +521,10 @@ func (rsc *interfaceLogical) Schema(
 								Optional:    true,
 								Description: "Client identifier as a hexadecimal string.",
 								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(
-										`^[0-9a-fA-F]+$`),
-										"must be hexadecimal digits (0-9, a-f, A-F)"),
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(`^[0-9a-fA-F]+$`),
+										"must be hexadecimal digits (0-9, a-f, A-F)",
+									),
 								},
 							},
 							"client_identifier_prefix_hostname": schema.BoolAttribute{
@@ -559,9 +560,10 @@ func (rsc *interfaceLogical) Schema(
 								Optional:    true,
 								Description: "Add user id as a hexadecimal string to client-id option.",
 								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(
-										`^[0-9a-fA-F]+$`),
-										"must be hexadecimal digits (0-9, a-f, A-F)"),
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(`^[0-9a-fA-F]+$`),
+										"must be hexadecimal digits (0-9, a-f, A-F)",
+									),
 								},
 							},
 							"force_discover": schema.BoolAttribute{

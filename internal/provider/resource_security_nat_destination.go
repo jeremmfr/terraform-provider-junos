@@ -202,8 +202,8 @@ func (rsc *securityNatDestination) Schema(
 								setvalidator.SizeAtLeast(1),
 								setvalidator.NoNullValues(),
 								setvalidator.ValueStringsAre(
-									stringvalidator.RegexMatches(regexp.MustCompile(
-										`^\d+( to \d+)?$`),
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(`^\d+( to \d+)?$`),
 										"must be use format `x` or `x to y`",
 									),
 								),

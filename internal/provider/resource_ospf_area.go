@@ -110,8 +110,8 @@ func (rsc *ospfArea) Schema(
 				Validators: []validator.String{
 					stringvalidator.Any(
 						tfvalidator.StringIPAddress().IPv4Only(),
-						stringvalidator.RegexMatches(regexp.MustCompile(
-							`^\d+$`),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^\d+$`),
 							"should be usually in the IP format (but a number is accepted)",
 						),
 					),
@@ -337,8 +337,8 @@ func (rsc *ospfArea) Schema(
 							Optional:    true,
 							Description: "Value for index or label to define adjacency SID is eligible for protection.",
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(regexp.MustCompile(
-									`^\d+$`),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(`^\d+$`),
 									"should be a numeric value",
 								),
 							},
@@ -354,8 +354,8 @@ func (rsc *ospfArea) Schema(
 							Optional:    true,
 							Description: "Value for index or label to define adjacency SID uneligible for protection.",
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(regexp.MustCompile(
-									`^\d+$`),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(`^\d+$`),
 									"should be a numeric value",
 								),
 							},
@@ -542,8 +542,8 @@ func (rsc *ospfArea) Schema(
 										Optional:    true,
 										Description: "Start time for key transmission.",
 										Validators: []validator.String{
-											stringvalidator.RegexMatches(regexp.MustCompile(
-												`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
 												"must be in the format 'YYYY-MM-DD.HH:MM:SS'",
 											),
 										},
@@ -559,9 +559,10 @@ func (rsc *ospfArea) Schema(
 										Required:    true,
 										Description: "Bandwidth threshold.",
 										Validators: []validator.String{
-											stringvalidator.RegexMatches(regexp.MustCompile(
-												`^(\d)+(m|k|g)?$`),
-												`must be a bandwidth ^(\d)+(m|k|g)?$`),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^(\d)+(m|k|g)?$`),
+												`must be a bandwidth ^(\d)+(m|k|g)?$`,
+											),
 										},
 									},
 									"metric": schema.Int64Attribute{

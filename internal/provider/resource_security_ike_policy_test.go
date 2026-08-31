@@ -41,7 +41,8 @@ func TestAccResourceSecurityIkePolicy_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_ikepol_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set security ike policy "?testacc_ikepol_wo"? pre-shared-key ascii-text `)),
+								`set security ike policy "?testacc_ikepol_wo"? pre-shared-key ascii-text `,
+							)),
 						),
 					},
 				},

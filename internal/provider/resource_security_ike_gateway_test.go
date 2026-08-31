@@ -54,7 +54,8 @@ func TestAccResourceSecurityIkeGateway_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_ikegw_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set security ike gateway "?testacc_ikegw_wo"? aaa client password `)),
+								`set security ike gateway "?testacc_ikegw_wo"? aaa client password `,
+							)),
 						),
 					},
 				},

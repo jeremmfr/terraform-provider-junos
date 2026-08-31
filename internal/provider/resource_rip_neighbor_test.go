@@ -125,19 +125,22 @@ func TestAccResourceRipNeighbor_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_ripneigh_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`group "?test_rip_group_wo"? neighbor ae0\.0 authentication-key `)),
+								`group "?test_rip_group_wo"? neighbor ae0\.0 authentication-key `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_ripneigh_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`neighbor ae1\.0 authentication-selective-md5 1 key `)),
+								`neighbor ae1\.0 authentication-selective-md5 1 key `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_ripneigh_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`neighbor ae1\.0 authentication-selective-md5 2 key `)),
+								`neighbor ae1\.0 authentication-selective-md5 2 key `,
+							)),
 						),
 					},
 				},

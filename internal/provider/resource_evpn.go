@@ -189,9 +189,10 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "Route distinguisher for this instance.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^(\d|\.)+L?:\d+$`),
-								"must have valid route distinguisher. Use format 'x:y'"),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(\d|\.)+L?:\d+$`),
+								"must have valid route distinguisher. Use format 'x:y'",
+							),
 						},
 					},
 					"vrf_export": schema.ListAttribute{
@@ -224,9 +225,10 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "VRF target community configuration.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^target:(\d|\.)+L?:\d+$`),
-								"must have valid target. Use format 'target:x:y'"),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+								"must have valid target. Use format 'target:x:y'",
+							),
 						},
 					},
 					"vrf_target_auto": schema.BoolAttribute{
@@ -240,18 +242,20 @@ func (rsc *evpn) Schema(
 						Optional:    true,
 						Description: "Target community to use when marking routes on export.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^target:(\d|\.)+L?:\d+$`),
-								"must have valid target. Use format 'target:x:y'"),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+								"must have valid target. Use format 'target:x:y'",
+							),
 						},
 					},
 					"vrf_target_import": schema.StringAttribute{
 						Optional:    true,
 						Description: "Target community to use when filtering on import.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^target:(\d|\.)+L?:\d+$`),
-								"must have valid target. Use format 'target:x:y'"),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^target:(\d|\.)+L?:\d+$`),
+								"must have valid target. Use format 'target:x:y'",
+							),
 						},
 					},
 				},
