@@ -220,9 +220,10 @@ func (rsc *ospf) Schema(
 				Optional:    true,
 				Description: "Bandwidth for calculating metric defaults.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^(\d)+(m|k|g)?$`),
-						`must be a bandwidth ^(\d)+(m|k|g)?$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(\d)+(m|k|g)?$`),
+						`must be a bandwidth ^(\d)+(m|k|g)?$`,
+					),
 				},
 			},
 			"rib_group": schema.StringAttribute{

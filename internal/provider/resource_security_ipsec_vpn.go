@@ -112,9 +112,10 @@ func (rsc *securityIpsecVpn) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^st0\.`),
-						"must be a secure tunnel interface"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^st0\.`),
+						"must be a secure tunnel interface",
+					),
 				},
 			},
 			"copy_outer_dscp": schema.BoolAttribute{

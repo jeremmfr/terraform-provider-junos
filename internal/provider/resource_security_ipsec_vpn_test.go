@@ -71,12 +71,12 @@ func TestAccResourceSecurityIpsecVpn_writeOnly(t *testing.T) {
 						"interface": config.StringVariable(testaccInterface),
 					},
 					Check: testCheckIfSecurityIpsecVpnManual(
-						resource.TestMatchResourceAttr("data.junos_config_raw.testacc_ipsecvpn_wo",
-							"config", regexp.MustCompile(
-								`set security ipsec vpn "?testacc_ipsecvpn_wo"? manual authentication key ascii-text `)),
-						resource.TestMatchResourceAttr("data.junos_config_raw.testacc_ipsecvpn_wo",
-							"config", regexp.MustCompile(
-								`set security ipsec vpn "?testacc_ipsecvpn_wo"? manual encryption key ascii-text `)),
+						resource.TestMatchResourceAttr("data.junos_config_raw.testacc_ipsecvpn_wo", "config", regexp.MustCompile(
+							`set security ipsec vpn "?testacc_ipsecvpn_wo"? manual authentication key ascii-text `,
+						)),
+						resource.TestMatchResourceAttr("data.junos_config_raw.testacc_ipsecvpn_wo", "config", regexp.MustCompile(
+							`set security ipsec vpn "?testacc_ipsecvpn_wo"? manual encryption key ascii-text `,
+						)),
 					),
 				},
 				{

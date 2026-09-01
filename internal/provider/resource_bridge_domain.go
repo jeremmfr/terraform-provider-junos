@@ -178,9 +178,10 @@ func (rsc *bridgeDomain) Schema(
 				Description: "Routing interface name for this bridge-domain.",
 				Validators: []validator.String{
 					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^(irb|vlan)\.`),
-						"must start with 'irb.' or 'vlan.'"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(irb|vlan)\.`),
+						"must start with 'irb.' or 'vlan.'",
+					),
 				},
 			},
 			"service_id": schema.Int64Attribute{

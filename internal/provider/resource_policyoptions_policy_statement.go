@@ -344,9 +344,10 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 				setvalidator.SizeAtLeast(1),
 				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^([\d\w]{2}:){9}[\d\w]{2}$`),
-						"bad format or length"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^([\d\w]{2}:){9}[\d\w]{2}$`),
+						"bad format or length",
+					),
 				),
 			},
 		},
@@ -1818,7 +1819,8 @@ func (rsc *policyoptionsPolicyStatement) ImportState(
 	)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx, path.Root("add_it_to_forwarding_table_export"), types.BoolNull())...)
+		ctx, path.Root("add_it_to_forwarding_table_export"), types.BoolNull(),
+	)...)
 }
 
 func checkPolicyoptionsPolicyStatementExists(

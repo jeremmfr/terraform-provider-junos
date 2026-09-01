@@ -60,7 +60,8 @@ func TestAccResourceEventoptionsDestination_writeOnly(t *testing.T) {
 						"data.junos_config_raw.testacc_evtopts_dest_wo",
 						tfjsonpath.New("config"),
 						knownvalue.StringRegexp(regexp.MustCompile(
-							`destinations "?testacc_evtopts_dest_wo"? archive-sites "?https://example\.fr"? password `)),
+							`destinations "?testacc_evtopts_dest_wo"? archive-sites "?https://example\.fr"? password `,
+						)),
 					),
 				},
 			},

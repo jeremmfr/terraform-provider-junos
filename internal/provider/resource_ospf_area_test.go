@@ -230,19 +230,22 @@ func TestAccResourceOspfArea_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_ospfarea_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`area 0.0.0.0 interface all authentication simple-password `)),
+								`area 0.0.0.0 interface all authentication simple-password `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_ospfarea_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`interface `+testaccInterface+`\.0 authentication md5 1 key `)),
+								`interface `+testaccInterface+`\.0 authentication md5 1 key `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_ospfarea_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`interface `+testaccInterface+`\.0 authentication md5 2 key `)),
+								`interface `+testaccInterface+`\.0 authentication md5 2 key `,
+							)),
 						),
 					},
 				},

@@ -82,13 +82,15 @@ func TestAccResourceServicesUserIdentificationADAccessDomain_writeOnly(t *testin
 							"data.junos_config_raw.testacc_userID_addomain_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`domain "?testacc_userID_addomain_wo\.local"? user password `)),
+								`domain "?testacc_userID_addomain_wo\.local"? user password `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_userID_addomain_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`user-group-mapping ldap user password `)),
+								`user-group-mapping ldap user password `,
+							)),
 						),
 					},
 				},

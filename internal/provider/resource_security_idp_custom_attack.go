@@ -171,8 +171,8 @@ func (rsc *securityIdpCustomAttack) Schema(
 						Optional:    true,
 						Description: "Protocol binding over which attack will be detected.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^(application|icmp|ip|rpc|tcp|udp)`),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(application|icmp|ip|rpc|tcp|udp)`),
 								"must have valid protocol (application|icmp|ip|rpc|tcp|udp) with optional option",
 							),
 						},
@@ -1067,8 +1067,8 @@ func (securityIdpCustomAttackBlockAttackTypeSignature) attributesSchema() map[st
 		Optional:    true,
 		Description: "Protocol binding over which attack will be detected.",
 		Validators: []validator.String{
-			stringvalidator.RegexMatches(regexp.MustCompile(
-				`^(application|icmp|ip|rpc|tcp|udp)`),
+			stringvalidator.RegexMatches(
+				regexp.MustCompile(`^(application|icmp|ip|rpc|tcp|udp)`),
 				"must have valid protocol (application|icmp|ip|rpc|tcp|udp) with optional option",
 			),
 		},

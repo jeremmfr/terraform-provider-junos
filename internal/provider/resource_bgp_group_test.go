@@ -216,7 +216,8 @@ func TestAccResourceBgpGroup_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_bgpgroup_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set protocols bgp group "?testacc_bgpgroup_wo"? authentication-key `)),
+								`set protocols bgp group "?testacc_bgpgroup_wo"? authentication-key `,
+							)),
 						),
 					},
 				},

@@ -122,7 +122,8 @@ func TestAccResourceSystemLoginUser_writeOnly(t *testing.T) {
 						"data.junos_config_raw.testacc_wo",
 						tfjsonpath.New("config"),
 						knownvalue.StringRegexp(regexp.MustCompile(
-							`set system login user testacc_wo authentication encrypted-password `)),
+							`set system login user testacc_wo authentication encrypted-password `,
+						)),
 					),
 				},
 			},

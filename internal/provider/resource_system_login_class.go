@@ -104,8 +104,8 @@ func (rsc *systemLoginClass) Schema(
 				Optional:    true,
 				Description: "End time for remote access.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)$`),
 						"must be in the format 'HH:MM:SS'",
 					),
 				},
@@ -114,8 +114,8 @@ func (rsc *systemLoginClass) Schema(
 				Optional:    true,
 				Description: "Start time for remote access.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)$`),
 						"must be in the format 'HH:MM:SS'",
 					),
 				},

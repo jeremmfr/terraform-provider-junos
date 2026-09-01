@@ -110,8 +110,8 @@ func (rsc *eventoptionsGenerateEvent) Schema(
 				Optional:    true,
 				Description: "Start-time to generate event.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
 						"must be in the format 'YYYY-MM-DD.HH:MM:SS'",
 					),
 				},
@@ -127,8 +127,8 @@ func (rsc *eventoptionsGenerateEvent) Schema(
 				Optional:    true,
 				Description: "Time of day at which to generate event.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^\d{2}:\d{2}:\d{2}$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^\d{2}:\d{2}:\d{2}$`),
 						"must be in the format 'HH:MM:SS'",
 					),
 				},
