@@ -114,13 +114,15 @@ func TestAccResourceSystemRadiusServer_writeOnly(t *testing.T) {
 						"data.junos_config_raw.testacc_radiusServer_wo",
 						tfjsonpath.New("config"),
 						knownvalue.StringRegexp(regexp.MustCompile(
-							`set system radius-server 192.0.2.11 secret `)),
+							`set system radius-server 192.0.2.11 secret `,
+						)),
 					),
 					statecheck.ExpectKnownValue(
 						"data.junos_config_raw.testacc_radiusServer_wo",
 						tfjsonpath.New("config"),
 						knownvalue.StringRegexp(regexp.MustCompile(
-							`set system radius-server 192.0.2.11 preauthentication-secret `)),
+							`set system radius-server 192.0.2.11 preauthentication-secret `,
+						)),
 					),
 				},
 			},

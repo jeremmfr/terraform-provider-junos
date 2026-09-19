@@ -137,9 +137,12 @@ func (rsc *servicesSecurityIntelligenceProfile) Schema(
 							Required:    true,
 							Description: "Security intelligence profile action.",
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(regexp.MustCompile(
-									`^(permit|recommended|sinkhole|block (drop|close( http (file|message|redirect-url) .+)?))$`),
-									"must have valid action (permit|recommended|block...)"),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(
+										`^(permit|recommended|sinkhole|block (drop|close( http (file|message|redirect-url) .+)?))$`,
+									),
+									"must have valid action (permit|recommended|block...)",
+								),
 							},
 						},
 						"then_log": schema.BoolAttribute{
@@ -202,9 +205,12 @@ func (rsc *servicesSecurityIntelligenceProfile) Schema(
 						Optional:    true,
 						Description: "Security intelligence profile action.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^(permit|recommended|sinkhole|block (drop|close( http (file|message|redirect-url) .+)?))$`),
-								"must have valid action (permit|recommended|block...)"),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(
+									`^(permit|recommended|sinkhole|block (drop|close( http (file|message|redirect-url) .+)?))$`,
+								),
+								"must have valid action (permit|recommended|block...)",
+							),
 						},
 					},
 					"log": schema.BoolAttribute{

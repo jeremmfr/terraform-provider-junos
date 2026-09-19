@@ -188,8 +188,8 @@ func (applicationAttrData) attributesSchema() map[string]schema.Attribute {
 			Optional:    true,
 			Description: "Match ether type.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^0[xX][0-9a-fA-F]{4}$`),
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^0[xX][0-9a-fA-F]{4}$`),
 					"must be in hex (example: 0x8906)",
 				),
 			},
@@ -252,9 +252,10 @@ func (applicationAttrData) attributesSchema() map[string]schema.Attribute {
 			Optional:    true,
 			Description: "Match range of RPC program numbers.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^\d+(-\d+)?$`),
-					"must be an integer or a range of integers"),
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^\d+(-\d+)?$`),
+					"must be an integer or a range of integers",
+				),
 			},
 		},
 		"source_port": schema.StringAttribute{
@@ -269,8 +270,8 @@ func (applicationAttrData) attributesSchema() map[string]schema.Attribute {
 			Optional:    true,
 			Description: "Match universal unique identifier for DCE RPC objects.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
 					"must be of the form xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 				),
 			},
@@ -366,9 +367,10 @@ func (applicationAttrData) blocksSchema() map[string]schema.Block {
 						Optional:    true,
 						Description: "Match range of RPC program numbers.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^\d+(-\d+)?$`),
-								"must be an integer or a range of integers"),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^\d+(-\d+)?$`),
+								"must be an integer or a range of integers",
+							),
 						},
 					},
 					"source_port": schema.StringAttribute{
@@ -383,8 +385,8 @@ func (applicationAttrData) blocksSchema() map[string]schema.Block {
 						Optional:    true,
 						Description: "Match universal unique identifier for DCE RPC objects.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
 								"must be of the form xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
 							),
 						},

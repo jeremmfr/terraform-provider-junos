@@ -128,8 +128,8 @@ func (rsc *snmp) Schema(
 				Optional:    true,
 				Description: "SNMPv3 engine ID.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^(use-default-ip-address|use-mac-address|local .+)$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(use-default-ip-address|use-mac-address|local .+)$`),
 						"must have 'use-default-ip-address', 'use-mac-address' or 'local ...'",
 					),
 				},

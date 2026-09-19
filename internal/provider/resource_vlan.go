@@ -189,9 +189,10 @@ func (rsc *vlan) Schema(
 				Description: "L3 interface name for this VLAN.",
 				Validators: []validator.String{
 					tfvalidator.StringFormat(tfvalidator.InterfaceFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^(irb|vlan)\.`),
-						"must start with 'irb.' or 'vlan.'"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(irb|vlan)\.`),
+						"must start with 'irb.' or 'vlan.'",
+					),
 				},
 			},
 			"no_arp_suppression": schema.BoolAttribute{
@@ -219,9 +220,10 @@ func (rsc *vlan) Schema(
 				Optional:    true,
 				Description: "802.1q VLAN id or `all` or `none`.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9]|all|none)$`),
-						"must be a VLAN id (1..4094) or all or none"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9]|all|none)$`),
+						"must be a VLAN id (1..4094) or all or none",
+					),
 				},
 			},
 			"vlan_id_list": schema.SetAttribute{
@@ -232,10 +234,11 @@ func (rsc *vlan) Schema(
 					setvalidator.SizeAtLeast(1),
 					setvalidator.NoNullValues(),
 					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(regexp.MustCompile(
-							`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9])`+
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9])`+
 								`(-(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9]))?$`),
-							"must be a VLAN id (1..4094) or a range of VLAN id (1..4094)-(1..4094)"),
+							"must be a VLAN id (1..4094) or a range of VLAN id (1..4094)-(1..4094)",
+						),
 					),
 				},
 			},

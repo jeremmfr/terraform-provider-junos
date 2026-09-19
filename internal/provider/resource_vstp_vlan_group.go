@@ -118,10 +118,11 @@ func (rsc *vstpVlanGroup) Schema(
 				setvalidator.SizeAtLeast(1),
 				setvalidator.NoNullValues(),
 				setvalidator.ValueStringsAre(
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9])`+
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9])`+
 							`(-(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9]))?$`),
-						"must be a VLAN id (1..4094) or a range of VLAN id (1..4094)-(1..4094)"),
+						"must be a VLAN id (1..4094) or a range of VLAN id (1..4094)-(1..4094)",
+					),
 				),
 			},
 		},

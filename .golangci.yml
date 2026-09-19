@@ -4,17 +4,20 @@ linters:
   default: all
   disable:
     # deprecated
+    - exhaustruct
     - gomodguard
+    - wsl
     # unwanted
     - cyclop
     - depguard
     - dupl
     - err113
-    - exhaustruct
+    - exhaustruct_v5
     - forcetypeassert
     - funcorder
     - funlen
     - goconst
+    - gomodguard_v2
     - gosec
     - inamedparam
     - ireturn
@@ -27,7 +30,6 @@ linters:
     - paralleltest
     - recvcheck
     - varnamelen
-    - wsl
     - wsl_v5
   settings:
     gocognit:
@@ -106,7 +108,10 @@ formatters:
         - default
       custom-order: true
     gofumpt:
-      extra-rules: true
+      extra:
+        group-params: true
+        clothe-returns: true
+        balance-calls: true
   exclusions:
     paths:
       - third_party$

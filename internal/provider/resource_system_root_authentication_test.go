@@ -112,7 +112,8 @@ func TestAccResourceSystemRootAuthentication_writeOnly(t *testing.T) {
 							"data.junos_config_raw.root_auth_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set system root-authentication encrypted-password `)),
+								`set system root-authentication encrypted-password `,
+							)),
 						),
 					},
 				},

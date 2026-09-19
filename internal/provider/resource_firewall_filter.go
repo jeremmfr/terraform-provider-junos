@@ -204,8 +204,8 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.SizeAtLeast(1),
 										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
-											stringvalidator.RegexMatches(regexp.MustCompile(
-												`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
 												"must be an MAC address with mask",
 											),
 										),
@@ -219,8 +219,8 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.SizeAtLeast(1),
 										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
-											stringvalidator.RegexMatches(regexp.MustCompile(
-												`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
 												"must be an MAC address with mask",
 											),
 										),
@@ -460,8 +460,8 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.SizeAtLeast(1),
 										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
-											stringvalidator.RegexMatches(regexp.MustCompile(
-												`^\d+(-\d+)?$`),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^\d+(-\d+)?$`),
 												"must be an integer or a range of integers",
 											),
 										),
@@ -475,8 +475,8 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.SizeAtLeast(1),
 										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
-											stringvalidator.RegexMatches(regexp.MustCompile(
-												`^\d+(-\d+)?$`),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^\d+(-\d+)?$`),
 												"must be an integer or a range of integers",
 											),
 										),
@@ -631,8 +631,8 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.SizeAtLeast(1),
 										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
-											stringvalidator.RegexMatches(regexp.MustCompile(
-												`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
 												"must be an MAC address with mask",
 											),
 										),
@@ -646,8 +646,8 @@ func (rsc *firewallFilter) Schema(
 										setvalidator.SizeAtLeast(1),
 										setvalidator.NoNullValues(),
 										setvalidator.ValueStringsAre(
-											stringvalidator.RegexMatches(regexp.MustCompile(
-												`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^[a-f0-9]{2}(:[a-f0-9]{2}){5}\/\d+$`),
 												"must be an MAC address with mask",
 											),
 										),

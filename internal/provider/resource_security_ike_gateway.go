@@ -1137,7 +1137,8 @@ func (rscData *securityIkeGatewayData) read(
 				rscData.LocalIdentity.Type = types.StringValue(itemTrimFields[0])
 				if len(itemTrimFields) > 1 {
 					rscData.LocalIdentity.Value = types.StringValue(
-						strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "), "\""))
+						strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "), "\""),
+					)
 				}
 			case itemTrim == "no-nat-traversal":
 				rscData.NoNatTraversal = types.BoolValue(true)
@@ -1151,15 +1152,18 @@ func (rscData *securityIkeGatewayData) read(
 					if rscData.RemoteIdentity.Type.ValueString() == "distinguished-name" {
 						if itemTrimFields[1] == "container" {
 							rscData.RemoteIdentity.DistinguishedNameContainer = types.StringValue(
-								strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "+itemTrimFields[1]+" "), "\""))
+								strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "+itemTrimFields[1]+" "), "\""),
+							)
 						}
 						if itemTrimFields[1] == "wildcard" {
 							rscData.RemoteIdentity.DistinguishedNameWildcard = types.StringValue(
-								strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "+itemTrimFields[1]+" "), "\""))
+								strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "+itemTrimFields[1]+" "), "\""),
+							)
 						}
 					} else {
 						rscData.RemoteIdentity.Value = types.StringValue(
-							strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "), "\""))
+							strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "), "\""),
+						)
 					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "version "):

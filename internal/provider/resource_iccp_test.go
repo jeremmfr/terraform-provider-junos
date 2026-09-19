@@ -63,7 +63,8 @@ func TestAccResourceIccp_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_iccp_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set protocols iccp authentication-key `)),
+								`set protocols iccp authentication-key `,
+							)),
 						),
 					},
 				},

@@ -103,13 +103,15 @@ func TestAccResourceSecurityAuthenticationKeyChain_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_secauthKeyChain_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set security authentication-key-chains key-chain "?testacc_secauthKeyChainWO"? key 5 secret `)),
+								`set security authentication-key-chains key-chain "?testacc_secauthKeyChainWO"? key 5 secret `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_secauthKeyChain_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set security authentication-key-chains key-chain "?testacc_secauthKeyChainWO"? key 6 secret `)),
+								`set security authentication-key-chains key-chain "?testacc_secauthKeyChainWO"? key 6 secret `,
+							)),
 						),
 					},
 				},

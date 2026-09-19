@@ -405,8 +405,10 @@ func (rsc *services) Schema(
 								Optional:    true,
 								Description: "Start time to scheduled download and update.",
 								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(
-										`^([0-9]{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]).(2[0-3]|[01][0-9]):[0-5][0-9](:[0-5][0-9])?$`),
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(
+											`^([0-9]{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]).(2[0-3]|[01][0-9]):[0-5][0-9](:[0-5][0-9])?$`,
+										),
 										"must be in the format MM-DD.hh:mm / YYYY-MM-DD.hh:mm:ss",
 									),
 								},
@@ -432,8 +434,8 @@ func (rsc *services) Schema(
 								Validators: []validator.String{
 									stringvalidator.LengthAtLeast(1),
 									tfvalidator.StringDoubleQuoteExclusion(),
-									stringvalidator.RegexMatches(regexp.MustCompile(
-										`^(?i)(https?|file):`),
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(`^(?i)(https?|file):`),
 										"URL starts with http, https or file",
 									),
 								},
@@ -530,8 +532,8 @@ func (rsc *services) Schema(
 							tfplanmodifier.StringUseNullStateForUnknown(),
 						},
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^[a-zA-Z0-9]{32}$`),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^[a-zA-Z0-9]{32}$`),
 								"must be consisted of 32 alphanumeric characters",
 							),
 						},

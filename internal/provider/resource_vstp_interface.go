@@ -123,9 +123,10 @@ func (rsc *vstpInterface) Schema(
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9]|all)$`),
-						"must be a VLAN id (1..4094) or all"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(409[0-4]|(40[0-8]|[1-3]\d\d|[1-9]\d|[1-9])\d|[1-9]|all)$`),
+						"must be a VLAN id (1..4094) or all",
+					),
 				},
 			},
 			"vlan_group": schema.StringAttribute{
