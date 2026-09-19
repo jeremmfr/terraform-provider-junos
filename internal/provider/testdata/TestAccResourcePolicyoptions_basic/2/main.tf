@@ -34,6 +34,22 @@ resource "junos_policyoptions_prefix_list" "testacc_policyOptions3" {
   name   = "testacc policyOptions3"
   prefix = ["192.0.2.128/25"]
 }
+resource "junos_policyoptions_source_address_filter_list" "testacc_policyOptions" {
+  name = "testacc policyOptions"
+  address {
+    address = "192.0.2.0/25"
+    option  = "exact"
+  }
+  address {
+    address      = "192.0.2.128/26"
+    option       = "prefix-length-range"
+    option_value = "/26-/27"
+  }
+}
+resource "junos_policyoptions_source_address_filter_list" "testacc_policyOptions2" {
+  name       = "testacc policyOptions #2"
+  dynamic_db = true
+}
 resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {
