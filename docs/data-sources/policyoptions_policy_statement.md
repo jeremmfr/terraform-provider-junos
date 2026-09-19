@@ -151,6 +151,8 @@ The following attributes are exported:
     Mask option.
   - **option_value** (String)  
     For options that need an argument.
+- **source_address_filter_list** (Set of String)  
+  Source address filter lists of routes to match.
 - **srte_color** (Number)  
   Srte color.
 - **state** (String)  

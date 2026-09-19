@@ -182,6 +182,9 @@ The following arguments are supported:
     Need to be `exact`, `longer`, `orlonger`, `prefix-length-range`, `through` or `upto`.
   - **option_value** (Optional, String)  
     For options that need an argument.
+- **source_address_filter_list** (Optional, Set of String)  
+  Source address filter lists of routes to match.  
+  See resource `junos_policyoptions_source_address_filter_list`.
 - **srte_color** (Optional, Number)  
   Srte color.
 - **state** (Optional, String)  

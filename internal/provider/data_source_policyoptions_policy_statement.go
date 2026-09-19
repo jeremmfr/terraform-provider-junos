@@ -241,6 +241,11 @@ func policyoptionsPolicyStatementDscBlockFromAttributesSchema() map[string]schem
 			Computed:    true,
 			Description: "Routing protocol instance.",
 		},
+		"source_address_filter_list": schema.SetAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
+			Description: "Source address filter lists of routes to match.",
+		},
 		"srte_color": schema.Int64Attribute{
 			Computed:    true,
 			Description: "Srte color.",
