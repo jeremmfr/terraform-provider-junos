@@ -357,6 +357,25 @@ func policyoptionsPolicyStatementDscBlockFromBlocksSchema() map[string]schema.Bl
 				},
 			},
 		},
+		"source_address_filter": schema.SetNestedBlock{
+			Description: "List of source addresses to match.",
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"address": schema.StringAttribute{
+						Computed:    true,
+						Description: "IP address.",
+					},
+					"option": schema.StringAttribute{
+						Computed:    true,
+						Description: "Mask option.",
+					},
+					"option_value": schema.StringAttribute{
+						Computed:    true,
+						Description: "For options that need an argument.",
+					},
+				},
+			},
+		},
 	}
 }
 

@@ -173,6 +173,15 @@ The following arguments are supported:
   Need to be `external` or `internal`.
 - **routing_instance** (Optional, String)  
   Routing protocol instance.
+- **source_address_filter** (Optional, Block Set)  
+  List of source addresses to match.
+  - **address** (Required, String)  
+    IP address.
+  - **option** (Required, String)  
+    Mask option.  
+    Need to be `exact`, `longer`, `orlonger`, `prefix-length-range`, `through` or `upto`.
+  - **option_value** (Optional, String)  
+    For options that need an argument.
 - **srte_color** (Optional, Number)  
   Srte color.
 - **state** (Optional, String)  

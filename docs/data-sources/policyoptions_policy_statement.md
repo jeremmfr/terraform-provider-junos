@@ -143,6 +143,14 @@ The following attributes are exported:
   Route type.
 - **routing_instance** (String)  
   Routing protocol instance.
+- **source_address_filter** (Block Set)  
+  List of source addresses to match.
+  - **address** (String)  
+    IP address.
+  - **option** (String)  
+    Mask option.
+  - **option_value** (String)  
+    For options that need an argument.
 - **srte_color** (Number)  
   Srte color.
 - **state** (String)  

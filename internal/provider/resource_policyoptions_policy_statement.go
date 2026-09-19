@@ -232,40 +232,41 @@ func (block *policyoptionsPolicyStatementBlockTermConfig) isEmpty() bool {
 }
 
 type policyoptionsPolicyStatementBlockFrom struct {
-	AggregateContributor types.Bool                                                   `tfsdk:"aggregate_contributor"`
-	BgpASPath            []types.String                                               `tfsdk:"bgp_as_path"`
-	BgpASPathGroup       []types.String                                               `tfsdk:"bgp_as_path_group"`
-	BgpCommunity         []types.String                                               `tfsdk:"bgp_community"`
-	BgpOrigin            types.String                                                 `tfsdk:"bgp_origin"`
-	BgpSrteDiscriminator types.Int64                                                  `tfsdk:"bgp_srte_discriminator"`
-	Color                types.Int64                                                  `tfsdk:"color"`
-	EvpnESI              []types.String                                               `tfsdk:"evpn_esi"`
-	EvpnMACRoute         types.String                                                 `tfsdk:"evpn_mac_route"`
-	EvpnTag              []types.Int64                                                `tfsdk:"evpn_tag"`
-	Family               types.String                                                 `tfsdk:"family"`
-	LocalPreference      types.Int64                                                  `tfsdk:"local_preference"`
-	Interface            []types.String                                               `tfsdk:"interface"`
-	Metric               types.Int64                                                  `tfsdk:"metric"`
-	Neighbor             []types.String                                               `tfsdk:"neighbor"`
-	NextHop              []types.String                                               `tfsdk:"next_hop"`
-	NextHopTypeMerged    types.Bool                                                   `tfsdk:"next_hop_type_merged"`
-	OspfArea             types.String                                                 `tfsdk:"ospf_area"`
-	Policy               []types.String                                               `tfsdk:"policy"`
-	Preference           types.Int64                                                  `tfsdk:"preference"`
-	PrefixList           []types.String                                               `tfsdk:"prefix_list"`
-	Protocol             []types.String                                               `tfsdk:"protocol"`
-	RouteType            types.String                                                 `tfsdk:"route_type"`
-	RoutingInstance      types.String                                                 `tfsdk:"routing_instance"`
-	SrteColor            types.Int64                                                  `tfsdk:"srte_color"`
-	State                types.String                                                 `tfsdk:"state"`
-	TunnelType           []types.String                                               `tfsdk:"tunnel_type"`
-	ValidationDatabase   types.String                                                 `tfsdk:"validation_database"`
-	BgpASPathCalcLength  []policyoptionsPolicyStatementBlockFromBlockCountMatch       `tfsdk:"bgp_as_path_calc_length"`
-	BgpASPathUniqueCount []policyoptionsPolicyStatementBlockFromBlockCountMatch       `tfsdk:"bgp_as_path_unique_count"`
-	BgpCommunityCount    []policyoptionsPolicyStatementBlockFromBlockCountMatch       `tfsdk:"bgp_community_count"`
-	NextHopWeight        []policyoptionsPolicyStatementBlockFromBlockMatchWeight      `tfsdk:"next_hop_weight"`
-	PrefixListFilter     []policyoptionsPolicyStatementBlockFromBlockPrefixListFilter `tfsdk:"prefix_list_filter"`
-	RouteFilter          []policyoptionsPolicyStatementBlockFromBlockRouteFilter      `tfsdk:"route_filter"`
+	AggregateContributor types.Bool                                                      `tfsdk:"aggregate_contributor"`
+	BgpASPath            []types.String                                                  `tfsdk:"bgp_as_path"`
+	BgpASPathGroup       []types.String                                                  `tfsdk:"bgp_as_path_group"`
+	BgpCommunity         []types.String                                                  `tfsdk:"bgp_community"`
+	BgpOrigin            types.String                                                    `tfsdk:"bgp_origin"`
+	BgpSrteDiscriminator types.Int64                                                     `tfsdk:"bgp_srte_discriminator"`
+	Color                types.Int64                                                     `tfsdk:"color"`
+	EvpnESI              []types.String                                                  `tfsdk:"evpn_esi"`
+	EvpnMACRoute         types.String                                                    `tfsdk:"evpn_mac_route"`
+	EvpnTag              []types.Int64                                                   `tfsdk:"evpn_tag"`
+	Family               types.String                                                    `tfsdk:"family"`
+	LocalPreference      types.Int64                                                     `tfsdk:"local_preference"`
+	Interface            []types.String                                                  `tfsdk:"interface"`
+	Metric               types.Int64                                                     `tfsdk:"metric"`
+	Neighbor             []types.String                                                  `tfsdk:"neighbor"`
+	NextHop              []types.String                                                  `tfsdk:"next_hop"`
+	NextHopTypeMerged    types.Bool                                                      `tfsdk:"next_hop_type_merged"`
+	OspfArea             types.String                                                    `tfsdk:"ospf_area"`
+	Policy               []types.String                                                  `tfsdk:"policy"`
+	Preference           types.Int64                                                     `tfsdk:"preference"`
+	PrefixList           []types.String                                                  `tfsdk:"prefix_list"`
+	Protocol             []types.String                                                  `tfsdk:"protocol"`
+	RouteType            types.String                                                    `tfsdk:"route_type"`
+	RoutingInstance      types.String                                                    `tfsdk:"routing_instance"`
+	SrteColor            types.Int64                                                     `tfsdk:"srte_color"`
+	State                types.String                                                    `tfsdk:"state"`
+	TunnelType           []types.String                                                  `tfsdk:"tunnel_type"`
+	ValidationDatabase   types.String                                                    `tfsdk:"validation_database"`
+	BgpASPathCalcLength  []policyoptionsPolicyStatementBlockFromBlockCountMatch          `tfsdk:"bgp_as_path_calc_length"`
+	BgpASPathUniqueCount []policyoptionsPolicyStatementBlockFromBlockCountMatch          `tfsdk:"bgp_as_path_unique_count"`
+	BgpCommunityCount    []policyoptionsPolicyStatementBlockFromBlockCountMatch          `tfsdk:"bgp_community_count"`
+	NextHopWeight        []policyoptionsPolicyStatementBlockFromBlockMatchWeight         `tfsdk:"next_hop_weight"`
+	PrefixListFilter     []policyoptionsPolicyStatementBlockFromBlockPrefixListFilter    `tfsdk:"prefix_list_filter"`
+	RouteFilter          []policyoptionsPolicyStatementBlockFromBlockRouteFilter         `tfsdk:"route_filter"`
+	SourceAddressFilter  []policyoptionsPolicyStatementBlockFromBlockSourceAddressFilter `tfsdk:"source_address_filter"`
 }
 
 func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schema.Attribute {
@@ -686,6 +687,36 @@ func (policyoptionsPolicyStatementBlockFrom) blocksSchema() map[string]schema.Bl
 				},
 			},
 		},
+		"source_address_filter": schema.SetNestedBlock{
+			Description: "List of source addresses to match.",
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"address": schema.StringAttribute{
+						Required:    true,
+						Description: "IP address.",
+						Validators: []validator.String{
+							tfvalidator.StringCIDRNetwork(),
+						},
+					},
+					"option": schema.StringAttribute{
+						Required:    true,
+						Description: "Mask option.",
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								"exact", "longer", "orlonger", "prefix-length-range", "through", "upto",
+							),
+						},
+					},
+					"option_value": schema.StringAttribute{
+						Optional:    true,
+						Description: "For options that need an argument.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -728,6 +759,7 @@ type policyoptionsPolicyStatementBlockFromConfig struct {
 	NextHopWeight        types.Set    `tfsdk:"next_hop_weight"`
 	PrefixListFilter     types.Set    `tfsdk:"prefix_list_filter"`
 	RouteFilter          types.List   `tfsdk:"route_filter"`
+	SourceAddressFilter  types.Set    `tfsdk:"source_address_filter"`
 }
 
 func (block *policyoptionsPolicyStatementBlockFromConfig) isEmpty() bool {
@@ -751,6 +783,12 @@ type policyoptionsPolicyStatementBlockFromBlockPrefixListFilter struct {
 
 type policyoptionsPolicyStatementBlockFromBlockRouteFilter struct {
 	Route       types.String `tfsdk:"route"`
+	Option      types.String `tfsdk:"option"`
+	OptionValue types.String `tfsdk:"option_value"`
+}
+
+type policyoptionsPolicyStatementBlockFromBlockSourceAddressFilter struct {
+	Address     types.String `tfsdk:"address"`
 	Option      types.String `tfsdk:"option"`
 	OptionValue types.String `tfsdk:"option_value"`
 }
@@ -2130,6 +2168,14 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 	if v := block.RoutingInstance.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"instance "+v)
 	}
+	for _, v := range block.SourceAddressFilter {
+		setSourceAddressFilter := setPrefix + "source-address-filter " +
+			v.Address.ValueString() + " " + v.Option.ValueString()
+		if v2 := v.OptionValue.ValueString(); v2 != "" {
+			setSourceAddressFilter += " " + v2
+		}
+		configSet = append(configSet, setSourceAddressFilter)
+	}
 	if !block.SrteColor.IsNull() {
 		configSet = append(configSet, setPrefix+"srte-color "+
 			utils.ConvI64toa(block.SrteColor.ValueInt64()))
@@ -2530,6 +2576,19 @@ func (block *policyoptionsPolicyStatementBlockFrom) read(itemTrim string) (err e
 		block.RouteType = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "instance "):
 		block.RoutingInstance = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "source-address-filter "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 2 { // <address> <option> <option_value>?
+			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "source-address-filter", itemTrim)
+		}
+		sourceAddressFilter := policyoptionsPolicyStatementBlockFromBlockSourceAddressFilter{
+			Address: types.StringValue(itemTrimFields[0]),
+			Option:  types.StringValue(itemTrimFields[1]),
+		}
+		if len(itemTrimFields) > 2 {
+			sourceAddressFilter.OptionValue = types.StringValue(itemTrimFields[2])
+		}
+		block.SourceAddressFilter = append(block.SourceAddressFilter, sourceAddressFilter)
 	case balt.CutPrefixInString(&itemTrim, "srte-color "):
 		block.SrteColor, err = tfdata.ConvAtoi64Value(itemTrim)
 		if err != nil {

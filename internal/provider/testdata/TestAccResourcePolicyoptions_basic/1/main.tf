@@ -68,6 +68,10 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
       option       = "prefix-length-range"
       option_value = "/26-/27"
     }
+    source_address_filter {
+      address = "192.0.2.0/25"
+      option  = "orlonger"
+    }
   }
   to {
     bgp_as_path      = [junos_policyoptions_as_path.testacc_policyOptions.name]
@@ -152,6 +156,15 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
       }
       route_filter {
         route        = "192.0.2.128/25"
+        option       = "prefix-length-range"
+        option_value = "/26-/27"
+      }
+      source_address_filter {
+        address = "192.0.2.0/25"
+        option  = "exact"
+      }
+      source_address_filter {
+        address      = "192.0.2.128/25"
         option       = "prefix-length-range"
         option_value = "/26-/27"
       }
