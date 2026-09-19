@@ -30,6 +30,10 @@ resource "junos_policyoptions_prefix_list" "testacc_policyOptions2" {
   name       = "testacc_policyOptions2"
   apply_path = "system radius-server <*>"
 }
+resource "junos_policyoptions_prefix_list" "testacc_policyOptions3" {
+  name   = "testacc policyOptions3"
+  prefix = ["192.0.2.128/25"]
+}
 resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {

@@ -323,6 +323,21 @@ func policyoptionsPolicyStatementDscBlockFromBlocksSchema() map[string]schema.Bl
 				},
 			},
 		},
+		"prefix_list_filter": schema.SetNestedBlock{
+			Description: "List of prefix-list-filters to match.",
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Computed:    true,
+						Description: "Name of prefix-list of routes to match.",
+					},
+					"option": schema.StringAttribute{
+						Computed:    true,
+						Description: "Mask option.",
+					},
+				},
+			},
+		},
 		"route_filter": schema.ListNestedBlock{
 			Description: "Routes to match.",
 			NestedObject: schema.NestedBlockObject{

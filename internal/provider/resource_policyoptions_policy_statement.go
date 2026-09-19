@@ -232,39 +232,40 @@ func (block *policyoptionsPolicyStatementBlockTermConfig) isEmpty() bool {
 }
 
 type policyoptionsPolicyStatementBlockFrom struct {
-	AggregateContributor types.Bool                                              `tfsdk:"aggregate_contributor"`
-	BgpASPath            []types.String                                          `tfsdk:"bgp_as_path"`
-	BgpASPathGroup       []types.String                                          `tfsdk:"bgp_as_path_group"`
-	BgpCommunity         []types.String                                          `tfsdk:"bgp_community"`
-	BgpOrigin            types.String                                            `tfsdk:"bgp_origin"`
-	BgpSrteDiscriminator types.Int64                                             `tfsdk:"bgp_srte_discriminator"`
-	Color                types.Int64                                             `tfsdk:"color"`
-	EvpnESI              []types.String                                          `tfsdk:"evpn_esi"`
-	EvpnMACRoute         types.String                                            `tfsdk:"evpn_mac_route"`
-	EvpnTag              []types.Int64                                           `tfsdk:"evpn_tag"`
-	Family               types.String                                            `tfsdk:"family"`
-	LocalPreference      types.Int64                                             `tfsdk:"local_preference"`
-	Interface            []types.String                                          `tfsdk:"interface"`
-	Metric               types.Int64                                             `tfsdk:"metric"`
-	Neighbor             []types.String                                          `tfsdk:"neighbor"`
-	NextHop              []types.String                                          `tfsdk:"next_hop"`
-	NextHopTypeMerged    types.Bool                                              `tfsdk:"next_hop_type_merged"`
-	OspfArea             types.String                                            `tfsdk:"ospf_area"`
-	Policy               []types.String                                          `tfsdk:"policy"`
-	Preference           types.Int64                                             `tfsdk:"preference"`
-	PrefixList           []types.String                                          `tfsdk:"prefix_list"`
-	Protocol             []types.String                                          `tfsdk:"protocol"`
-	RouteType            types.String                                            `tfsdk:"route_type"`
-	RoutingInstance      types.String                                            `tfsdk:"routing_instance"`
-	SrteColor            types.Int64                                             `tfsdk:"srte_color"`
-	State                types.String                                            `tfsdk:"state"`
-	TunnelType           []types.String                                          `tfsdk:"tunnel_type"`
-	ValidationDatabase   types.String                                            `tfsdk:"validation_database"`
-	BgpASPathCalcLength  []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_as_path_calc_length"`
-	BgpASPathUniqueCount []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_as_path_unique_count"`
-	BgpCommunityCount    []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_community_count"`
-	NextHopWeight        []policyoptionsPolicyStatementBlockFromBlockMatchWeight `tfsdk:"next_hop_weight"`
-	RouteFilter          []policyoptionsPolicyStatementBlockFromBlockRouteFilter `tfsdk:"route_filter"`
+	AggregateContributor types.Bool                                                   `tfsdk:"aggregate_contributor"`
+	BgpASPath            []types.String                                               `tfsdk:"bgp_as_path"`
+	BgpASPathGroup       []types.String                                               `tfsdk:"bgp_as_path_group"`
+	BgpCommunity         []types.String                                               `tfsdk:"bgp_community"`
+	BgpOrigin            types.String                                                 `tfsdk:"bgp_origin"`
+	BgpSrteDiscriminator types.Int64                                                  `tfsdk:"bgp_srte_discriminator"`
+	Color                types.Int64                                                  `tfsdk:"color"`
+	EvpnESI              []types.String                                               `tfsdk:"evpn_esi"`
+	EvpnMACRoute         types.String                                                 `tfsdk:"evpn_mac_route"`
+	EvpnTag              []types.Int64                                                `tfsdk:"evpn_tag"`
+	Family               types.String                                                 `tfsdk:"family"`
+	LocalPreference      types.Int64                                                  `tfsdk:"local_preference"`
+	Interface            []types.String                                               `tfsdk:"interface"`
+	Metric               types.Int64                                                  `tfsdk:"metric"`
+	Neighbor             []types.String                                               `tfsdk:"neighbor"`
+	NextHop              []types.String                                               `tfsdk:"next_hop"`
+	NextHopTypeMerged    types.Bool                                                   `tfsdk:"next_hop_type_merged"`
+	OspfArea             types.String                                                 `tfsdk:"ospf_area"`
+	Policy               []types.String                                               `tfsdk:"policy"`
+	Preference           types.Int64                                                  `tfsdk:"preference"`
+	PrefixList           []types.String                                               `tfsdk:"prefix_list"`
+	Protocol             []types.String                                               `tfsdk:"protocol"`
+	RouteType            types.String                                                 `tfsdk:"route_type"`
+	RoutingInstance      types.String                                                 `tfsdk:"routing_instance"`
+	SrteColor            types.Int64                                                  `tfsdk:"srte_color"`
+	State                types.String                                                 `tfsdk:"state"`
+	TunnelType           []types.String                                               `tfsdk:"tunnel_type"`
+	ValidationDatabase   types.String                                                 `tfsdk:"validation_database"`
+	BgpASPathCalcLength  []policyoptionsPolicyStatementBlockFromBlockCountMatch       `tfsdk:"bgp_as_path_calc_length"`
+	BgpASPathUniqueCount []policyoptionsPolicyStatementBlockFromBlockCountMatch       `tfsdk:"bgp_as_path_unique_count"`
+	BgpCommunityCount    []policyoptionsPolicyStatementBlockFromBlockCountMatch       `tfsdk:"bgp_community_count"`
+	NextHopWeight        []policyoptionsPolicyStatementBlockFromBlockMatchWeight      `tfsdk:"next_hop_weight"`
+	PrefixListFilter     []policyoptionsPolicyStatementBlockFromBlockPrefixListFilter `tfsdk:"prefix_list_filter"`
+	RouteFilter          []policyoptionsPolicyStatementBlockFromBlockRouteFilter      `tfsdk:"route_filter"`
 }
 
 func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schema.Attribute {
@@ -633,6 +634,28 @@ func (policyoptionsPolicyStatementBlockFrom) blocksSchema() map[string]schema.Bl
 				},
 			},
 		},
+		"prefix_list_filter": schema.SetNestedBlock{
+			Description: "List of prefix-list-filters to match.",
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Required:    true,
+						Description: "Name of prefix-list of routes to match.",
+						Validators: []validator.String{
+							stringvalidator.LengthBetween(1, 250),
+							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"option": schema.StringAttribute{
+						Required:    true,
+						Description: "Mask option.",
+						Validators: []validator.String{
+							stringvalidator.OneOf("exact", "longer", "orlonger"),
+						},
+					},
+				},
+			},
+		},
 		"route_filter": schema.ListNestedBlock{
 			Description: "Routes to match.",
 			NestedObject: schema.NestedBlockObject{
@@ -703,6 +726,7 @@ type policyoptionsPolicyStatementBlockFromConfig struct {
 	BgpASPathUniqueCount types.Set    `tfsdk:"bgp_as_path_unique_count"`
 	BgpCommunityCount    types.Set    `tfsdk:"bgp_community_count"`
 	NextHopWeight        types.Set    `tfsdk:"next_hop_weight"`
+	PrefixListFilter     types.Set    `tfsdk:"prefix_list_filter"`
 	RouteFilter          types.List   `tfsdk:"route_filter"`
 }
 
@@ -718,6 +742,11 @@ type policyoptionsPolicyStatementBlockFromBlockCountMatch struct {
 type policyoptionsPolicyStatementBlockFromBlockMatchWeight struct {
 	Match  types.String `tfsdk:"match"`
 	Weight types.Int64  `tfsdk:"weight"`
+}
+
+type policyoptionsPolicyStatementBlockFromBlockPrefixListFilter struct {
+	Name   types.String `tfsdk:"name"`
+	Option types.String `tfsdk:"option"`
 }
 
 type policyoptionsPolicyStatementBlockFromBlockRouteFilter struct {
@@ -2072,6 +2101,9 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 	for _, v := range block.PrefixList {
 		configSet = append(configSet, setPrefix+"prefix-list \""+v.ValueString()+"\"")
 	}
+	for _, v := range block.PrefixListFilter {
+		configSet = append(configSet, setPrefix+"prefix-list-filter \""+v.Name.ValueString()+"\" "+v.Option.ValueString())
+	}
 	for _, v := range block.Protocol {
 		configSet = append(configSet, setPrefix+"protocol "+v.ValueString())
 	}
@@ -2469,6 +2501,16 @@ func (block *policyoptionsPolicyStatementBlockFrom) read(itemTrim string) (err e
 		}
 	case balt.CutPrefixInString(&itemTrim, "prefix-list "):
 		block.PrefixList = append(block.PrefixList, types.StringValue(strings.Trim(itemTrim, "\"")))
+	case balt.CutPrefixInString(&itemTrim, "prefix-list-filter "):
+		name := tfdata.FirstElementOfJunosLine(itemTrim)
+		if name == itemTrim { // <name> <option>
+			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "prefix-list-filter", itemTrim)
+		}
+		block.PrefixListFilter = append(block.PrefixListFilter,
+			policyoptionsPolicyStatementBlockFromBlockPrefixListFilter{
+				Name:   types.StringValue(strings.Trim(name, "\"")),
+				Option: types.StringValue(strings.TrimPrefix(itemTrim, name+" ")),
+			})
 	case balt.CutPrefixInString(&itemTrim, "protocol "):
 		block.Protocol = append(block.Protocol, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "route-filter "):

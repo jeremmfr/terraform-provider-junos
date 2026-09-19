@@ -123,6 +123,12 @@ The following attributes are exported:
   Preference value.
 - **prefix_list** (Set of String)  
   Prefix-lists of routes to match.
+- **prefix_list_filter** (Block Set)  
+  List of prefix-list-filters to match.
+  - **name** (String)  
+    Name of prefix-list of routes to match.
+  - **option** (String)  
+    Mask option.
 - **protocol** (Set of String)  
   Protocol from which route was learned.
 - **route_filter** (Block List)  

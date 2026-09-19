@@ -24,6 +24,10 @@ resource "junos_policyoptions_prefix_list" "testacc_policyOptions2" {
   name   = "testacc policyOptions2"
   prefix = ["192.0.2.0/25", "fe80::/64"]
 }
+resource "junos_policyoptions_prefix_list" "testacc_policyOptions3" {
+  name   = "testacc policyOptions3"
+  prefix = ["192.0.2.128/25"]
+}
 resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {
@@ -50,7 +54,11 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
     ospf_area        = "0.0.0.0"
     preference       = 100
     prefix_list      = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
-    protocol         = ["bgp"]
+    prefix_list_filter {
+      name   = junos_policyoptions_prefix_list.testacc_policyOptions3.name
+      option = "orlonger"
+    }
+    protocol = ["bgp"]
     route_filter {
       route  = "192.0.2.0/25"
       option = "exact"
@@ -129,7 +137,15 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
       policy                = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
       preference            = 100
       prefix_list           = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
-      protocol              = ["bgp"]
+      prefix_list_filter {
+        name   = junos_policyoptions_prefix_list.testacc_policyOptions.name
+        option = "exact"
+      }
+      prefix_list_filter {
+        name   = junos_policyoptions_prefix_list.testacc_policyOptions3.name
+        option = "longer"
+      }
+      protocol = ["bgp"]
       route_filter {
         route  = "192.0.2.0/25"
         option = "exact"

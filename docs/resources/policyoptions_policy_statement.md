@@ -149,6 +149,14 @@ The following arguments are supported:
 - **prefix_list** (Optional, Set of String)  
   Prefix-lists of routes to match.  
   See resource `junos_policyoptions_prefix_list`.
+- **prefix_list_filter** (Optional, Block Set)  
+  List of prefix-list-filters to match.
+  - **name** (Required, String)  
+    Name of prefix-list of routes to match.  
+    See resource `junos_policyoptions_prefix_list`.
+  - **option** (Required, String)  
+    Mask option.  
+    Need to be `exact`, `longer` or `orlonger`.
 - **protocol** (Optional, Set of String)  
   Protocol from which route was learned.
 - **route_filter** (Optional, Block List)  
