@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 FEATURES:
 
+* add `junos_policyoptions_route_filter_list` resource
+* add `junos_policyoptions_route_filter_list` data source
 * add `junos_policyoptions_source_address_filter_list` resource
 * add `junos_policyoptions_source_address_filter_list` data source
 
