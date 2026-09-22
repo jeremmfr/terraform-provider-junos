@@ -139,6 +139,8 @@ The following attributes are exported:
     Mask option.
   - **option_value** (String)  
     For options that need an argument.
+- **route_filter_list** (Set of String)  
+  List of route-filter-lists of routes to match.
 - **route_type** (String)  
   Route type.
 - **routing_instance** (String)  

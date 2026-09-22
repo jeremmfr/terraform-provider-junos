@@ -92,6 +92,7 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
       option       = "prefix-length-range"
       option_value = "/26-/27"
     }
+    route_filter_list = [junos_policyoptions_route_filter_list.testacc_policyOptions.name]
     source_address_filter {
       address = "192.0.2.0/25"
       option  = "orlonger"
@@ -184,6 +185,7 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
         option       = "prefix-length-range"
         option_value = "/26-/27"
       }
+      route_filter_list = [junos_policyoptions_route_filter_list.testacc_policyOptions.name]
       source_address_filter {
         address = "192.0.2.0/25"
         option  = "exact"

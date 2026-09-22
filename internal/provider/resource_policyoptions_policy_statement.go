@@ -255,6 +255,7 @@ type policyoptionsPolicyStatementBlockFrom struct {
 	Preference              types.Int64                                                     `tfsdk:"preference"`
 	PrefixList              []types.String                                                  `tfsdk:"prefix_list"`
 	Protocol                []types.String                                                  `tfsdk:"protocol"`
+	RouteFilterList         []types.String                                                  `tfsdk:"route_filter_list"`
 	RouteType               types.String                                                    `tfsdk:"route_type"`
 	RoutingInstance         types.String                                                    `tfsdk:"routing_instance"`
 	SourceAddressFilterList []types.String                                                  `tfsdk:"source_address_filter_list"`
@@ -495,6 +496,19 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 				setvalidator.ValueStringsAre(
 					stringvalidator.LengthAtLeast(1),
 					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				),
+			},
+		},
+		"route_filter_list": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "List of route-filter-lists of routes to match.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
 				),
 			},
 		},
@@ -762,6 +776,7 @@ type policyoptionsPolicyStatementBlockFromConfig struct {
 	Preference              types.Int64  `tfsdk:"preference"`
 	PrefixList              types.Set    `tfsdk:"prefix_list"`
 	Protocol                types.Set    `tfsdk:"protocol"`
+	RouteFilterList         types.Set    `tfsdk:"route_filter_list"`
 	RouteType               types.String `tfsdk:"route_type"`
 	RoutingInstance         types.String `tfsdk:"routing_instance"`
 	SourceAddressFilterList types.Set    `tfsdk:"source_address_filter_list"`
@@ -2105,6 +2120,9 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 		}
 		configSet = append(configSet, setRoutFilter)
 	}
+	for _, v := range block.RouteFilterList {
+		configSet = append(configSet, setPrefix+"route-filter-list \""+v.ValueString()+"\"")
+	}
 	if v := block.RouteType.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"route-type "+v)
 	}
@@ -2518,6 +2536,8 @@ func (block *policyoptionsPolicyStatementBlockFrom) read(itemTrim string) (err e
 			routeFilter.OptionValue = types.StringValue(itemTrimFields[2])
 		}
 		block.RouteFilter = append(block.RouteFilter, routeFilter)
+	case balt.CutPrefixInString(&itemTrim, "route-filter-list "):
+		block.RouteFilterList = append(block.RouteFilterList, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "route-type "):
 		block.RouteType = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "instance "):

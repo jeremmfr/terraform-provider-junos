@@ -168,6 +168,9 @@ The following arguments are supported:
     Need to be `address-mask`, `exact`, `longer`, `orlonger`, `prefix-length-range`, `through` or `upto`.
   - **option_value** (Optional, String)  
     For options that need an argument.
+- **route_filter_list** (Optional, Set of String)  
+  List of route-filter-lists of routes to match.  
+  See resource `junos_policyoptions_route_filter_list`.
 - **route_type** (Optional, String)  
   Route type.  
   Need to be `external` or `internal`.

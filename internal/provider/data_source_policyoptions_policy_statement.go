@@ -233,6 +233,11 @@ func policyoptionsPolicyStatementDscBlockFromAttributesSchema() map[string]schem
 			Computed:    true,
 			Description: "Protocol from which route was learned.",
 		},
+		"route_filter_list": schema.SetAttribute{
+			ElementType: types.StringType,
+			Computed:    true,
+			Description: "List of route-filter-lists of routes to match.",
+		},
 		"route_type": schema.StringAttribute{
 			Computed:    true,
 			Description: "Route type.",
