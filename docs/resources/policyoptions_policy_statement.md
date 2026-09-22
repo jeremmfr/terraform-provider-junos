@@ -149,9 +149,17 @@ The following arguments are supported:
 - **prefix_list** (Optional, Set of String)  
   Prefix-lists of routes to match.  
   See resource `junos_policyoptions_prefix_list`.
+- **prefix_list_filter** (Optional, Block Set)  
+  List of prefix-list-filters to match.
+  - **name** (Required, String)  
+    Name of prefix-list of routes to match.  
+    See resource `junos_policyoptions_prefix_list`.
+  - **option** (Required, String)  
+    Mask option.  
+    Need to be `exact`, `longer` or `orlonger`.
 - **protocol** (Optional, Set of String)  
   Protocol from which route was learned.
-- **route_filter** (Optional, Block List)  
+- **route_filter** (Optional, Block Set)  
   For each routes to match.
   - **route** (Required, String)  
     IP address.
@@ -160,11 +168,26 @@ The following arguments are supported:
     Need to be `address-mask`, `exact`, `longer`, `orlonger`, `prefix-length-range`, `through` or `upto`.
   - **option_value** (Optional, String)  
     For options that need an argument.
+- **route_filter_list** (Optional, Set of String)  
+  List of route-filter-lists of routes to match.  
+  See resource `junos_policyoptions_route_filter_list`.
 - **route_type** (Optional, String)  
   Route type.  
   Need to be `external` or `internal`.
 - **routing_instance** (Optional, String)  
   Routing protocol instance.
+- **source_address_filter** (Optional, Block Set)  
+  List of source addresses to match.
+  - **address** (Required, String)  
+    IP address.
+  - **option** (Required, String)  
+    Mask option.  
+    Need to be `exact`, `longer`, `orlonger`, `prefix-length-range`, `through` or `upto`.
+  - **option_value** (Optional, String)  
+    For options that need an argument.
+- **source_address_filter_list** (Optional, Set of String)  
+  Source address filter lists of routes to match.  
+  See resource `junos_policyoptions_source_address_filter_list`.
 - **srte_color** (Optional, Number)  
   Srte color.
 - **state** (Optional, String)  
