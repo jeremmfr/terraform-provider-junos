@@ -131,7 +131,7 @@ The following attributes are exported:
     Mask option.
 - **protocol** (Set of String)  
   Protocol from which route was learned.
-- **route_filter** (Block List)  
+- **route_filter** (Block Set)  
   Routes to match.
   - **route** (String)  
     IP address.

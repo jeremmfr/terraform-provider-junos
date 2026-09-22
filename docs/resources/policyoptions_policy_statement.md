@@ -159,7 +159,7 @@ The following arguments are supported:
     Need to be `exact`, `longer` or `orlonger`.
 - **protocol** (Optional, Set of String)  
   Protocol from which route was learned.
-- **route_filter** (Optional, Block List)  
+- **route_filter** (Optional, Block Set)  
   For each routes to match.
   - **route** (Required, String)  
     IP address.

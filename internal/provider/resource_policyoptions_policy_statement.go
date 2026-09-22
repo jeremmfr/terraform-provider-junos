@@ -672,7 +672,7 @@ func (policyoptionsPolicyStatementBlockFrom) blocksSchema() map[string]schema.Bl
 				},
 			},
 		},
-		"route_filter": schema.ListNestedBlock{
+		"route_filter": schema.SetNestedBlock{
 			Description: "Routes to match.",
 			NestedObject: schema.NestedBlockObject{
 				Attributes: map[string]schema.Attribute{
@@ -774,7 +774,7 @@ type policyoptionsPolicyStatementBlockFromConfig struct {
 	BgpCommunityCount       types.Set    `tfsdk:"bgp_community_count"`
 	NextHopWeight           types.Set    `tfsdk:"next_hop_weight"`
 	PrefixListFilter        types.Set    `tfsdk:"prefix_list_filter"`
-	RouteFilter             types.List   `tfsdk:"route_filter"`
+	RouteFilter             types.Set    `tfsdk:"route_filter"`
 	SourceAddressFilter     types.Set    `tfsdk:"source_address_filter"`
 }
 
@@ -1361,38 +1361,6 @@ func (rsc *policyoptionsPolicyStatement) ValidateConfig(
 				}
 			}
 		}
-		if !config.From.RouteFilter.IsNull() && !config.From.RouteFilter.IsUnknown() {
-			var routeFilter []policyoptionsPolicyStatementBlockFromBlockRouteFilter
-			asDiags := config.From.RouteFilter.ElementsAs(ctx, &routeFilter, false)
-			if asDiags.HasError() {
-				resp.Diagnostics.Append(asDiags...)
-
-				return
-			}
-
-			routeFilterBlock := make(map[string]struct{})
-			for ii, v := range routeFilter {
-				if !v.Route.IsNull() && !v.Route.IsUnknown() &&
-					!v.Option.IsNull() && !v.Option.IsUnknown() {
-					values := v.Route.ValueString() + " " + v.Option.ValueString()
-					if !v.OptionValue.IsNull() {
-						if v.OptionValue.IsUnknown() {
-							continue
-						}
-						values += " " + v.OptionValue.ValueString()
-					}
-					if _, ok := routeFilterBlock[values]; ok {
-						resp.Diagnostics.AddAttributeError(
-							path.Root("from").AtName("route_filter").AtListIndex(ii).AtName("route"),
-							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple route_filter blocks with the same argument values %q"+
-								" in from block", values),
-						)
-					}
-					routeFilterBlock[values] = struct{}{}
-				}
-			}
-		}
 	}
 
 	if config.To != nil {
@@ -1624,38 +1592,6 @@ func (rsc *policyoptionsPolicyStatement) ValidateConfig(
 								)
 							}
 							nextHopWeightBlock[values] = struct{}{}
-						}
-					}
-				}
-				if !block.From.RouteFilter.IsNull() && !block.From.RouteFilter.IsUnknown() {
-					var routeFilter []policyoptionsPolicyStatementBlockFromBlockRouteFilter
-					asDiags := block.From.RouteFilter.ElementsAs(ctx, &routeFilter, false)
-					if asDiags.HasError() {
-						resp.Diagnostics.Append(asDiags...)
-
-						return
-					}
-
-					routeFilterBlock := make(map[string]struct{})
-					for ii, v := range routeFilter {
-						if !v.Route.IsNull() && !v.Route.IsUnknown() &&
-							!v.Option.IsNull() && !v.Option.IsUnknown() {
-							values := v.Route.ValueString() + " " + v.Option.ValueString()
-							if !v.OptionValue.IsNull() {
-								if v.OptionValue.IsUnknown() {
-									continue
-								}
-								values += " " + v.OptionValue.ValueString()
-							}
-							if _, ok := routeFilterBlock[values]; ok {
-								resp.Diagnostics.AddAttributeError(
-									path.Root("term").AtListIndex(i).AtName("from").AtName("route_filter").AtListIndex(ii).AtName("route"),
-									tfdiag.DuplicateConfigErrSummary,
-									fmt.Sprintf("multiple route_filter blocks with the same argument values %q"+
-										" in from block in term block %q", values, block.Name.ValueString()),
-								)
-							}
-							routeFilterBlock[values] = struct{}{}
 						}
 					}
 				}
@@ -2161,16 +2097,7 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 	for _, v := range block.Protocol {
 		configSet = append(configSet, setPrefix+"protocol "+v.ValueString())
 	}
-	routeFilterBlock := make(map[string]struct{})
-	for i, v := range block.RouteFilter {
-		values := v.Route.ValueString() + " " + v.Option.ValueString() + " " + v.OptionValue.ValueString()
-		if _, ok := routeFilterBlock[values]; ok {
-			return configSet,
-				pathRoot.AtName("route_filter").AtListIndex(i).AtName("route"),
-				fmt.Errorf("multiple route_filter blocks with the same argument values %q in from block", values)
-		}
-		routeFilterBlock[values] = struct{}{}
-
+	for _, v := range block.RouteFilter {
 		setRoutFilter := setPrefix + "route-filter " +
 			v.Route.ValueString() + " " + v.Option.ValueString()
 		if v2 := v.OptionValue.ValueString(); v2 != "" {

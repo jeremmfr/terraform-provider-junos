@@ -343,7 +343,7 @@ func policyoptionsPolicyStatementDscBlockFromBlocksSchema() map[string]schema.Bl
 				},
 			},
 		},
-		"route_filter": schema.ListNestedBlock{
+		"route_filter": schema.SetNestedBlock{
 			Description: "Routes to match.",
 			NestedObject: schema.NestedBlockObject{
 				Attributes: map[string]schema.Attribute{
