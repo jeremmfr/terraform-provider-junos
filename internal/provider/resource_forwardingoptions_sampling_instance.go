@@ -210,18 +210,18 @@ type forwardingoptionsSamplingInstanceData struct {
 }
 
 type forwardingoptionsSamplingInstanceConfig struct {
-	ID                    types.String                                                  `tfsdk:"id"`
-	Name                  types.String                                                  `tfsdk:"name"`
-	RoutingInstance       types.String                                                  `tfsdk:"routing_instance"`
-	ChassisFpcSlotNumbers types.Set                                                     `tfsdk:"chassis_fpc_slot_numbers"`
-	Disable               types.Bool                                                    `tfsdk:"disable"`
-	FamilyInetInput       *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet_input"`
-	FamilyInetOutput      *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet_output"`
-	FamilyInet6Input      *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_inet6_input"`
-	FamilyInet6Output     *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig `tfsdk:"family_inet6_output"`
-	FamilyMplsInput       *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"family_mpls_input"`
-	FamilyMplsOutput      *forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig `tfsdk:"family_mpls_output"`
-	Input                 *forwardingoptionsSamplingInstanceBlockInput                  `tfsdk:"input"`
+	ID                    types.String                                                   `tfsdk:"id"`
+	Name                  types.String                                                   `tfsdk:"name"`
+	RoutingInstance       types.String                                                   `tfsdk:"routing_instance"`
+	ChassisFpcSlotNumbers types.Set                                                      `tfsdk:"chassis_fpc_slot_numbers"`
+	Disable               types.Bool                                                     `tfsdk:"disable"`
+	FamilyInetInput       *forwardingoptionsSamplingInstanceBlockInput                   `tfsdk:"family_inet_input"`
+	FamilyInetOutput      *forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig  `tfsdk:"family_inet_output"`
+	FamilyInet6Input      *forwardingoptionsSamplingInstanceBlockInput                   `tfsdk:"family_inet6_input"`
+	FamilyInet6Output     *forwardingoptionsSamplingInstanceBlockFamilyInet6OutputConfig `tfsdk:"family_inet6_output"`
+	FamilyMplsInput       *forwardingoptionsSamplingInstanceBlockInput                   `tfsdk:"family_mpls_input"`
+	FamilyMplsOutput      *forwardingoptionsSamplingInstanceBlockFamilyMplsOutputConfig  `tfsdk:"family_mpls_output"`
+	Input                 *forwardingoptionsSamplingInstanceBlockInput                   `tfsdk:"input"`
 }
 
 type forwardingoptionsSamplingInstanceBlockInput struct {
@@ -279,6 +279,7 @@ type forwardingoptionsSamplingInstanceBlockFamilyInetOutput struct {
 	FlowActiveTimeout        types.Int64                                                             `tfsdk:"flow_active_timeout"`
 	FlowInactiveTimeout      types.Int64                                                             `tfsdk:"flow_inactive_timeout"`
 	InlineJflowExportRate    types.Int64                                                             `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowHwAssisted    types.Bool                                                              `tfsdk:"inline_jflow_hw_assisted"`
 	InlineJflowSourceAddress types.String                                                            `tfsdk:"inline_jflow_source_address"`
 	FlowServer               []forwardingoptionsSamplingInstanceBlockFamilyInetOutputBlockFlowServer `tfsdk:"flow_server"`
 	Interface                []forwardingoptionsSamplingInstanceBlockOutputBlockInterface            `tfsdk:"interface"`
@@ -327,6 +328,13 @@ func (forwardingoptionsSamplingInstanceBlockFamilyInetOutput) attributesSchema()
 				int64validator.Between(1, 3200),
 			},
 		},
+		"inline_jflow_hw_assisted": schema.BoolAttribute{
+			Optional:    true,
+			Description: "Inline processing of sampled packets with hardware-assisted sampling.",
+			Validators: []validator.Bool{
+				tfvalidator.BoolTrue(),
+			},
+		},
 		"inline_jflow_source_address": schema.StringAttribute{
 			Optional:    true,
 			Description: "Inline processing of sampled packets with address to use for generating monitored packets.",
@@ -355,6 +363,7 @@ type forwardingoptionsSamplingInstanceBlockFamilyInetOutputConfig struct {
 	FlowActiveTimeout        types.Int64  `tfsdk:"flow_active_timeout"`
 	FlowInactiveTimeout      types.Int64  `tfsdk:"flow_inactive_timeout"`
 	InlineJflowExportRate    types.Int64  `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowHwAssisted    types.Bool   `tfsdk:"inline_jflow_hw_assisted"`
 	InlineJflowSourceAddress types.String `tfsdk:"inline_jflow_source_address"`
 	FlowServer               types.Set    `tfsdk:"flow_server"`
 	Interface                types.List   `tfsdk:"interface"`
@@ -535,7 +544,10 @@ type forwardingoptionsSamplingInstanceBlockFamilyInet6Output struct {
 }
 
 func (forwardingoptionsSamplingInstanceBlockFamilyInet6Output) attributesSchema() map[string]schema.Attribute {
-	return forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}.attributesSchema()
+	attributes := forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}.attributesSchema()
+	delete(attributes, "inline_jflow_hw_assisted")
+
+	return attributes
 }
 
 func (forwardingoptionsSamplingInstanceBlockFamilyInet6Output) blocksSchema() map[string]schema.Block {
@@ -555,6 +567,21 @@ func (forwardingoptionsSamplingInstanceBlockFamilyInet6Output) blocksSchema() ma
 	}
 }
 
+type forwardingoptionsSamplingInstanceBlockFamilyInet6OutputConfig struct {
+	AggregateExportInterval  types.Int64  `tfsdk:"aggregate_export_interval"`
+	ExtensionService         types.List   `tfsdk:"extension_service"`
+	FlowActiveTimeout        types.Int64  `tfsdk:"flow_active_timeout"`
+	FlowInactiveTimeout      types.Int64  `tfsdk:"flow_inactive_timeout"`
+	InlineJflowExportRate    types.Int64  `tfsdk:"inline_jflow_export_rate"`
+	InlineJflowSourceAddress types.String `tfsdk:"inline_jflow_source_address"`
+	FlowServer               types.Set    `tfsdk:"flow_server"`
+	Interface                types.List   `tfsdk:"interface"`
+}
+
+func (block *forwardingoptionsSamplingInstanceBlockFamilyInet6OutputConfig) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
+}
+
 //nolint:lll
 type forwardingoptionsSamplingInstanceBlockFamilyMplsOutput struct {
 	AggregateExportInterval  types.Int64                                                   `tfsdk:"aggregate_export_interval"`
@@ -569,6 +596,7 @@ type forwardingoptionsSamplingInstanceBlockFamilyMplsOutput struct {
 func (forwardingoptionsSamplingInstanceBlockFamilyMplsOutput) attributesSchema() map[string]schema.Attribute {
 	attributes := forwardingoptionsSamplingInstanceBlockFamilyInetOutput{}.attributesSchema()
 	delete(attributes, "extension_service")
+	delete(attributes, "inline_jflow_hw_assisted")
 
 	return attributes
 }
@@ -1447,6 +1475,9 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutput) configSet(
 		configSet = append(configSet, setPrefix+"inline-jflow flow-export-rate "+
 			utils.ConvI64toa(block.InlineJflowExportRate.ValueInt64()))
 	}
+	if block.InlineJflowHwAssisted.ValueBool() {
+		configSet = append(configSet, setPrefix+"inline-jflow hw-assisted")
+	}
 	if v := block.InlineJflowSourceAddress.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"inline-jflow source-address "+v)
 	}
@@ -1912,6 +1943,8 @@ func (block *forwardingoptionsSamplingInstanceBlockFamilyInetOutput) read(itemTr
 		if err != nil {
 			return err
 		}
+	case itemTrim == "inline-jflow hw-assisted":
+		block.InlineJflowHwAssisted = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "inline-jflow source-address "):
 		block.InlineJflowSourceAddress = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "interface "):
