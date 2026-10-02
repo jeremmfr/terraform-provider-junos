@@ -231,40 +231,45 @@ func (block *policyoptionsPolicyStatementBlockTermConfig) isEmpty() bool {
 	return tfdata.CheckBlockIsEmpty(block)
 }
 
+//nolint:lll
 type policyoptionsPolicyStatementBlockFrom struct {
-	AggregateContributor types.Bool                                              `tfsdk:"aggregate_contributor"`
-	BgpASPath            []types.String                                          `tfsdk:"bgp_as_path"`
-	BgpASPathGroup       []types.String                                          `tfsdk:"bgp_as_path_group"`
-	BgpCommunity         []types.String                                          `tfsdk:"bgp_community"`
-	BgpOrigin            types.String                                            `tfsdk:"bgp_origin"`
-	BgpSrteDiscriminator types.Int64                                             `tfsdk:"bgp_srte_discriminator"`
-	Color                types.Int64                                             `tfsdk:"color"`
-	EvpnESI              []types.String                                          `tfsdk:"evpn_esi"`
-	EvpnMACRoute         types.String                                            `tfsdk:"evpn_mac_route"`
-	EvpnTag              []types.Int64                                           `tfsdk:"evpn_tag"`
-	Family               types.String                                            `tfsdk:"family"`
-	LocalPreference      types.Int64                                             `tfsdk:"local_preference"`
-	Interface            []types.String                                          `tfsdk:"interface"`
-	Metric               types.Int64                                             `tfsdk:"metric"`
-	Neighbor             []types.String                                          `tfsdk:"neighbor"`
-	NextHop              []types.String                                          `tfsdk:"next_hop"`
-	NextHopTypeMerged    types.Bool                                              `tfsdk:"next_hop_type_merged"`
-	OspfArea             types.String                                            `tfsdk:"ospf_area"`
-	Policy               []types.String                                          `tfsdk:"policy"`
-	Preference           types.Int64                                             `tfsdk:"preference"`
-	PrefixList           []types.String                                          `tfsdk:"prefix_list"`
-	Protocol             []types.String                                          `tfsdk:"protocol"`
-	RouteType            types.String                                            `tfsdk:"route_type"`
-	RoutingInstance      types.String                                            `tfsdk:"routing_instance"`
-	SrteColor            types.Int64                                             `tfsdk:"srte_color"`
-	State                types.String                                            `tfsdk:"state"`
-	TunnelType           []types.String                                          `tfsdk:"tunnel_type"`
-	ValidationDatabase   types.String                                            `tfsdk:"validation_database"`
-	BgpASPathCalcLength  []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_as_path_calc_length"`
-	BgpASPathUniqueCount []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_as_path_unique_count"`
-	BgpCommunityCount    []policyoptionsPolicyStatementBlockFromBlockCountMatch  `tfsdk:"bgp_community_count"`
-	NextHopWeight        []policyoptionsPolicyStatementBlockFromBlockMatchWeight `tfsdk:"next_hop_weight"`
-	RouteFilter          []policyoptionsPolicyStatementBlockFromBlockRouteFilter `tfsdk:"route_filter"`
+	AggregateContributor    types.Bool                                                      `tfsdk:"aggregate_contributor"`
+	BgpASPath               []types.String                                                  `tfsdk:"bgp_as_path"`
+	BgpASPathGroup          []types.String                                                  `tfsdk:"bgp_as_path_group"`
+	BgpCommunity            []types.String                                                  `tfsdk:"bgp_community"`
+	BgpOrigin               types.String                                                    `tfsdk:"bgp_origin"`
+	BgpSrteDiscriminator    types.Int64                                                     `tfsdk:"bgp_srte_discriminator"`
+	Color                   types.Int64                                                     `tfsdk:"color"`
+	EvpnESI                 []types.String                                                  `tfsdk:"evpn_esi"`
+	EvpnMACRoute            types.String                                                    `tfsdk:"evpn_mac_route"`
+	EvpnTag                 []types.Int64                                                   `tfsdk:"evpn_tag"`
+	Family                  types.String                                                    `tfsdk:"family"`
+	LocalPreference         types.Int64                                                     `tfsdk:"local_preference"`
+	Interface               []types.String                                                  `tfsdk:"interface"`
+	Metric                  types.Int64                                                     `tfsdk:"metric"`
+	Neighbor                []types.String                                                  `tfsdk:"neighbor"`
+	NextHop                 []types.String                                                  `tfsdk:"next_hop"`
+	NextHopTypeMerged       types.Bool                                                      `tfsdk:"next_hop_type_merged"`
+	OspfArea                types.String                                                    `tfsdk:"ospf_area"`
+	Policy                  []types.String                                                  `tfsdk:"policy"`
+	Preference              types.Int64                                                     `tfsdk:"preference"`
+	PrefixList              []types.String                                                  `tfsdk:"prefix_list"`
+	Protocol                []types.String                                                  `tfsdk:"protocol"`
+	RouteFilterList         []types.String                                                  `tfsdk:"route_filter_list"`
+	RouteType               types.String                                                    `tfsdk:"route_type"`
+	RoutingInstance         types.String                                                    `tfsdk:"routing_instance"`
+	SourceAddressFilterList []types.String                                                  `tfsdk:"source_address_filter_list"`
+	SrteColor               types.Int64                                                     `tfsdk:"srte_color"`
+	State                   types.String                                                    `tfsdk:"state"`
+	TunnelType              []types.String                                                  `tfsdk:"tunnel_type"`
+	ValidationDatabase      types.String                                                    `tfsdk:"validation_database"`
+	BgpASPathCalcLength     []policyoptionsPolicyStatementBlockFromBlockCountMatch          `tfsdk:"bgp_as_path_calc_length"`
+	BgpASPathUniqueCount    []policyoptionsPolicyStatementBlockFromBlockCountMatch          `tfsdk:"bgp_as_path_unique_count"`
+	BgpCommunityCount       []policyoptionsPolicyStatementBlockFromBlockCountMatch          `tfsdk:"bgp_community_count"`
+	NextHopWeight           []policyoptionsPolicyStatementBlockFromBlockMatchWeight         `tfsdk:"next_hop_weight"`
+	PrefixListFilter        []policyoptionsPolicyStatementBlockFromBlockPrefixListFilter    `tfsdk:"prefix_list_filter"`
+	RouteFilter             []policyoptionsPolicyStatementBlockFromBlockRouteFilter         `tfsdk:"route_filter"`
+	SourceAddressFilter     []policyoptionsPolicyStatementBlockFromBlockSourceAddressFilter `tfsdk:"source_address_filter"`
 }
 
 func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schema.Attribute {
@@ -494,6 +499,19 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 				),
 			},
 		},
+		"route_filter_list": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "List of route-filter-lists of routes to match.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				),
+			},
+		},
 		"route_type": schema.StringAttribute{
 			Optional:    true,
 			Description: "Route type.",
@@ -507,6 +525,19 @@ func (policyoptionsPolicyStatementBlockFrom) attributesSchema() map[string]schem
 			Validators: []validator.String{
 				stringvalidator.LengthBetween(1, 63),
 				tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+			},
+		},
+		"source_address_filter_list": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Description: "List of source-address-filter-lists of routes to match.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.NoNullValues(),
+				setvalidator.ValueStringsAre(
+					stringvalidator.LengthBetween(1, 250),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				),
 			},
 		},
 		"srte_color": schema.Int64Attribute{
@@ -633,7 +664,29 @@ func (policyoptionsPolicyStatementBlockFrom) blocksSchema() map[string]schema.Bl
 				},
 			},
 		},
-		"route_filter": schema.ListNestedBlock{
+		"prefix_list_filter": schema.SetNestedBlock{
+			Description: "List of prefix-list-filters to match.",
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Required:    true,
+						Description: "Name of prefix-list of routes to match.",
+						Validators: []validator.String{
+							stringvalidator.LengthBetween(1, 250),
+							tfvalidator.StringDoubleQuoteExclusion(),
+						},
+					},
+					"option": schema.StringAttribute{
+						Required:    true,
+						Description: "Mask option.",
+						Validators: []validator.String{
+							stringvalidator.OneOf("exact", "longer", "orlonger"),
+						},
+					},
+				},
+			},
+		},
+		"route_filter": schema.SetNestedBlock{
 			Description: "Routes to match.",
 			NestedObject: schema.NestedBlockObject{
 				Attributes: map[string]schema.Attribute{
@@ -663,6 +716,36 @@ func (policyoptionsPolicyStatementBlockFrom) blocksSchema() map[string]schema.Bl
 				},
 			},
 		},
+		"source_address_filter": schema.SetNestedBlock{
+			Description: "List of source addresses to match.",
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"address": schema.StringAttribute{
+						Required:    true,
+						Description: "IP address.",
+						Validators: []validator.String{
+							tfvalidator.StringCIDRNetwork(),
+						},
+					},
+					"option": schema.StringAttribute{
+						Required:    true,
+						Description: "Mask option.",
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								"exact", "longer", "orlonger", "prefix-length-range", "through", "upto",
+							),
+						},
+					},
+					"option_value": schema.StringAttribute{
+						Optional:    true,
+						Description: "For options that need an argument.",
+						Validators: []validator.String{
+							stringvalidator.LengthAtLeast(1),
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -671,39 +754,43 @@ func (block *policyoptionsPolicyStatementBlockFrom) isEmpty() bool {
 }
 
 type policyoptionsPolicyStatementBlockFromConfig struct {
-	AggregateContributor types.Bool   `tfsdk:"aggregate_contributor"`
-	BgpASPath            types.Set    `tfsdk:"bgp_as_path"`
-	BgpASPathGroup       types.Set    `tfsdk:"bgp_as_path_group"`
-	BgpCommunity         types.Set    `tfsdk:"bgp_community"`
-	BgpOrigin            types.String `tfsdk:"bgp_origin"`
-	BgpSrteDiscriminator types.Int64  `tfsdk:"bgp_srte_discriminator"`
-	Color                types.Int64  `tfsdk:"color"`
-	EvpnESI              types.Set    `tfsdk:"evpn_esi"`
-	EvpnMACRoute         types.String `tfsdk:"evpn_mac_route"`
-	EvpnTag              types.Set    `tfsdk:"evpn_tag"`
-	Family               types.String `tfsdk:"family"`
-	LocalPreference      types.Int64  `tfsdk:"local_preference"`
-	Interface            types.Set    `tfsdk:"interface"`
-	Metric               types.Int64  `tfsdk:"metric"`
-	Neighbor             types.Set    `tfsdk:"neighbor"`
-	NextHop              types.Set    `tfsdk:"next_hop"`
-	NextHopTypeMerged    types.Bool   `tfsdk:"next_hop_type_merged"`
-	OspfArea             types.String `tfsdk:"ospf_area"`
-	Policy               types.List   `tfsdk:"policy"`
-	Preference           types.Int64  `tfsdk:"preference"`
-	PrefixList           types.Set    `tfsdk:"prefix_list"`
-	Protocol             types.Set    `tfsdk:"protocol"`
-	RouteType            types.String `tfsdk:"route_type"`
-	RoutingInstance      types.String `tfsdk:"routing_instance"`
-	SrteColor            types.Int64  `tfsdk:"srte_color"`
-	State                types.String `tfsdk:"state"`
-	TunnelType           types.Set    `tfsdk:"tunnel_type"`
-	ValidationDatabase   types.String `tfsdk:"validation_database"`
-	BgpASPathCalcLength  types.Set    `tfsdk:"bgp_as_path_calc_length"`
-	BgpASPathUniqueCount types.Set    `tfsdk:"bgp_as_path_unique_count"`
-	BgpCommunityCount    types.Set    `tfsdk:"bgp_community_count"`
-	NextHopWeight        types.Set    `tfsdk:"next_hop_weight"`
-	RouteFilter          types.List   `tfsdk:"route_filter"`
+	AggregateContributor    types.Bool   `tfsdk:"aggregate_contributor"`
+	BgpASPath               types.Set    `tfsdk:"bgp_as_path"`
+	BgpASPathGroup          types.Set    `tfsdk:"bgp_as_path_group"`
+	BgpCommunity            types.Set    `tfsdk:"bgp_community"`
+	BgpOrigin               types.String `tfsdk:"bgp_origin"`
+	BgpSrteDiscriminator    types.Int64  `tfsdk:"bgp_srte_discriminator"`
+	Color                   types.Int64  `tfsdk:"color"`
+	EvpnESI                 types.Set    `tfsdk:"evpn_esi"`
+	EvpnMACRoute            types.String `tfsdk:"evpn_mac_route"`
+	EvpnTag                 types.Set    `tfsdk:"evpn_tag"`
+	Family                  types.String `tfsdk:"family"`
+	LocalPreference         types.Int64  `tfsdk:"local_preference"`
+	Interface               types.Set    `tfsdk:"interface"`
+	Metric                  types.Int64  `tfsdk:"metric"`
+	Neighbor                types.Set    `tfsdk:"neighbor"`
+	NextHop                 types.Set    `tfsdk:"next_hop"`
+	NextHopTypeMerged       types.Bool   `tfsdk:"next_hop_type_merged"`
+	OspfArea                types.String `tfsdk:"ospf_area"`
+	Policy                  types.List   `tfsdk:"policy"`
+	Preference              types.Int64  `tfsdk:"preference"`
+	PrefixList              types.Set    `tfsdk:"prefix_list"`
+	Protocol                types.Set    `tfsdk:"protocol"`
+	RouteFilterList         types.Set    `tfsdk:"route_filter_list"`
+	RouteType               types.String `tfsdk:"route_type"`
+	RoutingInstance         types.String `tfsdk:"routing_instance"`
+	SourceAddressFilterList types.Set    `tfsdk:"source_address_filter_list"`
+	SrteColor               types.Int64  `tfsdk:"srte_color"`
+	State                   types.String `tfsdk:"state"`
+	TunnelType              types.Set    `tfsdk:"tunnel_type"`
+	ValidationDatabase      types.String `tfsdk:"validation_database"`
+	BgpASPathCalcLength     types.Set    `tfsdk:"bgp_as_path_calc_length"`
+	BgpASPathUniqueCount    types.Set    `tfsdk:"bgp_as_path_unique_count"`
+	BgpCommunityCount       types.Set    `tfsdk:"bgp_community_count"`
+	NextHopWeight           types.Set    `tfsdk:"next_hop_weight"`
+	PrefixListFilter        types.Set    `tfsdk:"prefix_list_filter"`
+	RouteFilter             types.Set    `tfsdk:"route_filter"`
+	SourceAddressFilter     types.Set    `tfsdk:"source_address_filter"`
 }
 
 func (block *policyoptionsPolicyStatementBlockFromConfig) isEmpty() bool {
@@ -720,8 +807,19 @@ type policyoptionsPolicyStatementBlockFromBlockMatchWeight struct {
 	Weight types.Int64  `tfsdk:"weight"`
 }
 
+type policyoptionsPolicyStatementBlockFromBlockPrefixListFilter struct {
+	Name   types.String `tfsdk:"name"`
+	Option types.String `tfsdk:"option"`
+}
+
 type policyoptionsPolicyStatementBlockFromBlockRouteFilter struct {
 	Route       types.String `tfsdk:"route"`
+	Option      types.String `tfsdk:"option"`
+	OptionValue types.String `tfsdk:"option_value"`
+}
+
+type policyoptionsPolicyStatementBlockFromBlockSourceAddressFilter struct {
+	Address     types.String `tfsdk:"address"`
 	Option      types.String `tfsdk:"option"`
 	OptionValue types.String `tfsdk:"option_value"`
 }
@@ -1278,38 +1376,6 @@ func (rsc *policyoptionsPolicyStatement) ValidateConfig(
 				}
 			}
 		}
-		if !config.From.RouteFilter.IsNull() && !config.From.RouteFilter.IsUnknown() {
-			var routeFilter []policyoptionsPolicyStatementBlockFromBlockRouteFilter
-			asDiags := config.From.RouteFilter.ElementsAs(ctx, &routeFilter, false)
-			if asDiags.HasError() {
-				resp.Diagnostics.Append(asDiags...)
-
-				return
-			}
-
-			routeFilterBlock := make(map[string]struct{})
-			for ii, v := range routeFilter {
-				if !v.Route.IsNull() && !v.Route.IsUnknown() &&
-					!v.Option.IsNull() && !v.Option.IsUnknown() {
-					values := v.Route.ValueString() + " " + v.Option.ValueString()
-					if !v.OptionValue.IsNull() {
-						if v.OptionValue.IsUnknown() {
-							continue
-						}
-						values += " " + v.OptionValue.ValueString()
-					}
-					if _, ok := routeFilterBlock[values]; ok {
-						resp.Diagnostics.AddAttributeError(
-							path.Root("from").AtName("route_filter").AtListIndex(ii).AtName("route"),
-							tfdiag.DuplicateConfigErrSummary,
-							fmt.Sprintf("multiple route_filter blocks with the same argument values %q"+
-								" in from block", values),
-						)
-					}
-					routeFilterBlock[values] = struct{}{}
-				}
-			}
-		}
 	}
 
 	if config.To != nil {
@@ -1541,38 +1607,6 @@ func (rsc *policyoptionsPolicyStatement) ValidateConfig(
 								)
 							}
 							nextHopWeightBlock[values] = struct{}{}
-						}
-					}
-				}
-				if !block.From.RouteFilter.IsNull() && !block.From.RouteFilter.IsUnknown() {
-					var routeFilter []policyoptionsPolicyStatementBlockFromBlockRouteFilter
-					asDiags := block.From.RouteFilter.ElementsAs(ctx, &routeFilter, false)
-					if asDiags.HasError() {
-						resp.Diagnostics.Append(asDiags...)
-
-						return
-					}
-
-					routeFilterBlock := make(map[string]struct{})
-					for ii, v := range routeFilter {
-						if !v.Route.IsNull() && !v.Route.IsUnknown() &&
-							!v.Option.IsNull() && !v.Option.IsUnknown() {
-							values := v.Route.ValueString() + " " + v.Option.ValueString()
-							if !v.OptionValue.IsNull() {
-								if v.OptionValue.IsUnknown() {
-									continue
-								}
-								values += " " + v.OptionValue.ValueString()
-							}
-							if _, ok := routeFilterBlock[values]; ok {
-								resp.Diagnostics.AddAttributeError(
-									path.Root("term").AtListIndex(i).AtName("from").AtName("route_filter").AtListIndex(ii).AtName("route"),
-									tfdiag.DuplicateConfigErrSummary,
-									fmt.Sprintf("multiple route_filter blocks with the same argument values %q"+
-										" in from block in term block %q", values, block.Name.ValueString()),
-								)
-							}
-							routeFilterBlock[values] = struct{}{}
 						}
 					}
 				}
@@ -2072,19 +2106,13 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 	for _, v := range block.PrefixList {
 		configSet = append(configSet, setPrefix+"prefix-list \""+v.ValueString()+"\"")
 	}
+	for _, v := range block.PrefixListFilter {
+		configSet = append(configSet, setPrefix+"prefix-list-filter \""+v.Name.ValueString()+"\" "+v.Option.ValueString())
+	}
 	for _, v := range block.Protocol {
 		configSet = append(configSet, setPrefix+"protocol "+v.ValueString())
 	}
-	routeFilterBlock := make(map[string]struct{})
-	for i, v := range block.RouteFilter {
-		values := v.Route.ValueString() + " " + v.Option.ValueString() + " " + v.OptionValue.ValueString()
-		if _, ok := routeFilterBlock[values]; ok {
-			return configSet,
-				pathRoot.AtName("route_filter").AtListIndex(i).AtName("route"),
-				fmt.Errorf("multiple route_filter blocks with the same argument values %q in from block", values)
-		}
-		routeFilterBlock[values] = struct{}{}
-
+	for _, v := range block.RouteFilter {
 		setRoutFilter := setPrefix + "route-filter " +
 			v.Route.ValueString() + " " + v.Option.ValueString()
 		if v2 := v.OptionValue.ValueString(); v2 != "" {
@@ -2092,11 +2120,25 @@ func (block *policyoptionsPolicyStatementBlockFrom) configSet(
 		}
 		configSet = append(configSet, setRoutFilter)
 	}
+	for _, v := range block.RouteFilterList {
+		configSet = append(configSet, setPrefix+"route-filter-list \""+v.ValueString()+"\"")
+	}
 	if v := block.RouteType.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"route-type "+v)
 	}
 	if v := block.RoutingInstance.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"instance "+v)
+	}
+	for _, v := range block.SourceAddressFilter {
+		setSourceAddressFilter := setPrefix + "source-address-filter " +
+			v.Address.ValueString() + " " + v.Option.ValueString()
+		if v2 := v.OptionValue.ValueString(); v2 != "" {
+			setSourceAddressFilter += " " + v2
+		}
+		configSet = append(configSet, setSourceAddressFilter)
+	}
+	for _, v := range block.SourceAddressFilterList {
+		configSet = append(configSet, setPrefix+"source-address-filter-list \""+v.ValueString()+"\"")
 	}
 	if !block.SrteColor.IsNull() {
 		configSet = append(configSet, setPrefix+"srte-color "+
@@ -2469,6 +2511,16 @@ func (block *policyoptionsPolicyStatementBlockFrom) read(itemTrim string) (err e
 		}
 	case balt.CutPrefixInString(&itemTrim, "prefix-list "):
 		block.PrefixList = append(block.PrefixList, types.StringValue(strings.Trim(itemTrim, "\"")))
+	case balt.CutPrefixInString(&itemTrim, "prefix-list-filter "):
+		name := tfdata.FirstElementOfJunosLine(itemTrim)
+		if name == itemTrim { // <name> <option>
+			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "prefix-list-filter", itemTrim)
+		}
+		block.PrefixListFilter = append(block.PrefixListFilter,
+			policyoptionsPolicyStatementBlockFromBlockPrefixListFilter{
+				Name:   types.StringValue(strings.Trim(name, "\"")),
+				Option: types.StringValue(strings.TrimPrefix(itemTrim, name+" ")),
+			})
 	case balt.CutPrefixInString(&itemTrim, "protocol "):
 		block.Protocol = append(block.Protocol, types.StringValue(itemTrim))
 	case balt.CutPrefixInString(&itemTrim, "route-filter "):
@@ -2484,10 +2536,27 @@ func (block *policyoptionsPolicyStatementBlockFrom) read(itemTrim string) (err e
 			routeFilter.OptionValue = types.StringValue(itemTrimFields[2])
 		}
 		block.RouteFilter = append(block.RouteFilter, routeFilter)
+	case balt.CutPrefixInString(&itemTrim, "route-filter-list "):
+		block.RouteFilterList = append(block.RouteFilterList, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "route-type "):
 		block.RouteType = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "instance "):
 		block.RoutingInstance = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "source-address-filter "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 2 { // <address> <option> <option_value>?
+			return fmt.Errorf(junos.CantReadValuesNotEnoughFields, "source-address-filter", itemTrim)
+		}
+		sourceAddressFilter := policyoptionsPolicyStatementBlockFromBlockSourceAddressFilter{
+			Address: types.StringValue(itemTrimFields[0]),
+			Option:  types.StringValue(itemTrimFields[1]),
+		}
+		if len(itemTrimFields) > 2 {
+			sourceAddressFilter.OptionValue = types.StringValue(itemTrimFields[2])
+		}
+		block.SourceAddressFilter = append(block.SourceAddressFilter, sourceAddressFilter)
+	case balt.CutPrefixInString(&itemTrim, "source-address-filter-list "):
+		block.SourceAddressFilterList = append(block.SourceAddressFilterList, types.StringValue(strings.Trim(itemTrim, "\"")))
 	case balt.CutPrefixInString(&itemTrim, "srte-color "):
 		block.SrteColor, err = tfdata.ConvAtoi64Value(itemTrim)
 		if err != nil {
