@@ -256,9 +256,10 @@ func (bgpAttrData) attributesSchema() map[string]schema.Attribute {
 			Optional:    true,
 			Description: "Local autonomous system number.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^\d+(\.\d+)?$`),
-					"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format"),
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^\d+(\.\d+)?$`),
+					"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format",
+				),
 			},
 		},
 		"local_as_alias": schema.BoolAttribute{
@@ -395,9 +396,10 @@ func (bgpAttrData) attributesSchema() map[string]schema.Attribute {
 			Optional:    true,
 			Description: "Autonomous system number.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^\d+(\.\d+)?$`),
-					"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format"),
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^\d+(\.\d+)?$`),
+					"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format",
+				),
 			},
 		},
 		"preference": schema.Int64Attribute{

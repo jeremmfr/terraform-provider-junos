@@ -214,7 +214,8 @@ func TestAccResourceBgpNeighbor_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_bgpneighbor_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set protocols bgp group "?testacc_bgpneighbor_wo"? neighbor 192\.0\.2\.4 authentication-key `)),
+								`set protocols bgp group "?testacc_bgpneighbor_wo"? neighbor 192\.0\.2\.4 authentication-key `,
+							)),
 						),
 					},
 				},

@@ -131,9 +131,10 @@ func (rsc *generateRoute) Schema(
 				Optional:    true,
 				Description: "AS number to add AGGREGATOR path attribute to route.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^\d+(\.\d+)?$`),
-						"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^\d+(\.\d+)?$`),
+						"must be in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format",
+					),
 				},
 			},
 			"as_path_atomic_aggregate": schema.BoolAttribute{

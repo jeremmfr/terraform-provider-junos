@@ -115,9 +115,10 @@ func (rsc *securityUtmCustomMessage) Schema(
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 64),
 					tfvalidator.StringDoubleQuoteExclusion(),
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^.+\.html$`),
-						"must be end with '.html'"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^.+\.html$`),
+						"must be end with '.html'",
+					),
 				},
 			},
 		},

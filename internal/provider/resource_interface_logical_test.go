@@ -277,14 +277,16 @@ func TestAccResourceInterfaceLogical_writeOnly(t *testing.T) {
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
 								testaccInterface+` unit 100 family inet address 192\.0\.2\.1/25`+
-									` vrrp-group 100 authentication-key `)),
+									` vrrp-group 100 authentication-key `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_interface_logical_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
 								testaccInterface+` unit 100 family inet address 192\.0\.2\.129/25`+
-									` vrrp-group 101 authentication-key `)),
+									` vrrp-group 101 authentication-key `,
+							)),
 						),
 					},
 				},

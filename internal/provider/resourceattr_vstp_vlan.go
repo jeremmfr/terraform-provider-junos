@@ -35,8 +35,8 @@ func (vstpVlanAttrData) attributesSchema() map[string]schema.Attribute {
 			Optional:    true,
 			Description: "Priority of the bridge.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^\d\d?k$`),
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^\d\d?k$`),
 					"must be a number with increments of 4k - 4k,8k,..60k",
 				),
 			},
@@ -45,8 +45,8 @@ func (vstpVlanAttrData) attributesSchema() map[string]schema.Attribute {
 			Optional:    true,
 			Description: "Priority of the bridge.",
 			Validators: []validator.String{
-				stringvalidator.RegexMatches(regexp.MustCompile(
-					`^(0|\d\d?k)$`),
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^(0|\d\d?k)$`),
 					"must be a number with increments of 4k - 0,4k,8k,..60k",
 				),
 			},

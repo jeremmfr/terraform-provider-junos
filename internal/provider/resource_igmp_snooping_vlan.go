@@ -153,18 +153,20 @@ func (rsc *igmpSnoopingVlan) Schema(
 				Optional:    true,
 				Description: "When to send group query messages (seconds).",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^\d+(\.\d+)?$`),
-						"must be a number with optional decimal"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^\d+(\.\d+)?$`),
+						"must be a number with optional decimal",
+					),
 				},
 			},
 			"query_response_interval": schema.StringAttribute{
 				Optional:    true,
 				Description: "How long to wait for a host query response (seconds).",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^\d+(\.\d+)?$`),
-						"must be a number with optional decimal"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^\d+(\.\d+)?$`),
+						"must be a number with optional decimal",
+					),
 				},
 			},
 			"robust_count": schema.Int64Attribute{

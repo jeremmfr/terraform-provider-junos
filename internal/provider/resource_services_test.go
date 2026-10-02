@@ -88,19 +88,22 @@ func TestAccResourceServices_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set services security-intelligence url-parameter `)),
+								`set services security-intelligence url-parameter `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set services user-identification identity-management connection primary client-secret `)),
+								`set services user-identification identity-management connection primary client-secret `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`set services user-identification identity-management connection secondary client-secret `)),
+								`set services user-identification identity-management connection secondary client-secret `,
+							)),
 						),
 					},
 				},

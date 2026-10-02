@@ -46,7 +46,7 @@ func checkBlockValueIsEmpty(blockValue reflect.Value) bool {
 			continue
 		}
 
-		if attrValue, ok := fieldValue.Interface().(attr.Value); ok {
+		if attrValue, ok := reflect.TypeAssert[attr.Value](fieldValue); ok {
 			if !attrValue.IsNull() {
 				return false
 			}
@@ -107,7 +107,7 @@ func checkBlockValueHasKnownValue(blockValue reflect.Value, excludeFields ...str
 			continue
 		}
 
-		if attrValue, ok := fieldValue.Interface().(attr.Value); ok {
+		if attrValue, ok := reflect.TypeAssert[attr.Value](fieldValue); ok {
 			if !attrValue.IsNull() && !attrValue.IsUnknown() {
 				return true
 			}

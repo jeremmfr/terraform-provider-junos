@@ -19,19 +19,24 @@ func TestAccResourceSecurityUtmProfileWebFilteringWebsenseRedirect_basic(t *test
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"custom_block_message", "Blocked by Juniper"),
+							"custom_block_message", "Blocked by Juniper",
+						),
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"fallback_settings.default", "log-and-permit"),
+							"fallback_settings.default", "log-and-permit",
+						),
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"fallback_settings.server_connectivity", "log-and-permit"),
+							"fallback_settings.server_connectivity", "log-and-permit",
+						),
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"fallback_settings.timeout", "log-and-permit"),
+							"fallback_settings.timeout", "log-and-permit",
+						),
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"fallback_settings.timeout", "log-and-permit"),
+							"fallback_settings.timeout", "log-and-permit",
+						),
 					),
 				},
 				{
@@ -39,19 +44,24 @@ func TestAccResourceSecurityUtmProfileWebFilteringWebsenseRedirect_basic(t *test
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"custom_block_message", "Blocked by Juniper"),
+							"custom_block_message", "Blocked by Juniper",
+						),
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"timeout", "3"),
+							"timeout", "3",
+						),
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"server.host", "10.0.0.1"),
+							"server.host", "10.0.0.1",
+						),
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"server.port", "1024"),
+							"server.port", "1024",
+						),
 						resource.TestCheckResourceAttr(
 							"junos_security_utm_profile_web_filtering_websense_redirect.testacc_ProfileWebFWebS",
-							"sockets", "16"),
+							"sockets", "16",
+						),
 					),
 				},
 				{

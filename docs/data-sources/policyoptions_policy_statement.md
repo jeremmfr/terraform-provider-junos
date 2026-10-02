@@ -123,9 +123,15 @@ The following attributes are exported:
   Preference value.
 - **prefix_list** (Set of String)  
   Prefix-lists of routes to match.
+- **prefix_list_filter** (Block Set)  
+  List of prefix-list-filters to match.
+  - **name** (String)  
+    Name of prefix-list of routes to match.
+  - **option** (String)  
+    Mask option.
 - **protocol** (Set of String)  
   Protocol from which route was learned.
-- **route_filter** (Block List)  
+- **route_filter** (Block Set)  
   Routes to match.
   - **route** (String)  
     IP address.
@@ -133,10 +139,22 @@ The following attributes are exported:
     Mask option.
   - **option_value** (String)  
     For options that need an argument.
+- **route_filter_list** (Set of String)  
+  List of route-filter-lists of routes to match.
 - **route_type** (String)  
   Route type.
 - **routing_instance** (String)  
   Routing protocol instance.
+- **source_address_filter** (Block Set)  
+  List of source addresses to match.
+  - **address** (String)  
+    IP address.
+  - **option** (String)  
+    Mask option.
+  - **option_value** (String)  
+    For options that need an argument.
+- **source_address_filter_list** (Set of String)  
+  Source address filter lists of routes to match.
 - **srte_color** (Number)  
   Srte color.
 - **state** (String)  

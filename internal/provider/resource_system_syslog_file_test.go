@@ -134,7 +134,8 @@ func TestAccResourceSystemSyslogFile_writeOnly(t *testing.T) {
 						"data.junos_config_raw.testacc_syslogFile_wo",
 						tfjsonpath.New("config"),
 						knownvalue.StringRegexp(regexp.MustCompile(
-							`file "?testacc_wo"? archive archive-sites "?192\.0\.2\.2"? password `)),
+							`file "?testacc_wo"? archive archive-sites "?192\.0\.2\.2"? password `,
+						)),
 					),
 				},
 			},

@@ -116,8 +116,8 @@ func (rsc *virtualChassis) Schema(
 				Optional:    true,
 				Description: "Virtual chassis identifier, of type ISO system-id.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^[0-9a-f]{4}\.[0-9a-f]{4}\.[0-9a-f]{4}$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[0-9a-f]{4}\.[0-9a-f]{4}\.[0-9a-f]{4}$`),
 						"must be of type ISO system-id",
 					),
 				},
@@ -126,8 +126,8 @@ func (rsc *virtualChassis) Schema(
 				Optional:    true,
 				Description: "MAC persistence time (minutes) or disable.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^([1-9]|[1-5][0-9]|60|disable)$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^([1-9]|[1-5][0-9]|60|disable)$`),
 						"must be a number between 1 to 60 or disable",
 					),
 				},

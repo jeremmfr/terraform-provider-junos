@@ -185,18 +185,20 @@ func (rsc *firewallPolicer) Schema(
 						Optional:    true,
 						Description: "Burst size limit in bytes.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^(\d)+(m|k|g)?$`),
-								`must be a bandwidth ^(\d)+(m|k|g)?$`),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(\d)+(m|k|g)?$`),
+								`must be a bandwidth ^(\d)+(m|k|g)?$`,
+							),
 						},
 					},
 					"bandwidth_limit": schema.StringAttribute{
 						Optional:    true,
 						Description: "Bandwidth limit in bits/second.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^(\d)+(m|k|g)?$`),
-								`must be a bandwidth ^(\d)+(m|k|g)?$`),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(\d)+(m|k|g)?$`),
+								`must be a bandwidth ^(\d)+(m|k|g)?$`,
+							),
 						},
 					},
 					"bandwidth_percent": schema.Int64Attribute{
@@ -219,9 +221,10 @@ func (rsc *firewallPolicer) Schema(
 						Optional:    true,
 						Description: "PPS burst size limit.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^(\d)+(m|k|g)?$`),
-								`must be a pps ^(\d)+(m|k|g)?$`),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(\d)+(m|k|g)?$`),
+								`must be a pps ^(\d)+(m|k|g)?$`,
+							),
 						},
 					},
 					"pps_limit": schema.StringAttribute{
@@ -229,9 +232,10 @@ func (rsc *firewallPolicer) Schema(
 						Optional:    true,
 						Description: "PPS limit.",
 						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile(
-								`^(\d)+(m|k|g)?$`),
-								`must be a pps ^(\d)+(m|k|g)?$`),
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(\d)+(m|k|g)?$`),
+								`must be a pps ^(\d)+(m|k|g)?$`,
+							),
 						},
 					},
 				},

@@ -138,6 +138,9 @@ The following arguments are supported:
     Template to export data in version ipfix format.
 - **inline_jflow_export_rate** (Optional, Number)  
   Inline processing of sampled packets with flow export rate of monitored packets in kpps (1..3200).
+- **inline_jflow_hw_assisted** (Optional, Boolean)  
+  Inline processing of sampled packets with hardware-assisted sampling.  
+  **Only available for `family inet`**.
 - **inline_jflow_source_address** (Optional, String)  
   Inline processing of sampled packets with address to use for generating monitored packets.
 - **interface** (Optional, Block List)  

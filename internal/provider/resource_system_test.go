@@ -277,31 +277,36 @@ func TestAccResourceSystem_writeOnly(t *testing.T) {
 							"data.junos_config_raw.testacc_system_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`accounting destination radius server "?192\.0\.2\.53"? secret `)),
+								`accounting destination radius server "?192\.0\.2\.53"? secret `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_system_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`accounting destination radius server "?192\.0\.2\.53"? preauthentication-secret `)),
+								`accounting destination radius server "?192\.0\.2\.53"? preauthentication-secret `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_system_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`accounting destination tacplus server "?192\.0\.2\.55"? secret `)),
+								`accounting destination tacplus server "?192\.0\.2\.55"? secret `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_system_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`archival configuration archive-sites "?scp://juniper-configs@192\.0\.2\.30:/dir"? password `)),
+								`archival configuration archive-sites "?scp://juniper-configs@192\.0\.2\.30:/dir"? password `,
+							)),
 						),
 						statecheck.ExpectKnownValue(
 							"data.junos_config_raw.testacc_system_wo",
 							tfjsonpath.New("config"),
 							knownvalue.StringRegexp(regexp.MustCompile(
-								`license autoupdate url "?https://ae1\.juniper\.net/junos/key_retrieval"? password `)),
+								`license autoupdate url "?https://ae1\.juniper\.net/junos/key_retrieval"? password `,
+							)),
 						),
 					},
 				},

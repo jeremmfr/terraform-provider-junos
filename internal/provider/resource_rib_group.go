@@ -119,8 +119,8 @@ func (rsc *ribGroup) Schema(
 					listvalidator.NoNullValues(),
 					listvalidator.ValueStringsAre(
 						tfvalidator.StringFormat(tfvalidator.DNSNameFormat),
-						stringvalidator.RegexMatches(regexp.MustCompile(
-							`^(.+\.)?(inet6?\.0)$`),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^(.+\.)?(inet6?\.0)$`),
 							"must be equal to or end with `inet.0` or `inet6.0`",
 						),
 					),
@@ -131,8 +131,8 @@ func (rsc *ribGroup) Schema(
 				Description: "Export routing table.",
 				Validators: []validator.String{
 					tfvalidator.StringFormat(tfvalidator.DNSNameFormat),
-					stringvalidator.RegexMatches(regexp.MustCompile(
-						`^(.+\.)?(inet6?\.0)$`),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^(.+\.)?(inet6?\.0)$`),
 						"must be equal to or end with `inet.0` or `inet6.0`",
 					),
 				},

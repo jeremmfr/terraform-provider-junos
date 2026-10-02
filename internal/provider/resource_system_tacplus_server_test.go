@@ -62,7 +62,8 @@ func TestAccResourceSystemTacplusServer_writeOnly(t *testing.T) {
 						"data.junos_config_raw.testacc_tacplusServer_wo",
 						tfjsonpath.New("config"),
 						knownvalue.StringRegexp(regexp.MustCompile(
-							`set system tacplus-server 192.0.2.11 secret `)),
+							`set system tacplus-server 192.0.2.11 secret `,
+						)),
 					),
 				},
 			},

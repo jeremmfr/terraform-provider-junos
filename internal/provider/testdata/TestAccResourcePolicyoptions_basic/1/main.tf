@@ -24,6 +24,34 @@ resource "junos_policyoptions_prefix_list" "testacc_policyOptions2" {
   name   = "testacc policyOptions2"
   prefix = ["192.0.2.0/25", "fe80::/64"]
 }
+resource "junos_policyoptions_prefix_list" "testacc_policyOptions3" {
+  name   = "testacc policyOptions3"
+  prefix = ["192.0.2.128/25"]
+}
+resource "junos_policyoptions_route_filter_list" "testacc_policyOptions" {
+  name = "testacc policyOptions"
+  address {
+    address = "192.0.2.0/25"
+    option  = "exact"
+  }
+  address {
+    address      = "192.0.2.128/25"
+    option       = "address-mask"
+    option_value = "255.255.255.0"
+  }
+}
+resource "junos_policyoptions_source_address_filter_list" "testacc_policyOptions" {
+  name = "testacc policyOptions"
+  address {
+    address = "192.0.2.0/25"
+    option  = "exact"
+  }
+  address {
+    address      = "192.0.2.128/25"
+    option       = "prefix-length-range"
+    option_value = "/26-/27"
+  }
+}
 resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {
@@ -50,7 +78,11 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
     ospf_area        = "0.0.0.0"
     preference       = 100
     prefix_list      = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
-    protocol         = ["bgp"]
+    prefix_list_filter {
+      name   = junos_policyoptions_prefix_list.testacc_policyOptions3.name
+      option = "orlonger"
+    }
+    protocol = ["bgp"]
     route_filter {
       route  = "192.0.2.0/25"
       option = "exact"
@@ -60,6 +92,12 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
       option       = "prefix-length-range"
       option_value = "/26-/27"
     }
+    route_filter_list = [junos_policyoptions_route_filter_list.testacc_policyOptions.name]
+    source_address_filter {
+      address = "192.0.2.0/25"
+      option  = "orlonger"
+    }
+    source_address_filter_list = [junos_policyoptions_source_address_filter_list.testacc_policyOptions.name]
   }
   to {
     bgp_as_path      = [junos_policyoptions_as_path.testacc_policyOptions.name]
@@ -129,7 +167,15 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
       policy                = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
       preference            = 100
       prefix_list           = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
-      protocol              = ["bgp"]
+      prefix_list_filter {
+        name   = junos_policyoptions_prefix_list.testacc_policyOptions.name
+        option = "exact"
+      }
+      prefix_list_filter {
+        name   = junos_policyoptions_prefix_list.testacc_policyOptions3.name
+        option = "longer"
+      }
+      protocol = ["bgp"]
       route_filter {
         route  = "192.0.2.0/25"
         option = "exact"
@@ -139,6 +185,17 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
         option       = "prefix-length-range"
         option_value = "/26-/27"
       }
+      route_filter_list = [junos_policyoptions_route_filter_list.testacc_policyOptions.name]
+      source_address_filter {
+        address = "192.0.2.0/25"
+        option  = "exact"
+      }
+      source_address_filter {
+        address      = "192.0.2.128/25"
+        option       = "prefix-length-range"
+        option_value = "/26-/27"
+      }
+      source_address_filter_list = [junos_policyoptions_source_address_filter_list.testacc_policyOptions.name]
     }
     to {
       bgp_as_path      = [junos_policyoptions_as_path.testacc_policyOptions.name]

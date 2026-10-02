@@ -59,7 +59,10 @@ loopBlocks:
 
 		// check if match with the arguments
 		for iIdent, fieldValue := range blockIdentifierValues {
-			attrValue := fieldValue.Interface().(attr.Value)
+			attrValue, ok := reflect.TypeAssert[attr.Value](fieldValue)
+			if !ok {
+				panic("tfdata identifier tag on a field which is not an attr.Value")
+			}
 			if !attrValue.Equal(identifierValues[iIdent]) {
 				continue loopBlocks
 			}
@@ -124,7 +127,10 @@ func AppendPotentialNewBlock[B any](
 
 		// check if match with the arguments
 		for iIdent, fieldValue := range blockIdentifierValues {
-			attrValue := fieldValue.Interface().(attr.Value)
+			attrValue, ok := reflect.TypeAssert[attr.Value](fieldValue)
+			if !ok {
+				panic("tfdata identifier tag on a field which is not an attr.Value")
+			}
 			if !attrValue.Equal(identifierValues[iIdent]) {
 				lastestOK = false
 
