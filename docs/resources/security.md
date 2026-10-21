@@ -231,6 +231,8 @@ The following arguments are supported:
 - **pending_sess_queue_length** (Optional, String)  
   Maximum queued length per pending session.  
   Need to be `high`, `moderate` or `normal`.
+- **power_mode_disable** (Optional, Boolean)  
+  Disable power mode express path processing.
 - **preserve_incoming_fragment_size** (Optional, Boolean)  
   Preserve incoming fragment size for egress MTU.
 - **route_change_timeout** (Optional, Number)  
