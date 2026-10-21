@@ -231,6 +231,8 @@ The following arguments are supported:
 - **pending_sess_queue_length** (Optional, String)  
   Maximum queued length per pending session.  
   Need to be `high`, `moderate` or `normal`.
+- **power_mode_disable** (Optional, Boolean)\
+  Disable power mode. Set to `true` to configure `set security flow power-mode-disable`; omit to remove it.
 - **preserve_incoming_fragment_size** (Optional, Boolean)  
   Preserve incoming fragment size for egress MTU.
 - **route_change_timeout** (Optional, Number)  
@@ -440,3 +442,4 @@ Junos security can be imported using any id, e.g.
 ```shell
 $ terraform import junos_security.security random
 ```
+

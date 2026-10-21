@@ -63,6 +63,8 @@ func TestAccResourceSecurity_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.pending_sess_queue_length", "normal"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"flow.power_mode_disable", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.preserve_incoming_fragment_size", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.route_change_timeout", "10"),
@@ -160,6 +162,8 @@ func TestAccResourceSecurity_basic(t *testing.T) {
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.ethernet_switching.bypass_non_ip_unicast", "true"),
+						resource.TestCheckNoResourceAttr("junos_security.testacc_security",
+							"flow.power_mode_disable"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.ethernet_switching.no_packet_flooding.no_trace_route", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
@@ -206,3 +210,4 @@ func TestAccResourceSecurity_basic(t *testing.T) {
 		})
 	}
 }
+
