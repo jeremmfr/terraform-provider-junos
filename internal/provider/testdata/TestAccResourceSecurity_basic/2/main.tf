@@ -61,6 +61,7 @@ resource "junos_security" "testacc_security" {
     ipsec_performance_acceleration  = true
     mcast_buffer_enhance            = true
     pending_sess_queue_length       = "normal"
+    power_mode_disable             = true
     preserve_incoming_fragment_size = true
     route_change_timeout            = 10
     syn_flood_protection_mode       = "syn-proxy"
@@ -172,3 +173,4 @@ resource "junos_security" "testacc_security" {
     }
   }
 }
+

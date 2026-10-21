@@ -264,6 +264,13 @@ func (rsc *security) Schema(
 							stringvalidator.OneOf("high", "moderate", "normal"),
 						},
 					},
+					"power_mode_disable": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Disable power mode.",
+						Validators: []validator.Bool{
+							tfvalidator.BoolTrue(),
+						},
+					},
 					"preserve_incoming_fragment_size": schema.BoolAttribute{
 						Optional:    true,
 						Description: "Preserve incoming fragment size for egress MTU.",
@@ -1350,6 +1357,7 @@ type securityBlockFlow struct {
 	IpsecPerformanceAcceleration     types.Bool                               `tfsdk:"ipsec_performance_acceleration"`
 	McastBufferEnhance               types.Bool                               `tfsdk:"mcast_buffer_enhance"`
 	PendingSessQueueLength           types.String                             `tfsdk:"pending_sess_queue_length"`
+	PowerModeDisable                 types.Bool                               `tfsdk:"power_mode_disable"`
 	PreserveIncomingFragmentSize     types.Bool                               `tfsdk:"preserve_incoming_fragment_size"`
 	RouteChangeTimeout               types.Int64                              `tfsdk:"route_change_timeout"`
 	SynFloodProtectionMode           types.String                             `tfsdk:"syn_flood_protection_mode"`
@@ -2364,6 +2372,9 @@ func (block *securityBlockFlow) configSet() (
 	if v := block.PendingSessQueueLength.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"pending-sess-queue-length "+v)
 	}
+	if block.PowerModeDisable.ValueBool() {
+		configSet = append(configSet, setPrefix+"power-mode-disable")
+	}
 	if block.PreserveIncomingFragmentSize.ValueBool() {
 		configSet = append(configSet, setPrefix+"preserve-incoming-fragment-size")
 	}
@@ -3008,6 +3019,7 @@ func (securityBlockFlow) junosLines() []string {
 		"flow ipsec-performance-acceleration",
 		"flow mcast-buffer-enhance",
 		"flow pending-sess-queue-length",
+		"flow power-mode-disable",
 		"flow preserve-incoming-fragment-size",
 		"flow route-change-timeout",
 		"flow syn-flood-protection-mode",
@@ -3091,6 +3103,8 @@ func (block *securityBlockFlow) read(itemTrim string) (err error) {
 		block.McastBufferEnhance = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "pending-sess-queue-length "):
 		block.PendingSessQueueLength = types.StringValue(itemTrim)
+	case itemTrim == "power-mode-disable":
+		block.PowerModeDisable = types.BoolValue(true)
 	case itemTrim == "preserve-incoming-fragment-size":
 		block.PreserveIncomingFragmentSize = types.BoolValue(true)
 	case balt.CutPrefixInString(&itemTrim, "route-change-timeout "):
@@ -3643,3 +3657,4 @@ func (rscData *securityData) del(
 
 	return junSess.ConfigSet(ctx, configSet)
 }
+
