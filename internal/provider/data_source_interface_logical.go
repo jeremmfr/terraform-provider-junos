@@ -156,6 +156,7 @@ func (dsc *interfaceLogicalDataSource) Schema(
 					"mtu":                types.Int64Type,
 					"sampling_input":     types.BoolType,
 					"sampling_output":    types.BoolType,
+					"tcp_mss":            types.Int64Type,
 					"address": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 						"cidr_ip":                 types.StringType,
 						"preferred":               types.BoolType,
@@ -223,6 +224,7 @@ func (dsc *interfaceLogicalDataSource) Schema(
 					"mtu":                types.Int64Type,
 					"sampling_input":     types.BoolType,
 					"sampling_output":    types.BoolType,
+					"tcp_mss":            types.Int64Type,
 					"address": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(map[string]attr.Type{
 						"cidr_ip":                 types.StringType,
 						"preferred":               types.BoolType,
@@ -323,6 +325,7 @@ type interfaceLogicalDataSourceBlockFamilyInet struct {
 	Mtu              types.Int64                                             `tfsdk:"mtu"`
 	SamplingInput    types.Bool                                              `tfsdk:"sampling_input"`
 	SamplingOutput   types.Bool                                              `tfsdk:"sampling_output"`
+	TCPMss           types.Int64                                             `tfsdk:"tcp_mss"`
 	Address          []interfaceLogicalDataSourceBlockFamilyInetBlockAddress `tfsdk:"address"`
 	DHCP             *interfaceLogicalBlockFamilyInetBlockDhcp               `tfsdk:"dhcp"`
 	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck               `tfsdk:"rpf_check"`
@@ -515,6 +518,7 @@ func (dscBlock *interfaceLogicalDataSourceBlockFamilyInet) copyFromResourceBlock
 	dscBlock.Mtu = block.Mtu
 	dscBlock.SamplingInput = block.SamplingInput
 	dscBlock.SamplingOutput = block.SamplingOutput
+	dscBlock.TCPMss = block.TCPMss
 	dscBlock.DHCP = block.DHCP
 	dscBlock.RPFCheck = block.RPFCheck
 

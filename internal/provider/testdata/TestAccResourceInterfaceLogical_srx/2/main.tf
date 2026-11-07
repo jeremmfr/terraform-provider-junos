@@ -60,7 +60,8 @@ resource "junos_interface_logical" "testacc_interface_logical" {
   security_inbound_services  = ["telnet"]
   routing_instance           = junos_routing_instance.testacc_interface_logical.name
   family_inet {
-    mtu = 1500
+    mtu     = 1500
+    tcp_mss = 1400
     filter_input_list = [
       junos_firewall_filter.testacc_intlogicalInet.name,
       junos_firewall_filter.testacc_intlogicalInet-bis.name,
@@ -89,7 +90,8 @@ resource "junos_interface_logical" "testacc_interface_logical" {
     }
   }
   family_inet6 {
-    mtu = 1500
+    mtu     = 1500
+    tcp_mss = 1400
     filter_input_list = [
       junos_firewall_filter.testacc_intlogicalInet6.name,
     ]
