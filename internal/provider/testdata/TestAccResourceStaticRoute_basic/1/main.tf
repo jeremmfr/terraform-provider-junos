@@ -12,6 +12,19 @@ resource "junos_static_route" "testacc_staticRoute_instance" {
   readvertise      = true
   no_resolve       = true
   retain           = true
+  bfd_liveness_detection {
+    authentication_loose_check         = true
+    detection_time_threshold           = 60
+    holddown_interval                  = 1000
+    minimum_interval                   = 16
+    minimum_receive_interval           = 17
+    multiplier                         = 2
+    neighbor                           = "192.0.2.253"
+    no_adaptation                      = true
+    transmit_interval_minimum_interval = 18
+    transmit_interval_threshold        = 19
+    version                            = "automatic"
+  }
   qualified_next_hop {
     next_hop   = "st0.0"
     preference = 101
@@ -47,9 +60,27 @@ resource "junos_static_route" "testacc_staticRoute_default" {
 }
 resource "junos_static_route" "testacc_staticRoute2_default" {
   destination = "192.0.2.128/28"
+  resolve     = true # without it, vSRX refuses local_address in bfd_liveness_detection (single-hop session)
   next_hop = [
     "192.0.2.254"
   ]
+  bfd_liveness_detection {
+    local_address       = "192.0.2.1"
+    minimum_interval    = 1000
+    minimum_receive_ttl = 10
+  }
+}
+resource "junos_static_route" "testacc_staticRoute3_default" {
+  destination = "192.0.2.144/28"
+  resolve     = true # without it, vSRX refuses local_address in bfd_liveness_detection (single-hop session)
+  qualified_next_hop {
+    next_hop = "192.0.2.254"
+    bfd_liveness_detection {
+      local_address       = "192.0.2.1"
+      minimum_interval    = 1000
+      minimum_receive_ttl = 10
+    }
+  }
 }
 resource "junos_static_route" "testacc_staticRoute_ipv6_default" {
   destination = "2001:db8:85a3::/48"
@@ -61,6 +92,10 @@ resource "junos_static_route" "testacc_staticRoute_ipv6_default" {
   readvertise = true
   no_resolve  = true
   retain      = true
+  bfd_liveness_detection {
+    minimum_interval = 1000
+    neighbor         = "2001:db8:85a4::2"
+  }
   qualified_next_hop {
     next_hop   = "st0.0"
     preference = 101

@@ -41,6 +41,9 @@ The following arguments are supported:
   Need to be `egp`, `igp` or `incomplete`.
 - **as_path_path** (Optional, String)  
   Path to as-path.
+- **bfd_liveness_detection** (Optional, Block)  
+  Define Bidirectional Forwarding Detection (BFD) options.  
+  See [below for nested schema](#bfd_liveness_detection-arguments).
 - **community** (Optional, List of String)  
   BGP community.
 - **discard** (Optional, Boolean)  
@@ -76,6 +79,9 @@ The following arguments are supported:
     Metric of qualified next hop.
   - **preference** (Optional, Number)  
     Preference of qualified next hop.
+  - **bfd_liveness_detection** (Optional, Block)  
+    Define Bidirectional Forwarding Detection (BFD) options.  
+    See [below for nested schema](#bfd_liveness_detection-arguments).
 - **readvertise** (Optional, Boolean)  
   Mark route as eligible to be readvertised.  
   Conflict with `no_readvertise`.
@@ -100,6 +106,42 @@ The following arguments are supported:
 - **no_retain** (Optional, Boolean)  
   Don't always keep route in forwarding table.  
   Conflict with `resolve` and `retain`.
+
+---
+
+### bfd_liveness_detection arguments
+
+- **authentication_algorithm** (Optional, String)  
+  Authentication algorithm name.
+- **authentication_key_chain** (Optional, String)  
+  Authentication key chain name.
+- **authentication_loose_check** (Optional, Boolean)  
+  Verify authentication only if authentication is negotiated.
+- **detection_time_threshold** (Optional, Number)  
+  High detection-time triggering a trap (milliseconds).
+- **holddown_interval** (Optional, Number)  
+  Time to hold the session-UP notification to the client (0..255000 milliseconds).
+- **local_address** (Optional, String)  
+  BFD local address.
+- **minimum_interval** (Optional, Number)  
+  Minimum transmit and receive interval (1..255000 milliseconds).
+- **minimum_receive_interval** (Optional, Number)  
+  Minimum receive interval (1..255000 milliseconds).
+- **minimum_receive_ttl** (Optional, Number)  
+  Minimum receive TTL below which to drop (1..255).
+- **multiplier** (Optional, Number)  
+  Detection time multiplier (1..255).
+- **neighbor** (Optional, String)  
+  BFD neighbor address.
+- **no_adaptation** (Optional, Boolean)  
+  Disable adaptation.
+- **transmit_interval_minimum_interval** (Optional, Number)  
+  Minimum transmit interval (1..255000 milliseconds).
+- **transmit_interval_threshold** (Optional, Number)  
+  High transmit interval triggering a trap (milliseconds).
+- **version** (Optional, String)  
+  BFD protocol version number.  
+  Need to be `0`, `1` or `automatic`.
 
 ## Attribute Reference
 

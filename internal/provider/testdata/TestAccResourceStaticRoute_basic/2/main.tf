@@ -14,6 +14,11 @@ resource "junos_static_route" "testacc_staticRoute_instance" {
     next_hop   = "st0.0"
     preference = 101
     metric     = 101
+    bfd_liveness_detection {
+      minimum_interval = 2000
+      multiplier       = 4
+      neighbor         = "192.0.2.253"
+    }
   }
   qualified_next_hop {
     next_hop   = "dsc.0"
@@ -33,6 +38,10 @@ resource "junos_static_route" "testacc_staticRoute_ipv6_default" {
     next_hop   = "st0.0"
     preference = 101
     metric     = 101
+    bfd_liveness_detection {
+      minimum_interval = 2000
+      neighbor         = "2001:db8:85a4::2"
+    }
   }
   qualified_next_hop {
     next_hop   = "dsc.0"
