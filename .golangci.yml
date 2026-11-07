@@ -62,7 +62,9 @@ linters:
           arguments: [ "allowNoDefault" ]
         - name: import-alias-naming
         - name: import-shadowing
+        - name: marshal-receiver
         - name: unhandled-error
+        - name: use-slices-concat
         - name: use-slices-sort
     staticcheck:
       checks:
