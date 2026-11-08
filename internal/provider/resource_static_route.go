@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/jeremmfr/terraform-provider-junos/internal/junos"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdata"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfdiag"
+	"github.com/jeremmfr/terraform-provider-junos/internal/tfplanmodifier"
 	"github.com/jeremmfr/terraform-provider-junos/internal/tfvalidator"
 	"github.com/jeremmfr/terraform-provider-junos/internal/utils"
 
@@ -296,6 +298,7 @@ func (rsc *staticRoute) Schema(
 			},
 		},
 		Blocks: map[string]schema.Block{
+			"bfd_liveness_detection": staticRouteBlockBfdLivenessDetection{}.schema(),
 			"qualified_next_hop": schema.ListNestedBlock{
 				Description: "For each `next_hop` with qualifiers.",
 				NestedObject: schema.NestedBlockObject{
@@ -334,6 +337,9 @@ func (rsc *staticRoute) Schema(
 							},
 						},
 					},
+					Blocks: map[string]schema.Block{
+						"bfd_liveness_detection": staticRouteBlockBfdLivenessDetection{}.schema(),
+					},
 				},
 			},
 		},
@@ -341,70 +347,213 @@ func (rsc *staticRoute) Schema(
 }
 
 type staticRouteData struct {
-	ID                       types.String                       `tfsdk:"id"`
-	Destination              types.String                       `tfsdk:"destination"`
-	RoutingInstance          types.String                       `tfsdk:"routing_instance"`
-	Active                   types.Bool                         `tfsdk:"active"`
-	ASPathAggregatorAddress  types.String                       `tfsdk:"as_path_aggregator_address"`
-	ASPathAggregatorASNumber types.String                       `tfsdk:"as_path_aggregator_as_number"`
-	ASPathAtomicAggregate    types.Bool                         `tfsdk:"as_path_atomic_aggregate"`
-	ASPathOrigin             types.String                       `tfsdk:"as_path_origin"`
-	ASPathPath               types.String                       `tfsdk:"as_path_path"`
-	Community                []types.String                     `tfsdk:"community"`
-	Discard                  types.Bool                         `tfsdk:"discard"`
-	Install                  types.Bool                         `tfsdk:"install"`
-	NoInstall                types.Bool                         `tfsdk:"no_install"`
-	Metric                   types.Int64                        `tfsdk:"metric"`
-	NextHop                  []types.String                     `tfsdk:"next_hop"`
-	NextTable                types.String                       `tfsdk:"next_table"`
-	Passive                  types.Bool                         `tfsdk:"passive"`
-	Preference               types.Int64                        `tfsdk:"preference"`
-	Readvertise              types.Bool                         `tfsdk:"readvertise"`
-	NoReadvertise            types.Bool                         `tfsdk:"no_readvertise"`
-	Receive                  types.Bool                         `tfsdk:"receive"`
-	Reject                   types.Bool                         `tfsdk:"reject"`
-	Resolve                  types.Bool                         `tfsdk:"resolve"`
-	NoResolve                types.Bool                         `tfsdk:"no_resolve"`
-	Retain                   types.Bool                         `tfsdk:"retain"`
-	NoRetain                 types.Bool                         `tfsdk:"no_retain"`
-	QualifiedNextHop         []staticRouteBlockQualifiedNextHop `tfsdk:"qualified_next_hop"`
+	ID                       types.String                          `tfsdk:"id"`
+	Destination              types.String                          `tfsdk:"destination"`
+	RoutingInstance          types.String                          `tfsdk:"routing_instance"`
+	Active                   types.Bool                            `tfsdk:"active"`
+	ASPathAggregatorAddress  types.String                          `tfsdk:"as_path_aggregator_address"`
+	ASPathAggregatorASNumber types.String                          `tfsdk:"as_path_aggregator_as_number"`
+	ASPathAtomicAggregate    types.Bool                            `tfsdk:"as_path_atomic_aggregate"`
+	ASPathOrigin             types.String                          `tfsdk:"as_path_origin"`
+	ASPathPath               types.String                          `tfsdk:"as_path_path"`
+	Community                []types.String                        `tfsdk:"community"`
+	Discard                  types.Bool                            `tfsdk:"discard"`
+	Install                  types.Bool                            `tfsdk:"install"`
+	NoInstall                types.Bool                            `tfsdk:"no_install"`
+	Metric                   types.Int64                           `tfsdk:"metric"`
+	NextHop                  []types.String                        `tfsdk:"next_hop"`
+	NextTable                types.String                          `tfsdk:"next_table"`
+	Passive                  types.Bool                            `tfsdk:"passive"`
+	Preference               types.Int64                           `tfsdk:"preference"`
+	Readvertise              types.Bool                            `tfsdk:"readvertise"`
+	NoReadvertise            types.Bool                            `tfsdk:"no_readvertise"`
+	Receive                  types.Bool                            `tfsdk:"receive"`
+	Reject                   types.Bool                            `tfsdk:"reject"`
+	Resolve                  types.Bool                            `tfsdk:"resolve"`
+	NoResolve                types.Bool                            `tfsdk:"no_resolve"`
+	Retain                   types.Bool                            `tfsdk:"retain"`
+	NoRetain                 types.Bool                            `tfsdk:"no_retain"`
+	BfdLivenessDetection     *staticRouteBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
+	QualifiedNextHop         []staticRouteBlockQualifiedNextHop    `tfsdk:"qualified_next_hop"`
 }
 
 type staticRouteConfig struct {
-	ID                       types.String `tfsdk:"id"`
-	Destination              types.String `tfsdk:"destination"`
-	RoutingInstance          types.String `tfsdk:"routing_instance"`
-	Active                   types.Bool   `tfsdk:"active"`
-	ASPathAggregatorAddress  types.String `tfsdk:"as_path_aggregator_address"`
-	ASPathAggregatorASNumber types.String `tfsdk:"as_path_aggregator_as_number"`
-	ASPathAtomicAggregate    types.Bool   `tfsdk:"as_path_atomic_aggregate"`
-	ASPathOrigin             types.String `tfsdk:"as_path_origin"`
-	ASPathPath               types.String `tfsdk:"as_path_path"`
-	Community                types.List   `tfsdk:"community"`
-	Discard                  types.Bool   `tfsdk:"discard"`
-	Install                  types.Bool   `tfsdk:"install"`
-	NoInstall                types.Bool   `tfsdk:"no_install"`
-	Metric                   types.Int64  `tfsdk:"metric"`
-	NextHop                  types.List   `tfsdk:"next_hop"`
-	NextTable                types.String `tfsdk:"next_table"`
-	Passive                  types.Bool   `tfsdk:"passive"`
-	Preference               types.Int64  `tfsdk:"preference"`
-	Readvertise              types.Bool   `tfsdk:"readvertise"`
-	NoReadvertise            types.Bool   `tfsdk:"no_readvertise"`
-	Receive                  types.Bool   `tfsdk:"receive"`
-	Reject                   types.Bool   `tfsdk:"reject"`
-	Resolve                  types.Bool   `tfsdk:"resolve"`
-	NoResolve                types.Bool   `tfsdk:"no_resolve"`
-	Retain                   types.Bool   `tfsdk:"retain"`
-	NoRetain                 types.Bool   `tfsdk:"no_retain"`
-	QualifiedNextHop         types.List   `tfsdk:"qualified_next_hop"`
+	ID                       types.String                          `tfsdk:"id"`
+	Destination              types.String                          `tfsdk:"destination"`
+	RoutingInstance          types.String                          `tfsdk:"routing_instance"`
+	Active                   types.Bool                            `tfsdk:"active"`
+	ASPathAggregatorAddress  types.String                          `tfsdk:"as_path_aggregator_address"`
+	ASPathAggregatorASNumber types.String                          `tfsdk:"as_path_aggregator_as_number"`
+	ASPathAtomicAggregate    types.Bool                            `tfsdk:"as_path_atomic_aggregate"`
+	ASPathOrigin             types.String                          `tfsdk:"as_path_origin"`
+	ASPathPath               types.String                          `tfsdk:"as_path_path"`
+	Community                types.List                            `tfsdk:"community"`
+	Discard                  types.Bool                            `tfsdk:"discard"`
+	Install                  types.Bool                            `tfsdk:"install"`
+	NoInstall                types.Bool                            `tfsdk:"no_install"`
+	Metric                   types.Int64                           `tfsdk:"metric"`
+	NextHop                  types.List                            `tfsdk:"next_hop"`
+	NextTable                types.String                          `tfsdk:"next_table"`
+	Passive                  types.Bool                            `tfsdk:"passive"`
+	Preference               types.Int64                           `tfsdk:"preference"`
+	Readvertise              types.Bool                            `tfsdk:"readvertise"`
+	NoReadvertise            types.Bool                            `tfsdk:"no_readvertise"`
+	Receive                  types.Bool                            `tfsdk:"receive"`
+	Reject                   types.Bool                            `tfsdk:"reject"`
+	Resolve                  types.Bool                            `tfsdk:"resolve"`
+	NoResolve                types.Bool                            `tfsdk:"no_resolve"`
+	Retain                   types.Bool                            `tfsdk:"retain"`
+	NoRetain                 types.Bool                            `tfsdk:"no_retain"`
+	BfdLivenessDetection     *staticRouteBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
+	QualifiedNextHop         types.List                            `tfsdk:"qualified_next_hop"`
 }
 
 type staticRouteBlockQualifiedNextHop struct {
-	NextHop    types.String `tfsdk:"next_hop"   tfdata:"identifier"`
-	Interface  types.String `tfsdk:"interface"`
-	Metric     types.Int64  `tfsdk:"metric"`
-	Preference types.Int64  `tfsdk:"preference"`
+	NextHop              types.String                          `tfsdk:"next_hop"               tfdata:"identifier"`
+	Interface            types.String                          `tfsdk:"interface"`
+	Metric               types.Int64                           `tfsdk:"metric"`
+	Preference           types.Int64                           `tfsdk:"preference"`
+	BfdLivenessDetection *staticRouteBlockBfdLivenessDetection `tfsdk:"bfd_liveness_detection"`
+}
+
+type staticRouteBlockBfdLivenessDetection struct {
+	AuthenticationAlgorithm         types.String `tfsdk:"authentication_algorithm"`
+	AuthenticationKeyChain          types.String `tfsdk:"authentication_key_chain"`
+	AuthenticationLooseCheck        types.Bool   `tfsdk:"authentication_loose_check"`
+	DetectionTimeThreshold          types.Int64  `tfsdk:"detection_time_threshold"`
+	HolddownInterval                types.Int64  `tfsdk:"holddown_interval"`
+	LocalAddress                    types.String `tfsdk:"local_address"`
+	MinimumInterval                 types.Int64  `tfsdk:"minimum_interval"`
+	MinimumReceiveInterval          types.Int64  `tfsdk:"minimum_receive_interval"`
+	MinimumReceiveTTL               types.Int64  `tfsdk:"minimum_receive_ttl"`
+	Multiplier                      types.Int64  `tfsdk:"multiplier"`
+	Neighbor                        types.String `tfsdk:"neighbor"`
+	NoAdaptation                    types.Bool   `tfsdk:"no_adaptation"`
+	TransmitIntervalMinimumInterval types.Int64  `tfsdk:"transmit_interval_minimum_interval"`
+	TransmitIntervalThreshold       types.Int64  `tfsdk:"transmit_interval_threshold"`
+	Version                         types.String `tfsdk:"version"`
+}
+
+func (staticRouteBlockBfdLivenessDetection) schema() schema.SingleNestedBlock {
+	return schema.SingleNestedBlock{
+		Description: "Define Bidirectional Forwarding Detection (BFD) options.",
+		Attributes: map[string]schema.Attribute{
+			"authentication_algorithm": schema.StringAttribute{
+				Optional:    true,
+				Description: "Authentication algorithm name.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				},
+			},
+			"authentication_key_chain": schema.StringAttribute{
+				Optional:    true,
+				Description: "Authentication key chain name.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 128),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+			"authentication_loose_check": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Verify authentication only if authentication is negotiated.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"detection_time_threshold": schema.Int64Attribute{
+				Optional:    true,
+				Description: "High detection-time triggering a trap (milliseconds).",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 4294967295),
+				},
+			},
+			"holddown_interval": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Time to hold the session-UP notification to the client (milliseconds).",
+				Validators: []validator.Int64{
+					int64validator.Between(0, 255000),
+				},
+			},
+			"local_address": schema.StringAttribute{
+				Optional:    true,
+				Description: "BFD local address.",
+				Validators: []validator.String{
+					tfvalidator.StringIPAddress(),
+				},
+			},
+			"minimum_interval": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Minimum transmit and receive interval (milliseconds).",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 255000),
+				},
+			},
+			"minimum_receive_interval": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Minimum receive interval (milliseconds).",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 255000),
+				},
+			},
+			"minimum_receive_ttl": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Minimum receive TTL below which to drop.",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 255),
+				},
+			},
+			"multiplier": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Detection time multiplier.",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 255),
+				},
+			},
+			"neighbor": schema.StringAttribute{
+				Optional:    true,
+				Description: "BFD neighbor address.",
+				Validators: []validator.String{
+					tfvalidator.StringIPAddress(),
+				},
+			},
+			"no_adaptation": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Disable adaptation.",
+				Validators: []validator.Bool{
+					tfvalidator.BoolTrue(),
+				},
+			},
+			"transmit_interval_minimum_interval": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Minimum transmit interval (milliseconds).",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 255000),
+				},
+			},
+			"transmit_interval_threshold": schema.Int64Attribute{
+				Optional:    true,
+				Description: "High transmit interval triggering a trap (milliseconds).",
+				Validators: []validator.Int64{
+					int64validator.Between(1, 4294967295),
+				},
+			},
+			"version": schema.StringAttribute{
+				Optional:    true,
+				Description: "BFD protocol version number.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("0", "1", "automatic"),
+				},
+			},
+		},
+		PlanModifiers: []planmodifier.Object{
+			tfplanmodifier.BlockRemoveNull(),
+		},
+	}
+}
+
+func (block *staticRouteBlockBfdLivenessDetection) isEmpty() bool {
+	return tfdata.CheckBlockIsEmpty(block)
 }
 
 func (rsc *staticRoute) ValidateConfig(
@@ -595,6 +744,13 @@ func (rsc *staticRoute) ValidateConfig(
 			"retain and no_retain cannot be configured together",
 		)
 	}
+	if config.BfdLivenessDetection != nil && config.BfdLivenessDetection.isEmpty() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("bfd_liveness_detection").AtName("*"),
+			tfdiag.MissingConfigErrSummary,
+			"bfd_liveness_detection block is empty",
+		)
+	}
 	if !config.QualifiedNextHop.IsNull() && !config.QualifiedNextHop.IsUnknown() {
 		var configQualifiedNextHop []staticRouteBlockQualifiedNextHop
 		asDiags := config.QualifiedNextHop.ElementsAs(ctx, &configQualifiedNextHop, false)
@@ -605,6 +761,14 @@ func (rsc *staticRoute) ValidateConfig(
 		}
 		qualifiedNextHopNextHop := make(map[string]struct{})
 		for i, block := range configQualifiedNextHop {
+			if block.BfdLivenessDetection != nil && block.BfdLivenessDetection.isEmpty() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("qualified_next_hop").AtListIndex(i).AtName("bfd_liveness_detection").AtName("*"),
+					tfdiag.MissingConfigErrSummary,
+					fmt.Sprintf("bfd_liveness_detection block is empty"+
+						" in qualified_next_hop block %q", block.NextHop.ValueString()),
+				)
+			}
 			if block.NextHop.IsUnknown() {
 				continue
 			}
@@ -932,6 +1096,15 @@ func (rscData *staticRouteData) set(
 			configSet = append(configSet, setPrefixQualifiedNextHop+"preference "+
 				utils.ConvI64toa(block.Preference.ValueInt64()))
 		}
+		if block.BfdLivenessDetection != nil {
+			if block.BfdLivenessDetection.isEmpty() {
+				return path.Root("qualified_next_hop").AtListIndex(i).AtName("bfd_liveness_detection").AtName("*"),
+					fmt.Errorf("bfd_liveness_detection block is empty"+
+						" in qualified_next_hop block %q", nextHop)
+			}
+
+			configSet = append(configSet, block.BfdLivenessDetection.configSet(setPrefixQualifiedNextHop)...)
+		}
 	}
 	if rscData.Readvertise.ValueBool() {
 		configSet = append(configSet, setPrefix+"readvertise")
@@ -956,6 +1129,14 @@ func (rscData *staticRouteData) set(
 	}
 	if rscData.NoRetain.ValueBool() {
 		configSet = append(configSet, setPrefix+"no-retain")
+	}
+	if rscData.BfdLivenessDetection != nil {
+		if rscData.BfdLivenessDetection.isEmpty() {
+			return path.Root("bfd_liveness_detection").AtName("*"),
+				errors.New("bfd_liveness_detection block is empty")
+		}
+
+		configSet = append(configSet, rscData.BfdLivenessDetection.configSet(setPrefix)...)
 	}
 
 	return path.Empty(), junSess.ConfigSet(ctx, configSet)
@@ -1014,6 +1195,13 @@ func (rscData *staticRouteData) read(
 				rscData.ASPathOrigin = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "as-path path "):
 				rscData.ASPathPath = types.StringValue(strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
+				if rscData.BfdLivenessDetection == nil {
+					rscData.BfdLivenessDetection = &staticRouteBlockBfdLivenessDetection{}
+				}
+				if err := rscData.BfdLivenessDetection.read(itemTrim); err != nil {
+					return err
+				}
 			case balt.CutPrefixInString(&itemTrim, "community "):
 				rscData.Community = append(rscData.Community, types.StringValue(strings.Trim(itemTrim, "\"")))
 			case itemTrim == junos.DiscardW:
@@ -1057,6 +1245,13 @@ func (rscData *staticRouteData) read(
 						if err != nil {
 							return err
 						}
+					case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
+						if qualifiedNextHop.BfdLivenessDetection == nil {
+							qualifiedNextHop.BfdLivenessDetection = &staticRouteBlockBfdLivenessDetection{}
+						}
+						if err := qualifiedNextHop.BfdLivenessDetection.read(itemTrim); err != nil {
+							return err
+						}
 					}
 				}
 			case itemTrim == "readvertise":
@@ -1077,6 +1272,128 @@ func (rscData *staticRouteData) read(
 				rscData.NoRetain = types.BoolValue(true)
 			}
 		}
+	}
+
+	return nil
+}
+
+func (block *staticRouteBlockBfdLivenessDetection) configSet(setPrefix string) []string {
+	configSet := make([]string, 0, 100)
+	setPrefix += "bfd-liveness-detection "
+
+	if v := block.AuthenticationAlgorithm.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication algorithm "+v)
+	}
+	if v := block.AuthenticationKeyChain.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"authentication key-chain \""+v+"\"")
+	}
+	if block.AuthenticationLooseCheck.ValueBool() {
+		configSet = append(configSet, setPrefix+"authentication loose-check")
+	}
+	if !block.DetectionTimeThreshold.IsNull() {
+		configSet = append(configSet, setPrefix+"detection-time threshold "+
+			utils.ConvI64toa(block.DetectionTimeThreshold.ValueInt64()))
+	}
+	if !block.HolddownInterval.IsNull() {
+		configSet = append(configSet, setPrefix+"holddown-interval "+
+			utils.ConvI64toa(block.HolddownInterval.ValueInt64()))
+	}
+	if v := block.LocalAddress.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"local-address "+v)
+	}
+	if !block.MinimumInterval.IsNull() {
+		configSet = append(configSet, setPrefix+"minimum-interval "+
+			utils.ConvI64toa(block.MinimumInterval.ValueInt64()))
+	}
+	if !block.MinimumReceiveInterval.IsNull() {
+		configSet = append(configSet, setPrefix+"minimum-receive-interval "+
+			utils.ConvI64toa(block.MinimumReceiveInterval.ValueInt64()))
+	}
+	if !block.MinimumReceiveTTL.IsNull() {
+		configSet = append(configSet, setPrefix+"minimum-receive-ttl "+
+			utils.ConvI64toa(block.MinimumReceiveTTL.ValueInt64()))
+	}
+	if !block.Multiplier.IsNull() {
+		configSet = append(configSet, setPrefix+"multiplier "+
+			utils.ConvI64toa(block.Multiplier.ValueInt64()))
+	}
+	if v := block.Neighbor.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"neighbor "+v)
+	}
+	if block.NoAdaptation.ValueBool() {
+		configSet = append(configSet, setPrefix+"no-adaptation")
+	}
+	if !block.TransmitIntervalMinimumInterval.IsNull() {
+		configSet = append(configSet, setPrefix+"transmit-interval minimum-interval "+
+			utils.ConvI64toa(block.TransmitIntervalMinimumInterval.ValueInt64()))
+	}
+	if !block.TransmitIntervalThreshold.IsNull() {
+		configSet = append(configSet, setPrefix+"transmit-interval threshold "+
+			utils.ConvI64toa(block.TransmitIntervalThreshold.ValueInt64()))
+	}
+	if v := block.Version.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"version "+v)
+	}
+
+	return configSet
+}
+
+func (block *staticRouteBlockBfdLivenessDetection) read(itemTrim string) (err error) {
+	switch {
+	case balt.CutPrefixInString(&itemTrim, "authentication algorithm "):
+		block.AuthenticationAlgorithm = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "authentication key-chain "):
+		block.AuthenticationKeyChain = types.StringValue(strings.Trim(itemTrim, "\""))
+	case itemTrim == "authentication loose-check":
+		block.AuthenticationLooseCheck = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
+		block.DetectionTimeThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
+		block.HolddownInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "local-address "):
+		block.LocalAddress = types.StringValue(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
+		block.MinimumInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
+		block.MinimumReceiveInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "minimum-receive-ttl "):
+		block.MinimumReceiveTTL, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "multiplier "):
+		block.Multiplier, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "neighbor "):
+		block.Neighbor = types.StringValue(itemTrim)
+	case itemTrim == "no-adaptation":
+		block.NoAdaptation = types.BoolValue(true)
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
+		block.TransmitIntervalMinimumInterval, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
+		block.TransmitIntervalThreshold, err = tfdata.ConvAtoi64Value(itemTrim)
+		if err != nil {
+			return err
+		}
+	case balt.CutPrefixInString(&itemTrim, "version "):
+		block.Version = types.StringValue(itemTrim)
 	}
 
 	return nil
