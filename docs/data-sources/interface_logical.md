@@ -72,6 +72,8 @@ The following attributes are exported:
     Sample all packets input on this interface.
   - **sampling_output** (Boolean)  
     Sample all packets output on this interface.
+  - **tcp_mss** (Number)  
+    TCP MSS value for SYN packets with a higher MSS value set.
 - **family_inet6** (Block)  
   Family inet6 enabled and possible configuration.
   - **address** (Block List)  
@@ -99,6 +101,8 @@ The following attributes are exported:
     Sample all packets input on this interface.
   - **sampling_output** (Boolean)  
     Sample all packets output on this interface.
+  - **tcp_mss** (Number)  
+    TCP MSS value for SYN packets with a higher MSS value set.
 - **proxy_macip_advertisement** (Boolean)  
   Proxy advertisement of type 2 MAC+IP route for EVPN.
 - **routing_instance** (String)  

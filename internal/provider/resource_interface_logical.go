@@ -294,6 +294,13 @@ func (rsc *interfaceLogical) Schema(
 							tfvalidator.BoolTrue(),
 						},
 					},
+					"tcp_mss": schema.Int64Attribute{
+						Optional:    true,
+						Description: "TCP MSS value for SYN packets with a higher MSS value set.",
+						Validators: []validator.Int64{
+							int64validator.Between(64, 65535),
+						},
+					},
 				},
 				Blocks: map[string]schema.Block{
 					"address": schema.ListNestedBlock{
@@ -750,6 +757,13 @@ func (rsc *interfaceLogical) Schema(
 							tfvalidator.BoolTrue(),
 						},
 					},
+					"tcp_mss": schema.Int64Attribute{
+						Optional:    true,
+						Description: "TCP MSS value for SYN packets with a higher MSS value set.",
+						Validators: []validator.Int64{
+							int64validator.Between(64, 65535),
+						},
+					},
 				},
 				Blocks: map[string]schema.Block{
 					"address": schema.ListNestedBlock{
@@ -1197,6 +1211,7 @@ type interfaceLogicalBlockFamilyInet struct {
 	Mtu              types.Int64                                   `tfsdk:"mtu"`
 	SamplingInput    types.Bool                                    `tfsdk:"sampling_input"`
 	SamplingOutput   types.Bool                                    `tfsdk:"sampling_output"`
+	TCPMss           types.Int64                                   `tfsdk:"tcp_mss"`
 	Address          []interfaceLogicalBlockFamilyInetBlockAddress `tfsdk:"address"`
 	DHCP             *interfaceLogicalBlockFamilyInetBlockDhcp     `tfsdk:"dhcp"`
 	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck     `tfsdk:"rpf_check"`
@@ -1210,6 +1225,7 @@ type interfaceLogicalBlockFamilyInetConfig struct {
 	Mtu              types.Int64                               `tfsdk:"mtu"`
 	SamplingInput    types.Bool                                `tfsdk:"sampling_input"`
 	SamplingOutput   types.Bool                                `tfsdk:"sampling_output"`
+	TCPMss           types.Int64                               `tfsdk:"tcp_mss"`
 	Address          types.List                                `tfsdk:"address"`
 	DHCP             *interfaceLogicalBlockFamilyInetBlockDhcp `tfsdk:"dhcp"`
 	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck `tfsdk:"rpf_check"`
@@ -1320,6 +1336,7 @@ type interfaceLogicalBlockFamilyInet6 struct {
 	Mtu              types.Int64                                        `tfsdk:"mtu"`
 	SamplingInput    types.Bool                                         `tfsdk:"sampling_input"`
 	SamplingOutput   types.Bool                                         `tfsdk:"sampling_output"`
+	TCPMss           types.Int64                                        `tfsdk:"tcp_mss"`
 	Address          []interfaceLogicalBlockFamilyInet6BlockAddress     `tfsdk:"address"`
 	DHCPv6Client     *interfaceLogicalBlockFamilyInet6BlockDhcpV6Client `tfsdk:"dhcpv6_client"`
 	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck          `tfsdk:"rpf_check"`
@@ -1334,6 +1351,7 @@ type interfaceLogicalBlockFamilyInet6Config struct {
 	Mtu              types.Int64                                              `tfsdk:"mtu"`
 	SamplingInput    types.Bool                                               `tfsdk:"sampling_input"`
 	SamplingOutput   types.Bool                                               `tfsdk:"sampling_output"`
+	TCPMss           types.Int64                                              `tfsdk:"tcp_mss"`
 	Address          types.List                                               `tfsdk:"address"`
 	DHCPv6Client     *interfaceLogicalBlockFamilyInet6BlockDhcpV6ClientConfig `tfsdk:"dhcpv6_client"`
 	RPFCheck         *interfaceLogicalBlockFamilyBlockRPFCheck                `tfsdk:"rpf_check"`
@@ -2774,6 +2792,10 @@ func (rscData *interfaceLogicalData) set(
 		if rscData.FamilyInet.SamplingOutput.ValueBool() {
 			configSet = append(configSet, setPrefix+"family inet sampling output")
 		}
+		if !rscData.FamilyInet.TCPMss.IsNull() {
+			configSet = append(configSet, setPrefix+"family inet tcp-mss "+
+				utils.ConvI64toa(rscData.FamilyInet.TCPMss.ValueInt64()))
+		}
 	}
 	if rscData.FamilyInet6 != nil {
 		configSet = append(configSet, setPrefix+"family inet6")
@@ -2831,6 +2853,10 @@ func (rscData *interfaceLogicalData) set(
 		}
 		if rscData.FamilyInet6.SamplingOutput.ValueBool() {
 			configSet = append(configSet, setPrefix+"family inet6 sampling output")
+		}
+		if !rscData.FamilyInet6.TCPMss.IsNull() {
+			configSet = append(configSet, setPrefix+"family inet6 tcp-mss "+
+				utils.ConvI64toa(rscData.FamilyInet6.TCPMss.ValueInt64()))
 		}
 	}
 	if rscData.Tunnel != nil {
@@ -3328,6 +3354,11 @@ func (rscData *interfaceLogicalData) read(
 					rscData.FamilyInet6.SamplingInput = types.BoolValue(true)
 				case itemTrim == " sampling output":
 					rscData.FamilyInet6.SamplingOutput = types.BoolValue(true)
+				case balt.CutPrefixInString(&itemTrim, " tcp-mss "):
+					rscData.FamilyInet6.TCPMss, err = tfdata.ConvAtoi64Value(itemTrim)
+					if err != nil {
+						return err
+					}
 				}
 			case balt.CutPrefixInString(&itemTrim, "family inet"):
 				if rscData.FamilyInet == nil {
@@ -3385,6 +3416,11 @@ func (rscData *interfaceLogicalData) read(
 					rscData.FamilyInet.SamplingInput = types.BoolValue(true)
 				case itemTrim == " sampling output":
 					rscData.FamilyInet.SamplingOutput = types.BoolValue(true)
+				case balt.CutPrefixInString(&itemTrim, " tcp-mss "):
+					rscData.FamilyInet.TCPMss, err = tfdata.ConvAtoi64Value(itemTrim)
+					if err != nil {
+						return err
+					}
 				}
 			case itemTrim == "proxy-macip-advertisement":
 				rscData.ProxyMacipAdvertisement = types.BoolValue(true)

@@ -40,6 +40,7 @@ resource "junos_interface_logical" "testacc_interface_logical" {
     mtu           = 1400
     filter_input  = junos_firewall_filter.testacc_intlogicalInet.name
     filter_output = junos_firewall_filter.testacc_intlogicalInet.name
+    tcp_mss       = 1300
     rpf_check {}
     address {
       cidr_ip = "192.0.2.1/25"
@@ -70,6 +71,7 @@ resource "junos_interface_logical" "testacc_interface_logical" {
     mtu           = 1400
     filter_input  = junos_firewall_filter.testacc_intlogicalInet6.name
     filter_output = junos_firewall_filter.testacc_intlogicalInet6.name
+    tcp_mss       = 1300
     address {
       cidr_ip = "2001:db8::1/64"
       vrrp_group {
