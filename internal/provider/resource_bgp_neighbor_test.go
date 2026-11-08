@@ -117,6 +117,8 @@ func TestAccResourceBgpNeighbor_basic(t *testing.T) {
 							"family_inet6.#", "2"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"graceful_restart.disable", "true"),
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+							"shutdown.notify_message", "testacc bgpneighbor shutdown"),
 					),
 				},
 				{
@@ -153,6 +155,8 @@ func TestAccResourceBgpNeighbor_basic(t *testing.T) {
 							"graceful_restart.restart_time", "10"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"graceful_restart.stale_route_time", "10"),
+						resource.TestCheckResourceAttrSet("junos_bgp_neighbor.testacc_bgpneighbor",
+							"shutdown.%"),
 					),
 				},
 				{
