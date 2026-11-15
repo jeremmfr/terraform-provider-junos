@@ -38,6 +38,8 @@ The following arguments are supported:
   Matching string(s) for lines to be logged.
 - **port** (Optional, Number)  
   Port number.
+- **routing_instance** (Optional, String)  
+  Routing instance through which host is reachable.
 - **source_address** (Optional, String)  
   Use specified address as source address.
 - **structured_data** (Optional, Block)  
