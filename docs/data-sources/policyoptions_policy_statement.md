@@ -215,6 +215,8 @@ The following attributes are exported:
     Action on BGP community.
   - **value** (String)  
     Name to identify a BGP community.
+- **damping** (String)  
+  Define BGP route flap damping parameters.
 - **default_action** (String)  
   Set default policy action.
 - **load_balance** (String)  

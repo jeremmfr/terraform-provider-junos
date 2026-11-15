@@ -1035,6 +1035,7 @@ type policyoptionsPolicyStatementBlockThen struct {
 	Action          types.String                                                `tfsdk:"action"`
 	ASPathExpand    types.String                                                `tfsdk:"as_path_expand"`
 	ASPathPrepend   types.String                                                `tfsdk:"as_path_prepend"`
+	Damping         types.String                                                `tfsdk:"damping"`
 	DefaultAction   types.String                                                `tfsdk:"default_action"`
 	LoadBalance     types.String                                                `tfsdk:"load_balance"`
 	Next            types.String                                                `tfsdk:"next"`
@@ -1068,6 +1069,14 @@ func (policyoptionsPolicyStatementBlockThen) attributesSchema() map[string]schem
 			Description: "Prepend AS numbers to an AS path.",
 			Validators: []validator.String{
 				stringvalidator.LengthAtLeast(1),
+				tfvalidator.StringDoubleQuoteExclusion(),
+			},
+		},
+		"damping": schema.StringAttribute{
+			Optional:    true,
+			Description: "Define BGP route flap damping parameters.",
+			Validators: []validator.String{
+				stringvalidator.LengthBetween(1, 250),
 				tfvalidator.StringDoubleQuoteExclusion(),
 			},
 		},
@@ -1220,6 +1229,7 @@ type policyoptionsPolicyStatementBlockThenConfig struct {
 	Action          types.String                                                `tfsdk:"action"`
 	ASPathExpand    types.String                                                `tfsdk:"as_path_expand"`
 	ASPathPrepend   types.String                                                `tfsdk:"as_path_prepend"`
+	Damping         types.String                                                `tfsdk:"damping"`
 	DefaultAction   types.String                                                `tfsdk:"default_action"`
 	LoadBalance     types.String                                                `tfsdk:"load_balance"`
 	Next            types.String                                                `tfsdk:"next"`
@@ -2249,6 +2259,9 @@ func (block *policyoptionsPolicyStatementBlockThen) configSet(
 		configSet = append(configSet, setPrefix+
 			"community "+v.Action.ValueString()+" \""+v.Value.ValueString()+"\"")
 	}
+	if v := block.Damping.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"damping \""+v+"\"")
+	}
 	if v := block.DefaultAction.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"default-action "+v)
 	}
@@ -2636,6 +2649,8 @@ func (block *policyoptionsPolicyStatementBlockThen) read(itemTrim string) (err e
 			Action: types.StringValue(itemTrimFields[0]),
 			Value:  types.StringValue(strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "), "\"")),
 		})
+	case balt.CutPrefixInString(&itemTrim, "damping "):
+		block.Damping = types.StringValue(strings.Trim(itemTrim, "\""))
 	case balt.CutPrefixInString(&itemTrim, "default-action "):
 		block.DefaultAction = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "load-balance "):

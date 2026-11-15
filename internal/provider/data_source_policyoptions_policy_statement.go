@@ -476,6 +476,10 @@ func policyoptionsPolicyStatementDscBlockThenAttributesSchema() map[string]schem
 			Computed:    true,
 			Description: "Prepend AS numbers to an AS path.",
 		},
+		"damping": schema.StringAttribute{
+			Computed:    true,
+			Description: "Define BGP route flap damping parameters.",
+		},
 		"default_action": schema.StringAttribute{
 			Computed:    true,
 			Description: "Set default policy action.",

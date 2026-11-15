@@ -256,6 +256,8 @@ The following arguments are supported:
     Need to be `add`, `delete` or `set`.
   - **value** (Required, String)  
     Name to identify a BGP community.
+- **damping** (Optional, String)  
+  Define BGP route flap damping parameters.
 - **default_action** (Optional, String)  
   Set default policy action.  
   Need to be `accept` or `reject`.
