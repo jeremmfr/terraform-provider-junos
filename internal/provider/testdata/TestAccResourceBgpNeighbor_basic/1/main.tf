@@ -120,4 +120,7 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor" {
   graceful_restart {
     disable = true
   }
+  shutdown {
+    notify_message = "testacc bgpneighbor shutdown"
+  }
 }

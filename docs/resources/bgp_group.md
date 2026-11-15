@@ -184,6 +184,10 @@ The following arguments are supported:
   Preference value.
 - **remove_private** (Optional, Boolean)  
   Remove well-known private AS numbers.
+- **shutdown** (Optional, Block)  
+  Enable BGP administrative shutdown.
+  - **notify_message** (Optional, String)  
+    Notification message.
 - **tcp_aggressive_transmission** (Optional, Boolean)  
   Enable aggressive transmission of pure TCP ACKs and retransmissions
 - **vpn_apply_export** (Optional, Boolean)  

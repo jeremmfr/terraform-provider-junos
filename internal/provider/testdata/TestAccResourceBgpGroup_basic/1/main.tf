@@ -115,4 +115,7 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
   graceful_restart {
     disable = true
   }
+  shutdown {
+    notify_message = "testacc bgpgroup shutdown"
+  }
 }

@@ -37,4 +37,5 @@ resource "junos_bgp_neighbor" "testacc_bgpneighbor" {
   }
   tcp_aggressive_transmission = true
   bgp_error_tolerance {}
+  shutdown {}
 }

@@ -678,3 +678,45 @@ func (block *bgpBlockGracefulRestart) read(itemTrim string) (err error) {
 
 	return nil
 }
+
+type bgpBlockShutdown struct {
+	NotifyMessage types.String `tfsdk:"notify_message"`
+}
+
+func (bgpBlockShutdown) schema() schema.SingleNestedBlock {
+	return schema.SingleNestedBlock{
+		Description: "Enable BGP administrative shutdown.",
+		Attributes: map[string]schema.Attribute{
+			"notify_message": schema.StringAttribute{
+				Optional:    true,
+				Description: "Notification message.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					tfvalidator.StringDoubleQuoteExclusion(),
+				},
+			},
+		},
+		PlanModifiers: []planmodifier.Object{
+			tfplanmodifier.BlockRemoveNull(),
+		},
+	}
+}
+
+func (block *bgpBlockShutdown) configSet(setPrefix string) []string {
+	setPrefix += "shutdown"
+
+	configSet := make([]string, 1, 100)
+	configSet[0] = setPrefix
+
+	if v := block.NotifyMessage.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+" notify-message \""+v+"\"")
+	}
+
+	return configSet
+}
+
+func (block *bgpBlockShutdown) read(itemTrim string) {
+	if balt.CutPrefixInString(&itemTrim, "notify-message ") {
+		block.NotifyMessage = types.StringValue(strings.Trim(itemTrim, "\""))
+	}
+}

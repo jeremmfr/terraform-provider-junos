@@ -31,4 +31,5 @@ resource "junos_bgp_group" "testacc_bgpgroup" {
   }
   tcp_aggressive_transmission = true
   bgp_error_tolerance {}
+  shutdown {}
 }

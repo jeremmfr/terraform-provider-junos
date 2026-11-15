@@ -79,6 +79,7 @@ type bgpAttrData struct {
 	FamilyInet                   []bgpBlockFamily              `tfsdk:"family_inet"`
 	FamilyInet6                  []bgpBlockFamily              `tfsdk:"family_inet6"`
 	GracefulRestart              *bgpBlockGracefulRestart      `tfsdk:"graceful_restart"`
+	Shutdown                     *bgpBlockShutdown             `tfsdk:"shutdown"`
 }
 
 func (bgpAttrData) attributesSchema() map[string]schema.Attribute {
@@ -442,6 +443,7 @@ func (bgpAttrData) blocksSchema() map[string]schema.Block {
 		"family_inet":            bgpBlockFamily{}.schema("IPv4"),
 		"family_inet6":           bgpBlockFamily{}.schema("IPv6"),
 		"graceful_restart":       bgpBlockGracefulRestart{}.schema(),
+		"shutdown":               bgpBlockShutdown{}.schema(),
 	}
 }
 
@@ -669,6 +671,9 @@ func (rscData *bgpAttrData) configSet(setPrefix string) ([]string, path.Path, er
 	if rscData.GracefulRestart != nil {
 		configSet = append(configSet, rscData.GracefulRestart.configSet(setPrefix)...)
 	}
+	if rscData.Shutdown != nil {
+		configSet = append(configSet, rscData.Shutdown.configSet(setPrefix)...)
+	}
 
 	return configSet, path.Empty(), nil
 }
@@ -856,6 +861,13 @@ func (rscData *bgpAttrData) read(
 		if err := rscData.GracefulRestart.read(itemTrim); err != nil {
 			return err
 		}
+	case balt.CutPrefixInString(&itemTrim, "shutdown"):
+		if rscData.Shutdown == nil {
+			rscData.Shutdown = &bgpBlockShutdown{}
+		}
+		if balt.CutPrefixInString(&itemTrim, " ") {
+			rscData.Shutdown.read(itemTrim)
+		}
 	}
 
 	return nil
@@ -902,6 +914,7 @@ func (rscData bgpAttrData) configOptsToDel(delPrefix string) []string {
 		delPrefix + "family inet",
 		delPrefix + "family inet6",
 		delPrefix + "graceful-restart",
+		delPrefix + "shutdown",
 	}
 }
 
@@ -958,6 +971,7 @@ type bgpAttrConfig struct {
 	FamilyInet                   types.List                    `tfsdk:"family_inet"`
 	FamilyInet6                  types.List                    `tfsdk:"family_inet6"`
 	GracefulRestart              *bgpBlockGracefulRestart      `tfsdk:"graceful_restart"`
+	Shutdown                     *bgpBlockShutdown             `tfsdk:"shutdown"`
 }
 
 //nolint:gocognit,gocyclo
