@@ -142,6 +142,7 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
       action = "add"
       value  = junos_policyoptions_community.testacc_policyOptions.name
     }
+    damping        = junos_policyoptions_damping.testacc_policyOptions.name
     default_action = "reject"
     load_balance   = "per-packet"
     local_preference {
@@ -240,6 +241,7 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
         action = "add"
         value  = junos_policyoptions_community.testacc_policyOptions.name
       }
+      damping        = junos_policyoptions_damping.testacc_policyOptions2.name
       default_action = "reject"
       load_balance   = "per-packet"
       local_preference {
