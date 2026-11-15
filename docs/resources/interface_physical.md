@@ -136,7 +136,9 @@ The following arguments are supported:
 - **mode** (Required, String)  
   ESI Mode.
 - **auto_derive_lacp** (Optional, Boolean)  
-  Auto-derive ESI value for the interface.
+  Auto-derive ESI value for the interface.  
+  Set `auto-derive lacp` (displayed as `auto-derive lacp-pe-system-id-and-admin-key`
+  since Junos 22.2R1).
 - **df_election_type** (Optional, String)  
   DF Election Type.
 - **identifier** (Optional, String)  

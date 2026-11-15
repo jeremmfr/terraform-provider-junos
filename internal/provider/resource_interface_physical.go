@@ -2291,7 +2291,8 @@ func (block *interfacePhysicalBlockESI) read(itemTrim string) error {
 		block.DFElectionType = types.StringValue(itemTrim)
 	case balt.CutPrefixInString(&itemTrim, "source-bmac "):
 		block.SourceBMAC = types.StringValue(itemTrim)
-	case itemTrim == "auto-derive lacp":
+	case itemTrim == "auto-derive lacp",
+		itemTrim == "auto-derive lacp-pe-system-id-and-admin-key":
 		block.AutoDeriveLACP = types.BoolValue(true)
 	}
 
