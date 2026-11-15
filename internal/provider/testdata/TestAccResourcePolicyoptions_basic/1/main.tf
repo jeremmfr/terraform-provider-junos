@@ -16,6 +16,17 @@ resource "junos_policyoptions_community" "testacc_policyOptions" {
   name    = "testacc_policyOptions"
   members = ["65000:100"]
 }
+resource "junos_policyoptions_damping" "testacc_policyOptions" {
+  name         = "testacc_policyOptions"
+  half_life    = 15
+  max_suppress = 60
+  reuse        = 750
+  suppress     = 3000
+}
+resource "junos_policyoptions_damping" "testacc_policyOptions2" {
+  name    = "testacc policyOptions2"
+  disable = true
+}
 resource "junos_policyoptions_prefix_list" "testacc_policyOptions" {
   name   = "testacc_policyOptions"
   prefix = ["192.0.2.0/25"]

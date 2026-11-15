@@ -22,6 +22,18 @@ resource "junos_policyoptions_community" "testacc_policyOptions2" {
   name       = "testacc policyOptions2"
   dynamic_db = true
 }
+resource "junos_policyoptions_damping" "testacc_policyOptions" {
+  name         = "testacc_policyOptions"
+  half_life    = 20
+  max_suppress = 80
+  reuse        = 1000
+  suppress     = 4000
+}
+resource "junos_policyoptions_damping" "testacc_policyOptions2" {
+  name         = "testacc policyOptions2"
+  half_life    = 10
+  max_suppress = 30
+}
 resource "junos_policyoptions_prefix_list" "testacc_policyOptions" {
   name   = "testacc_policyOptions"
   prefix = ["192.0.2.0/26", "192.0.2.64/26"]
