@@ -36,6 +36,8 @@ func TestAccResourceSystemSyslogHost_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
 						"source_address", "192.0.2.2"),
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
+						"routing_instance", "testacc_syslogHost"),
+					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
 						"allow_duplicates", "true"),
 					resource.TestCheckResourceAttr("junos_system_syslog_host.testacc_syslogHost",
 						"exclude_hostname", "true"),

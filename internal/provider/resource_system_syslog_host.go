@@ -163,6 +163,14 @@ func (rsc *systemSyslogHost) Schema(
 					int64validator.Between(1, 65535),
 				},
 			},
+			"routing_instance": schema.StringAttribute{
+				Optional:    true,
+				Description: "Routing instance through which host is reachable.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 63),
+					tfvalidator.StringFormat(tfvalidator.DefaultFormat),
+				},
+			},
 			"source_address": schema.StringAttribute{
 				Optional:    true,
 				Description: "Use specified address as source address.",
@@ -307,6 +315,7 @@ type systemSyslogHostData struct {
 	Match                       types.String                         `tfsdk:"match"`
 	MatchStrings                []types.String                       `tfsdk:"match_strings"`
 	Port                        types.Int64                          `tfsdk:"port"`
+	RoutingInstance             types.String                         `tfsdk:"routing_instance"`
 	SourceAddress               types.String                         `tfsdk:"source_address"`
 	AnySeverity                 types.String                         `tfsdk:"any_severity"`
 	AuthorizationSeverity       types.String                         `tfsdk:"authorization_severity"`
@@ -524,6 +533,9 @@ func (rscData *systemSyslogHostData) set(
 		configSet = append(configSet, setPrefix+"port "+
 			utils.ConvI64toa(rscData.Port.ValueInt64()))
 	}
+	if v := rscData.RoutingInstance.ValueString(); v != "" {
+		configSet = append(configSet, setPrefix+"routing-instance "+v)
+	}
 	if v := rscData.SourceAddress.ValueString(); v != "" {
 		configSet = append(configSet, setPrefix+"source-address "+v)
 	}
@@ -622,6 +634,8 @@ func (rscData *systemSyslogHostData) read(
 				if err != nil {
 					return err
 				}
+			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+				rscData.RoutingInstance = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "source-address "):
 				rscData.SourceAddress = types.StringValue(itemTrim)
 			case balt.CutPrefixInString(&itemTrim, "any "):

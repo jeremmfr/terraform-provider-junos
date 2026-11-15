@@ -1,6 +1,10 @@
+resource "junos_routing_instance" "testacc_syslogHost" {
+  name = "testacc_syslogHost"
+}
 resource "junos_system_syslog_host" "testacc_syslogHost" {
   host                         = "192.0.2.1"
   port                         = 514
+  routing_instance             = junos_routing_instance.testacc_syslogHost.name
   allow_duplicates             = true
   exclude_hostname             = true
   explicit_priority            = true
